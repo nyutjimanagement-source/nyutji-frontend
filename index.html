@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyutji Laundry | Layanan Cuci Retro Premium</title>
+    <!-- Google Fonts: Pacifico (Retro Heading) & Josefin Sans (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="navbar neo-brutal window">
+        <div class="logo">
+            <img src="1775186464252.png" alt="Logo Nyutji" class="logo-img">
+            <h1>Ny Utji</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#beranda">Beranda</a></li>
+            <li><a href="#pesan">Pesan</a></li>
+            <li><a href="#dompet">Dompet</a></li>
+        </ul>
+        <button class="btn-primary" onclick="alert('Login Pelanggan / Mitra akan segera hadir!')">Masuk</button>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="beranda" class="hero window neo-brutal">
+            <div class="hero-content">
+                <h2 class="title-retro">Cuci Bersih, Hati Riang!</h2>
+                <p>Serahkan pakaian kotor Anda pada ahlinya. Dengan gaya pelayanan klasik khas tahun 60-an yang dapat diandalkan, kami siap menjemput cucian Anda tepat di depan pintu.</p>
+                <a href="#pesan" class="btn-action pulse-anim">Pesan Sekarang</a>
+            </div>
+            <div class="hero-image placeholder-box">
+                <!-- Using a retro-style character placeholder or decorative box -->
+                <div class="star-burst">
+                    <span>Diskon<br>20%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Order Form Section -->
+        <section id="pesan" class="order-section">
+            <div class="window neo-brutal">
+                <h3 class="section-badge">Formulit Pemesanan</h3>
+                <form id="orderForm" class="retro-form">
+                    <div class="form-group">
+                        <label for="customerName">Nama Pelanggan:</label>
+                        <input type="text" id="customerName" name="customerName" required placeholder="Nyonya / Tuan...">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Alamat Penjemputan:</label>
+                        <textarea id="address" name="address" required placeholder="Jl. Kenangan Indah No. 99..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceType">Jenis Layanan:</label>
+                        <select id="serviceType" name="serviceType">
+                            <option value="reguler">Reguler (3 Hari)</option>
+                            <option value="kilat">Kilat (1 Hari)</option>
+                            <option value="express">Express (6 Jam)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-secondary">Jemput Cucian Saya!</button>
+                </form>
+                <div id="orderStatus" class="status-message hidden"></div>
+            </div>
+        </section>
+
+        <!-- Wallet Check Section -->
+        <section id="dompet" class="wallet-section">
+            <div class="window neo-brutal bg-teal text-light">
+                <h3 class="section-badge badge-red">Cek Saldo Dompet</h3>
+                <p>Pastikan saldo Anda cukup untuk menikmati layanan cuci kami dengan lebih mudah.</p>
+                <div class="wallet-checker">
+                    <input type="text" id="walletId" placeholder="Masukkan ID Pelanggan...">
+                    <button id="checkWalletBtn" class="btn-primary">Cek Saldo</button>
+                </div>
+                <div id="walletResult" class="wallet-result hidden">
+                    <h4>Saldo Nyonya/Tuan: <span id="walletBalance">Rp 0</span></h4>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer neo-brutal">
+        <p>&copy; 2026 Nyutji Laundry Ecosystem. Melayani dengan Senyuman.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

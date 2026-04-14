@@ -1,0 +1,124 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'customer_home_screen.dart';
+import 'customer_order_screen.dart';
+import 'customer_wallet_screen.dart';
+import 'customer_profile_screen.dart';
+import 'customer_status_screen.dart';
+import '../../../providers/auth_provider.dart';
+
+class CustomerMainScreen extends StatefulWidget {
+  const CustomerMainScreen({Key? key}) : super(key: key);
+
+  @override
+  State<CustomerMainScreen> createState() => _CustomerMainScreenState();
+}
+
+class _CustomerMainScreenState extends State<CustomerMainScreen> {
+  int _selectedIndex = 0;
+
+  // Retro Color Palette
+  final Color bgColor = const Color(0xFFF8F4E6);
+  final Color primaryTeal = const Color(0xFF286B6A);
+  final Color primaryRed = const Color(0xFFC3312E);
+  final Color textDark = const Color(0xFF2D2A26);
+  final Color textGrey = const Color(0xFF78716C);
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    CustomerHomeScreen(),
+    CustomerStatusScreen(),
+    CustomerWalletScreen(),
+    CustomerProfileScreen(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void _handleLogout() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    await auth.logout();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    
+    final Map<String, dynamic> t = {
+      'id': {
+        'role': 'PELANGGAN',
+        'home': 'Beranda',
+        'status': 'Status',
+        'wallet': 'Dompet',
+        'profile': 'Profil',
+      },
+      'en': {
+        'role': 'CUSTOMER',
+        'home': 'Home',
+        'status': 'Status',
+        'wallet': 'Wallet',
+        'profile': 'Profile',
+      },
+    };
+
+    final currentT = t[auth.lang] ?? t['id'];
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: _widgetOptions.elementAt(_selectedIndex),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.home, size: 22),
+              activeIcon: const Icon(LucideIcons.home, size: 22),
+              label: currentT['home'],
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.package, size: 22),
+              activeIcon: const Icon(LucideIcons.package, size: 22),
+              label: currentT['status'],
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.wallet, size: 22),
+              activeIcon: const Icon(LucideIcons.wallet, size: 22),
+              label: currentT['wallet'],
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.user, size: 22),
+              activeIcon: const Icon(LucideIcons.user, size: 22),
+              label: currentT['profile'],
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: primaryTeal,
+          unselectedItemColor: textGrey.withOpacity(0.5),
+          showUnselectedLabels: true,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 11),
+          unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 10),
+        ),
+      ),
+    );
+  }
+}
