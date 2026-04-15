@@ -23,7 +23,7 @@ class AdminUsersScreen extends StatelessWidget {
             const SizedBox(height: 20),
             _buildQuickActions(),
             const SizedBox(height: 24),
-            _buildApprovalSection(),
+            _buildApprovalSection(context),
             const SizedBox(height: 24),
             _buildAdminStatsGrid(),
             const SizedBox(height: 24),
@@ -98,7 +98,7 @@ class AdminUsersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildApprovalSection() {
+  Widget _buildApprovalSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -106,14 +106,14 @@ class AdminUsersScreen extends StatelessWidget {
         children: [
           Text("Antrean Persetujuan (Approval)", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
           const SizedBox(height: 12),
-          _buildApprovalItem("Mitra (ML)", "Berkah Laundry (Baru)", "Kebayoran", "3 Menit lalu"),
-          _buildApprovalItem("Kurir (KL)", "Budi Santoso", "Pancoran", "15 Menit lalu"),
-          _buildApprovalItem("Pelanggan (PL)", "Sinta Rahayu", "Tebet (Verifikasi)", "1 Jam lalu"),
+          _buildApprovalItem(context, "Mitra (ML)", "Berkah Laundry (Baru)", "Kebayoran", "3 Menit lalu"),
+          _buildApprovalItem(context, "Kurir (KL)", "Budi Santoso", "Pancoran", "15 Menit lalu"),
+          _buildApprovalItem(context, "Pelanggan (PL)", "Sinta Rahayu", "Tebet (Verifikasi)", "1 Jam lalu"),
         ],
       ),
     );
   }
-  Widget _buildApprovalItem(String role, String name, String loc, String time) {
+  Widget _buildApprovalItem(BuildContext context, String role, String name, String loc, String time) {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminApprovalScreen())),
       child: Container(
