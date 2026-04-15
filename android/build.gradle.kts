@@ -1,4 +1,13 @@
 // Repository configuration moved to settings.gradle.kts
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.10")
+    }
+}
 
 subprojects {
     project.evaluationDependsOn(":app")

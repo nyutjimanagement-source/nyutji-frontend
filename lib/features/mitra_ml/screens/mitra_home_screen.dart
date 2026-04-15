@@ -5,9 +5,10 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
-import 'mitra_order_screen.dart';
 import 'mitra_wallet_screen.dart';
 import 'mitra_courier_management_screen.dart';
+import 'mitra_approval_kl_screen.dart';
+import 'mitra_order_screen.dart';
 
 class MitraHomeScreen extends StatefulWidget {
   const MitraHomeScreen({Key? key}) : super(key: key);
@@ -392,7 +393,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false),
                 const Divider(height: 1),
                 GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MitraCourierManagementScreen())),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MitraApprovalKlScreen())),
                   child: _buildMenuItem(LucideIcons.users, "Kelola Kurir Laundry", false),
                 ),
                 const Divider(height: 1),

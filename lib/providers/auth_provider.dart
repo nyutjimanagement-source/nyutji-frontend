@@ -88,12 +88,13 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  Future<bool> register(String name, String email, String phone, String password) async {
+  // Versi trial: Mengirim data Kecamatan manual dan Referensi Mitra
+  Future<bool> register(Map<String, dynamic> regData) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await ApiService().register(name, email, phone, password, 'PL');
+      final response = await ApiService().register(regData);
       
       if (response['message'] != null) {
         _isLoading = false;
@@ -101,9 +102,31 @@ class AuthProvider with ChangeNotifier {
         return true;
       }
     } catch (e) {
+      debugPrint("Register Error: $e");
       _isLoading = false;
       notifyListeners();
     }
     return false;
+  }
+
+  // Khusus Admin & Mitra: Ambil antrean approval
+  Future<List<dynamic>> fetchPendingApprovals() async {
+    try {
+      return await ApiService().getPendingApprovals();
+    } catch (e) {
+      debugPrint("Fetch Approvals Error: $e");
+      return [];
+    }
+  }
+
+  // Proses Approve/Reject
+  Future<bool> processUserApproval(int targetId, String action) async {
+    try {
+      final res = await ApiService().processApproval(targetId, action);
+      return res['message'] != null;
+    } catch (e) {
+      debugPrint("Process Approval Error: $e");
+      return false;
+    }
   }
 }

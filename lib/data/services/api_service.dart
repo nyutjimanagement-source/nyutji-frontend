@@ -45,13 +45,23 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> register(String name, String email, String phone, String password, String role) async {
-    final response = await _dio.post("/register", data: {
-      'name': name,
-      'email': email,
-      'phone_number': phone,
-      'password': password,
-      'role': role
+  Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
+    // data berisi: name, email, phone_number, password, role, districtName, cityName, mitraRefName
+    final response = await _dio.post("/register", data: data);
+    return response.data;
+  }
+
+  // --- APPROVAL ENDPOINTS ---
+  Future<List<dynamic>> getPendingApprovals() async {
+    final response = await _dio.get("/approvals");
+    return response.data['data'] ?? [];
+  }
+
+  Future<Map<String, dynamic>> processApproval(int targetId, String action) async {
+    // action: 'APPROVED' or 'REJECTED'
+    final response = await _dio.post("/approvals/process", data: {
+      'targetId': targetId,
+      'action': action
     });
     return response.data;
   }

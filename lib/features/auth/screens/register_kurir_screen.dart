@@ -18,6 +18,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
   final TextEditingController passController = TextEditingController();
   final TextEditingController searchKecController = TextEditingController();
   final TextEditingController searchMitraController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
 
   String? selectedKecamatan;
   String? selectedMitra;
@@ -134,9 +135,11 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                           _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, orangeRetro, isPass: true),
                           
                           const SizedBox(height: 30),
-                          _buildLabel(currentT['location']),
-                          _buildSearchField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, orangeRetro),
-                          const SizedBox(height: 12),
+                           _buildLabel(currentT['location']),
+                           _buildSearchField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, orangeRetro),
+                           const SizedBox(height: 12),
+                           _buildSearchField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, orangeRetro),
+                           const SizedBox(height: 12),
                           // Mockup Map Image
                           Container(
                             height: 150,
@@ -163,11 +166,36 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(currentT['success_msg']), backgroundColor: orangeRetro),
-                                );
-                                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                              onPressed: auth.isLoading ? null : () async {
+                                if (nameController.text.isEmpty || searchKecController.text.isEmpty || searchMitraController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Nama, Kecamatan, dan Referensi Mitra wajib diisi!'), backgroundColor: Colors.red),
+                                  );
+                                  return;
+                                }
+
+                                final success = await auth.register({
+                                  'name': nameController.text,
+                                  'email': emailController.text,
+                                  'phone_number': phoneController.text,
+                                  'password': passController.text,
+                                  'role': 'KL',
+                                  'districtName': searchKecController.text,
+                                  'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
+                                  'mitraRefName': searchMitraController.text,
+                                });
+
+                                if (!mounted) return;
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Registrasi Berhasil! Hubungi Mitra Anda untuk Approval.'), backgroundColor: orangeRetro),
+                                  );
+                                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Gagal Registrasi Kurir. Coba lagi.'), backgroundColor: Colors.red),
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: orangeRetro,
@@ -175,7 +203,9 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 padding: const EdgeInsets.symmetric(vertical: 18),
                               ),
-                              child: Text(currentT['button'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                              child: auth.isLoading 
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                                : Text(currentT['button'], style: const TextStyle(fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],

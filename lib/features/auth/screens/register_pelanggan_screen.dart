@@ -16,6 +16,8 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passController = TextEditingController();
+  final TextEditingController districtController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
 
   final Map<String, dynamic> t = {
     'id': {
@@ -41,28 +43,39 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
       'success_msg': 'Registration Successful! Please Login.',
     }
   };
-
   void _handleRegister() async {
-    if (nameController.text.isEmpty || phoneController.text.isEmpty) {
+    if (nameController.text.isEmpty || phoneController.text.isEmpty || districtController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama dan Nomor HP wajib diisi!'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Nama, Nomor HP, dan Kecamatan wajib diisi!'), backgroundColor: Colors.red),
       );
       return;
     }
 
-    // Simulasi Delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    
+    final success = await auth.register({
+      'name': nameController.text,
+      'email': emailController.text,
+      'phone_number': phoneController.text,
+      'password': passController.text,
+      'role': 'PL',
+      'districtName': districtController.text,
+      'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
+    });
 
     if (!mounted) return;
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final currentT = t[auth.lang];
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(currentT['success_msg']), backgroundColor: const Color(0xFF286B6A)),
-    );
-    
-    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-  }
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pendaftaran Berhasil! Menunggu Approval Admin.'), backgroundColor: Color(0xFF286B6A)),
+      );
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal Mendaftarkan Akun. Email mungkin sudah terdaftar.'), backgroundColor: Colors.red),
+      );
+    }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +149,10 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
                           _buildTextField(emailController, currentT['email_hint'], LucideIcons.mail, tealRetro, isEmail: true),
                           const SizedBox(height: 16),
                           _buildTextField(phoneController, currentT['phone_hint'], LucideIcons.phone, tealRetro),
+                          const SizedBox(height: 16),
+                          _buildTextField(districtController, 'Nama Kecamatan', LucideIcons.mapPin, tealRetro),
+                          const SizedBox(height: 16),
+                          _buildTextField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, tealRetro),
                           const SizedBox(height: 16),
                           _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, tealRetro, isPass: true),
                           const SizedBox(height: 32),

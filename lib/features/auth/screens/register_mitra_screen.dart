@@ -17,6 +17,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passController = TextEditingController();
   final TextEditingController searchKecController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
 
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
@@ -178,9 +179,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                           ),
                           
                           const SizedBox(height: 30),
-                          _buildLabel(currentT['location']),
-                          _buildSearchField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, greenRetro),
-                          const SizedBox(height: 12),
+                           _buildLabel(currentT['location']),
+                           _buildSearchField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, greenRetro),
+                           const SizedBox(height: 12),
+                           _buildSearchField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, greenRetro),
+                           const SizedBox(height: 12),
                           // Mockup Map
                           Container(
                             height: 140,
@@ -236,19 +239,47 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(currentT['success_msg']), backgroundColor: greenRetro),
-                                );
-                                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                              onPressed: auth.isLoading ? null : () async {
+                                if (nameController.text.isEmpty || searchKecController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Nama dan Kecamatan wajib diisi!'), backgroundColor: Colors.red),
+                                  );
+                                  return;
+                                }
+
+                                final success = await auth.register({
+                                  'name': nameController.text,
+                                  'email': emailController.text,
+                                  'phone_number': phoneController.text,
+                                  'password': passController.text,
+                                  'role': 'ML',
+                                  'districtName': searchKecController.text,
+                                  'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
+                                  'business_type': selectedSegment,
+                                  'mitra_category': selectedCategory,
+                                });
+
+                                if (!mounted) return;
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Registrasi Berhasil! Menunggu Approval Admin.'), backgroundColor: Color(0xFF740006)),
+                                  );
+                                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Gagal Registrasi. Coba lagi atau hubungi IT.'), backgroundColor: Colors.red),
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: greenRetro,
+                                backgroundColor: const Color(0xFF740006),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 padding: const EdgeInsets.symmetric(vertical: 18),
                               ),
-                              child: Text(currentT['button'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                              child: auth.isLoading 
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                                : Text(currentT['button'], style: const TextStyle(fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
