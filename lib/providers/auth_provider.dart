@@ -34,8 +34,8 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    await prefs.remove('role');
+    // Hapus seluruh memori tanpa sisa (Fokus fix registrasi gagal)
+    await prefs.clear();
     _token = null;
     _role = null;
     _user = null;
