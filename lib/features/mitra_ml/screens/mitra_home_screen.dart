@@ -397,9 +397,14 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                   child: _buildMenuItem(LucideIcons.users, "Kelola Kurir Laundry", false),
                 ),
                 const Divider(height: 1),
-                GestureDetector(
-                  onTap: () => Navigator.pushReplacementNamed(context, '/login'),
-                  child: _buildMenuItem(LucideIcons.logOut, currentT!['logout'], true),
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) => GestureDetector(
+                    onTap: () async {
+                      await auth.logout();
+                      if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                    },
+                    child: _buildMenuItem(LucideIcons.logOut, currentT!['logout'], true),
+                  ),
                 )
               ],
             ),

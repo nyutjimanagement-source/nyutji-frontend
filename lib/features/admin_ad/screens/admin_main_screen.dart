@@ -471,9 +471,14 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                   const Divider(height: 1),
                   _buildMenuItem(LucideIcons.server, "Database / AWS Server", false),
                   const Divider(height: 1),
-                  GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(context, '/login'),
-                    child: _buildMenuItem(LucideIcons.logOut, "Tutup Sesi (Logout)", true),
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, _) => GestureDetector(
+                      onTap: () async {
+                        await auth.logout();
+                        if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: _buildMenuItem(LucideIcons.logOut, "Tutup Sesi (Logout)", true),
+                    ),
                   )
                 ],
               ),
