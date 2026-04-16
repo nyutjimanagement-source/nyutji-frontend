@@ -18,6 +18,19 @@ class CustomerMainScreen extends StatefulWidget {
 
 class _CustomerMainScreenState extends State<CustomerMainScreen> {
   int _selectedIndex = 0;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   // Retro Color Palette
   final Color bgColor = const Color(0xFFF8F4E6);
@@ -34,9 +47,11 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    _pageController.animateToPage(
+      index, 
+      duration: const Duration(milliseconds: 400), 
+      curve: Curves.easeInOut
+    );
   }
 
   void _handleLogout() async {
@@ -71,7 +86,16 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        physics: const BouncingScrollPhysics(),
+        children: _widgetOptions,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
