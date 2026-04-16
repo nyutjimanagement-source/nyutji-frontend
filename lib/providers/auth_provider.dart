@@ -8,12 +8,14 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   String _lang = 'id'; // Default Language
   Map<String, dynamic>? _user;
+  List<dynamic> _pendingApprovals = [];
 
   bool get isLoading => _isLoading;
   String? get role => _role;
   String? get token => _token;
   String get lang => _lang;
   Map<String, dynamic>? get user => _user;
+  List<dynamic> get pendingApprovals => _pendingApprovals;
 
   void setLanguage(String newLang) {
     _lang = newLang;
@@ -112,7 +114,10 @@ class AuthProvider with ChangeNotifier {
   // Khusus Admin & Mitra: Ambil antrean approval
   Future<List<dynamic>> fetchPendingApprovals() async {
     try {
-      return await ApiService().getPendingApprovals();
+      final data = await ApiService().getPendingApprovals();
+      _pendingApprovals = data;
+      notifyListeners();
+      return data;
     } catch (e) {
       debugPrint("Fetch Approvals Error: $e");
       return [];

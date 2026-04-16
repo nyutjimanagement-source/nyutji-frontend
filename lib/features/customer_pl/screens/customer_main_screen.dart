@@ -49,8 +49,8 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
   void _onItemTapped(int index) {
     _pageController.animateToPage(
       index, 
-      duration: const Duration(milliseconds: 400), 
-      curve: Curves.easeInOut
+      duration: const Duration(milliseconds: 500), 
+      curve: Curves.fastOutSlowIn
     );
   }
 

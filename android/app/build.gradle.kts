@@ -52,14 +52,7 @@ flutter {
     source = "../.."
 }
 
-configurations.all {
-    resolutionStrategy {
-        force("androidx.core:core:1.13.1")
-        force("androidx.core:core-ktx:1.13.1")
-        // Paksa browser ke 1.8.0 agar tidak minta SDK 36 (Android Masa Depan)
-        force("androidx.browser:browser:1.8.0")
-    }
-}
+// Pengaturan dependency otomatis mengikuti SDK 36
 
 // Paksa matikan pengecekan AAR Metadata yang cerewet minta SDK 36
 tasks.whenTaskAdded {

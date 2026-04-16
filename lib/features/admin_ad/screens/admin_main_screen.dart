@@ -42,6 +42,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       context.read<OrderProvider>().fetchOrders();
       context.read<IssueProvider>().fetchIssues();
       context.read<SentimentProvider>().fetchSentiments();
+      context.read<AuthProvider>().fetchPendingApprovals(); // Tarik antrean pendaftar
     });
   }
 

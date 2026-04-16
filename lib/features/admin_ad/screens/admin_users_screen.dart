@@ -101,15 +101,32 @@ class AdminUsersScreen extends StatelessWidget {
   Widget _buildApprovalSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Antrean Persetujuan (Approval)", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
-          const SizedBox(height: 12),
-          _buildApprovalItem(context, "Mitra (ML)", "Berkah Laundry (Baru)", "Kebayoran", "3 Menit lalu"),
-          _buildApprovalItem(context, "Kurir (KL)", "Budi Santoso", "Pancoran", "15 Menit lalu"),
-          _buildApprovalItem(context, "Pelanggan (PL)", "Sinta Rahayu", "Tebet (Verifikasi)", "1 Jam lalu"),
-        ],
+      child: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          final pending = auth.pendingApprovals;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Antrean Persetujuan (Approval) [${pending.length}]", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
+              const SizedBox(height: 12),
+              if (pending.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  width: double.infinity,
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  child: Text("Tidak ada antrean pendaftar baru.", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey)),
+                )
+              else
+                ...pending.map((user) => _buildApprovalItem(
+                      context,
+                      user['role'] == 'ML' ? "Mitra (ML)" : "Pelanggan (PL)",
+                      user['name'] ?? "Nama Tidak Ada",
+                      user['district']?['name'] ?? "Wilayah -",
+                      "Baru saja",
+                    )),
+            ],
+          );
+        },
       ),
     );
   }
