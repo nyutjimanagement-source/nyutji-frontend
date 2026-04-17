@@ -131,13 +131,22 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       );
                     }
                   ),
-                  Row(
-                    children: [
-                      Icon(LucideIcons.mapPin, size: 10, color: primaryRed),
-                      const SizedBox(width: 4),
-                      Text("Kebayoran Baru, JKT", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey)),
-                    ],
-                  )
+                   Consumer<AuthProvider>(
+                    builder: (context, auth, _) {
+                      final district = auth.user?['district_name'];
+                      final city = auth.user?['city_name'];
+                      final location = (district != null && city != null)
+                          ? "$district, $city"
+                          : district ?? city ?? "Lokasi tidak diset";
+                      return Row(
+                        children: [
+                          Icon(LucideIcons.mapPin, size: 10, color: primaryRed),
+                          const SizedBox(width: 4),
+                          Text(location, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey)),
+                        ],
+                      );
+                    }
+                  ),
                 ],
               )
             ],
