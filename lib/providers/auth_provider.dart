@@ -135,4 +135,22 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
+
+  // Upload & Update Foto Profil
+  Future<bool> updateProfilePhoto(String filePath) async {
+    try {
+      final res = await ApiService().uploadProfilePhoto(filePath);
+      if (res['photo_url'] != null) {
+        // Update data user lokal
+        if (_user != null) {
+          _user!['profile_photo'] = res['photo_url'];
+          notifyListeners();
+        }
+        return true;
+      }
+    } catch (e) {
+      debugPrint("Update Profile Photo Error: $e");
+    }
+    return false;
+  }
 }

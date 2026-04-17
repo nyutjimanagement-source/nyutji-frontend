@@ -127,4 +127,15 @@ class ApiService {
     final response = await _dio.get("/sentiments");
     return response.data; // returns { status: 'success', summary: {...}, data: [...] }
   }
+
+  // --- PROFILE ENDPOINTS ---
+  Future<Map<String, dynamic>> uploadProfilePhoto(String filePath) async {
+    String fileName = filePath.split('/').last;
+    FormData formData = FormData.fromMap({
+      "photo": await MultipartFile.fromFile(filePath, filename: fileName),
+    });
+
+    final response = await _dio.post("/users/profile-photo", data: formData);
+    return response.data;
+  }
 }

@@ -3,9 +3,60 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class CustomerProfileScreen extends StatelessWidget {
+class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
+
+  @override
+  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+}
+
+class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+  final ImagePicker _picker = ImagePicker();
+  File? _localImage; // Untuk preview instan yang bikin puas
+
+  Future<void> _pickImage(AuthProvider auth) async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Pilih Foto Profil", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(LucideIcons.camera, color: Color(0xFF1E5655)),
+              title: Text("Ambil Foto Kamera", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                if (photo != null) {
+                  setState(() => _localImage = File(photo.path));
+                  await auth.updateProfilePhoto(photo.path);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.image, color: Color(0xFF1E5655)),
+              title: Text("Pilih dari Galeri", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+                if (image != null) {
+                  setState(() => _localImage = File(image.path));
+                  await auth.updateProfilePhoto(image.path);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +101,31 @@ class CustomerProfileScreen extends StatelessWidget {
               color: Colors.white,
               child: Row(
                 children: [
-                  CircleAvatar(radius: 28, backgroundColor: Colors.amber[100], child: const Icon(LucideIcons.user, size: 28, color: Colors.amber)),
+                  GestureDetector(
+                    onTap: () => _pickImage(auth),
+                    child: Builder(
+                      builder: (context) {
+                        final photoUrl = auth.user?['profile_photo'];
+                        return CircleAvatar(
+                          radius: 28, 
+                          backgroundColor: Colors.amber[100], 
+                          backgroundImage: _localImage != null 
+                              ? FileImage(_localImage!) as ImageProvider
+                              : (photoUrl != null && photoUrl.toString().isNotEmpty) 
+                                  ? NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}") 
+                                  : null,
+                          child: (_localImage == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                              ? const Icon(LucideIcons.user, size: 28, color: Colors.amber) 
+                              : null
+                        );
+                      }
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Ny. Rahmawati", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(auth.user?['name'] ?? "Pelanggan", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
                       Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.amber[50], borderRadius: BorderRadius.circular(4)), child: Text(currentT['tier'], style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.amber[900]))),
                     ],

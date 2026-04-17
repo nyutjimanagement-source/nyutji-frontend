@@ -29,7 +29,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(AuthProvider auth) async {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -46,7 +46,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               onTap: () async {
                 Navigator.pop(context);
                 final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
-                if (photo != null) setState(() => _imageFile = File(photo.path));
+                if (photo != null) {
+                  await auth.updateProfilePhoto(photo.path);
+                }
               },
             ),
             ListTile(
@@ -55,7 +57,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               onTap: () async {
                 Navigator.pop(context);
                 final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
-                if (image != null) setState(() => _imageFile = File(image.path));
+                if (image != null) {
+                  await auth.updateProfilePhoto(image.path);
+                }
               },
             ),
           ],
@@ -154,17 +158,26 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         children: [
           Row(
             children: [
-          GestureDetector(
-            onTap: _pickImage,
-            child: Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle, 
-                color: primaryTeal.withOpacity(0.1),
-                image: _imageFile != null ? DecorationImage(image: FileImage(_imageFile!), fit: BoxFit.cover) : null,
-              ),
-              child: _imageFile == null ? Icon(LucideIcons.user, color: primaryTeal, size: 20) : null,
-            ),
+          Consumer<AuthProvider>(
+            builder: (context, auth, _) {
+              final photoUrl = auth.user?['profile_photo'];
+              return Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle, 
+                  color: primaryTeal.withOpacity(0.1),
+                  image: (photoUrl != null && photoUrl.toString().isNotEmpty)
+                      ? DecorationImage(
+                          image: NetworkImage("http://nyutji.com/$photoUrl"), 
+                          fit: BoxFit.cover
+                        ) 
+                      : null,
+                ),
+                child: (photoUrl == null || photoUrl.toString().isEmpty) 
+                    ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
+                    : null,
+              );
+            }
           ),
               const SizedBox(width: 12),
               Column(
