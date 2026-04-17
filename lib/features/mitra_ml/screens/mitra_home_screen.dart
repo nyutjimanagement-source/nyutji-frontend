@@ -11,7 +11,7 @@ import 'mitra_approval_kl_screen.dart';
 import 'mitra_order_screen.dart';
 
 class MitraHomeScreen extends StatefulWidget {
-  const MitraHomeScreen({Key? key}) : super(key: key);
+  const MitraHomeScreen({super.key});
 
   @override
   State<MitraHomeScreen> createState() => _MitraHomeScreenState();
@@ -51,7 +51,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     };
     final currentT = t['id']; 
 
-    final List<Widget> _tabs = [
+    final List<Widget> tabs = [
       _buildHomeTab(currentT),
       const MitraOrderScreen(),
       const MitraWalletScreen(),
@@ -70,7 +70,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 onPageChanged: (index) {
                   setState(() => _selectedIndex = index);
                 },
-                children: _tabs,
+                children: tabs,
               ),
             ),
             _buildBottomNav(primaryTeal),
@@ -157,7 +157,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           ),
           Stack(
             children: [
-              IconButton(onPressed: () {}, icon: Icon(LucideIcons.bell, color: darkText, size: 22), constraints: const BoxConstraints(), padding: EdgeInsets.zero),
+              IconButton(onPressed: () {}, icon: const Icon(LucideIcons.bell, color: darkText, size: 22), constraints: const BoxConstraints(), padding: EdgeInsets.zero),
               Positioned(
                 right: 0, top: 0,
                 child: Container(
@@ -193,7 +193,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           Switch(
             value: isShopOpen, 
             onChanged: (val) => setState(() => isShopOpen = val), 
-            activeColor: Colors.green, materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            activeThumbColor: Colors.green, materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           )
         ],
       ),

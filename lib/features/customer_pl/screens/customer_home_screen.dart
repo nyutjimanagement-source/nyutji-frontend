@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
@@ -9,7 +11,7 @@ import '../../../core/utils/formatters.dart';
 import 'customer_order_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
-  const CustomerHomeScreen({Key? key}) : super(key: key);
+  const CustomerHomeScreen({super.key});
 
   @override
   State<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
@@ -23,6 +25,44 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final Color primaryRed = const Color(0xFFC3312E);
   final Color textDark = const Color(0xFF111827);
   final Color textGrey = const Color(0xFF6B7280);
+
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Pilih Foto Profil", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(LucideIcons.camera, color: Color(0xFF1E5655)),
+              title: Text("Ambil Foto Kamera", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                if (photo != null) setState(() => _imageFile = File(photo.path));
+              },
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.image, color: Color(0xFF1E5655)),
+              title: Text("Pilih dari Galeri", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+                if (image != null) setState(() => _imageFile = File(image.path));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -114,11 +154,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         children: [
           Row(
             children: [
-              Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: primaryTeal.withOpacity(0.1)),
-                child: Icon(LucideIcons.user, color: primaryTeal, size: 20),
+          GestureDetector(
+            onTap: _pickImage,
+            child: Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle, 
+                color: primaryTeal.withOpacity(0.1),
+                image: _imageFile != null ? DecorationImage(image: FileImage(_imageFile!), fit: BoxFit.cover) : null,
               ),
+              child: _imageFile == null ? Icon(LucideIcons.user, color: primaryTeal, size: 20) : null,
+            ),
+          ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -85,7 +85,7 @@ final List<Order> orders = [
 
 // --- MAIN SCREEN ---
 class MitraOrderScreen extends StatefulWidget {
-  const MitraOrderScreen({Key? key}) : super(key: key);
+  const MitraOrderScreen({super.key});
 
   @override
   _MitraOrderScreenState createState() => _MitraOrderScreenState();

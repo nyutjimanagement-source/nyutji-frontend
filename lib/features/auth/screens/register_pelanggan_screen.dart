@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class RegisterPelangganScreen extends StatefulWidget {
-  const RegisterPelangganScreen({Key? key}) : super(key: key);
+  const RegisterPelangganScreen({super.key});
 
   @override
   State<RegisterPelangganScreen> createState() => _RegisterPelangganScreenState();

@@ -5,7 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/issue_provider.dart';
 
 class AdminIssuesScreen extends StatelessWidget {
-  const AdminIssuesScreen({Key? key}) : super(key: key);
+  const AdminIssuesScreen({super.key});
 
   static const Color darkGray = Color(0xFF111827);
   static const Color bgColor = Color(0xFFF3F4F6);

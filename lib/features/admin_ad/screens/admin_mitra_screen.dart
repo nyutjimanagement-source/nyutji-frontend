@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class AdminMitraScreen extends StatelessWidget {
-  const AdminMitraScreen({Key? key}) : super(key: key);
+  const AdminMitraScreen({super.key});
 
   static const Color primaryTeal = Color(0xFF286B6A);
   static const Color darkGray = Color(0xFF1A1A1A);

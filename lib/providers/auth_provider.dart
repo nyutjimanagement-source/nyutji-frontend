@@ -66,8 +66,9 @@ class AuthProvider with ChangeNotifier {
           _role = response['role'];
         } else {
           // Inferensi dari ID (PL/KL/ML) seandainya server remote belum update
-          if (realIdentifier.contains('kl')) _role = 'KL';
-          else if (realIdentifier.contains('ml')) _role = 'ML';
+          if (realIdentifier.contains('kl')) {
+            _role = 'KL';
+          } else if (realIdentifier.contains('ml')) _role = 'ML';
           else if (realIdentifier.contains('ad')) _role = 'AD';
           else _role = 'PL';
         }

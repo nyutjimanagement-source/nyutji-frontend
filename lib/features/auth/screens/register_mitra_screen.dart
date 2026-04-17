@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class RegisterMitraScreen extends StatefulWidget {
-  const RegisterMitraScreen({Key? key}) : super(key: key);
+  const RegisterMitraScreen({super.key});
 
   @override
   State<RegisterMitraScreen> createState() => _RegisterMitraScreenState();

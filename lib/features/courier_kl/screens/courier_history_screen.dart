@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class CourierHistoryScreen extends StatefulWidget {
-  const CourierHistoryScreen({Key? key}) : super(key: key);
+  const CourierHistoryScreen({super.key});
 
   @override
   State<CourierHistoryScreen> createState() => _CourierHistoryScreenState();

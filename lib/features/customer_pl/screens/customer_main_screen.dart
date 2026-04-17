@@ -10,7 +10,7 @@ import 'customer_status_screen.dart';
 import '../../../providers/auth_provider.dart';
 
 class CustomerMainScreen extends StatefulWidget {
-  const CustomerMainScreen({Key? key}) : super(key: key);
+  const CustomerMainScreen({super.key});
 
   @override
   State<CustomerMainScreen> createState() => _CustomerMainScreenState();

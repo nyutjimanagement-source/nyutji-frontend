@@ -40,7 +40,7 @@ class CourierTask {
 
 // --- SCREEN ---
 class CourierMainScreen extends StatefulWidget {
-  const CourierMainScreen({Key? key}) : super(key: key);
+  const CourierMainScreen({super.key});
 
   @override
   State<CourierMainScreen> createState() => _CourierMainScreenState();
@@ -53,7 +53,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   final GlobalKey _taskSectionKey = GlobalKey(); 
   bool isOnline = true;
   int _selectedNavIndex = 0;
-  int _notificationCount = 3;
+  final int _notificationCount = 3;
 
   // Enterprise/Super-App Colors for Courier
   final Color primaryTeal = const Color(0xFF286B6A);
@@ -319,7 +319,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     Switch(
                       value: isOnline,
                       onChanged: (val) => setState(() => isOnline = val),
-                      activeColor: accentGreen,
+                      activeThumbColor: accentGreen,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ],

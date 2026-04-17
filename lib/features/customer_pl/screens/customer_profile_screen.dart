@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class CustomerProfileScreen extends StatelessWidget {
-  const CustomerProfileScreen({Key? key}) : super(key: key);
+  const CustomerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

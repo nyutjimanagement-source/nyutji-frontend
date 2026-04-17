@@ -5,14 +5,14 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class CourierProfileScreen extends StatelessWidget {
-  const CourierProfileScreen({Key? key}) : super(key: key);
+  const CourierProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryTeal = const Color(0xFF286B6A);
-    final Color bgColor = const Color(0xFFF8F4E6);
-    final Color textDark = const Color(0xFF2D2A26);
-    final Color textGrey = const Color(0xFF78716C);
+    const Color primaryTeal = Color(0xFF286B6A);
+    const Color bgColor = Color(0xFFF8F4E6);
+    const Color textDark = Color(0xFF2D2A26);
+    const Color textGrey = Color(0xFF78716C);
     
     final auth = Provider.of<AuthProvider>(context);
 

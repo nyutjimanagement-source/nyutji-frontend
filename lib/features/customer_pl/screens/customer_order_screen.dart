@@ -11,9 +11,9 @@ class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
 
   const CustomerOrderScreen({
-    Key? key,
+    super.key,
     this.orderType = 'pickup',
-  }) : super(key: key);
+  });
 
   @override
   State<CustomerOrderScreen> createState() => _CustomerOrderScreenState();
@@ -238,7 +238,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   }),
                   _locOption(cT['opt_map'], cT['opt_map_desc'], LucideIcons.map, () {
                     // Logic Custom Map (Titik Baru)
-                    setState(() => _pickupAddress = "Titik Kustom: ${_currentGpsAddress}");
+                    setState(() => _pickupAddress = "Titik Kustom: $_currentGpsAddress");
                     Navigator.pop(context);
                   }),
                   const SizedBox(height: 20),

@@ -5,12 +5,12 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class CustomerStatusScreen extends StatelessWidget {
-  const CustomerStatusScreen({Key? key}) : super(key: key);
+  const CustomerStatusScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryTeal = const Color(0xFF1E5655);
-    final Color bgColor = const Color(0xFFF3F4F6);
+    const Color primaryTeal = Color(0xFF1E5655);
+    const Color bgColor = Color(0xFFF3F4F6);
     
     final auth = Provider.of<AuthProvider>(context);
     final Map<String, dynamic> t = {

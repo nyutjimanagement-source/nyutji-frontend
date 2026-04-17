@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class MitraWalletScreen extends StatelessWidget {
-  const MitraWalletScreen({Key? key}) : super(key: key);
+  const MitraWalletScreen({super.key});
 
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color darkText = Color(0xFF111827);
@@ -34,7 +34,7 @@ class MitraWalletScreen extends StatelessWidget {
   Widget _buildDenseHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
-      decoration: BoxDecoration(color: primaryTeal),
+      decoration: const BoxDecoration(color: primaryTeal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

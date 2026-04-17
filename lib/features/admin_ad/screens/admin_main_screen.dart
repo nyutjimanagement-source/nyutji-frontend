@@ -14,7 +14,7 @@ import '../../../providers/issue_provider.dart';
 import '../../../providers/sentiment_provider.dart';
 
 class AdminMainScreen extends StatefulWidget {
-  const AdminMainScreen({Key? key}) : super(key: key);
+  const AdminMainScreen({super.key});
 
   @override
   State<AdminMainScreen> createState() => _AdminMainScreenState();
@@ -65,7 +65,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     };
     final currentT = t[auth.lang] ?? t['id'];
     
-    final List<Widget> _tabs = [
+    final List<Widget> tabs = [
       _buildHomeTab(),
       const AdminSentimentScreen(),
       const AdminIssuesScreen(),
@@ -85,7 +85,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                 onPageChanged: (index) {
                   setState(() => _selectedIndex = index);
                 },
-                children: _tabs,
+                children: tabs,
               ),
             ),
             _buildAdminNavbar(),

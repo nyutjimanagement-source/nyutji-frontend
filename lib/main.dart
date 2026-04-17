@@ -32,7 +32,7 @@ void main() async {
 }
 
 class NyutjiApp extends StatelessWidget {
-  const NyutjiApp({Key? key}) : super(key: key);
+  const NyutjiApp({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class RegisterKurirScreen extends StatefulWidget {
-  const RegisterKurirScreen({Key? key}) : super(key: key);
+  const RegisterKurirScreen({super.key});
 
   @override
   State<RegisterKurirScreen> createState() => _RegisterKurirScreenState();

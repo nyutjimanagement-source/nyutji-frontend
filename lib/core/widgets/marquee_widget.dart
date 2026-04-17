@@ -6,11 +6,11 @@ class MarqueeWidget extends StatefulWidget {
   final double scrollSpeed; // pixels per frame roughly
 
   const MarqueeWidget({
-    Key? key,
+    super.key,
     required this.text,
     this.style = const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
     this.scrollSpeed = 1.0,
-  }) : super(key: key);
+  });
 
   @override
   State<MarqueeWidget> createState() => _MarqueeWidgetState();

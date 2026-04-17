@@ -6,7 +6,7 @@ import '../../../providers/auth_provider.dart';
 import 'admin_approval.dart';
 
 class AdminUsersScreen extends StatelessWidget {
-  const AdminUsersScreen({Key? key}) : super(key: key);
+  const AdminUsersScreen({super.key});
 
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color bgColor = Color(0xFFF3F4F6);
@@ -54,7 +54,7 @@ class AdminUsersScreen extends StatelessWidget {
             decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
             child: Row(
               children: [
-                Icon(LucideIcons.search, color: Colors.white70, size: 18),
+                const Icon(LucideIcons.search, color: Colors.white70, size: 18),
                 const SizedBox(width: 12),
                 Text("Cari ID/Nama User...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white70)),
               ],
@@ -148,7 +148,7 @@ class AdminUsersScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
-              child: Icon(LucideIcons.userCheck, color: primaryTeal, size: 18),
+              child: const Icon(LucideIcons.userCheck, color: primaryTeal, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(

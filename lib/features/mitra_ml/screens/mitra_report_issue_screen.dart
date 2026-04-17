@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/issue_provider.dart';
 
 class MitraReportIssueScreen extends StatefulWidget {
-  const MitraReportIssueScreen({Key? key}) : super(key: key);
+  const MitraReportIssueScreen({super.key});
 
   @override
   State<MitraReportIssueScreen> createState() => _MitraReportIssueScreenState();
@@ -166,7 +166,7 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
                     ),
                     elevation: 0,
                   ).copyWith(
-                    overlayColor: MaterialStateProperty.all(Colors.black.withOpacity(0.1)),
+                    overlayColor: WidgetStateProperty.all(Colors.black.withOpacity(0.1)),
                   ),
                   child: context.watch<IssueProvider>().isLoading
                       ? const CircularProgressIndicator(color: Colors.black)

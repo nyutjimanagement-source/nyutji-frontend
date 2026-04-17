@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class AdminApprovalScreen extends StatefulWidget {
-  const AdminApprovalScreen({Key? key}) : super(key: key);
+  const AdminApprovalScreen({super.key});
 
   @override
   State<AdminApprovalScreen> createState() => _AdminApprovalScreenState();

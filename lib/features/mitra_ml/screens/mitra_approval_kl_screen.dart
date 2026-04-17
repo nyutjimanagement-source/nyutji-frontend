@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class MitraApprovalKlScreen extends StatefulWidget {
-  const MitraApprovalKlScreen({Key? key}) : super(key: key);
+  const MitraApprovalKlScreen({super.key});
 
   @override
   State<MitraApprovalKlScreen> createState() => _MitraApprovalKlScreenState();

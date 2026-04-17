@@ -5,7 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/sentiment_provider.dart';
 
 class AdminSentimentScreen extends StatelessWidget {
-  const AdminSentimentScreen({Key? key}) : super(key: key);
+  const AdminSentimentScreen({super.key});
 
 
   @override

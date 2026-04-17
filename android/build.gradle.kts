@@ -1,4 +1,7 @@
 // Repository configuration moved to settings.gradle.kts
+allprojects {
+    buildDir = File("${rootProject.projectDir}/../build", project.name)
+}
 buildscript {
     repositories {
         google()

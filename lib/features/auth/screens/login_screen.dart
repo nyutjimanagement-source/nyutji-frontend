@@ -10,7 +10,7 @@ import 'register_mitra_screen.dart';
 import 'register_pelanggan_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -571,11 +571,11 @@ class _BeautyPopupWidget extends StatefulWidget {
   final VoidCallback onDismiss;
 
   const _BeautyPopupWidget({
-    Key? key,
+    super.key,
     required this.message,
     required this.icon,
     required this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   State<_BeautyPopupWidget> createState() => _BeautyPopupWidgetState();

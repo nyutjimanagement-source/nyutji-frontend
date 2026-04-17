@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class MitraCourierManagementScreen extends StatefulWidget {
-  const MitraCourierManagementScreen({Key? key}) : super(key: key);
+  const MitraCourierManagementScreen({super.key});
 
   @override
   State<MitraCourierManagementScreen> createState() => _MitraCourierManagementScreenState();
@@ -63,7 +63,7 @@ class _MitraCourierManagementScreenState extends State<MitraCourierManagementScr
         ),
         if (pendingApprovals.isEmpty)
            const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Tidak ada permintaan baru"))),
-        ...pendingApprovals.map((kl) => _buildApprovalCard(kl)).toList(),
+        ...pendingApprovals.map((kl) => _buildApprovalCard(kl)),
       ],
     );
   }

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 class CustomerWalletScreen extends StatefulWidget {
-  const CustomerWalletScreen({Key? key}) : super(key: key);
+  const CustomerWalletScreen({super.key});
 
   @override
   State<CustomerWalletScreen> createState() => _CustomerWalletScreenState();

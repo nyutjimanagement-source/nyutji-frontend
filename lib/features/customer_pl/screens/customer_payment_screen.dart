@@ -12,12 +12,12 @@ class CustomerPaymentScreen extends StatefulWidget {
   final bool isPickup;
 
   const CustomerPaymentScreen({
-    Key? key,
+    super.key,
     required this.totalPrice,
     required this.totalItems,
     required this.address,
     required this.isPickup,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomerPaymentScreen> createState() => _CustomerPaymentScreenState();
