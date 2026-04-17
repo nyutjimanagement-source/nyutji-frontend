@@ -15,7 +15,6 @@ class CustomerProfileScreen extends StatefulWidget {
 
 class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   final ImagePicker _picker = ImagePicker();
-  File? _localImage; // Untuk preview instan yang bikin puas
 
   Future<void> _pickImage(AuthProvider auth) async {
     showModalBottomSheet(
@@ -35,8 +34,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 Navigator.pop(context);
                 final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
                 if (photo != null) {
-                  setState(() => _localImage = File(photo.path));
-                  await auth.updateProfilePhoto(photo.path);
+                  final success = await auth.updateProfilePhoto(photo.path);
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Foto Profile Berhasil Diganti", style: GoogleFonts.montserrat()),
+                        backgroundColor: const Color(0xFF1E5655), // Warna Teal sesuai tema Nyutji
+                      ),
+                    );
+                  }
                 }
               },
             ),
@@ -47,8 +53,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 Navigator.pop(context);
                 final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
                 if (image != null) {
-                  setState(() => _localImage = File(image.path));
-                  await auth.updateProfilePhoto(image.path);
+                  final success = await auth.updateProfilePhoto(image.path);
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Foto Profile Berhasil Diganti", style: GoogleFonts.montserrat()),
+                        backgroundColor: const Color(0xFF1E5655),
+                      ),
+                    );
+                  }
                 }
               },
             ),
@@ -106,15 +119,16 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     child: Builder(
                       builder: (context) {
                         final photoUrl = auth.user?['profile_photo'];
+                        final localPhoto = auth.temporaryLocalPhoto;
                         return CircleAvatar(
                           radius: 28, 
                           backgroundColor: Colors.amber[100], 
-                          backgroundImage: _localImage != null 
-                              ? FileImage(_localImage!) as ImageProvider
+                          backgroundImage: localPhoto != null
+                              ? FileImage(File(localPhoto)) as ImageProvider
                               : (photoUrl != null && photoUrl.toString().isNotEmpty) 
                                   ? NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}") 
                                   : null,
-                          child: (_localImage == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                          child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
                               ? const Icon(LucideIcons.user, size: 28, color: Colors.amber) 
                               : null
                         );

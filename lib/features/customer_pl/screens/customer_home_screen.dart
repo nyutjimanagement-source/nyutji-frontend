@@ -161,19 +161,22 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           Consumer<AuthProvider>(
             builder: (context, auth, _) {
               final photoUrl = auth.user?['profile_photo'];
+              final localPhoto = auth.temporaryLocalPhoto;
               return Container(
                 width: 40, height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle, 
                   color: primaryTeal.withOpacity(0.1),
-                  image: (photoUrl != null && photoUrl.toString().isNotEmpty)
-                      ? DecorationImage(
-                          image: NetworkImage("http://nyutji.com/$photoUrl"), 
-                          fit: BoxFit.cover
-                        ) 
-                      : null,
+                  image: localPhoto != null
+                      ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                      : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                          ? DecorationImage(
+                              image: NetworkImage("http://nyutji.com/$photoUrl"), 
+                              fit: BoxFit.cover
+                            ) 
+                          : null,
                 ),
-                child: (photoUrl == null || photoUrl.toString().isEmpty) 
+                child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
                     ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
                     : null,
               );

@@ -10,7 +10,10 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
   List<dynamic> _pendingApprovals = [];
 
+  String? _temporaryLocalPhoto; // Memori agar foto tidak hilang saat pindah screen
+  
   bool get isLoading => _isLoading;
+  String? get temporaryLocalPhoto => _temporaryLocalPhoto;
   String? get role => _role;
   String? get token => _token;
   String get lang => _lang;
@@ -138,12 +141,16 @@ class AuthProvider with ChangeNotifier {
 
   // Upload & Update Foto Profil
   Future<bool> updateProfilePhoto(String filePath) async {
+    _temporaryLocalPhoto = filePath; // Simpan di memori pusat segera!
+    notifyListeners();
+
     try {
       final res = await ApiService().uploadProfilePhoto(filePath);
       if (res['photo_url'] != null) {
         // Update data user lokal
         if (_user != null) {
           _user!['profile_photo'] = res['photo_url'];
+          // _temporaryLocalPhoto = null; <-- Jangan dihapus dulu agar tidak flicker!
           notifyListeners();
         }
         return true;
