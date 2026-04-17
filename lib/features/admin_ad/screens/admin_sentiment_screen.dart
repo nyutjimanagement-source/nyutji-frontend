@@ -4,19 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/sentiment_provider.dart';
 
-class AdminSentimentScreen extends StatefulWidget {
+class AdminSentimentScreen extends StatelessWidget {
   const AdminSentimentScreen({Key? key}) : super(key: key);
 
-  @override
-  State<AdminSentimentScreen> createState() => _AdminSentimentScreenState();
-}
-
-class _AdminSentimentScreenState extends State<AdminSentimentScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => context.read<SentimentProvider>().fetchSentiments());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,29 +16,24 @@ class _AdminSentimentScreenState extends State<AdminSentimentScreen> {
 
     return Container(
       color: const Color(0xFFF3F4F6),
-      child: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => provider.fetchSentiments(),
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildHeader(),
-                  SliverToBoxAdapter(child: _buildSummaryGrid(summary)),
-                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) => _buildSentimentCard(sentiments[index]),
-                        childCount: sentiments.length,
-                      ),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 40)),
-                ],
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildHeader(),
+          SliverToBoxAdapter(child: _buildSummaryGrid(summary)),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildSentimentCard(sentiments[index]),
+                childCount: sentiments.length,
               ),
             ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 40)),
+        ],
+      ),
     );
   }
 

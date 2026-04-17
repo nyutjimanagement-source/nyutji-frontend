@@ -4,22 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/issue_provider.dart';
 
-class AdminIssuesScreen extends StatefulWidget {
+class AdminIssuesScreen extends StatelessWidget {
   const AdminIssuesScreen({Key? key}) : super(key: key);
 
-  @override
-  State<AdminIssuesScreen> createState() => _AdminIssuesScreenState();
-}
-
-class _AdminIssuesScreenState extends State<AdminIssuesScreen> {
   static const Color darkGray = Color(0xFF111827);
   static const Color bgColor = Color(0xFFF3F4F6);
 
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => context.read<IssueProvider>().fetchIssues());
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,22 +17,20 @@ class _AdminIssuesScreenState extends State<AdminIssuesScreen> {
 
     return Container(
       color: bgColor,
-      child: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  _buildDenseHeader(),
-                  _buildMapSection(),
-                  const SizedBox(height: 24),
-                  _buildLiveIssuesSection(provider),
-                  const SizedBox(height: 24),
-                  _buildOperationalReferences(),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            _buildDenseHeader(),
+            _buildMapSection(),
+            const SizedBox(height: 24),
+            _buildLiveIssuesSection(provider),
+            const SizedBox(height: 24),
+            _buildOperationalReferences(),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
     );
   }
 
