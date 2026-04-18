@@ -142,11 +142,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
             child: const Icon(LucideIcons.listChecks, color: primaryTeal, size: 16),
           ),
           const SizedBox(width: 8),
-          Text("Manajemen Pesanan", style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+          Text("Manajemen Pesanan", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
         ],
       ),
       actions: [
@@ -188,7 +188,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         alignment: Alignment.center,
         decoration: BoxDecoration(color: isSel ? primaryTeal : Colors.grey[100], borderRadius: BorderRadius.circular(6), border: Border.all(color: isSel ? primaryTeal : Colors.grey[300]!)),
-        child: Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: isSel ? FontWeight.bold : FontWeight.w600, color: isSel ? Colors.white : textGrey)),
+        child: Text(label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: isSel ? FontWeight.bold : FontWeight.w600, color: isSel ? Colors.white : textGrey)),
       ),
     );
   }
@@ -215,13 +215,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                       children: [
                         Row(
                           children: [
-                            Text(o.id, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, color: textGrey)),
+                            Text(o.id, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: textGrey)),
                             const SizedBox(width: 6),
                             if(o.tier == CustomerTier.vip) _buildBadge("VIP", Colors.amber),
                             if(o.type == "Same Day") ...[const SizedBox(width: 4), _buildBadge("STORM", Colors.red)],
                           ],
                         ),
-                        Text(NumberFormat.currency(locale:'id_ID', symbol:'Rp', decimalDigits:0).format(o.price), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)),
+                        Text(NumberFormat.currency(locale:'id_ID', symbol:'Rp', decimalDigits:0).format(o.price), style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -230,7 +230,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                       children: [
                         const Icon(LucideIcons.user, size: 12, color: textGrey),
                         const SizedBox(width: 4),
-                        Expanded(child: Text(o.customer, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: darkText))),
+                        Expanded(child: Text(o.customer, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText))),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(4)),
@@ -238,7 +238,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                             children: [
                               const Icon(LucideIcons.clock, size: 10, color: Colors.red),
                               const SizedBox(width: 4),
-                              Text("Sisa: ${_getRemainingTime(o.deadline)}", style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.red)),
+                              Text("Sisa: ${_getRemainingTime(o.deadline)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.red)),
                             ],
                           ),
                         )
@@ -250,8 +250,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                       children: [
                         const Icon(LucideIcons.truck, size: 11, color: textGrey),
                         const SizedBox(width: 6),
-                        Text("Kurir KL: ", style: GoogleFonts.inter(fontSize: 10, color: textGrey)),
-                        Text(o.courier, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+                        Text("Kurir KL: ", style: GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
+                        Text(o.courier, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -267,7 +267,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                             children: [
                               Container(width: 4, height: 4, decoration: const BoxDecoration(color: primaryTeal, shape: BoxShape.circle)),
                               const SizedBox(width: 6),
-                              Text("${i.name} - ${i.qty.toStringAsFixed(i.qty.truncateToDouble() == i.qty ? 0 : 1)} ${i.unit}", style: GoogleFonts.inter(fontSize: 10, color: darkText, fontWeight: FontWeight.w500)),
+                              Text("${i.name} - ${i.qty.toStringAsFixed(i.qty.truncateToDouble() == i.qty ? 0 : 1)} ${i.unit}", style: GoogleFonts.montserrat(fontSize: 10, color: darkText, fontWeight: FontWeight.w500)),
                             ],
                           ),
                         )).toList(),
@@ -279,7 +279,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                         children: [
                           const Icon(LucideIcons.info, size: 10, color: Colors.orange),
                           const SizedBox(width: 4),
-                          Expanded(child: Text('Catatan: "${o.notes}"', style: GoogleFonts.inter(fontSize: 9, fontStyle: FontStyle.italic, color: Colors.orange[800]))),
+                          Expanded(child: Text('Catatan: "${o.notes}"', style: GoogleFonts.montserrat(fontSize: 9, fontStyle: FontStyle.italic, color: Colors.orange[800]))),
                         ],
                       )
                     ],
@@ -302,7 +302,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(6)),
-        child: Center(child: Text("SELESAI (Menunggu Pick-up Kurir)", style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: textGrey))),
+        child: Center(child: Text("SELESAI (Menunggu Pick-up Kurir)", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: textGrey))),
       );
     }
 
@@ -311,13 +311,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         Expanded(
           child: Container(
             height: 28,
-            decoration: BoxDecoration(color: _getStatusColor(o.status).withOpacity(0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: _getStatusColor(o.status).withOpacity(0.3))),
+            decoration: BoxDecoration(color: _getStatusColor(o.status).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: _getStatusColor(o.status).withValues(alpha: 0.3))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(_getStatusIcon(o.status), size: 12, color: _getStatusColor(o.status)),
                 const SizedBox(width: 6),
-                Text("STATUS: ${_getStatusName(o.status)}", style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: _getStatusColor(o.status))),
+                Text("STATUS: ${_getStatusName(o.status)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: _getStatusColor(o.status))),
               ],
             ),
           ),
@@ -334,7 +334,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           ),
           child: Row(
             children: [
-              Text("PROSES", style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold)),
+              Text("PROSES", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold)),
               const SizedBox(width: 4),
               const Icon(LucideIcons.chevronRight, size: 12),
             ],
@@ -348,7 +348,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(color: color[100], borderRadius: BorderRadius.circular(4), border: Border.all(color: color[400]!)),
-      child: Text(txt, style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w900, color: color[800], letterSpacing: 0.5)),
+      child: Text(txt, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: color[800], letterSpacing: 0.5)),
     );
   }
 

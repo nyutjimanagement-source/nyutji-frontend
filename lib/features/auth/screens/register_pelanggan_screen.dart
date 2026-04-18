@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class RegisterPelangganScreen extends StatefulWidget {
   const RegisterPelangganScreen({super.key});
@@ -18,6 +19,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
   final TextEditingController passController = TextEditingController();
   final TextEditingController districtController = TextEditingController();
   final TextEditingController cityController = TextEditingController();
+  bool _obscurePassword = true;
 
   final Map<String, dynamic> t = {
     'id': {
@@ -45,9 +47,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
   };
   void _handleRegister() async {
     if (nameController.text.isEmpty || phoneController.text.isEmpty || districtController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama, Nomor HP, dan Kecamatan wajib diisi!'), backgroundColor: Colors.red),
-      );
+      NyutjiNotif.showError(context, 'Nama, Nomor HP, dan Kecamatan wajib diisi!');
       return;
     }
 
@@ -66,14 +66,10 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
     if (!mounted) return;
     
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pendaftaran Berhasil! Menunggu Approval Admin.'), backgroundColor: Color(0xFF286B6A)),
-      );
+      NyutjiNotif.showSuccess(context, 'Pendaftaran Berhasil! Menunggu Approval.');
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal Mendaftarkan Akun. Email mungkin sudah terdaftar.'), backgroundColor: Colors.red),
-      );
+      NyutjiNotif.showError(context, 'Gagal Mendaftarkan Akun. Silakan cek kembali data Anda.');
     }
 }
 
@@ -192,16 +188,20 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle}) {
     return TextField(
       controller: controller,
-      obscureText: isPass,
+      obscureText: isPass ? obscure : false,
       style: const TextStyle(color: Colors.black87),
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
         prefixIcon: Icon(icon, size: 20, color: const Color(0xFF2E7D32)),
+        suffixIcon: isPass ? IconButton(
+          icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
+          onPressed: onToggle,
+        ) : null,
         filled: true,
         fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),

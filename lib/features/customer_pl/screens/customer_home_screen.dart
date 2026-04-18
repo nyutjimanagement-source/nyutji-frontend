@@ -84,7 +84,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       'id': {
         'greeting': 'Selamat Pagi',
         'tracking_msg': 'Kurir sedang menuju lokasimu...',
-        'pay_label': 'NyutjiPay',
+        'pay_label': 'Dompet Nyutji',
         'points_label': 'Poin',
         'voucher_label': 'Voucher',
         'active_text': 'Aktif',
@@ -156,64 +156,79 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-          Consumer<AuthProvider>(
-            builder: (context, auth, _) {
-              final photoUrl = auth.user?['profile_photo'];
-              final localPhoto = auth.temporaryLocalPhoto;
-              return Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle, 
-                  color: primaryTeal.withOpacity(0.1),
-                  image: localPhoto != null
-                      ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
-                      : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                          ? DecorationImage(
-                              image: NetworkImage("http://nyutji.com/$photoUrl"), 
-                              fit: BoxFit.cover
-                            ) 
+          Expanded( // Menambahkan Expanded utama
+            child: Row(
+              children: [
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    final photoUrl = auth.user?['profile_photo'];
+                    final localPhoto = auth.temporaryLocalPhoto;
+                    return Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle, 
+                        color: primaryTeal.withOpacity(0.1),
+                        image: localPhoto != null
+                            ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                            : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                                ? DecorationImage(
+                                    image: NetworkImage("http://nyutji.com/$photoUrl"), 
+                                    fit: BoxFit.cover
+                                  ) 
+                                : null,
+                      ),
+                      child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                          ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
                           : null,
+                    );
+                  }
                 ),
-                child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
-                    ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
-                    : null,
-              );
-            }
-          ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Consumer<AuthProvider>(
-                    builder: (context, auth, _) {
-                      return Text(
-                        auth.user?['name'] ?? "Pelanggan", 
-                        style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: textDark)
-                      );
-                    }
+                const SizedBox(width: 12),
+                Expanded( // Menambahkan Expanded agar Column tahu batasnya
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) {
+                          return Text(
+                            auth.user?['name'] ?? "Pelanggan", 
+                            maxLines: 2, // Maksimal 2 baris
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: textDark)
+                          );
+                        }
+                      ),
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) {
+                          final district = auth.user?['district_name'];
+                          final city = auth.user?['city_name'];
+                          final location = (district != null && city != null)
+                              ? "$district, $city"
+                              : district ?? city ?? "Lokasi tidak diset";
+                          return Row(
+                            children: [
+                              Icon(LucideIcons.mapPin, size: 10, color: primaryRed),
+                              const SizedBox(width: 4),
+                              Expanded( // Lokasi juga kita buat expanded agar aman
+                                child: Text(
+                                  location, 
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.montserrat(fontSize: 11, color: textGrey)
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      ),
+                    ],
                   ),
-                   Consumer<AuthProvider>(
-                    builder: (context, auth, _) {
-                      final district = auth.user?['district_name'];
-                      final city = auth.user?['city_name'];
-                      final location = (district != null && city != null)
-                          ? "$district, $city"
-                          : district ?? city ?? "Lokasi tidak diset";
-                      return Row(
-                        children: [
-                          Icon(LucideIcons.mapPin, size: 10, color: primaryRed),
-                          const SizedBox(width: 4),
-                          Text(location, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey)),
-                        ],
-                      );
-                    }
-                  ),
-                ],
-              )
-            ],
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 12), // Jarak aman ke icon
           Row(
             children: [
               _buildIconBtn(LucideIcons.search),

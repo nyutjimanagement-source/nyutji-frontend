@@ -41,8 +41,8 @@ class MitraWalletScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Dompet Utama Mitra", style: GoogleFonts.inter(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.bold)),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(4)), child: Text("AKTIF", style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent))),
+              Text("Dompet Utama Mitra", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.bold)),
+              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(4)), child: Text("AKTIF", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent))),
             ],
           ),
           const SizedBox(height: 6),
@@ -50,8 +50,8 @@ class MitraWalletScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text("Rp 4.550.000", style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
-              Text("Total Kredit", style: GoogleFonts.inter(fontSize: 10, color: Colors.white54)),
+              Text("Rp 4.550.000", style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
+              Text("Total Kredit", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54)),
             ],
           )
         ],
@@ -90,7 +90,7 @@ class MitraWalletScreen extends StatelessWidget {
                 children: [
                   Icon(LucideIcons.trophy, size: 16, color: Colors.amber[700]),
                   const SizedBox(height: 4),
-                  Text("Rank #4", style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber[900])),
+                  Text("Rank #4", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber[900])),
                 ],
               ),
             ),
@@ -105,11 +105,11 @@ class MitraWalletScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
           child: Icon(icon, size: 14, color: color),
         ),
         const SizedBox(height: 4),
-        Text(label, style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.bold, color: darkText)),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: darkText)),
       ],
     );
   }
@@ -120,7 +120,7 @@ class MitraWalletScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           Text("Laporan Keuangan Eksekutif", style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: darkText)),
+           Text("Laporan Keuangan Eksekutif", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText)),
            const SizedBox(height: 12),
            GridView.count(
              crossAxisCount: 3,
@@ -155,11 +155,11 @@ class MitraWalletScreen extends StatelessWidget {
             children: [
               Container(width: 4, height: 4, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
               const SizedBox(width: 4),
-              Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 8, color: Colors.grey[600], fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey[600], fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
             ],
           ),
           const Spacer(),
-          Text(val, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.5)),
+          Text(val, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.5)),
         ],
       ),
     );
@@ -176,7 +176,7 @@ class MitraWalletScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Mutasi Log", style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Mutasi Log", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
                 const Icon(LucideIcons.list, size: 14, color: Colors.blue),
               ],
             ),
@@ -202,12 +202,12 @@ class MitraWalletScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
-                Text("Ref: $rid", style: GoogleFonts.inter(fontSize: 8, color: Colors.grey[500])),
+                Text(title, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Ref: $rid", style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey[500])),
               ],
             ),
           ),
-          Text(amt, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w900, color: c)),
+          Text(amt, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: c)),
         ],
       ),
     );

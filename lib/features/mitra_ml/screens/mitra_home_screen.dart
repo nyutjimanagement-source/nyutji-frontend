@@ -108,63 +108,79 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    color: primaryTeal,
+                    borderRadius: BorderRadius.circular(10),
+                    image: const DecorationImage(image: NetworkImage("https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=150&q=80"), fit: BoxFit.cover)
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Consumer<AuthProvider>(
+                              builder: (context, auth, _) => Text(
+                                auth.user?['name'] ?? "Mitra Nyutji", 
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.verified, size: 14, color: Colors.blue),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            decoration: BoxDecoration(color: Colors.amber[100], borderRadius: BorderRadius.circular(4)),
+                            child: Row(
+                              children: [
+                                const Icon(LucideIcons.star, size: 10, color: Colors.amber),
+                                const SizedBox(width: 2),
+                                Text("4.9", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber[900])),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text("Kebayoran Baru", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
           Row(
             children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: primaryTeal,
-                  borderRadius: BorderRadius.circular(10),
-                  image: const DecorationImage(image: NetworkImage("https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=150&q=80"), fit: BoxFit.cover)
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              IconButton(onPressed: () {}, icon: const Icon(LucideIcons.search, color: darkText, size: 22), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
+              const SizedBox(width: 10),
+              Stack(
                 children: [
-                  Row(
-                    children: [
-                      Consumer<AuthProvider>(
-                        builder: (context, auth, _) => Text(
-                          auth.user?['name'] ?? "Mitra Nyutji", 
-                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.verified, size: 14, color: Colors.blue),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                        decoration: BoxDecoration(color: Colors.amber[100], borderRadius: BorderRadius.circular(4)),
-                        child: Row(
-                          children: [
-                            const Icon(LucideIcons.star, size: 10, color: Colors.amber),
-                            const SizedBox(width: 2),
-                            Text("4.9", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber[900])),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text("Kebayoran Baru", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
+                  IconButton(onPressed: () {}, icon: const Icon(LucideIcons.bell, color: darkText, size: 22), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
+                  Positioned(
+                    right: 0, top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                      child: const Text("5", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                    ),
+                  )
                 ],
-              ),
-            ],
-          ),
-          Stack(
-            children: [
-              IconButton(onPressed: () {}, icon: const Icon(LucideIcons.bell, color: darkText, size: 22), constraints: const BoxConstraints(), padding: EdgeInsets.zero),
-              Positioned(
-                right: 0, top: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
-                  child: const Text("5", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                ),
               )
             ],
           )
@@ -205,7 +221,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: primaryTeal.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]),
+        decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]),
         child: Consumer<WalletProvider>(
           builder: (context, wallet, _) => Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -288,7 +304,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 8),
@@ -432,7 +448,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   // === BOTTOM NAV ===
   Widget _buildBottomNav(Color activeColor) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))]),
+      decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))]),
       child: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(LucideIcons.layoutDashboard, size: 20), activeIcon: Icon(LucideIcons.layoutDashboard, size: 20), label: "Beranda"),
@@ -442,7 +458,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: activeColor,
-        unselectedItemColor: textGrey.withOpacity(0.6),
+        unselectedItemColor: textGrey.withValues(alpha: 0.6),
         showUnselectedLabels: true,
         onTap: (index) {
           _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);

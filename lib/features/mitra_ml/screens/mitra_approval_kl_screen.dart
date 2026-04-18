@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class MitraApprovalKlScreen extends StatefulWidget {
   const MitraApprovalKlScreen({super.key});
@@ -35,12 +36,11 @@ class _MitraApprovalKlScreenState extends State<MitraApprovalKlScreen> {
     final success = await auth.processUserApproval(id, action);
     
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$name berhasil di-${action.toLowerCase()}!'),
-          backgroundColor: action == 'APPROVED' ? Colors.green : Colors.red,
-        ),
-      );
+      if (action == 'APPROVED') {
+        NyutjiNotif.showSuccess(context, '$name berhasil di-approve!');
+      } else {
+        NyutjiNotif.showError(context, '$name telah ditolak.');
+      }
       _loadPending();
     }
   }

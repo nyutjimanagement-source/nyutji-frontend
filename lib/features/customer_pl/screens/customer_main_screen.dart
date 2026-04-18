@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'customer_home_screen.dart';
-import 'customer_order_screen.dart';
+
 import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
 import 'customer_status_screen.dart';
@@ -54,12 +54,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
     );
   }
 
-  void _handleLogout() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    await auth.logout();
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/login');
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -99,10 +94,10 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))),
+          border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -133,7 +128,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: primaryTeal,
-          unselectedItemColor: textGrey.withOpacity(0.5),
+          unselectedItemColor: textGrey.withValues(alpha: 0.5),
           showUnselectedLabels: true,
           onTap: _onItemTapped,
           backgroundColor: Colors.white,

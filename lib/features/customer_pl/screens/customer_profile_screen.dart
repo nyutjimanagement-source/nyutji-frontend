@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -36,12 +37,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 if (photo != null) {
                   final success = await auth.updateProfilePhoto(photo.path);
                   if (success && mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Foto Profile Berhasil Diganti", style: GoogleFonts.montserrat()),
-                        backgroundColor: const Color(0xFF1E5655), // Warna Teal sesuai tema Nyutji
-                      ),
-                    );
+                    NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
                 }
               },
@@ -55,12 +51,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 if (image != null) {
                   final success = await auth.updateProfilePhoto(image.path);
                   if (success && mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Foto Profile Berhasil Diganti", style: GoogleFonts.montserrat()),
-                        backgroundColor: const Color(0xFF1E5655),
-                      ),
-                    );
+                    NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
                 }
               },

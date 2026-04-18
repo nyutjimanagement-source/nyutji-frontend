@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/marquee_widget.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/theme/theme_util.dart'; // Import RetroRoute
 import 'register_kurir_screen.dart';
 import 'register_mitra_screen.dart';
@@ -22,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final FocusNode passwordFocusNode = FocusNode();
   
   bool isPhoneVerified = true;
+  bool _obscurePassword = true;
 
   final Map<String, dynamic> t = {
     'id': {
@@ -87,31 +89,13 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, targetRoute);
     } else {
       if (!mounted) return;
-      _showBeautyPopup(
-        context,
-        message: auth.lang == 'id' ? 'Kredensial Salah!' : 'Invalid Credentials!',
-        icon: LucideIcons.lock,
+      NyutjiNotif.showError(
+        context, 
+        auth.lang == 'id' ? 'Kredensial Salah!' : 'Invalid Credentials!'
       );
     }
   }
 
-  void _showBeautyPopup(BuildContext context, {required String message, required IconData icon}) {
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
-      builder: (context) => _BeautyPopupWidget(
-        message: message,
-        icon: icon,
-        onDismiss: () {},
-      ),
-    );
-
-    overlay.insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) {
-        overlayEntry.remove();
-      }
-    });
-  }
 
   void _resetPhone() {
     setState(() {
@@ -308,12 +292,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                             TextField(
                                               controller: passwordController,
                                               focusNode: passwordFocusNode,
-                                              obscureText: true,
+                                              obscureText: _obscurePassword,
                                               decoration: InputDecoration(
                                                 hintText: "••••••••",
                                                 filled: true,
                                                 fillColor: Colors.grey[50],
                                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                                suffixIcon: IconButton(
+                                                  icon: Icon(
+                                                    _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
+                                                    size: 20,
+                                                    color: Colors.grey,
+                                                  ),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _obscurePassword = !_obscurePassword;
+                                                    });
+                                                  },
+                                                ),
                                                 border: OutlineInputBorder(
                                                   borderRadius: BorderRadius.circular(16),
                                                   borderSide: const BorderSide(color: Color(0xFFE5E5E5)),
@@ -565,86 +561,3 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class _BeautyPopupWidget extends StatefulWidget {
-  final String message;
-  final IconData icon;
-  final VoidCallback onDismiss;
-
-  const _BeautyPopupWidget({
-    super.key,
-    required this.message,
-    required this.icon,
-    required this.onDismiss,
-  });
-
-  @override
-  State<_BeautyPopupWidget> createState() => _BeautyPopupWidgetState();
-}
-
-class _BeautyPopupWidgetState extends State<_BeautyPopupWidget> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _offsetAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-        duration: const Duration(milliseconds: 600), vsync: this);
-    _offsetAnimation = Tween<Offset>(begin: const Offset(0, -1.5), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 20),
-          child: SlideTransition(
-            position: _offsetAnimation,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFC3312E),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
-                  ],
-                  border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: Icon(widget.icon, size: 18, color: const Color(0xFFC3312E)),
-                    ),
-                    const SizedBox(width: 16),
-                    Flexible(
-                      child: Text(
-                        widget.message,
-                        style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

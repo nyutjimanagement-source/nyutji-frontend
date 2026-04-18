@@ -281,31 +281,39 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 42, height: 42,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle, 
-                  border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                  image: const DecorationImage(image: NetworkImage('https://i.pravatar.cc/150?u=kurirnyutji'), fit: BoxFit.cover),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(currentT['welcome'], style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                  Consumer<AuthProvider>(
-                    builder: (context, auth, _) => Text(
-                      auth.user?['name'] ?? "Kurir Nyutji", 
-                      style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText)
-                    ),
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 42, height: 42,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle, 
+                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                    image: const DecorationImage(image: NetworkImage('https://i.pravatar.cc/150?u=kurirnyutji'), fit: BoxFit.cover),
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(currentT['welcome'], style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) => Text(
+                          auth.user?['name'] ?? "Kurir Nyutji", 
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 12),
           Row(
             children: [
               // Small online toggle

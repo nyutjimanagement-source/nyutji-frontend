@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class RegisterKurirScreen extends StatefulWidget {
   const RegisterKurirScreen({super.key});
@@ -22,6 +23,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
 
   String? selectedKecamatan;
   String? selectedMitra;
+  bool _obscurePassword = true;
 
   final Map<String, dynamic> t = {
     'id': {
@@ -132,7 +134,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                           const SizedBox(height: 16),
                           _buildTextField(phoneController, currentT['phone_hint'], LucideIcons.phone, orangeRetro),
                           const SizedBox(height: 16),
-                          _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, orangeRetro, isPass: true),
+                          _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, orangeRetro, isPass: true, obscure: _obscurePassword, onToggle: () => setState(() => _obscurePassword = !_obscurePassword)),
                           
                           const SizedBox(height: 30),
                            _buildLabel(currentT['location']),
@@ -168,9 +170,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                             child: ElevatedButton(
                               onPressed: auth.isLoading ? null : () async {
                                 if (nameController.text.isEmpty || searchKecController.text.isEmpty || searchMitraController.text.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Nama, Kecamatan, dan Referensi Mitra wajib diisi!'), backgroundColor: Colors.red),
-                                  );
+                                  NyutjiNotif.showError(context, 'Nama, Kecamatan, dan Referensi Mitra wajib diisi!');
                                   return;
                                 }
 
@@ -187,14 +187,10 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
 
                                 if (!mounted) return;
                                 if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Registrasi Berhasil! Hubungi Mitra Anda untuk Approval.'), backgroundColor: orangeRetro),
-                                  );
+                                  NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Hubungi Mitra untuk Approval.');
                                   Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Gagal Registrasi Kurir. Coba lagi.'), backgroundColor: Colors.red),
-                                  );
+                                  NyutjiNotif.showError(context, 'Gagal Registrasi Kurir. Silakan coba lagi.');
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -229,14 +225,18 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle}) {
     return TextField(
       controller: controller,
-      obscureText: isPass,
+      obscureText: isPass ? obscure : false,
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon, size: 18, color: color),
+        suffixIcon: isPass ? IconButton(
+          icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
+          onPressed: onToggle,
+        ) : null,
         filled: true,
         fillColor: color.withOpacity(0.05),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

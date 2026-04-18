@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class AdminApprovalScreen extends StatefulWidget {
   const AdminApprovalScreen({super.key});
@@ -35,12 +36,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
     final success = await auth.processUserApproval(id, action);
     
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$name berhasil disetujui!'),
-          backgroundColor: Colors.teal,
-        ),
-      );
+      NyutjiNotif.showSuccess(context, '$name berhasil disetujui!');
       _loadPending();
     }
   }

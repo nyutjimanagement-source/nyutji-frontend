@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class RegisterMitraScreen extends StatefulWidget {
   const RegisterMitraScreen({super.key});
@@ -21,6 +22,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
+  bool _obscurePassword = true;
 
   final Map<String, dynamic> t = {
     'id': {
@@ -152,7 +154,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                           const SizedBox(height: 16),
                           _buildTextField(phoneController, currentT['phone_hint'], LucideIcons.phone, greenRetro),
                           const SizedBox(height: 16),
-                          _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, greenRetro, isPass: true),
+                          _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, greenRetro, isPass: true, obscure: _obscurePassword, onToggle: () => setState(() => _obscurePassword = !_obscurePassword)),
                           
                           const SizedBox(height: 30),
                           _buildLabel(currentT['segment']),
@@ -241,9 +243,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                             child: ElevatedButton(
                               onPressed: auth.isLoading ? null : () async {
                                 if (nameController.text.isEmpty || searchKecController.text.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Nama dan Kecamatan wajib diisi!'), backgroundColor: Colors.red),
-                                  );
+                                  NyutjiNotif.showError(context, 'Nama dan Kecamatan wajib diisi!');
                                   return;
                                 }
 
@@ -261,14 +261,10 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
                                 if (!mounted) return;
                                 if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Registrasi Berhasil! Menunggu Approval Admin.'), backgroundColor: Color(0xFF740006)),
-                                  );
+                                  NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Menunggu Approval Admin.');
                                   Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Gagal Registrasi. Coba lagi atau hubungi IT.'), backgroundColor: Colors.red),
-                                  );
+                                  NyutjiNotif.showError(context, 'Gagal Registrasi. Coba lagi atau hubungi IT.');
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -303,16 +299,20 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle}) {
     return TextField(
       controller: controller,
-      obscureText: isPass,
+      obscureText: isPass ? obscure : false,
       style: const TextStyle(color: Colors.black87),
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
         prefixIcon: Icon(icon, size: 18, color: const Color(0xFF740006)),
+        suffixIcon: isPass ? IconButton(
+          icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
+          onPressed: onToggle,
+        ) : null,
         filled: true,
         fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
