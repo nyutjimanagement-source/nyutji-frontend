@@ -39,11 +39,11 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    // Hapus seluruh memori tanpa sisa (Fokus fix registrasi gagal)
     await prefs.clear();
     _token = null;
     _role = null;
     _user = null;
+    _temporaryLocalPhoto = null; // BERSIHKAN FOTO LAMA!
     notifyListeners();
   }
 
@@ -103,7 +103,7 @@ class AuthProvider with ChangeNotifier {
       final response = await ApiService().register(regData);
       
       if (response['message'] != null) {
-        _isLoading = false;
+        _isLoading = false; 
         notifyListeners();
         return true;
       }

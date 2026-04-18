@@ -22,6 +22,11 @@ class ApiService {
     // Add Interceptors for automatic Auth Token handling
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
+        // Jangan kirim token untuk rute login atau register!
+        if (options.path == ApiConstants.login || options.path == "/register") {
+          return handler.next(options);
+        }
+
         final prefs = await SharedPreferences.getInstance();
         final token = prefs.getString('token');
         if (token != null) {

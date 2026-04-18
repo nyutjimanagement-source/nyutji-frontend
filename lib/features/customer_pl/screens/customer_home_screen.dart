@@ -172,7 +172,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                             ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
                             : (photoUrl != null && photoUrl.toString().isNotEmpty)
                                 ? DecorationImage(
-                                    image: NetworkImage("http://nyutji.com/$photoUrl"), 
+                                    image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
                                     fit: BoxFit.cover
                                   ) 
                                 : null,

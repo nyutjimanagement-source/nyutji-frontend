@@ -127,13 +127,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(auth.user?['name'] ?? "Pelanggan", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 2),
-                      Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.amber[50], borderRadius: BorderRadius.circular(4)), child: Text(currentT['tier'], style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.amber[900]))),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(auth.user?['name'] ?? "Pelanggan", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, maxLines: 2),
+                        const SizedBox(height: 2),
+                        Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.amber[50], borderRadius: BorderRadius.circular(4)), child: Text(currentT['tier'], style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.amber[900]))),
+                      ],
+                    ),
                   )
                 ],
               ),
