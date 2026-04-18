@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_location_picker.dart';
 
 class RegisterPelangganScreen extends StatefulWidget {
   const RegisterPelangganScreen({super.key});
@@ -20,6 +21,23 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
   final TextEditingController districtController = TextEditingController();
   final TextEditingController cityController = TextEditingController();
   bool _obscurePassword = true;
+
+  void _showLocationPicker() async {
+    final NyutjiLocationResult? result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NyutjiLocationPicker(),
+    );
+
+    if (result != null) {
+      setState(() {
+        districtController.text = result.district;
+        cityController.text = result.city;
+      });
+      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.district}");
+    }
+  }
 
   final Map<String, dynamic> t = {
     'id': {
@@ -146,11 +164,16 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
                           const SizedBox(height: 16),
                           _buildTextField(phoneController, currentT['phone_hint'], LucideIcons.phone, tealRetro),
                           const SizedBox(height: 16),
-                          _buildTextField(districtController, 'Nama Kecamatan', LucideIcons.mapPin, tealRetro),
+                           _buildTextField(districtController, 'Nama Kecamatan', LucideIcons.mapPin, tealRetro, 
+                            suffix: IconButton(
+                              icon: const Icon(LucideIcons.map, size: 20, color: Color(0xFF286B6A)),
+                              onPressed: _showLocationPicker,
+                            )
+                          ),
                           const SizedBox(height: 16),
                           _buildTextField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, tealRetro),
                           const SizedBox(height: 16),
-                          _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, tealRetro, isPass: true),
+                          _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, tealRetro, isPass: true, obscure: _obscurePassword, onToggle: () => setState(() => _obscurePassword = !_obscurePassword)),
                           const SizedBox(height: 32),
                           SizedBox(
                             width: double.infinity,
@@ -188,7 +211,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle, Widget? suffix}) {
     return TextField(
       controller: controller,
       obscureText: isPass ? obscure : false,
@@ -198,10 +221,10 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
         prefixIcon: Icon(icon, size: 20, color: const Color(0xFF2E7D32)),
-        suffixIcon: isPass ? IconButton(
+        suffixIcon: suffix ?? (isPass ? IconButton(
           icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
           onPressed: onToggle,
-        ) : null,
+        ) : null),
         filled: true,
         fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),

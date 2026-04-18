@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_location_picker.dart';
 
 class RegisterMitraScreen extends StatefulWidget {
   const RegisterMitraScreen({super.key});
@@ -23,6 +24,23 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
   bool _obscurePassword = true;
+
+  void _showLocationPicker() async {
+    final NyutjiLocationResult? result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NyutjiLocationPicker(),
+    );
+
+    if (result != null) {
+      setState(() {
+        searchKecController.text = result.district;
+        cityController.text = result.city;
+      });
+      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.district}");
+    }
+  }
 
   final Map<String, dynamic> t = {
     'id': {
@@ -149,6 +167,15 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                         children: [
                           _buildLabel(currentT['info_owner']),
                           _buildTextField(nameController, currentT['name_hint'], LucideIcons.user, greenRetro),
+                          const SizedBox(height: 12),
+                          _buildTextField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, greenRetro, 
+                            suffix: IconButton(
+                              icon: const Icon(LucideIcons.map, size: 20, color: Color(0xFF740006)),
+                              onPressed: _showLocationPicker,
+                            )
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTextField(cityController, 'Nama Kota/Kabupaten', LucideIcons.map, greenRetro),
                           const SizedBox(height: 16),
                           _buildTextField(emailController, currentT['email_hint'], LucideIcons.mail, greenRetro, isEmail: true),
                           const SizedBox(height: 16),
@@ -299,7 +326,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle, Widget? suffix}) {
     return TextField(
       controller: controller,
       obscureText: isPass ? obscure : false,
@@ -309,10 +336,10 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
         prefixIcon: Icon(icon, size: 18, color: const Color(0xFF740006)),
-        suffixIcon: isPass ? IconButton(
+        suffixIcon: suffix ?? (isPass ? IconButton(
           icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
           onPressed: onToggle,
-        ) : null,
+        ) : null),
         filled: true,
         fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

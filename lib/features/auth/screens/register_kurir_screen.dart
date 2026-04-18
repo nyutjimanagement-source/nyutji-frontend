@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_location_picker.dart';
 
 class RegisterKurirScreen extends StatefulWidget {
   const RegisterKurirScreen({super.key});
@@ -24,6 +25,23 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
   String? selectedKecamatan;
   String? selectedMitra;
   bool _obscurePassword = true;
+
+  void _showLocationPicker() async {
+    final NyutjiLocationResult? result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NyutjiLocationPicker(),
+    );
+
+    if (result != null) {
+      setState(() {
+        searchKecController.text = result.district;
+        cityController.text = result.city;
+      });
+      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.district}");
+    }
+  }
 
   final Map<String, dynamic> t = {
     'id': {
@@ -138,10 +156,15 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                           
                           const SizedBox(height: 30),
                            _buildLabel(currentT['location']),
-                           _buildSearchField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, orangeRetro),
-                           const SizedBox(height: 12),
-                           _buildSearchField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, orangeRetro),
-                           const SizedBox(height: 12),
+                           _buildTextField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, orangeRetro, 
+                            suffix: IconButton(
+                              icon: const Icon(LucideIcons.map, size: 20, color: Color(0xFFD35400)),
+                              onPressed: _showLocationPicker,
+                            )
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTextField(cityController, 'Nama Kota/Kabupaten', LucideIcons.map, orangeRetro),
+                          const SizedBox(height: 12),
                           // Mockup Map Image
                           Container(
                             height: 150,
@@ -225,20 +248,22 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, Color color, {bool isPass = false, bool isEmail = false, bool obscure = false, VoidCallback? onToggle, Widget? suffix}) {
     return TextField(
       controller: controller,
       obscureText: isPass ? obscure : false,
+      style: const TextStyle(color: Colors.black87),
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, size: 18, color: color),
-        suffixIcon: isPass ? IconButton(
+        hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+        prefixIcon: Icon(icon, size: 18, color: const Color(0xFFD35400)),
+        suffixIcon: suffix ?? (isPass ? IconButton(
           icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
           onPressed: onToggle,
-        ) : null,
+        ) : null),
         filled: true,
-        fillColor: color.withOpacity(0.05),
+        fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
     );
