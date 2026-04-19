@@ -88,14 +88,15 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
         // Ekstraksi data mendetail dari Nominatim
         _road = address['road'] ?? "";
         _houseNumber = address['house_number'] ?? "";
-        _village = address['village'] ?? address['suburb'] ?? address['neighbourhood'] ?? "";
+        _village = address['village'] ?? address['suburb'] ?? address['neighbourhood'] ?? address['hamlet'] ?? "";
         _subdistrict = address['subdistrict'] ?? address['city_district'] ?? "";
         _city = address['city'] ?? address['regency'] ?? address['county'] ?? "";
         _fullAddress = data['display_name'] ?? "";
 
         setState(() {
-          // Hanya tampilkan Kelurahan & Kota di UI agar elegan
-          _addressInfo = "${_village.isNotEmpty ? '$_village, ' : ''}$_city";
+          // Tampilkan Alamat lebih lengkap di UI preview
+          String displayKec = _subdistrict.isNotEmpty ? 'Kec. $_subdistrict' : '';
+          _addressInfo = "${_village.isNotEmpty ? '$_village, ' : ''}$displayKec, $_city";
         });
       }
     } catch (e) {
@@ -145,7 +146,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
           Expanded(
             child: Stack(
               children: [
-                // MAP DENGAN STYLE POSITRON (CLEAN & ELEGANT)
+                // REVERT: KEMBALI KE OSM (OPENSTREETMAP) KARENA LEBIH LENGKAP & PRESISI
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   child: FlutterMap(
@@ -166,8 +167,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                        subdomains: const ['a', 'b', 'c', 'd'],
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.nyutji.app',
                       ),
                     ],
@@ -221,7 +221,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black87)),
+                        Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.black87)),
                         if (_road.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
@@ -232,12 +232,12 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E5655),
+                              // REVERT: KEMBALI KE STYLE TOMBOL SEBELUMNYA
+                              backgroundColor: const Color(0xFF286B6A),
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              elevation: 10,
-                              shadowColor: const Color(0xFF1E5655).withOpacity(0.4),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              elevation: 0,
                             ),
                             onPressed: () {
                               Navigator.pop(context, NyutjiLocationResult(
@@ -250,7 +250,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                                 address: _fullAddress,
                               ));
                             },
-                            child: Text("KONFIRMASI LOKASI", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                            child: const Text("KONFIRMASI LOKASI", style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         )
                       ],
