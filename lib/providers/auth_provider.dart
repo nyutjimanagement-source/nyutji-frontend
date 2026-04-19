@@ -69,6 +69,11 @@ class AuthProvider with ChangeNotifier {
       
       final historyStr = prefs.getString('address_history_${_user?['email']}');
       if (historyStr != null) _addressHistory = jsonDecode(historyStr);
+      
+      // LOAD LOCAL PHOTO PATH PERSISTENCE
+      if (_user?['email'] != null) {
+        _temporaryLocalPhoto = prefs.getString('local_photo_${_user!['email']}');
+      }
 
       notifyListeners();
       return true;
@@ -138,6 +143,9 @@ class AuthProvider with ChangeNotifier {
           
           final historyStr = prefs.getString('address_history_${_user?['email']}');
           if (historyStr != null) _addressHistory = jsonDecode(historyStr); else _addressHistory = [];
+
+          // LOAD LOCAL PHOTO PATH PERSISTENCE AFTER LOGIN
+          _temporaryLocalPhoto = prefs.getString('local_photo_$email');
         }
 
         _isLoading = false;
@@ -212,6 +220,7 @@ class AuthProvider with ChangeNotifier {
           final prefs = await SharedPreferences.getInstance();
           final email = _user!['email'] ?? "unknown";
           await prefs.setString('cached_photo_$email', res['photo_url']);
+          await prefs.setString('local_photo_$email', filePath); // SIMPAN PERMANEN DI HP
           await prefs.setString('user_data', jsonEncode(_user));
           
           notifyListeners();

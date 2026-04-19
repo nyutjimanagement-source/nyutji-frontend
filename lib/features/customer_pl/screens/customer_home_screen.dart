@@ -26,7 +26,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final Color textDark = const Color(0xFF111827);
   final Color textGrey = const Color(0xFF6B7280);
 
-  File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(AuthProvider auth) async {
@@ -47,7 +46,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 Navigator.pop(context);
                 final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
                 if (photo != null) {
-                  await auth.updateProfilePhoto(photo.path);
+                  final success = await auth.updateProfilePhoto(photo.path);
+                  if (mounted) {
+                    _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
+                  }
                 }
               },
             ),
@@ -58,11 +60,39 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 Navigator.pop(context);
                 final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
                 if (image != null) {
-                  await auth.updateProfilePhoto(image.path);
+                  final success = await auth.updateProfilePhoto(image.path);
+                  if (mounted) {
+                    _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
+                  }
                 }
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showBeautifulNotif(String message, bool success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: success ? primaryTeal : primaryRed,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5))],
+          ),
+          child: Row(
+            children: [
+              Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+            ],
+          ),
         ),
       ),
     );
@@ -163,23 +193,26 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   builder: (context, auth, _) {
                     final photoUrl = auth.user?['profile_photo'];
                     final localPhoto = auth.temporaryLocalPhoto;
-                    return Container(
-                      width: 40, height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle, 
-                        color: primaryTeal.withOpacity(0.1),
-                        image: localPhoto != null
-                            ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
-                            : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                ? DecorationImage(
-                                    image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
-                                    fit: BoxFit.cover
-                                  ) 
-                                : null,
+                    return GestureDetector(
+                      onTap: () => _pickImage(auth),
+                      child: Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle, 
+                          color: primaryTeal.withOpacity(0.1),
+                          image: localPhoto != null
+                              ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                              : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                                  ? DecorationImage(
+                                      image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                                      fit: BoxFit.cover
+                                    ) 
+                                  : null,
+                        ),
+                        child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                            ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
+                            : null,
                       ),
-                      child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
-                          ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
-                          : null,
                     );
                   }
                 ),

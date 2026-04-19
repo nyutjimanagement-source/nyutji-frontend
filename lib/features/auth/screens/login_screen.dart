@@ -96,14 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
-  void _resetPhone() {
-    setState(() {
-      isPhoneVerified = false;
-      passwordController.clear();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
