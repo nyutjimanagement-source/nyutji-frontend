@@ -48,15 +48,18 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
     
-    // Agar tidak flicker saat transisi logout, kita hapus token & role dulu
-    // namun sisihkan user data sebentar di memori sampai navigasi selesai
+    // JANGAN GUNAKAN prefs.clear() karena akan menghapus cache foto lokal!
+    // Hapus hanya data yang berkaitan dengan sesi aktif
+    await prefs.remove('token');
+    await prefs.remove('role');
+    await prefs.remove('user_data');
+    
     _token = null;
     _role = null;
     notifyListeners();
 
-    // Hapus data detail setelah jeda singkat (saat layar sudah berganti)
+    // Hapus data detail setelah jeda singkat agar navigasi smooth
     Future.delayed(const Duration(milliseconds: 500), () {
       _user = null;
       _temporaryLocalPhoto = null;
@@ -68,8 +71,6 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // AUTO-INFER IDENTIFIER FOR FAST SOFT LAUNCH LOGIN
-    // Jika email kosong, anggap password adalah ID (misal: PL0001)
     String realIdentifier = identifier.trim();
     if (realIdentifier.isEmpty) {
       realIdentifier = "${password.trim().toLowerCase()}@nyutji.com";
@@ -80,28 +81,23 @@ class AuthProvider with ChangeNotifier {
 
       if (response['token'] != null) {
         _token = response['token'];
-        
-        // BACKUP LOGIC: Jika backend belum diredeploy (role null), infer dari identifier
-        if (response['role'] != null) {
-          _role = response['role'];
-        } else {
-          // Inferensi dari ID (PL/KL/ML) seandainya server remote belum update
-          if (realIdentifier.contains('kl')) {
-            _role = 'KL';
-          } else if (realIdentifier.contains('ml')) _role = 'ML';
-          else if (realIdentifier.contains('ad')) _role = 'AD';
-          else _role = 'PL';
-        }
-        
+        _role = response['role'] ?? 'PL';
         _user = response['user']; 
         
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', _token!);
         await prefs.setString('role', _role!);
         
-        // PERSISTENCE FIX: Simpan data user ke lokal agar tidak hilang
+        // PERSISTENCE FIX: Jika server tidak punya foto, cek cache lokal berdasarkan email
         if (_user != null) {
-          final prefs = await SharedPreferences.getInstance();
+          final email = _user!['email'] ?? realIdentifier;
+          if (_user!['profile_photo'] == null || _user!['profile_photo'].toString().isEmpty) {
+            String? cached = prefs.getString('cached_photo_$email');
+            if (cached != null) _user!['profile_photo'] = cached;
+          } else {
+            // Jika server punya foto, update cache lokal
+            await prefs.setString('cached_photo_$email', _user!['profile_photo'].toString());
+          }
           await prefs.setString('user_data', jsonEncode(_user));
         }
 
@@ -174,8 +170,9 @@ class AuthProvider with ChangeNotifier {
         if (_user != null) {
           _user!['profile_photo'] = res['photo_url'];
           
-          // PERSISTENCE FIX: Simpan ke SharedPreferences
           final prefs = await SharedPreferences.getInstance();
+          final email = _user!['email'] ?? "unknown";
+          await prefs.setString('cached_photo_$email', res['photo_url']);
           await prefs.setString('user_data', jsonEncode(_user));
           
           notifyListeners();
