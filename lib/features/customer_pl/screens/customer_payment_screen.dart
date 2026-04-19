@@ -10,6 +10,7 @@ class CustomerPaymentScreen extends StatefulWidget {
   final int totalItems;
   final String address;
   final bool isPickup;
+  final int mitraId;
 
   const CustomerPaymentScreen({
     super.key,
@@ -17,6 +18,7 @@ class CustomerPaymentScreen extends StatefulWidget {
     required this.totalItems,
     required this.address,
     required this.isPickup,
+    required this.mitraId,
   });
 
   @override

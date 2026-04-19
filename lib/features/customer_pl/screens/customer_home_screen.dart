@@ -386,7 +386,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     return GestureDetector(
       onTap: () {
         if(title == currentT['service_pickup'] || title == currentT['service_dropoff']) {
-           Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerOrderScreen(orderType: title == currentT['service_pickup'] ? 'pickup' : 'antar')));
+           Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerOrderScreen(orderType: title == currentT['service_pickup'] ? 'pickup' : 'drop')));
         }
       },
       child: Stack(

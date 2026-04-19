@@ -47,27 +47,30 @@ class CourierWalletScreen extends StatelessWidget {
 
     final currentT = t[auth.lang] ?? t['id'];
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                _buildBalanceCard(primaryTeal, currentT),
-                const SizedBox(height: 16),
-                _buildActionButtons(currentT, primaryTeal),
-                const SizedBox(height: 24),
-                _buildWithdrawStatusCard(currentT),
-                const SizedBox(height: 24),
-                _buildRecentTransactionsSection(textDark, textGrey, primaryTeal, currentT),
-                const SizedBox(height: 40),
-              ],
+    return Container(
+      color: bgColor,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  _buildBalanceCard(primaryTeal, currentT),
+                  const SizedBox(height: 16),
+                  _buildActionButtons(currentT, primaryTeal),
+                  const SizedBox(height: 24),
+                  _buildWithdrawStatusCard(currentT),
+                  const SizedBox(height: 24),
+                  _buildRecentTransactionsSection(textDark, textGrey, primaryTeal, currentT),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
