@@ -200,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
+                            color: const Color(0xFF4B4B4B), // Explicit dark grey
                           ),
                         ),
                       ],
@@ -240,12 +240,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(height: 4),
                                   Text(
                                     currentT['subtitle'],
-                                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[500]),
+                                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black45),
                                   ),
                                   const SizedBox(height: 24),
                                   Text(
                                     currentT['phone'],
-                                    style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                                    style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87),
                                   ),
                                   const SizedBox(height: 8),
                                   TextField(
@@ -286,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           children: [
                                               Text(
                                                 auth.lang == 'id' ? "Kata Sandi" : "Password",
-                                                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                                                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87),
                                               ),
                                             const SizedBox(height: 8),
                                             TextField(
@@ -347,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Center(
                                     child: Text(
                                       currentT['register_as'],
-                                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
+                                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54),
                                     ),
                                   ),
                                   const SizedBox(height: 16),
@@ -392,7 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const Icon(LucideIcons.tag, size: 16, color: Color(0xFFC3312E)),
                           const SizedBox(width: 8),
-                          Text(currentT['promo'], style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(currentT['promo'], style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
                         ],
                       ),
                     ),

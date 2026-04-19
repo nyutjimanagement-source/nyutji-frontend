@@ -50,9 +50,8 @@ class NyutjiApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Nyutji Laundry',
         debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.light,
         theme: theme.light(),
-        darkTheme: theme.dark(),
         initialRoute: '/',
         builder: (context, child) {
           return Container(
