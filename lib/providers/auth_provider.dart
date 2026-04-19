@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/services/api_service.dart';
@@ -31,6 +32,14 @@ class AuthProvider with ChangeNotifier {
     _role = prefs.getString('role');
     
     if (_token != null && _role != null) {
+      final userDataStr = prefs.getString('user_data');
+      if (userDataStr != null) {
+        try {
+          _user = jsonDecode(userDataStr);
+        } catch (e) {
+          debugPrint("Error decoding user data: $e");
+        }
+      }
       notifyListeners();
       return true;
     }
@@ -40,11 +49,19 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+    
+    // Agar tidak flicker saat transisi logout, kita hapus token & role dulu
+    // namun sisihkan user data sebentar di memori sampai navigasi selesai
     _token = null;
     _role = null;
-    _user = null;
-    _temporaryLocalPhoto = null; // BERSIHKAN FOTO LAMA!
     notifyListeners();
+
+    // Hapus data detail setelah jeda singkat (saat layar sudah berganti)
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _user = null;
+      _temporaryLocalPhoto = null;
+      notifyListeners();
+    });
   }
 
   Future<bool> login(String identifier, String password) async {
@@ -81,6 +98,12 @@ class AuthProvider with ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', _token!);
         await prefs.setString('role', _role!);
+        
+        // PERSISTENCE FIX: Simpan data user ke lokal agar tidak hilang
+        if (_user != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(_user));
+        }
 
         _isLoading = false;
         notifyListeners();
@@ -150,7 +173,11 @@ class AuthProvider with ChangeNotifier {
         // Update data user lokal
         if (_user != null) {
           _user!['profile_photo'] = res['photo_url'];
-          // _temporaryLocalPhoto = null; <-- Jangan dihapus dulu agar tidak flicker!
+          
+          // PERSISTENCE FIX: Simpan ke SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(_user));
+          
           notifyListeners();
         }
         return true;

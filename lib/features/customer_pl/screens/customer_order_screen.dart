@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 
@@ -26,9 +26,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   final Map<String, int> _prices = {'baju': 8000, 'jaket': 15000, 'selimut': 25000, 'helm': 30000};
   
   // STATE UNTUK MAPS & LOKASI
-  LatLng _selectedLatLng = const LatLng(-6.2088, 106.8456); // Default Jakarta
+  // REMOVAL: Google LatLng depends on google_maps_flutter which we are removing
+  // We'll use simple strings or the result from our new picker.
   String _currentGpsAddress = 'Menyesuaikan GPS...'; 
-  
+  double? _selectedLat;
+  double? _selectedLng;  
   final Color primaryTeal = const Color(0xFF1E5655);
   final Color bgColor = const Color(0xFFF3F4F6);
 
@@ -98,6 +100,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(widget.orderType == 'pickup' ? currentT['title_pickup'] : currentT['title_drop'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: primaryTeal,
         elevation: 0,
@@ -173,82 +176,60 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
-                  const SizedBox(height: 16),
-                  Container(
-                    height: 250,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        children: [
-                          GoogleMap(
-                            initialCameraPosition: CameraPosition(
-                              target: _selectedLatLng,
-                              zoom: 15,
-                            ),
-                            onCameraMove: (position) {
-                              setModalState(() {
-                                _selectedLatLng = position.target;
-                                // MOCK REVERSE GEOCODING LOGIC
-                                // Simulasi perubahan alamat berdasarkan koordinat
-                                _currentGpsAddress = "Jl. Menteng Atas No. ${(position.target.latitude.abs() * 100).floor() % 100}, Jakarta";
-                              });
-                            },
-                            myLocationEnabled: true,
-                            zoomControlsEnabled: false,
-                            mapType: MapType.normal,
-                          ),
-                          // Pin di Tengah Layar (User-Friendly Center Marker)
-                          const Center(
-                            child: Padding(
-                              padding: EdgeInsets.only(bottom: 35),
-                              child: Icon(LucideIcons.mapPin, size: 40, color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _locOption(cT['opt_home'], "Jl. Kebayoran No 12, Jakarta", LucideIcons.home, () {
-                    setState(() => _pickupAddress = "Jl. Kebayoran No 12, Jakarta");
-                    Navigator.pop(context);
-                  }),
-                  _locOption(cT['opt_gps'], _currentGpsAddress, LucideIcons.crosshair, () {
-                    // Logic Posisi Sekarang sesuai titik di map
-                    setState(() => _pickupAddress = _currentGpsAddress);
-                    Navigator.pop(context);
-                  }),
-                  _locOption(cT['opt_map'], cT['opt_map_desc'], LucideIcons.map, () {
-                    // Logic Custom Map (Titik Baru)
-                    setState(() => _pickupAddress = "Titik Kustom: $_currentGpsAddress");
-                    Navigator.pop(context);
-                  }),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            );
-          }
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+              const SizedBox(height: 12),
+              Text("Silakan pilih cara penentuan lokasi penjemputan:", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+              const SizedBox(height: 20),
+              
+              // Option 1: Rumah Sendiri
+              _locOption(cT['opt_home'], "Jl. Kebayoran No 12, Jakarta", LucideIcons.home, () {
+                setState(() => _pickupAddress = "Jl. Kebayoran No 12, Jakarta");
+                Navigator.pop(context);
+              }),
+              
+              // Option 2 & 3: Use the new NyutjiLocationPicker
+              _locOption(cT['opt_gps'], cT['opt_gps_desc'], LucideIcons.crosshair, () async {
+                Navigator.pop(context); // Close selection sheet
+                _launchMapPicker();
+              }),
+              
+              _locOption(cT['opt_map'], cT['opt_map_desc'], LucideIcons.map, () async {
+                Navigator.pop(context); // Close selection sheet
+                _launchMapPicker();
+              }),
+              const SizedBox(height: 20),
+            ],
+          ),
         );
       },
     );
+  }
+
+  void _launchMapPicker() async {
+    final NyutjiLocationResult? result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NyutjiLocationPicker(),
+    );
+
+    if (result != null) {
+      setState(() {
+        _pickupAddress = "${result.district}, ${result.city}";
+        _selectedLat = result.lat;
+        _selectedLng = result.lng;
+      });
+    }
   }
 
   Widget _locOption(String title, String desc, IconData icon, VoidCallback onTap) {

@@ -165,23 +165,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                           const SizedBox(height: 12),
                           _buildTextField(cityController, 'Nama Kota/Kabupaten', LucideIcons.map, orangeRetro),
                           const SizedBox(height: 12),
-                          // Mockup Map Image
-                          Container(
-                            height: 150,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(16),
-                              image: const DecorationImage(
-                                image: NetworkImage('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8bWFwfHx8fHx8MTcwMTI0NTY3OA&ixlib=rb-4.0.3&q=80&w=1080'),
-                                fit: BoxFit.cover,
-                                opacity: 0.8,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(LucideIcons.map, color: orangeRetro, size: 40),
-                            ),
-                          ),
+
                           
                           const SizedBox(height: 30),
                           _buildLabel(currentT['mitra_ref']),

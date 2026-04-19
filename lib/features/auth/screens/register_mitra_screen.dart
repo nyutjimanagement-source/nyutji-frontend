@@ -213,23 +213,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                            const SizedBox(height: 12),
                            _buildSearchField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, greenRetro),
                            const SizedBox(height: 12),
-                          // Mockup Map
-                          Container(
-                            height: 140,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(16),
-                              image: const DecorationImage(
-                                image: NetworkImage('https://images.unsplash.com/photo-1548345666-a5773183fd0e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080'),
-                                fit: BoxFit.cover,
-                                opacity: 0.8,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(LucideIcons.globe, color: greenRetro, size: 40),
-                            ),
-                          ),
+
                           
                           const SizedBox(height: 30),
                           _buildLabel(currentT['category']),
