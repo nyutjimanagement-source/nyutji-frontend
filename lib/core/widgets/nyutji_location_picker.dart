@@ -48,6 +48,11 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
   String _city = "";
   String _fullAddress = "";
 
+  // Search variables
+  final TextEditingController _searchController = TextEditingController();
+  List<dynamic> _searchResults = [];
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
@@ -104,6 +109,43 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
     }
   }
 
+  Future<void> _searchLocations(String query) async {
+    if (query.length < 3) {
+      setState(() => _searchResults = []);
+      return;
+    }
+
+    try {
+      final url = Uri.parse("https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=5&addressdetails=1&countrycodes=id");
+      final response = await http.get(url, headers: {'User-Agent': 'NyutjiApp'});
+      
+      if (response.statusCode == 200) {
+        setState(() {
+          _searchResults = json.decode(response.body);
+        });
+      }
+    } catch (e) {
+      debugPrint("Search Error: $e");
+    }
+  }
+
+  void _selectLocation(dynamic location) {
+    final lat = double.parse(location['lat']);
+    final lon = double.parse(location['lon']);
+    final newPos = LatLng(lat, lon);
+
+    setState(() {
+      _currentLatLng = newPos;
+      _searchResults = [];
+      _searchController.clear();
+      _isSearching = false;
+    });
+
+    _mapController.move(newPos, 16.0);
+    _reverseGeocode(newPos);
+    FocusScope.of(context).unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -130,7 +172,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Pilih Lokasi Alamat", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: const Color(0xFF1E5655))),
-                      Text("Geser peta untuk menentukan titik presisi", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500])),
+                      Text("Cari atau geser peta untuk menentukan titik", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500])),
                     ],
                   ),
                 ),
@@ -146,7 +188,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
           Expanded(
             child: Stack(
               children: [
-                // REVERT: KEMBALI KE OSM (OPENSTREETMAP) KARENA LEBIH LENGKAP & PRESISI
+                // MAP (OSM)
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   child: FlutterMap(
@@ -173,6 +215,59 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                     ],
                   ),
                 ),
+
+                // SEARCH BAR OVERLAY
+                Positioned(
+                  top: 16, left: 16, right: 16,
+                  child: Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (val) => _searchLocations(val),
+                          decoration: InputDecoration(
+                            hintText: "Cari lokasi atau nama jalan...",
+                            hintStyle: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey),
+                            prefixIcon: const Icon(LucideIcons.search, size: 18, color: Color(0xFF1E5655)),
+                            suffixIcon: _searchController.text.isNotEmpty 
+                              ? IconButton(icon: const Icon(LucideIcons.xCircle, size: 18), onPressed: () { _searchController.clear(); setState(() => _searchResults = []); }) 
+                              : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ),
+                      if (_searchResults.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+                          ),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _searchResults.length,
+                            separatorBuilder: (context, index) => const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final loc = _searchResults[index];
+                              return ListTile(
+                                leading: const Icon(LucideIcons.mapPin, size: 18, color: Colors.grey),
+                                title: Text(loc['display_name'], style: GoogleFonts.montserrat(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                onTap: () => _selectLocation(loc),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 
                 // Overlay Loading
                 if (_isLoading)
@@ -181,7 +276,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                     child: const Center(child: CircularProgressIndicator(color: Color(0xFF1E5655))),
                   ),
                 
-                // Custom Pin Marker (Elegant Design)
+                // Custom Pin Marker
                 Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -191,12 +286,12 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                         decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))]),
                         child: const Icon(LucideIcons.mapPin, color: Colors.white, size: 30),
                       ),
-                      const SizedBox(height: 40), // Offset for pin point
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
                 
-                // Elegant Info Card
+                // Info Card
                 Positioned(
                   bottom: 0, left: 0, right: 0,
                   child: Container(
@@ -232,7 +327,6 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              // REVERT: KEMBALI KE STYLE TOMBOL SEBELUMNYA
                               backgroundColor: const Color(0xFF286B6A),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
