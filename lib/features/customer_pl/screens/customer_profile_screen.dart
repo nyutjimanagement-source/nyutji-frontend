@@ -6,6 +6,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../../core/widgets/nyutji_address_sheet.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -142,7 +143,14 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             ),
             const SizedBox(height: 12),
             _buildSettingsGroup([
-              _settingRow(LucideIcons.mapPin, currentT['address']),
+              _settingRow(LucideIcons.mapPin, currentT['address'], onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const NyutjiAddressSheet(),
+                );
+              }),
               _settingRow(LucideIcons.heart, currentT['favorit']),
             ]),
             const SizedBox(height: 12),

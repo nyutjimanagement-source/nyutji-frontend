@@ -128,7 +128,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDenseLocationCard(currentT),
+                _buildDenseLocationCard(currentT, auth),
                 const SizedBox(height: 12),
                 _buildDenseSpeedSelector(currentT),
                 const SizedBox(height: 12),
@@ -136,13 +136,13 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               ],
             ),
           ),
-          _buildCompactFooter(currentT),
+          _buildCompactFooter(currentT, auth),
         ],
       ),
     );
   }
 
-  Widget _buildDenseLocationCard(Map<String, dynamic> cT) {
+  Widget _buildDenseLocationCard(Map<String, dynamic> cT, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
@@ -155,9 +155,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             children: [
               Icon(LucideIcons.mapPin, size: 16, color: primaryTeal),
               const SizedBox(width: 8),
-              Expanded(child: Text(_pickupAddress, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              Expanded(child: Text(auth.homeAddress != null && _pickupAddress == 'Jl. Kebayoran No 12, Jakarta' ? "${auth.homeAddress!['detail']} ${auth.homeAddress!['address']}" : _pickupAddress, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 1, overflow: TextOverflow.ellipsis)),
               InkWell(
-                onTap: () => _showLocationPicker(cT),
+                onTap: () => _showLocationPicker(cT, auth),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                   child: Text(cT['change'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
@@ -170,7 +170,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     );
   }
 
-  void _showLocationPicker(Map<String, dynamic> cT) {
+  void _showLocationPicker(Map<String, dynamic> cT, AuthProvider auth) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -192,8 +192,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               const SizedBox(height: 20),
               
               // Option 1: Rumah Sendiri
-              _locOption(cT['opt_home'], "Jl. Kebayoran No 12, Jakarta", LucideIcons.home, () {
-                setState(() => _pickupAddress = "Jl. Kebayoran No 12, Jakarta");
+              _locOption(cT['opt_home'], auth.homeAddress != null ? "${auth.homeAddress!['detail']} ${auth.homeAddress!['address']}" : "Belum Set Alamat Rumah", LucideIcons.home, () {
+                if (auth.homeAddress != null) {
+                  setState(() => _pickupAddress = "${auth.homeAddress!['detail']} ${auth.homeAddress!['address']}");
+                }
                 Navigator.pop(context);
               }),
               
@@ -344,7 +346,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     );
   }
 
-  Widget _buildCompactFooter(Map<String, dynamic> cT) {
+  Widget _buildCompactFooter(Map<String, dynamic> cT, AuthProvider auth) {
     return Positioned(
       bottom: 0, left: 0, right: 0,
       child: Container(
@@ -364,6 +366,15 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             ),
             ElevatedButton(
               onPressed: _totalItems > 0 ? () {
+                // Save to History
+                if (_pickupAddress.isNotEmpty) {
+                  auth.addToAddressHistory({
+                    'address': _pickupAddress,
+                    'street': _pickupAddress.split(',').first,
+                    'lat': _selectedLat,
+                    'lng': _selectedLng,
+                  });
+                }
                 Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(totalPrice: _totalPrice, totalItems: _totalItems, address: _pickupAddress, isPickup: widget.orderType == 'pickup')));
               } : null,
               style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),

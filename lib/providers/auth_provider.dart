@@ -11,8 +11,10 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
   List<dynamic> _pendingApprovals = [];
 
-  String? _temporaryLocalPhoto; // Memori agar foto tidak hilang saat pindah screen
-  
+  Map<String, dynamic>? _homeAddress;
+  List<dynamic> _addressHistory = [];
+  String? _temporaryLocalPhoto;
+
   bool get isLoading => _isLoading;
   String? get temporaryLocalPhoto => _temporaryLocalPhoto;
   String? get role => _role;
@@ -20,6 +22,27 @@ class AuthProvider with ChangeNotifier {
   String get lang => _lang;
   Map<String, dynamic>? get user => _user;
   List<dynamic> get pendingApprovals => _pendingApprovals;
+  Map<String, dynamic>? get homeAddress => _homeAddress;
+  List<dynamic> get addressHistory => _addressHistory;
+
+  Future<void> saveHomeAddress(Map<String, dynamic> addr) async {
+    _homeAddress = addr;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('home_address_${_user?['email']}', jsonEncode(addr));
+    notifyListeners();
+  }
+
+  Future<void> addToAddressHistory(Map<String, dynamic> addr) async {
+    // Hindari duplikasi yang sama persis
+    if (_addressHistory.any((element) => element['address'] == addr['address'])) return;
+    
+    _addressHistory.insert(0, addr);
+    if (_addressHistory.length > 5) _addressHistory = _addressHistory.sublist(0, 5); // Limit 5 history
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('address_history_${_user?['email']}', jsonEncode(_addressHistory));
+    notifyListeners();
+  }
 
   void setLanguage(String newLang) {
     _lang = newLang;
@@ -40,6 +63,13 @@ class AuthProvider with ChangeNotifier {
           debugPrint("Error decoding user data: $e");
         }
       }
+      // Load Addresses
+      final homeAddrStr = prefs.getString('home_address_${_user?['email']}');
+      if (homeAddrStr != null) _homeAddress = jsonDecode(homeAddrStr);
+      
+      final historyStr = prefs.getString('address_history_${_user?['email']}');
+      if (historyStr != null) _addressHistory = jsonDecode(historyStr);
+
       notifyListeners();
       return true;
     }
@@ -57,6 +87,8 @@ class AuthProvider with ChangeNotifier {
     
     _token = null;
     _role = null;
+    _homeAddress = null;
+    _addressHistory = [];
     notifyListeners();
 
     // Hapus data detail setelah jeda singkat agar navigasi smooth
@@ -99,6 +131,13 @@ class AuthProvider with ChangeNotifier {
             await prefs.setString('cached_photo_$email', _user!['profile_photo'].toString());
           }
           await prefs.setString('user_data', jsonEncode(_user));
+
+          // Load Addresses after login
+          final homeAddrStr = prefs.getString('home_address_${_user?['email']}');
+          if (homeAddrStr != null) _homeAddress = jsonDecode(homeAddrStr); else _homeAddress = null;
+          
+          final historyStr = prefs.getString('address_history_${_user?['email']}');
+          if (historyStr != null) _addressHistory = jsonDecode(historyStr); else _addressHistory = [];
         }
 
         _isLoading = false;
