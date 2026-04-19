@@ -225,7 +225,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
     if (result != null) {
       setState(() {
-        _pickupAddress = "${result.district}, ${result.city}";
+        // PERBAIKAN: Gunakan alamat lengkap agar Kurir bisa navigasi dengan presisi
+        _pickupAddress = result.address;
         _selectedLat = result.lat;
         _selectedLng = result.lng;
       });

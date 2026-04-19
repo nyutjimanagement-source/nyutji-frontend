@@ -35,10 +35,10 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
     if (result != null) {
       setState(() {
-        searchKecController.text = result.district;
+        searchKecController.text = result.subdistrict;
         cityController.text = result.city;
       });
-      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.district}");
+      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.subdistrict}");
     }
   }
 

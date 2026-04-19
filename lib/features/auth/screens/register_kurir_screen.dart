@@ -36,10 +36,10 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
 
     if (result != null) {
       setState(() {
-        searchKecController.text = result.district;
+        searchKecController.text = result.subdistrict;
         cityController.text = result.city;
       });
-      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.district}");
+      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.subdistrict}");
     }
   }
 
