@@ -321,7 +321,11 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                   ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
                   : (photoUrl != null && photoUrl.toString().isNotEmpty)
                       ? DecorationImage(
-                          image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                          image: NetworkImage(
+                            photoUrl.toString().startsWith('http') 
+                              ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                              : "https://api.nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                          ), 
                           fit: BoxFit.cover
                         ) 
                       : null,
@@ -408,7 +412,11 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
                             : (photoUrl != null && photoUrl.toString().isNotEmpty)
                                 ? DecorationImage(
-                                    image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                                    image: NetworkImage(
+                                      photoUrl.toString().startsWith('http') 
+                                        ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                        : "https://api.nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                    ), 
                                     fit: BoxFit.cover
                                   ) 
                                 : null,

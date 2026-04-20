@@ -118,7 +118,11 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           backgroundImage: localPhoto != null
                               ? FileImage(File(localPhoto)) as ImageProvider
                               : (photoUrl != null && photoUrl.toString().isNotEmpty) 
-                                  ? NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}") 
+                                  ? NetworkImage(
+                                      photoUrl.toString().startsWith('http') 
+                                        ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                        : "https://api.nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                    ) 
                                   : null,
                           child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
                               ? const Icon(LucideIcons.user, size: 28, color: Colors.amber) 

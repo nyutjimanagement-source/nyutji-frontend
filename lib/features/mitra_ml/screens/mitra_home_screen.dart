@@ -203,7 +203,11 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                             ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
                             : (photoUrl != null && photoUrl.toString().isNotEmpty)
                                 ? DecorationImage(
-                                    image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                                    image: NetworkImage(
+                                      photoUrl.toString().startsWith('http') 
+                                        ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                        : "https://api.nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                    ), 
                                     fit: BoxFit.cover
                                   ) 
                                 : null,
@@ -512,7 +516,11 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                         backgroundImage: localPhoto != null
                           ? FileImage(File(localPhoto)) as ImageProvider
                           : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                              ? NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}")
+                              ? NetworkImage(
+                                  photoUrl.toString().startsWith('http') 
+                                    ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                    : "https://api.nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                )
                               : null,
                         child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
                           ? const Icon(LucideIcons.store, color: primaryTeal, size: 30) 
