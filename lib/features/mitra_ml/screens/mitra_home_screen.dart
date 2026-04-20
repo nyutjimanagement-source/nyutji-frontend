@@ -11,6 +11,7 @@ import 'mitra_wallet_screen.dart';
 import 'mitra_courier_management_screen.dart';
 import 'mitra_approval_kl_screen.dart';
 import 'mitra_order_screen.dart';
+import 'mitra_pricing_screen.dart';
 
 class MitraHomeScreen extends StatefulWidget {
   const MitraHomeScreen({super.key});
@@ -396,7 +397,18 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
               }),
               _buildGridAction("Kinerja", LucideIcons.pieChart, Colors.orange, (){}),
-              _buildGridAction("Promo", LucideIcons.tags, Colors.red, (){}),
+              _buildGridAction("Harga & Promosi", LucideIcons.banknote, Colors.red, () {
+                Navigator.push(context, PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => const MitraPricingScreen(),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    return SlideTransition(position: animation.drive(tween), child: child);
+                  },
+                ));
+              }),
               _buildGridAction("Mesin", LucideIcons.cpu, Colors.cyan, (){}),
               _buildGridAction("Pegawai", LucideIcons.users, Colors.purple, (){}),
               _buildGridAction("Kendala", LucideIcons.alertTriangle, Colors.amber, () {

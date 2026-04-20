@@ -135,9 +135,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
+      automaticallyImplyLeading: false,
       centerTitle: false,
-      titleSpacing: 0,
-      leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(LucideIcons.arrowLeft, color: darkText, size: 20)),
+      titleSpacing: 16,
       title: Row(
         children: [
           Container(

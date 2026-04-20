@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
+import '../../mitra_ml/screens/mitra_pricing_screen.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -433,20 +434,51 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                               const Spacer(),
                               Text(mitra['address'], style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(LucideIcons.navigation, size: 10, color: primaryTeal),
-                                  const SizedBox(width: 4),
-                                  Text("${mitra['distance']} km", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: primaryTeal)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+                               Row(
+                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                 children: [
+                                   Row(
+                                     children: [
+                                       Icon(LucideIcons.navigation, size: 10, color: primaryTeal),
+                                       const SizedBox(width: 4),
+                                       Text("${mitra['distance']} km", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: primaryTeal)),
+                                     ],
+                                   ),
+                                   GestureDetector(
+                                     onTap: () {
+                                       Navigator.push(context, PageRouteBuilder(
+                                         pageBuilder: (context, animation, secondaryAnimation) => MitraPricingScreen(
+                                           isReadOnly: true,
+                                           customName: mitra['name'],
+                                         ),
+                                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                           const begin = Offset(1.0, 0.0);
+                                           const end = Offset.zero;
+                                           const curve = Curves.easeInOut;
+                                           var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                           return SlideTransition(position: animation.drive(tween), child: child);
+                                         },
+                                       ));
+                                     },
+                                     child: Container(
+                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                       decoration: BoxDecoration(
+                                         color: Colors.amber.withOpacity(0.1),
+                                         borderRadius: BorderRadius.circular(4),
+                                         border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                                       ),
+                                       child: Text("Lihat Harga", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.amber[800])),
+                                     ),
+                                   ),
+                                 ],
+                               ),
+                             ],
+                           ),
+                         ),
+                       ],
+                     ),
+                   ),
+                 );
               },
             ),
           ),
