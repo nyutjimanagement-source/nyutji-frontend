@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
-import '../../mitra_ml/screens/mitra_pricing_screen.dart';
 import '../../../data/services/api_service.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
@@ -25,11 +24,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   String _pickupAddress = 'Jl. Kebayoran No 12, Jakarta';
   String _pickupNote = '';
   String _serviceSpeed = 'regular';
-  String _dropMethod = 'self'; // 'self' atau 'courier'
+  String _returnMethod = 'self'; // 'self' atau 'courier'
   
   // STATE UNTUK PESANAN (Item ID -> Count)
   final Map<int, int> _itemCounts = {};
-  String _itemSearchQuery = "";
   
   // STATE UNTUK MAPS & LOKASI
   double? _selectedLat;
@@ -72,49 +70,57 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       // --- FINAL CHECK: Jika List tetap kosong (karena error atau DB kosong) ---
       if (_mitras.isEmpty) {
         _mitras = [
-          {
-            'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 
-            'address': 'Cipete Utara', 'district': 'Cipete Utara',
-            'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
-            'items': [] 
-          },
-          {
-            'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 
-            'address': 'Serpong', 'district': 'Serpong', 
-            'image': 'https://images.unsplash.com/photo-1521335629791-ce4aec67dd15?w=400',
-            'items': [] 
-          },
-          {
-            'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 
-            'address': 'Pamulang', 'district': 'Pamulang', 
-            'image': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400',
-            'items': [] 
-          },
-          {
-            'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 
-            'address': 'Pamulang', 'district': 'Pamulang', 
-            'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
-            'items': [] 
-          },
+          { 'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 'address': 'Cipete Utara', 'district': 'Cipete Utara', 'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400', 'items': [] },
+          { 'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 'address': 'Serpong', 'district': 'Serpong', 'image': 'https://images.unsplash.com/photo-1521335629791-ce4aec67dd15?w=400', 'items': [] },
+          { 'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 'address': 'Pamulang', 'district': 'Pamulang', 'image': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400', 'items': [] },
+          { 'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 'address': 'Pamulang', 'district': 'Pamulang', 'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400', 'items': [] },
         ];
       }
-      if (mounted) setState(() => _isLoadingMitras = false);
+      if (mounted) {
+        setState(() => _isLoadingMitras = false);
+        // CURI START: Pre-fetch semua item mitra di background agar saat diklik langsung 'Instan'
+        for (var m in _mitras) {
+          _fetchMitraItems(m['id']);
+        }
+      }
     }
   }
 
   Future<void> _fetchMitraItems(int mitraId) async {
     try {
       final api = ApiService();
-      final items = await api.getMitraItems(mitraId); // Ambil Harga Live dari DB
-      setState(() {
-        int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
-        if (idx != -1) {
-          _mitras[idx]['items'] = items;
-        }
-      });
+      // Set timeout manual untuk simulasi kilat
+      final items = await api.getMitraItems(mitraId).timeout(const Duration(seconds: 3)); 
+      
+      if (mounted) {
+        setState(() {
+          int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
+          if (idx != -1) {
+            _mitras[idx]['items'] = (items.isEmpty) ? _getDefaultSimulationItems(mitraId) : items;
+            if (_selectedMitra != null && _selectedMitra!['id'] == mitraId) {
+              _selectedMitra!['items'] = _mitras[idx]['items'];
+            }
+          }
+        });
+      }
     } catch (e) {
-      debugPrint("Gagal load items: $e");
+      if (mounted) {
+        setState(() {
+          int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
+          if (idx != -1 && (_mitras[idx]['items'] == null || (_mitras[idx]['items'] as List).isEmpty)) {
+            _mitras[idx]['items'] = _getDefaultSimulationItems(mitraId);
+            if (_selectedMitra != null && _selectedMitra!['id'] == mitraId) {
+              _selectedMitra!['items'] = _mitras[idx]['items'];
+            }
+          }
+        });
+      }
     }
+  }
+
+  List<dynamic> _getDefaultSimulationItems(int id) {
+    if (id == 1) return [{ 'id': 999, 'name': 'Paket EKSPRES 6 JAM', 'price': 15000, 'unit': 'Kg' }, { 'id': 101, 'name': 'Cuci Setrika Reguler', 'price': 7000, 'unit': 'Kg' }];
+    return [{ 'id': 101, 'name': 'Cuci Setrika Reguler', 'price': 7000, 'unit': 'Kg' }, { 'id': 102, 'name': 'Cuci Lipat Reguler', 'price': 5000, 'unit': 'Kg' }];
   }
 
   // STATE SOURCE LOKASI UNTUK ICON
@@ -129,18 +135,24 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     int baseTotal = 0;
     
     final allPossibleItems = (_selectedMitra!['items'] as List<dynamic>?) ?? [];
+    bool isFast = _serviceSpeed == 'fast';
     
     _itemCounts.forEach((itemId, count) {
       if (count > 0) {
         try {
           var item = allPossibleItems.firstWhere((i) => i['id'] == itemId);
-          baseTotal += count * (item['price'] as int);
+          // Ambil harga berdasarkan speed yang dipilih user
+          num price = isFast 
+            ? (item['price_fast'] ?? (item['price_regular'] ?? item['price'] ?? 0) * 2)
+            : (item['price_regular'] ?? item['price'] ?? 0);
+            
+          baseTotal += (count * price.toInt());
         } catch (e) {
-          // Skip if missing
+          // Skip
         }
       }
     });
-    return _serviceSpeed == 'fast' ? (baseTotal * 1.2).round() : baseTotal;
+    return baseTotal;
   }
 
   void _updateItemCount(int itemId, int delta) {
@@ -313,8 +325,58 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               Expanded(child: Text(_pickupNote.isEmpty ? "Tambahkan catatan penjemputan" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400]))),
               _pillButton("Catat", () => _showNoteDialog()),
             ],
-          )
+          ),
+          
+          // LOGIKA ANTAR SENDIRI: Pilihan Pengembalian (Hanya jika orderType == drop)
+          if (widget.orderType == 'drop') ...[
+            const Divider(height: 32),
+            Text("Setelah Selesai, Cucian:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _returnOption(
+                    "Diambil Sendiri", 
+                    "self", 
+                    LucideIcons.user,
+                    _returnMethod == 'self'
+                  )
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _returnOption(
+                    "Diantar Kurir", 
+                    "courier", 
+                    LucideIcons.truck,
+                    _returnMethod == 'courier'
+                  )
+                ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _returnOption(String label, String value, IconData icon, bool isSel) {
+    return GestureDetector(
+      onTap: () => setState(() => _returnMethod = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSel ? primaryTeal : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSel ? primaryTeal : Colors.grey[200]!)
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: isSel ? Colors.white : Colors.grey),
+            const SizedBox(width: 8),
+            Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[600])),
+          ],
+        ),
       ),
     );
   }
@@ -333,14 +395,17 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   Widget _buildHorizontalMitraCard(Map<String, dynamic> mitra) {
     bool isSelected = _selectedMitra?['id'] == mitra['id'];
     return GestureDetector(
-      onTap: () async {
-        if (mitra['items'] == null || (mitra['items'] as List).isEmpty) {
-          await _fetchMitraItems(mitra['id']);
-        }
+      onTap: () {
+        // 1. INSTANT FEEDBACK: Centang & Selection langsung aktif tanpa delay
         setState(() {
           _selectedMitra = mitra;
           _itemCounts.clear();
         });
+
+        // 2. BACKGROUND FETCH: Ambil harga di belakang layar (tanpa await)
+        if (mitra['items'] == null || (mitra['items'] as List).isEmpty) {
+          _fetchMitraItems(mitra['id']);
+        }
       },
       child: Container(
         width: 180,
@@ -585,81 +650,185 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         ),
       );
     }
+
     final allItems = (_selectedMitra!['items'] as List<dynamic>?) ?? [];
-    final filteredItems = allItems.where((item) => item['name'].toString().toLowerCase().contains(_itemSearchQuery.toLowerCase())).toList();
+    if (allItems.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        child: Column(
+          children: [
+            SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: primaryTeal.withOpacity(0.5))),
+            const SizedBox(height: 16),
+            Text("Sedang mengambil daftar harga...", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    // Pisahkan Kiloan dan Satuan
+    final kiloanItems = allItems.where((i) => i['category'] == 'Kiloan' || i['category'] == null).toList();
+    final satuanItems = allItems.where((i) => i['category'] == 'Satuan').toList();
+
+    return Column(
+      children: [
+        if (kiloanItems.isNotEmpty) _buildKiloanTable(kiloanItems, "Laundry Kiloan", LucideIcons.layers),
+        const SizedBox(height: 24),
+        if (satuanItems.isNotEmpty) _buildSatuanTable(satuanItems, "Laundry Satuan / Meteran", LucideIcons.shirt),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  Widget _buildKiloanTable(List<dynamic> items, String title, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(cT['items_title'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.black87)),
-              if (allItems.length > 5)
-                SizedBox(
-                  width: 150, height: 35,
-                  child: TextField(
-                    onChanged: (val) => setState(() => _itemSearchQuery = val),
-                    style: const TextStyle(fontSize: 12),
-                    decoration: InputDecoration(
-                      hintText: "Cari item...",
-                      prefixIcon: const Icon(LucideIcons.search, size: 14),
-                      contentPadding: EdgeInsets.zero,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey[200]!)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey[200]!)),
-                    ),
-                  ),
-                ),
-            ],
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: primaryTeal),
+                const SizedBox(width: 12),
+                Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
+                const Spacer(),
+                Icon(LucideIcons.edit3, size: 18, color: primaryTeal.withOpacity(0.5)),
+              ],
+            ),
           ),
-          const Divider(height: 24),
-          if (filteredItems.isEmpty)
-            Padding(padding: const EdgeInsets.all(20), child: Center(child: Text("Item tidak ditemukan", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)))),
-          ...filteredItems.map((item) => _itemRow(item)).toList(),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            color: const Color(0xFFF9FAFB),
+            child: Row(
+              children: [
+                Expanded(flex: 3, child: Text("SERVICE", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
+                Expanded(flex: 2, child: Center(child: Text("REGULAR", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+                Expanded(flex: 2, child: Center(child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+              ],
+            ),
+          ),
+          ...items.map((item) => _buildKiloanRow(item)).toList(),
         ],
       ),
     );
   }
 
-  Widget _itemRow(Map<String, dynamic> item) {
+  Widget _buildKiloanRow(Map<String, dynamic> item) {
+    final priceReg = (item['price_regular'] ?? item['price'] ?? 0);
+    final priceFast = (item['price_fast'] ?? priceReg * 2);
     int count = _itemCounts[item['id']] ?? 0;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            flex: 3, 
+            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87))
+          ),
+          Expanded(
+            flex: 4, 
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
+                Column(
                   children: [
-                    Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87)),
-                    if (item['is_promo'] == true)
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(4)),
-                        child: Text("PROMO", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ),
+                    Text("Rp ${priceReg.toInt()}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
+                    Text("Rp ${priceFast.toInt()}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
                   ],
                 ),
-                Text("${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(item['price'])}/${item['unit']}", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+                const SizedBox(width: 12),
+                // TOMBOL COUNTING
+                Container(
+                  decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
+                  child: Row(
+                    children: [
+                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(item['id'], -1)),
+                      SizedBox(width: 25, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)))),
+                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(item['id'], 1)),
+                    ],
+                  ),
+                )
+              ],
+            )
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSatuanTable(List<dynamic> items, String title, IconData icon) {
+     return Container(
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: primaryTeal),
+                const SizedBox(width: 12),
+                Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
+                const Spacer(),
+                Icon(LucideIcons.search, size: 18, color: Colors.grey[300]),
+                const SizedBox(width: 16),
+                Icon(LucideIcons.edit3, size: 18, color: primaryTeal.withOpacity(0.5)),
               ],
             ),
           ),
           Container(
-            decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            color: const Color(0xFFF9FAFB),
             child: Row(
               children: [
-                _ctrBtn(LucideIcons.minus, () => _updateItemCount(item['id'], -1)),
-                SizedBox(width: 30, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)))),
-                _ctrBtn(LucideIcons.plus, () => _updateItemCount(item['id'], 1)),
+                Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
+                Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
               ],
             ),
-          )
+          ),
+          ...items.map((item) => _buildSatuanRow(item)).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSatuanRow(Map<String, dynamic> item) {
+    final price = (item['price_regular'] ?? item['price'] ?? 0);
+    int count = _itemCounts[item['id']] ?? 0;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3, 
+            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87))
+          ),
+          Expanded(
+            flex: 2, 
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text("Rp ${price.toInt()}", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal)),
+                const SizedBox(width: 12),
+                // TOMBOL COUNTING
+                Container(
+                  decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
+                  child: Row(
+                    children: [
+                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(item['id'], -1)),
+                      SizedBox(width: 25, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)))),
+                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(item['id'], 1)),
+                    ],
+                  ),
+                )
+              ],
+            )
+          ),
         ],
       ),
     );
@@ -708,7 +877,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   mitraName: _selectedMitra!['name'] ?? 'Mitra Laundry',
                   speed: _serviceSpeed,
                   distance: (_selectedMitra!['distance'] as num?)?.toDouble() ?? 0.1,
-                  dropMethod: _dropMethod,
+                  dropMethod: _returnMethod,
                   selectedItemsList: selectedItems,
                 )));
               } : null,
