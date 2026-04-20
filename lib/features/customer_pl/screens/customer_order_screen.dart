@@ -757,12 +757,30 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     'lng': _selectedLng,
                   });
                 }
+                // Menyiapkan rincian item untuk invoice
+                List<Map<String, dynamic>> selectedItems = [];
+                _itemCounts.forEach((itemId, count) {
+                  if (count > 0) {
+                    var item = _selectedMitra!['items'].firstWhere((i) => i['id'] == itemId);
+                    selectedItems.add({
+                      'name': item['name'],
+                      'count': count,
+                      'unit': item['unit'],
+                    });
+                  }
+                });
+
                 Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
                   totalPrice: _totalPrice, 
                   totalItems: _totalItems, 
                   address: _pickupAddress, 
                   isPickup: widget.orderType == 'pickup',
                   mitraId: _selectedMitra!['id'],
+                  mitraName: _selectedMitra!['name'],
+                  speed: _serviceSpeed,
+                  distance: _selectedMitra!['distance'],
+                  dropMethod: _dropMethod,
+                  selectedItemsList: selectedItems,
                 )));
               } : null,
               style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),

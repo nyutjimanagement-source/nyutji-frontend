@@ -74,28 +74,41 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   void _showBeautifulNotif(String message, bool success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        content: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: success ? primaryTeal : primaryRed,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5))],
-          ),
-          child: Row(
-            children: [
-              Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
-              const SizedBox(width: 12),
-              Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-            ],
+    late OverlayEntry overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: success ? primaryTeal : primaryRed,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+            ),
+            child: Row(
+              children: [
+                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+              ],
+            ),
           ),
         ),
       ),
     );
+
+    Overlay.of(context).insert(overlayEntry);
+    
+    // Hilangkan otomatis setelah 3 detik
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
+    });
   }
 
   @override
