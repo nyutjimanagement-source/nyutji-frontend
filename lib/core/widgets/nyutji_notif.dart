@@ -83,6 +83,7 @@ class _BeautyPopupWidgetState extends State<_BeautyPopupWidget> with SingleTicke
                   color: widget.color,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
+                    // ignore: deprecated_member_use
                     BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
                   ],
                   border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),

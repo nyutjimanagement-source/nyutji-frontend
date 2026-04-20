@@ -10,6 +10,7 @@ class AuthProvider with ChangeNotifier {
   String _lang = 'id'; // Default Language
   Map<String, dynamic>? _user;
   List<dynamic> _pendingApprovals = [];
+  List<dynamic> _allUsers = [];
 
   Map<String, dynamic>? _homeAddress;
   List<dynamic> _addressHistory = [];
@@ -22,6 +23,7 @@ class AuthProvider with ChangeNotifier {
   String get lang => _lang;
   Map<String, dynamic>? get user => _user;
   List<dynamic> get pendingApprovals => _pendingApprovals;
+  List<dynamic> get allUsers => _allUsers;
   Map<String, dynamic>? get homeAddress => _homeAddress;
   List<dynamic> get addressHistory => _addressHistory;
 
@@ -202,6 +204,19 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint("Process Approval Error: $e");
       return false;
+    }
+  }
+
+  // Ambil SEMUA daftar user (Khusus Admin)
+  Future<List<dynamic>> fetchAllUsers() async {
+    try {
+      final data = await ApiService().getAllUsers();
+      _allUsers = data;
+      notifyListeners();
+      return data;
+    } catch (e) {
+      debugPrint("Fetch All Users Error: $e");
+      return [];
     }
   }
 

@@ -62,6 +62,11 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  Future<List<dynamic>> getAllUsers() async {
+    final response = await _dio.get("/admin/users");
+    return response.data['data'] ?? [];
+  }
+
   Future<Map<String, dynamic>> processApproval(int targetId, String action) async {
     // action: 'APPROVED' or 'REJECTED'
     final response = await _dio.post("/approvals/process", data: {

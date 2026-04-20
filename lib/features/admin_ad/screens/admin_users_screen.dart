@@ -27,7 +27,7 @@ class AdminUsersScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildApprovalSection(context),
             const SizedBox(height: 24),
-            _buildAdminStatsGrid(),
+            _buildAdminStatsGrid(context),
             const SizedBox(height: 24),
             _buildUserManagementGrid(),
             const SizedBox(height: 40),
@@ -171,7 +171,7 @@ class AdminUsersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminStatsGrid() {
+  Widget _buildAdminStatsGrid(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -180,7 +180,10 @@ class AdminUsersScreen extends StatelessWidget {
             children: [
               _buildStatCard("Leveling ML", "Atur KPI & Syarat Naik Kelas", LucideIcons.barChart, Colors.orange[50]!, Colors.orange),
               const SizedBox(width: 12),
-              _buildStatCard("Kategori ML", "Kecil, Menengah, Enterprise", LucideIcons.tags, Colors.blue[50]!, Colors.blue),
+              GestureDetector(
+                onTap: () => _showUserListSheet(context),
+                child: _buildStatCard("Kategori ML", "Kecil, Menengah, Enterprise", LucideIcons.tags, Colors.blue[50]!, Colors.blue),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -192,6 +195,106 @@ class AdminUsersScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showUserListSheet(BuildContext context) {
+    final auth = context.read<AuthProvider>();
+    
+    // Trigger fetch data
+    auth.fetchAllUsers();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.users, color: darkGray),
+                  const SizedBox(width: 12),
+                  Text("Daftar Anggota Ekosistem", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: darkGray)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  if (auth.allUsers.isEmpty && auth.isLoading) {
+                    return const Center(child: CircularProgressIndicator(color: primaryTeal));
+                  }
+                  
+                  if (auth.allUsers.isEmpty) {
+                    return Center(child: Text("Data user tidak ditemukan", style: GoogleFonts.montserrat(color: Colors.grey)));
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: auth.allUsers.length,
+                    separatorBuilder: (context, index) => Divider(color: Colors.grey[100]),
+                    itemBuilder: (context, index) {
+                      final u = auth.allUsers[index];
+                      final name = u['name'] ?? 'No Name';
+                      final role = u['role'] ?? '-';
+                      final district = u['district']?['name'] ?? 'Luar Area';
+                      final identifier = u['identifier'] ?? '-';
+                      final status = u['registration_status'] ?? 'PENDING';
+                      
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 32, height: 32,
+                              decoration: BoxDecoration(
+                                color: role == 'ML' ? Colors.blue.withOpacity(0.1) : (role == 'KL' ? Colors.orange.withOpacity(0.1) : Colors.teal.withOpacity(0.1)),
+                                shape: BoxShape.circle
+                              ),
+                              child: Center(child: Text(role, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: role == 'ML' ? Colors.blue : (role == 'KL' ? Colors.orange : Colors.teal)))),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
+                                  Text("$identifier | $district", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: status == 'APPROVED' ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6)
+                              ),
+                              child: Text(
+                                status, 
+                                style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: status == 'APPROVED' ? Colors.green : Colors.red)
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

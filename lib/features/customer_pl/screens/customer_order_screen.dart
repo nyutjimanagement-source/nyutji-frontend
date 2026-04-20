@@ -30,7 +30,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   String _itemSearchQuery = "";
   
   // STATE UNTUK MAPS & LOKASI
-  String _currentGpsAddress = 'Menyesuaikan GPS...'; 
   double? _selectedLat;
   double? _selectedLng;  
   
