@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
@@ -24,6 +26,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   static const bgColor = Color(0xFFF3F4F6);
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
+  final ImagePicker _picker = ImagePicker();
 
   int _selectedIndex = 0;
   late PageController _pageController;
@@ -80,6 +83,80 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
+  Future<void> _pickImage(AuthProvider auth) async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Pilih Foto Profil Toko", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(LucideIcons.camera, color: primaryTeal),
+              title: Text("Ambil Foto Kamera", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                if (photo != null) {
+                  final success = await auth.updateProfilePhoto(photo.path);
+                  if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.image, color: primaryTeal),
+              title: Text("Pilih dari Galeri", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+                if (image != null) {
+                  final success = await auth.updateProfilePhoto(image.path);
+                  if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBeautifulNotif(String message, bool success) {
+    late OverlayEntry overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: success ? primaryTeal : const Color(0xFFC3312E),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+            ),
+            child: Row(
+              children: [
+                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context).insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) overlayEntry.remove();
+    });
+  }
+
   // === DENSE HOME TAB (COMMAND CENTER) ===
   Widget _buildHomeTab(Map<String, dynamic>? currentT) {
     return SingleChildScrollView(
@@ -111,13 +188,32 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           Expanded(
             child: Row(
               children: [
-                Container(
-                  width: 44, height: 44,
-                  decoration: BoxDecoration(
-                    color: primaryTeal,
-                    borderRadius: BorderRadius.circular(10),
-                    image: const DecorationImage(image: NetworkImage("https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=150&q=80"), fit: BoxFit.cover)
-                  ),
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    final photoUrl = auth.user?['profile_photo'];
+                    final localPhoto = auth.temporaryLocalPhoto;
+                    return GestureDetector(
+                      onTap: () => _pickImage(auth),
+                      child: Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: primaryTeal,
+                          borderRadius: BorderRadius.circular(10),
+                          image: localPhoto != null
+                            ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                            : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                                ? DecorationImage(
+                                    image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                                    fit: BoxFit.cover
+                                  ) 
+                                : null,
+                        ),
+                        child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                          ? const Icon(LucideIcons.store, color: Colors.white, size: 20) 
+                          : null,
+                      ),
+                    );
+                  }
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -141,22 +237,37 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                           const Icon(Icons.verified, size: 14, color: Colors.blue),
                         ],
                       ),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            decoration: BoxDecoration(color: Colors.amber[100], borderRadius: BorderRadius.circular(4)),
-                            child: Row(
-                              children: [
-                                const Icon(LucideIcons.star, size: 10, color: Colors.amber),
-                                const SizedBox(width: 2),
-                                Text("4.9", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber[900])),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text("Kebayoran Baru", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
-                        ],
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) {
+                          final district = auth.user?['district_name'] ?? "Kecamatan";
+                          final city = auth.user?['city_name'] ?? "Kota";
+                          final id = auth.user?['id'] ?? '0000';
+                          
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                    decoration: BoxDecoration(color: Colors.amber[100], borderRadius: BorderRadius.circular(4)),
+                                    child: Row(
+                                      children: [
+                                        const Icon(LucideIcons.star, size: 10, color: Colors.amber),
+                                        const SizedBox(width: 2),
+                                        Text("4.9", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber[900])),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text("ID: ${Formatters.nyutjiId('ML', id, district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700)),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                            ],
+                          );
+                        }
                       ),
                     ],
                   ),
@@ -384,18 +495,45 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             color: Colors.white,
-            child: Row(
-              children: [
-                const CircleAvatar(radius: 30, backgroundImage: NetworkImage("https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=150&q=80")),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                final photoUrl = auth.user?['profile_photo'];
+                final localPhoto = auth.temporaryLocalPhoto;
+                final district = auth.user?['district_name'] ?? "Kecamatan";
+                final city = auth.user?['city_name'] ?? "Kota/Kabupaten";
+                
+                return Row(
                   children: [
-                    Text("Berkah Laundry", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)),
-                    Text("ID: ML-KBY-0911", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                    GestureDetector(
+                      onTap: () => _pickImage(auth),
+                      child: CircleAvatar(
+                        radius: 30, 
+                        backgroundColor: primaryTeal.withOpacity(0.1),
+                        backgroundImage: localPhoto != null
+                          ? FileImage(File(localPhoto)) as ImageProvider
+                          : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                              ? NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}")
+                              : null,
+                        child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                          ? const Icon(LucideIcons.store, color: primaryTeal, size: 30) 
+                          : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(auth.user?['name'] ?? "Berkah Laundry", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)),
+                          Text("ID: ${Formatters.nyutjiId('ML', auth.user?['id'], district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 2),
+                          Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 10, color: primaryTeal, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    )
                   ],
-                )
-              ],
+                );
+              }
             ),
           ),
           const SizedBox(height: 16),

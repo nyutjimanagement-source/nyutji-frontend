@@ -4,6 +4,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'courier_history_screen.dart';
 import 'courier_wallet_screen.dart';
 import 'courier_profile_screen.dart';
@@ -61,6 +63,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   final Color bgColor = const Color(0xFFF3F4F6); // Cooler gray-white
   final Color darkText = const Color(0xFF111827);
   final Color textGrey = const Color(0xFF6B7280);
+  final ImagePicker _picker = ImagePicker();
 
   List<CourierTask> tasks = [
     CourierTask(
@@ -169,6 +172,80 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     }
   }
 
+  Future<void> _pickImage(AuthProvider auth) async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Pilih Foto Profil Kurir", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Icon(LucideIcons.camera, color: primaryTeal),
+              title: Text("Ambil Foto Kamera", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                if (photo != null) {
+                  final success = await auth.updateProfilePhoto(photo.path);
+                  if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(LucideIcons.image, color: primaryTeal),
+              title: Text("Pilih dari Galeri", style: GoogleFonts.montserrat()),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+                if (image != null) {
+                  final success = await auth.updateProfilePhoto(image.path);
+                  if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBeautifulNotif(String message, bool success) {
+    late OverlayEntry overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: success ? primaryTeal : const Color(0xFFC3312E),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+            ),
+            child: Row(
+              children: [
+                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context).insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) overlayEntry.remove();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -205,53 +282,81 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
 
   Widget _buildDynamicHeader(Map<String, dynamic> currentT) {
     if (_selectedNavIndex == 0) {
-      return Column(
-        children: [
-            _buildCompactHeader(currentT),
-            const SizedBox(height: 12),
-            _buildActiveTrackingStrip(),
-            const SizedBox(height: 16),
-            _buildCompactStatsPanel(),
-            const SizedBox(height: 16),
-        ],
-      );
+      return _buildCompactHeader(currentT);
     } else if (_selectedNavIndex == 1) {
-      return _buildPageTitleHeader("Riwayat Tugas", LucideIcons.history);
+      return Consumer<AuthProvider>(
+        builder: (context, auth, _) => _buildPageTitleHeader("Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history, auth: auth),
+      );
     } else if (_selectedNavIndex == 2) {
-      return _buildPageTitleHeader("Dompet Kurir", LucideIcons.wallet);
+      return Consumer<AuthProvider>(
+        builder: (context, auth, _) => _buildPageTitleHeader("Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet, auth: auth),
+      );
     } else {
-      return _buildPageTitleHeader("Profil Kurir", LucideIcons.user);
+      return Consumer<AuthProvider>(
+        builder: (context, auth, _) => _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.user, auth: auth),
+      );
     }
   }
 
-  Widget _buildPageTitleHeader(String title, IconData icon) {
+  Widget _buildPageTitleHeader(String title, IconData icon, {AuthProvider? auth}) {
+    final photoUrl = auth?.user?['profile_photo'];
+    final localPhoto = auth?.temporaryLocalPhoto;
+    final district = auth?.user?['district_name'] ?? "Kecamatan";
+    final city = auth?.user?['city_name'] ?? "Kota";
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       color: Colors.white,
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: primaryTeal, size: 18),
+          GestureDetector(
+            onTap: () { if (auth != null) _pickImage(auth); },
+            child: Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle, 
+                color: primaryTeal.withOpacity(0.1),
+                border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                image: localPhoto != null
+                  ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                  : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                      ? DecorationImage(
+                          image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                          fit: BoxFit.cover
+                        ) 
+                      : null,
+              ),
+              child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                ? Icon(icon, color: primaryTeal, size: 18) 
+                : null,
+            ),
           ),
           const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
               Text(
                 title,
-                style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 0.2),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 0.2),
               ),
               Text(
-                "Abang Kurir Jago",
+                auth != null ? "ID: ${Formatters.nyutjiId('KL', auth.user?['id'], district, districtCode: auth.user?['district_code'])} • $district - $city" : "Abang Kurir Jago",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
               ),
-            ],
+              ],
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 12),
           IconButton(
             onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             icon: Icon(LucideIcons.bell, color: textGrey, size: 20),
           )
         ],
@@ -266,7 +371,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       physics: const BouncingScrollPhysics(),
       child: Column(
         children: [
+          _buildActiveTrackingStrip(),
           const SizedBox(height: 12),
+          _buildCompactStatsPanel(),
+          const SizedBox(height: 16),
           _buildDenseTaskSection(currentT),
           const SizedBox(height: 40),
         ],
@@ -276,7 +384,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
 
   Widget _buildCompactHeader(Map<String, dynamic> currentT) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       color: Colors.white,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -284,13 +392,33 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           Expanded(
             child: Row(
               children: [
-                Container(
-                  width: 42, height: 42,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle, 
-                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                    image: const DecorationImage(image: NetworkImage('https://i.pravatar.cc/150?u=kurirnyutji'), fit: BoxFit.cover),
-                  ),
+                Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    final photoUrl = auth.user?['profile_photo'];
+                    final localPhoto = auth.temporaryLocalPhoto;
+                    return GestureDetector(
+                      onTap: () => _pickImage(auth),
+                      child: Container(
+                        width: 42, height: 42,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle, 
+                          color: primaryTeal.withOpacity(0.1),
+                          border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                          image: localPhoto != null
+                            ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                            : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                                ? DecorationImage(
+                                    image: NetworkImage("http://nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                                    fit: BoxFit.cover
+                                  ) 
+                                : null,
+                        ),
+                        child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                          ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
+                          : null,
+                      ),
+                    );
+                  }
                 ),
                 const SizedBox(width: 12),
                 Expanded(

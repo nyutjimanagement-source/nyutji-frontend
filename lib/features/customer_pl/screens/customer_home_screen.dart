@@ -258,10 +258,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                               const SizedBox(width: 4),
                               Expanded( // Lokasi juga kita buat expanded agar aman
                                 child: Text(
-                                  location, 
+                                  "ID: ${Formatters.nyutjiId('PL', auth.user?['id'], district, districtCode: auth.user?['district_code'])} • $location", 
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.montserrat(fontSize: 11, color: textGrey)
+                                  style: GoogleFonts.montserrat(fontSize: 10, color: textGrey)
                                 ),
                               ),
                             ],

@@ -9,7 +9,6 @@ class CourierProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryTeal = Color(0xFF286B6A);
     const Color textDark = Color(0xFF2D2A26);
     const Color textGrey = Color(0xFF78716C);
     
@@ -17,7 +16,6 @@ class CourierProfileScreen extends StatelessWidget {
 
     final Map<String, dynamic> t = {
       'id': {
-        'profile_title': 'Profil Kurir',
         'active_vehicle': 'KENDARAAN AKTIF',
         'perf_title': 'PERFORMA MINGGU INI',
         'perf_completion': 'Penyelesaian',
@@ -28,23 +26,10 @@ class CourierProfileScreen extends StatelessWidget {
         'help': 'Pusat Bantuan',
         'about': 'Tentang Nyutji KL',
         'logout': 'Logout dari Server',
-      },
-      'en': {
-        'profile_title': 'Courier Profile',
-        'active_vehicle': 'ACTIVE VEHICLE',
-        'perf_title': 'WEEKLY PERFORMANCE',
-        'perf_completion': 'Completion',
-        'perf_rating': 'Rating',
-        'perf_average': 'Average',
-        'settings': 'Account Settings',
-        'security': 'Server Security',
-        'help': 'Help Center',
-        'about': 'About Nyutji KL',
-        'logout': 'Logout from Server',
       }
     };
 
-    final currentT = t[auth.lang] ?? t['id'];
+    final currentT = t['id'];
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -57,9 +42,9 @@ class CourierProfileScreen extends StatelessWidget {
               children: [
                 _buildVehicleCard(textDark, textGrey, currentT),
                 const SizedBox(height: 24),
-                _buildPerformanceSection(textDark, textGrey, primaryTeal, currentT),
+                _buildPerformanceSection(textDark, textGrey, currentT),
                 const SizedBox(height: 24),
-                _buildMenuSection(context, auth, textDark, textGrey, currentT),
+                _buildMenuSection(context, auth, textDark, currentT),
                 const SizedBox(height: 40),
               ],
             ),
@@ -69,14 +54,13 @@ class CourierProfileScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildVehicleCard(Color textDark, Color textGrey, Map<String, dynamic> currentT) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
@@ -101,7 +85,7 @@ class CourierProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPerformanceSection(Color textDark, Color textGrey, Color primaryTeal, Map<String, dynamic> currentT) {
+  Widget _buildPerformanceSection(Color textDark, Color textGrey, Map<String, dynamic> currentT) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -126,7 +110,7 @@ class CourierProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
       ),
       child: Column(
         children: [
@@ -138,12 +122,12 @@ class CourierProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, AuthProvider auth, Color textDark, Color textGrey, Map<String, dynamic> currentT) {
+  Widget _buildMenuSection(BuildContext context, AuthProvider auth, Color textDark, Map<String, dynamic> currentT) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         children: [
