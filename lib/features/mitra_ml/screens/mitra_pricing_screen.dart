@@ -6,12 +6,18 @@ import '../../../providers/auth_provider.dart';
 
 class MitraPricingScreen extends StatefulWidget {
   final bool isReadOnly;
+  final bool isSelectionMode;
   final String? customName;
+  final List<Map<String, dynamic>>? items; 
+  final Map<int, int>? initialSelected; 
 
   const MitraPricingScreen({
     super.key, 
     this.isReadOnly = false,
+    this.isSelectionMode = false,
     this.customName,
+    this.items,
+    this.initialSelected,
   });
 
   @override
@@ -28,25 +34,25 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   int _kiloanPage = 0;
   int _satuanPage = 0;
 
-  // DUMMY DATA YANG LEBIH BANYAK UNTUK SIMULASI PAGING
+  // DATA STANDAR MITRA AUTO LAUNDRY CODE (SAMA DENGAN DATABASE/PL)
   final List<Map<String, String>> kiloanData = [
-    {"svc": "Cuci dan Setrika", "reg": "Rp 6.500/Kg", "fast": "Rp 15.000/Kg"},
-    {"svc": "Cuci dan Lipat", "reg": "Rp 3.500/Kg", "fast": "Rp 10.000/Kg"},
-    {"svc": "Setrika Wangi", "reg": "Rp 3.500/Kg", "fast": "Rp 15.000/Kg"},
-    {"svc": "Express Kilat", "reg": "Rp 20.000/Kg", "fast": "Rp 35.000/Kg"},
-    {"svc": "Tunggu", "reg": "Rp 10.000/Kg", "fast": "Rp 25.000/Kg"},
-    {"svc": "Hanya Cuci", "reg": "Rp 2.500/Kg", "fast": "Rp 8.000/Kg"},
-    {"svc": "Cuci Selimut", "reg": "Rp 15.000/Kg", "fast": "Rp 25.000/Kg"},
+    {"svc": "Cuci dan Setrika", "reg": "Rp 7.000/Kg", "fast": "Rp 15.000/Kg"},
+    {"svc": "Cuci dan Lipat", "reg": "Rp 4.000/Kg", "fast": "Rp 10.000/Kg"},
+    {"svc": "Setrika Wangi", "reg": "Rp 4.000/Kg", "fast": "Rp 15.000/Kg"},
+    {"svc": "Cuci Selimut Reguler", "reg": "Rp 15.000/Kg", "fast": "Rp 25.000/Kg"},
+    {"svc": "Cuci Boneka Kiloan", "reg": "Rp 10.000/Kg", "fast": "Rp 25.000/Kg"},
   ];
 
   final List<Map<String, String>> satuanData = [
+    {"name": "Jas Formal", "price": "Rp 45.000/Pcs"},
+    {"name": "Bedcover King Size", "price": "Rp 50.000/Pcs"},
+    {"name": "Sneaker Dewasa", "price": "Rp 35.000/Pasang"},
+    {"name": "Gordyn Tebal", "price": "Rp 15.000/Meter"},
     {"name": "Baju Anak", "price": "Rp 10.000/Pcs"},
-    {"name": "Jas Formal", "price": "Rp 35.000/Pcs"},
-    {"name": "Boneka Kecil 0-25cm", "price": "Rp 10.000/Pcs"},
-    {"name": "Gordyn Tebal", "price": "Rp 10.000/Meter"},
-    {"name": "Sneaker Dewasa", "price": "Rp 123.000/Pasang"},
-    {"name": "Helm Retro", "price": "Rp 25.000/Pcs"},
+    {"name": "Tas Kulit", "price": "Rp 85.000/Pcs"},
+    {"name": "Helm Full Face", "price": "Rp 30.000/Pcs"},
     {"name": "Karpet Masjid", "price": "Rp 15.000/Meter"},
+    {"name": "Bantal Kepala Large", "price": "Rp 12.000/Pcs"},
   ];
 
   @override
@@ -68,17 +74,18 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                 children: [
                   _buildSectionHeader("Laundry Kiloan", LucideIcons.layers),
                   const SizedBox(height: 12),
-                  _buildTableWrapper(_kiloanController, (idx) => setState(() => _kiloanPage = idx), kiloanData, true),
-                  _buildPageIndicator(_kiloanPage, (kiloanData.length / 5).ceil()),
+                  _buildTableWrapper(_kiloanController, (idx) => setState(() => _kiloanPage = idx), _kiloanList, true),
+                  _buildPageIndicator(_kiloanPage, (_kiloanList.length / 5).ceil()),
                   const SizedBox(height: 24),
                   
                   _buildSectionHeader("Laundry Satuan / Meteran", LucideIcons.shirt, hasSearch: true),
                   const SizedBox(height: 12),
-                  _buildTableWrapper(_satuanController, (idx) => setState(() => _satuanPage = idx), satuanData, false),
-                  _buildPageIndicator(_satuanPage, (satuanData.length / 5).ceil()),
+                  _buildTableWrapper(_satuanController, (idx) => setState(() => _satuanPage = idx), _satuanList, false),
+                  _buildPageIndicator(_satuanPage, (_satuanList.length / 5).ceil()),
                   const SizedBox(height: 32),
                   
                   _buildActionButtons(),
+                  if (widget.isSelectionMode) _buildSelectionConfirmButton(),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -170,11 +177,41 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     );
   }
 
+  List<Map<String, String>> get _kiloanList {
+    if (widget.items != null) {
+      return widget.items!
+          .where((i) => i['category'] == 'Kiloan')
+          .map((i) => {
+                "id": i['id'].toString(),
+                "svc": i['name'].toString(),
+                "reg": "Rp ${i['price']}/Kg",
+                "fast": "Rp ${(i['price'] * 1.5).round()}/Kg",
+              })
+          .toList();
+    }
+    return kiloanData;
+  }
+
+  List<Map<String, String>> get _satuanList {
+    if (widget.items != null) {
+       return widget.items!
+          .where((i) => i['category'] == 'Satuan' || i['category'] == 'Express')
+          .map((i) => {
+                "id": i['id'].toString(),
+                "name": i['name'].toString(),
+                "price": "Rp ${i['price']}/${i['unit']}",
+              })
+          .toList();
+    }
+    return satuanData;
+  }
+
   Widget _buildTableWrapper(PageController controller, Function(int) onPageChanged, List<Map<String, String>> data, bool isKiloan) {
+    if (data.isEmpty) return SizedBox(height: 100, child: const Center(child: Text("Belum ada layanan")));
     int totalPages = (data.length / 5).ceil();
     
     return Container(
-      height: 235, // Adjusted for tighter rows - NO EMPTY SPACE
+      height: 320,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -193,11 +230,17 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTableHeader(isKiloan ? ["Service", "Regular", "Fast Track"] : ["Nama Barang", "Harga"]),
-              ...pageData.map((item) => isKiloan 
-                ? _buildKiloanRow(item['svc']!, item['reg']!, item['fast']!)
-                : _buildSatuanRow(item['name']!, item['price']!)
-              ),
+              _buildTableHeader(isKiloan ? ["Pilih", "Service", "Regular", "Fast Track"] : ["Pilih", "Nama Barang", "Harga"]),
+              ...pageData.asMap().entries.map((entry) {
+                int itemId = int.tryParse(entry.value['id'] ?? "0") ?? 0;
+                if (itemId == 0) {
+                  int idx = start + entry.key;
+                  itemId = isKiloan ? (1000 + idx) : (2000 + idx);
+                }
+                return isKiloan 
+                  ? _buildKiloanRow(itemId, entry.value['svc']!, entry.value['reg']!, entry.value['fast']!)
+                  : _buildSatuanRow(itemId, entry.value['name']!, entry.value['price']!);
+              }),
             ],
           );
         },
@@ -210,49 +253,89 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(color: Colors.grey[50], borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
       child: Row(
-        children: titles.map((t) => Expanded(
-          flex: t == "Service" || t == "Nama Barang" ? 2 : 1,
-          child: Text(
-            t.toUpperCase(), 
-            textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey[700], letterSpacing: 0.8)
-          ),
-        )).toList(),
-      ),
-    );
-  }
-
-  Widget _buildKiloanRow(String svc, String reg, String fast) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
-      child: Row(
-        children: [
-          Expanded(flex: 2, child: Text(svc, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkBg))),
-          Expanded(child: Text(reg, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
-          Expanded(child: Text(fast, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: accentGold))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSatuanRow(String name, String price) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
-      child: Row(
-        children: [
-          Expanded(flex: 2, child: Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkBg))),
-          Expanded(
-            child: Text(
-              price, 
-              textAlign: TextAlign.left,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)
+        children: titles.map((t) {
+          bool isCheck = t == "Pilih";
+          if (isCheck && !widget.isSelectionMode) return const SizedBox.shrink();
+          return Expanded(
+            flex: isCheck ? 0 : (t == "Service" || t == "Nama Barang" ? 2 : 1),
+            child: Container(
+              width: isCheck ? 40 : null,
+              alignment: isCheck ? Alignment.centerLeft : null,
+              child: Text(
+                isCheck ? "" : t.toUpperCase(), 
+                textAlign: isCheck ? TextAlign.left : TextAlign.center,
+                style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey[700], letterSpacing: 0.8)
+              ),
             )
-          ),
-        ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildKiloanRow(int id, String svc, String reg, String fast) {
+    bool isSelected = (_selectedItems[id] ?? 0) > 0;
+    return InkWell(
+      onTap: widget.isSelectionMode ? () {
+        setState(() => _selectedItems[id] = isSelected ? 0 : 1);
+      } : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
+        child: Row(
+          children: [
+            if (widget.isSelectionMode)
+              SizedBox(
+                width: 40,
+                child: Checkbox(
+                  value: isSelected,
+                  activeColor: primaryTeal,
+                  onChanged: (v) => setState(() => _selectedItems[id] = v! ? 1 : 0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+              ),
+            Expanded(flex: 2, child: Text(svc, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkBg))),
+            Expanded(child: Text(reg, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
+            Expanded(child: Text(fast, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: accentGold))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSatuanRow(int id, String name, String price) {
+    bool isSelected = (_selectedItems[id] ?? 0) > 0;
+    return InkWell(
+      onTap: widget.isSelectionMode ? () {
+        setState(() => _selectedItems[id] = isSelected ? 0 : 1);
+      } : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
+        child: Row(
+          children: [
+            if (widget.isSelectionMode)
+              SizedBox(
+                width: 40,
+                child: Checkbox(
+                  value: isSelected,
+                  activeColor: primaryTeal,
+                  onChanged: (v) => setState(() => _selectedItems[id] = v! ? 1 : 0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+              ),
+            Expanded(flex: 2, child: Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkBg))),
+            Expanded(
+              child: Text(
+                price, 
+                textAlign: TextAlign.left,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)
+              )
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -307,6 +390,35 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
+      ),
+    );
+  }
+
+  // LOGIKA CONFIRMATION (REUSE)
+  final Map<int, int> _selectedItems = {};
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialSelected != null) {
+      _selectedItems.addAll(widget.initialSelected!);
+    }
+  }
+
+  Widget _buildSelectionConfirmButton() {
+    int total = _selectedItems.values.where((v) => v > 0).length;
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: () => Navigator.pop(context, _selectedItems),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryTeal,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 4,
+        ),
+        child: Text("Konfirmasi $total Item Dipilih", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
     );
   }

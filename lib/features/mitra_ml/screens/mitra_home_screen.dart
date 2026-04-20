@@ -8,7 +8,6 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'mitra_wallet_screen.dart';
-import 'mitra_courier_management_screen.dart';
 import 'mitra_approval_kl_screen.dart';
 import 'mitra_order_screen.dart';
 import 'mitra_pricing_screen.dart';

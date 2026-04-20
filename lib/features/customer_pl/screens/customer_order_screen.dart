@@ -7,6 +7,7 @@ import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../mitra_ml/screens/mitra_pricing_screen.dart';
+import '../../../data/services/api_service.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -34,37 +35,87 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   double? _selectedLat;
   double? _selectedLng;  
   
-  // STATE MITRA & ITEMS
+  // STATE MITRA & ITEMS (LIVE DATABASE)
   Map<String, dynamic>? _selectedMitra;
-  final List<Map<String, dynamic>> _mockMitras = [
-    {
-      'id': 1, 'name': 'Nyutji Mitra Pusat', 'rating': 4.9, 'distance': 0.5, 'address': 'Jl. Arteri Kebayoran', 'district': 'Kebayoran', 
-      'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
-      'items': [
-        {'id': 101, 'name': 'Cuci Setrika (Kg)', 'price': 8000, 'unit': 'Kg', 'is_promo': true, 'category': 'Kiloan'},
-        {'id': 102, 'name': 'Setrika Saja (Kg)', 'price': 5000, 'unit': 'Kg', 'is_promo': false, 'category': 'Kiloan'},
-        {'id': 103, 'name': 'Bedcover Large', 'price': 35000, 'unit': 'Pcs', 'is_promo': false, 'category': 'Satuan'},
-        {'id': 104, 'name': 'Jas Formal', 'price': 50000, 'unit': 'Stel', 'is_promo': true, 'category': 'Satuan'},
-      ]
-    },
-    {
-      'id': 2, 'name': 'Laundry Express Pro', 'rating': 4.7, 'distance': 1.2, 'address': 'Jl. Gandaria Tengah', 'district': 'Kebayoran', 
-      'image': 'https://images.unsplash.com/photo-1517677208155-237da1f787b1?w=400',
-      'items': [
-        {'id': 201, 'name': 'Cuci Kilat 6 Jam', 'price': 15000, 'unit': 'Kg', 'is_promo': false, 'category': 'Express'},
-        {'id': 202, 'name': 'Cuci Sepatu Premium', 'price': 45000, 'unit': 'Psng', 'is_promo': true, 'category': 'Satuan'},
-        {'id': 203, 'name': 'Boneka Jumbo', 'price': 60000, 'unit': 'Pcs', 'is_promo': false, 'category': 'Satuan'},
-      ]
-    },
-    {
-      'id': 3, 'name': 'Mitra Berkah Cuci', 'rating': 4.8, 'distance': 1.8, 'address': 'Jl. Haji Nawi', 'district': 'Grogol', 
-      'image': 'https://images.unsplash.com/photo-1521656693074-0ef32e80a5d5?w=400',
-      'items': [
-        {'id': 301, 'name': 'Paket Anak Kos', 'price': 7000, 'unit': 'Kg', 'is_promo': true, 'category': 'Kiloan'},
-        {'id': 302, 'name': 'Helm Full Face', 'price': 30000, 'unit': 'Pcs', 'is_promo': false, 'category': 'Satuan'},
-      ]
-    },
-  ];
+  List<Map<String, dynamic>> _mitras = [];
+  bool _isLoadingMitras = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLiveMitras();
+  }
+
+  Future<void> _loadLiveMitras() async {
+    setState(() => _isLoadingMitras = true);
+    try {
+      final api = ApiService();
+      final data = await api.getRecommendedMitras(); 
+      
+      final List<dynamic> rawData = data;
+      _mitras = rawData.map((m) {
+        final Map<String, dynamic> item = Map<String, dynamic>.from(m);
+        return {
+          'id': item['id'] ?? item['mitra_id'] ?? 0,
+          'name': item['name'] ?? item['brand_name'] ?? item['full_name'] ?? item['mitra_name'] ?? 'Mitra Nyutji',
+          'rating': (item['rating'] ?? 5.0).toDouble(),
+          'distance': (item['distance'] ?? 0.1).toDouble(),
+          'address': item['address'] ?? 'Alamat tidak tersedia',
+          'district': item['district'] ?? '',
+          'image': item['image'] ?? item['photo'] ?? 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
+          'items': item['items'] ?? [],
+        };
+      }).toList();
+    } catch (e) {
+      debugPrint("API Error, switching to fallback: $e");
+    } finally {
+      // --- FINAL CHECK: Jika List tetap kosong (karena error atau DB kosong) ---
+      if (_mitras.isEmpty) {
+        _mitras = [
+          {
+            'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 
+            'address': 'Cipete Utara', 'district': 'Cipete Utara',
+            'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
+            'items': [] 
+          },
+          {
+            'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 
+            'address': 'Serpong', 'district': 'Serpong', 
+            'image': 'https://images.unsplash.com/photo-1521335629791-ce4aec67dd15?w=400',
+            'items': [] 
+          },
+          {
+            'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 
+            'address': 'Pamulang', 'district': 'Pamulang', 
+            'image': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400',
+            'items': [] 
+          },
+          {
+            'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 
+            'address': 'Pamulang', 'district': 'Pamulang', 
+            'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
+            'items': [] 
+          },
+        ];
+      }
+      if (mounted) setState(() => _isLoadingMitras = false);
+    }
+  }
+
+  Future<void> _fetchMitraItems(int mitraId) async {
+    try {
+      final api = ApiService();
+      final items = await api.getMitraItems(mitraId); // Ambil Harga Live dari DB
+      setState(() {
+        int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
+        if (idx != -1) {
+          _mitras[idx]['items'] = items;
+        }
+      });
+    } catch (e) {
+      debugPrint("Gagal load items: $e");
+    }
+  }
 
   // STATE SOURCE LOKASI UNTUK ICON
   IconData _locationIcon = LucideIcons.mapPin;
@@ -76,10 +127,19 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   int get _totalPrice {
     if (_selectedMitra == null) return 0;
     int baseTotal = 0;
-    for (var item in _selectedMitra!['items']) {
-      int count = _itemCounts[item['id']] ?? 0;
-      baseTotal += count * (item['price'] as int);
-    }
+    
+    final allPossibleItems = (_selectedMitra!['items'] as List<dynamic>?) ?? [];
+    
+    _itemCounts.forEach((itemId, count) {
+      if (count > 0) {
+        try {
+          var item = allPossibleItems.firstWhere((i) => i['id'] == itemId);
+          baseTotal += count * (item['price'] as int);
+        } catch (e) {
+          // Skip if missing
+        }
+      }
+    });
     return _serviceSpeed == 'fast' ? (baseTotal * 1.2).round() : baseTotal;
   }
 
@@ -96,393 +156,264 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     final Map<String, dynamic> t = {
       'id': {
         'title_pickup': 'Penjemputan Kurir',
-        'title_drop': 'Antar Sendiri',
+        'title_drop': 'Antar ke Laundry',
         'loc_pickup': 'Lokasi Penjemputan',
-        'loc_drop': 'Lokasi Antar Cucian',
-        'change': 'Ubah',
-        'speed_reg': 'Regular',
-        'speed_reg_desc': '2-3 Hari',
-        'speed_fast': 'Fast Track',
-        'speed_fast_desc': 'Same Day (+20%)',
+        'loc_drop': 'Lokasi Laundry',
+        'opt_home': 'Rumah Saya',
+        'opt_gps': 'Lokasi Saat Ini (GPS)',
+        'opt_gps_desc': 'Gunakan posisi GPS perangkat Anda',
+        'opt_map': 'Pilih via Peta',
+        'opt_map_desc': 'Geser pin ke lokasi yang tepat',
+        'recom_mitra': 'Mitra Laundry Rekomendasi',
         'items_title': 'Pilih Item Cucian',
-        'item_baju': 'Baju/Celana (Kg)',
-        'item_jaket': 'Jaket (Pcs)',
-        'item_selimut': 'Selimut (Mtr)',
-        'item_helm': 'Helm (Pcs)',
+        'speed_reg': 'Reguler',
+        'speed_reg_desc': '2-3 Hari Kerja',
+        'speed_fast': 'Fast Track',
+        'speed_fast_desc': 'Selesai di hari yang sama',
+        'speed_label': 'Kecepatan Layanan',
         'total': 'Total Estimasi',
-        'confirm': 'KONFIRMASI',
-        'opt_home': 'Rumah Sendiri',
-        'opt_gps': 'Posisi Sekarang',
-        'opt_gps_desc': 'Menyesuaikan GPS perangkat',
-        'opt_map': 'Order Tempat Lain',
-        'opt_map_desc': 'Titik Antar Kustom pada Peta',
+        'btn_confirm': 'KONFIRMASI',
       },
       'en': {
         'title_pickup': 'Courier Pickup',
-        'title_drop': 'Self Drop-off',
+        'title_drop': 'Drop to Laundry',
         'loc_pickup': 'Pickup Location',
-        'loc_drop': 'Drop-off Location',
-        'change': 'Change',
-        'speed_reg': 'Regular',
-        'speed_reg_desc': '2-3 Days',
-        'speed_fast': 'Fast Track',
-        'speed_fast_desc': 'Same Day (+20%)',
-        'items_title': 'Select Laundry Items',
-        'item_baju': 'Clothes/Pants (Kg)',
-        'item_jaket': 'Jacket (Pcs)',
-        'item_selimut': 'Blanket (Mtr)',
-        'item_helm': 'Helmet (Pcs)',
-        'total': 'Estimated Total',
-        'confirm': 'CONFIRM',
+        'loc_drop': 'Laundry Location',
         'opt_home': 'My Home',
-        'opt_gps': 'Current Location',
-        'opt_gps_desc': 'Use device GPS',
-        'opt_map': 'Other Location',
-        'opt_map_desc': 'Custom Point on Map',
+        'opt_gps': 'Current Location (GPS)',
+        'opt_gps_desc': 'Use your device\'s GPS position',
+        'opt_map': 'Pick on Map',
+        'opt_map_desc': 'Manually drag the pin to location',
+        'recom_mitra': 'Recommended Laundry Mitra',
+        'items_title': 'Select Laundry Items',
+        'speed_reg': 'Regular',
+        'speed_reg_desc': '2-3 Working Days',
+        'speed_fast': 'Fast Track',
+        'speed_fast_desc': 'Same Day Service',
+        'speed_label': 'Service Speed',
+        'total': 'Total Estimation',
+        'btn_confirm': 'CONFIRM',
       }
     };
-    final currentT = t[auth.lang] ?? t['id'];
+    
+    final cT = t['id']; // Default to Indonesian
 
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(widget.orderType == 'pickup' ? currentT['title_pickup'] : currentT['title_drop'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: primaryTeal,
-        elevation: 0,
-        centerTitle: false,
-        actions: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)),
-            child: Row(
-              children: [
-                const Icon(LucideIcons.shoppingBag, size: 14, color: Colors.white),
-                const SizedBox(width: 4),
-                Text("$_totalItems", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-              ],
+      body: CustomScrollView(
+        slivers: [
+          _buildCompactAppbar(cT),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildAddressSection(cT, auth),
+                  const SizedBox(height: 24),
+                  Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+          ),
+          
+          SliverToBoxAdapter(
+            child: _isLoadingMitras 
+              ? const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+              : SizedBox(
+                  height: 170,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _mitras.length,
+                    itemBuilder: (context, index) => _buildHorizontalMitraCard(_mitras[index]),
+                  ),
+                ),
+          ),
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(cT['speed_label'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                  const SizedBox(height: 12),
+                  _buildDenseSpeedSelector(cT),
+                  const SizedBox(height: 24),
+                  _buildDenseItemList(cT),
+                  const SizedBox(height: 120),
+                ],
+              ),
             ),
           )
         ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (widget.orderType == 'drop') _buildDropMethodToggle(),
-                if (widget.orderType == 'pickup' || (widget.orderType == 'drop' && _dropMethod == 'courier'))
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildDenseLocationCard(currentT, auth),
-                  ),
-                const SizedBox(height: 12),
-                _buildMitraRecommendationCard(currentT),
-                const SizedBox(height: 12),
-                _buildDenseSpeedSelector(currentT),
-                const SizedBox(height: 12),
-                _buildDenseItemList(currentT),
-              ],
-            ),
-          ),
-          _buildCompactFooter(currentT, auth),
-        ],
-      ),
+      bottomSheet: _buildCompactFooter(cT, auth),
     );
   }
 
-  Widget _buildDropMethodToggle() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-      child: Row(
-        children: [
-          Expanded(child: _togglePill("Diambil Sendiri", 'self', LucideIcons.userCheck)),
-          Expanded(child: _togglePill("Diantar Kurir", 'courier', LucideIcons.truck)),
-        ],
-      ),
-    );
-  }
-
-  Widget _togglePill(String label, String id, IconData icon) {
-    bool isSel = _dropMethod == id;
-    return GestureDetector(
-      onTap: () => setState(() => _dropMethod = id),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(color: isSel ? primaryTeal : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildCompactAppbar(Map<String, dynamic> cT) {
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: primaryTeal,
+      elevation: 0,
+      leading: IconButton(icon: const Icon(LucideIcons.chevronLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
+      title: Text(widget.orderType == 'pickup' ? cT['title_pickup'] : cT['title_drop'], style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+      centerTitle: true,
+      actions: [
+        Stack(
+          alignment: Alignment.center,
           children: [
-            Icon(icon, size: 14, color: isSel ? Colors.white : Colors.grey[400]),
-            const SizedBox(width: 8),
-            Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[400])),
+            IconButton(icon: const Icon(LucideIcons.shoppingBag, color: Colors.white, size: 20), onPressed: () {}),
+            Positioned(
+              right: 8, top: 8,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle),
+                constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                child: Text('$_totalItems', style: const TextStyle(color: Colors.black, fontSize: 8, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+              ),
+            )
           ],
         ),
-      ),
+        const SizedBox(width: 8),
+      ],
     );
   }
 
-  Widget _buildDenseLocationCard(Map<String, dynamic> cT, AuthProvider auth) {
-    bool hasHomeAddress = auth.homeAddress != null;
-    
-    // Alamat utama: prioritize _pickupAddress if it was changed from default, otherwise use home address
-    String displayAddr = _pickupAddress;
-    if (_pickupAddress == 'Jl. Kebayoran No 12, Jakarta' && hasHomeAddress) {
-      displayAddr = auth.homeAddress!['address'];
-    }
-    
-    // Detail info: prioritize _pickupNote
-    String detailInfo = _pickupNote;
-    if (_pickupNote.isEmpty && hasHomeAddress && _pickupAddress == 'Jl. Kebayoran No 12, Jakarta') {
-      detailInfo = auth.homeAddress!['detail'] ?? "";
-    }
-
+  Widget _buildAddressSection(Map<String, dynamic> cT, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white, 
-        borderRadius: BorderRadius.circular(20), 
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 4))],
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                    child: Icon(_locationIcon, size: 18, color: primaryTeal),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(widget.orderType == 'pickup' ? cT['loc_pickup'] : cT['loc_drop'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey[600], letterSpacing: 0.5)),
-                ],
-              ),
-              InkWell(
-                onTap: () => _showLocationPicker(cT, auth),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(8)),
-                  child: Text(cT['change'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+              Icon(_locationIcon, size: 16, color: primaryTeal),
+              const SizedBox(width: 8),
+              Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+              const Spacer(),
+              _pillButton("Ubah", () => _showLocationPicker(cT, auth)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(_pickupAddress, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
+          if (_pickupNote.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+          ],
+          const Divider(height: 24),
+          Row(
+            children: [
+              const Icon(LucideIcons.messageSquare, size: 14, color: Colors.grey),
+              const SizedBox(width: 8),
+              Expanded(child: Text(_pickupNote.isEmpty ? "Tambahkan catatan penjemputan" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400]))),
+              _pillButton("Catat", () => _showNoteDialog()),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _pillButton(String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+        child: Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalMitraCard(Map<String, dynamic> mitra) {
+    bool isSelected = _selectedMitra?['id'] == mitra['id'];
+    return GestureDetector(
+      onTap: () async {
+        if (mitra['items'] == null || (mitra['items'] as List).isEmpty) {
+          await _fetchMitraItems(mitra['id']);
+        }
+        setState(() {
+          _selectedMitra = mitra;
+          _itemCounts.clear();
+        });
+      },
+      child: Container(
+        width: 180,
+        margin: const EdgeInsets.only(right: 16, bottom: 10, top: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected ? primaryTeal.withOpacity(0.3) : Colors.black.withOpacity(0.08),
+              blurRadius: 12, offset: const Offset(0, 6)
+            )
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.network(
+                  mitra['image'] ?? 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
+                  fit: BoxFit.cover,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: bgColor.withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(displayAddr, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
-                if (detailInfo.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(detailInfo, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontStyle: FontStyle.italic)),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.transparent, Colors.black.withOpacity(0.95)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.2, 1.0],
+                    ),
                   ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          InkWell(
-            onTap: () => _showNoteDialog(),
-            child: Row(
-              children: [
-                Icon(LucideIcons.edit3, size: 14, color: primaryTeal),
-                const SizedBox(width: 6),
-                Text(_pickupNote.isEmpty ? "Tambah Catatan Alamat (No. Rumah/Gang)" : "Ubah Catatan", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
-              ],
-            ),
-          ),
-          if (_selectedMitra != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                    child: Row(
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      mitra['name'] ?? 'Mitra Laundry',
+                      style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.2),
+                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
                       children: [
-                        const Icon(LucideIcons.navigation, size: 10, color: Colors.orange),
+                        const Icon(LucideIcons.star, size: 10, color: Color(0xFFF59E0B)),
                         const SizedBox(width: 4),
-                        Text("${_selectedMitra!['distance']} km ke Mitra", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange)),
+                        Text("${mitra['rating'] ?? '5.0'}", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                        const Spacer(),
+                        const Icon(LucideIcons.mapPin, size: 10, color: Colors.white70),
+                        const SizedBox(width: 4),
+                        Text("${mitra['distance'] ?? '0.1'} km", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w500)),
                       ],
                     ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Positioned(
+                  top: 10, right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    child: Icon(LucideIcons.check, size: 12, color: primaryTeal),
                   ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMitraRecommendationCard(Map<String, dynamic> cT) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white, 
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(LucideIcons.star, size: 18, color: Colors.blue),
-                  ),
-                  const SizedBox(width: 12),
-                  Text("Mitra Laundry Rekomendasi", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey[600], letterSpacing: 0.5)),
-                ],
-              ),
-              IconButton(
-                onPressed: () {}, // Searching manual logic
-                icon: const Icon(LucideIcons.search, size: 18),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
-                color: primaryTeal,
-              ),
+                )
             ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 140,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              itemCount: _mockMitras.length,
-              itemBuilder: (context, index) {
-                final mitra = _mockMitras[index];
-                bool isSelected = _selectedMitra?['id'] == mitra['id'];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedMitra = mitra;
-                      _itemCounts.clear(); // Reset keranjang jika pindah Mitra
-                    });
-                  },
-                  child: Container(
-                    width: 170,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected ? primaryTeal.withOpacity(0.05) : bgColor.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: isSelected ? primaryTeal : Colors.transparent, width: 1.5),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Background Image with Right-to-Left Gradient Fade
-                        Positioned(
-                          right: 0, top: 0, bottom: 0,
-                          width: 100,
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.horizontal(right: Radius.circular(14)),
-                            child: ShaderMask(
-                              shaderCallback: (rect) {
-                                return const LinearGradient(
-                                  begin: Alignment.centerRight,
-                                  end: Alignment.centerLeft,
-                                  colors: [Colors.black, Colors.transparent],
-                                ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
-                              },
-                              blendMode: BlendMode.dstIn,
-                              child: Image.network(
-                                mitra['image'],
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[200]),
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Content
-                        Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 100, // Limit width to not overlap image too much
-                                child: Text(mitra['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(LucideIcons.star, size: 12, color: Colors.amber),
-                                  const SizedBox(width: 4),
-                                  Text("${mitra['rating']}", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              const Spacer(),
-                              Text(mitra['address'], style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
-                              const SizedBox(height: 4),
-                               Row(
-                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                 children: [
-                                   Row(
-                                     children: [
-                                       Icon(LucideIcons.navigation, size: 10, color: primaryTeal),
-                                       const SizedBox(width: 4),
-                                       Text("${mitra['distance']} km", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: primaryTeal)),
-                                     ],
-                                   ),
-                                   GestureDetector(
-                                     onTap: () {
-                                       Navigator.push(context, PageRouteBuilder(
-                                         pageBuilder: (context, animation, secondaryAnimation) => MitraPricingScreen(
-                                           isReadOnly: true,
-                                           customName: mitra['name'],
-                                         ),
-                                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                           const begin = Offset(1.0, 0.0);
-                                           const end = Offset.zero;
-                                           const curve = Curves.easeInOut;
-                                           var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                           return SlideTransition(position: animation.drive(tween), child: child);
-                                         },
-                                       ));
-                                     },
-                                     child: Container(
-                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                       decoration: BoxDecoration(
-                                         color: Colors.amber.withOpacity(0.1),
-                                         borderRadius: BorderRadius.circular(4),
-                                         border: Border.all(color: Colors.amber.withOpacity(0.3)),
-                                       ),
-                                       child: Text("Lihat Harga", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.amber[800])),
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             ],
-                           ),
-                         ),
-                       ],
-                     ),
-                   ),
-                 );
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -536,8 +467,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               const SizedBox(height: 12),
               Text("Silakan pilih cara penentuan lokasi penjemputan:", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
               const SizedBox(height: 20),
-              
-              // Option 1: Rumah Sendiri
               _locOption(cT['opt_home'], auth.homeAddress != null ? "${auth.homeAddress!['detail']} ${auth.homeAddress!['address']}" : "Belum Set Alamat Rumah", LucideIcons.home, () {
                 if (auth.homeAddress != null) {
                   setState(() {
@@ -548,15 +477,12 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 }
                 Navigator.pop(context);
               }),
-              
-              // Option 2 & 3: Use the new NyutjiLocationPicker
               _locOption(cT['opt_gps'], cT['opt_gps_desc'], LucideIcons.crosshair, () async {
-                Navigator.pop(context); // Close selection sheet
+                Navigator.pop(context); 
                 _launchMapPicker(LucideIcons.crosshair);
               }),
-              
               _locOption(cT['opt_map'], cT['opt_map_desc'], LucideIcons.map, () async {
-                Navigator.pop(context); // Close selection sheet
+                Navigator.pop(context); 
                 _launchMapPicker(LucideIcons.map);
               }),
               const SizedBox(height: 20),
@@ -574,7 +500,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => const NyutjiLocationPicker(),
     );
-
     if (result != null) {
       setState(() {
         _pickupAddress = result.address;
@@ -660,19 +585,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         ),
       );
     }
-
-    final allItems = _selectedMitra!['items'] as List<dynamic>;
-    final filteredItems = allItems.where((item) => 
-      item['name'].toString().toLowerCase().contains(_itemSearchQuery.toLowerCase())
-    ).toList();
-
+    final allItems = (_selectedMitra!['items'] as List<dynamic>?) ?? [];
+    final filteredItems = allItems.where((item) => item['name'].toString().toLowerCase().contains(_itemSearchQuery.toLowerCase())).toList();
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white, 
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 4))],
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 4))]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -682,8 +599,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               Text(cT['items_title'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.black87)),
               if (allItems.length > 5)
                 SizedBox(
-                  width: 150,
-                  height: 35,
+                  width: 150, height: 35,
                   child: TextField(
                     onChanged: (val) => setState(() => _itemSearchQuery = val),
                     style: const TextStyle(fontSize: 12),
@@ -700,10 +616,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           ),
           const Divider(height: 24),
           if (filteredItems.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Center(child: Text("Item tidak ditemukan", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey))),
-            ),
+            Padding(padding: const EdgeInsets.all(20), child: Center(child: Text("Item tidak ditemukan", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)))),
           ...filteredItems.map((item) => _itemRow(item)).toList(),
         ],
       ),
@@ -724,7 +637,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 Row(
                   children: [
                     Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87)),
-                    if (item['is_promo'])
+                    if (item['is_promo'] == true)
                       Container(
                         margin: const EdgeInsets.only(left: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -753,10 +666,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   }
 
   Widget _ctrBtn(IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(padding: const EdgeInsets.all(6), child: Icon(icon, size: 14, color: Colors.black54)),
-    );
+    return InkWell(onTap: onTap, child: Padding(padding: const EdgeInsets.all(6), child: Icon(icon, size: 14, color: Colors.black54)));
   }
 
   Widget _buildCompactFooter(Map<String, dynamic> cT, AuthProvider auth) {
@@ -779,43 +689,31 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             ),
             ElevatedButton(
               onPressed: (_totalItems > 0 && _selectedMitra != null) ? () {
-                // Save to History
                 if (_pickupAddress.isNotEmpty) {
-                  auth.addToAddressHistory({
-                    'address': _pickupAddress,
-                    'detail': _pickupNote,
-                    'lat': _selectedLat,
-                    'lng': _selectedLng,
-                  });
+                  auth.addToAddressHistory({'address': _pickupAddress, 'detail': _pickupNote, 'lat': _selectedLat, 'lng': _selectedLng});
                 }
-                // Menyiapkan rincian item untuk invoice
                 List<Map<String, dynamic>> selectedItems = [];
                 _itemCounts.forEach((itemId, count) {
                   if (count > 0) {
-                    var item = _selectedMitra!['items'].firstWhere((i) => i['id'] == itemId);
-                    selectedItems.add({
-                      'name': item['name'],
-                      'count': count,
-                      'unit': item['unit'],
-                    });
+                    var item = (_selectedMitra!['items'] as List).firstWhere((i) => i['id'] == itemId);
+                    selectedItems.add({'name': item['name'], 'count': count, 'unit': item['unit']});
                   }
                 });
-
                 Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
                   totalPrice: _totalPrice, 
                   totalItems: _totalItems, 
                   address: _pickupAddress, 
                   isPickup: widget.orderType == 'pickup',
                   mitraId: _selectedMitra!['id'],
-                  mitraName: _selectedMitra!['name'],
+                  mitraName: _selectedMitra!['name'] ?? 'Mitra Laundry',
                   speed: _serviceSpeed,
-                  distance: _selectedMitra!['distance'],
+                  distance: (_selectedMitra!['distance'] as num?)?.toDouble() ?? 0.1,
                   dropMethod: _dropMethod,
                   selectedItemsList: selectedItems,
                 )));
               } : null,
-              style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-              child: Text(cT['confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
+              child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
           ],
         ),

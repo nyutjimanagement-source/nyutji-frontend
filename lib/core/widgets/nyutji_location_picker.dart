@@ -322,7 +322,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                         if (_road.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text("${_road} ${_houseNumber}", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600])),
+                            child: Text("$_road $_houseNumber", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600])),
                           ),
                         const SizedBox(height: 24),
                         SizedBox(
@@ -342,7 +342,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                                 district: _village,
                                 subdistrict: _subdistrict,
                                 city: _city,
-                                street: "${_road} ${_houseNumber}".trim(),
+                                street: "$_road $_houseNumber".trim(),
                                 address: _fullAddress,
                               ));
                             },

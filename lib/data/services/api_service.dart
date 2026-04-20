@@ -148,4 +148,17 @@ class ApiService {
     final response = await _dio.post("/users/profile-photo", data: formData);
     return response.data;
   }
+
+  // --- LIVE MITRA & PRICING ENDPOINTS ---
+  Future<List<dynamic>> getRecommendedMitras() async {
+    // Menarik daftar mitra terdekat/rekomendasi dari DB
+    final response = await _dio.get("/mitras/recommended");
+    return response.data['data'] ?? [];
+  }
+
+  Future<List<dynamic>> getMitraItems(int mitraId) async {
+    // Menarik daftar harga asli mitra tertentu dari DB
+    final response = await _dio.get("/mitras/$mitraId/items");
+    return response.data['data'] ?? [];
+  }
 }

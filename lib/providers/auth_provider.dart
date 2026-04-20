@@ -141,10 +141,18 @@ class AuthProvider with ChangeNotifier {
 
           // Load Addresses after login
           final homeAddrStr = prefs.getString('home_address_${_user?['email']}');
-          if (homeAddrStr != null) _homeAddress = jsonDecode(homeAddrStr); else _homeAddress = null;
+          if (homeAddrStr != null) {
+            _homeAddress = jsonDecode(homeAddrStr);
+          } else {
+            _homeAddress = null;
+          }
           
           final historyStr = prefs.getString('address_history_${_user?['email']}');
-          if (historyStr != null) _addressHistory = jsonDecode(historyStr); else _addressHistory = [];
+          if (historyStr != null) {
+            _addressHistory = jsonDecode(historyStr);
+          } else {
+            _addressHistory = [];
+          }
 
           // LOAD LOCAL PHOTO PATH PERSISTENCE AFTER LOGIN
           _temporaryLocalPhoto = prefs.getString('local_photo_$email');
