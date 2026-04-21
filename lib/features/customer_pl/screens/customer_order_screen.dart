@@ -890,69 +890,66 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   }
 
   Widget _buildCompactFooter(Map<String, dynamic> cT, AuthProvider auth) {
-    return Positioned(
-      bottom: 0, left: 0, right: 0,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(cT['total'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-                  Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(_totalPrice), style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal)),
-                ],
-              ),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
+      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(cT['total'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(_totalPrice), style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal)),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                if (_totalItems > 0 && _selectedMitra != null) {
-                  final String addr = _pickupAddress ?? 'Lokasi tidak diset';
-                  final String note = _pickupNote ?? '';
-                  final double lat = _selectedLat ?? 0.0;
-                  final double lng = _selectedLng ?? 0.0;
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_totalItems > 0 && _selectedMitra != null) {
+                final String addr = _pickupAddress ?? 'Lokasi tidak diset';
+                final String note = _pickupNote ?? '';
+                final double lat = _selectedLat ?? 0.0;
+                final double lng = _selectedLng ?? 0.0;
 
-                  auth.addToAddressHistory({'address': addr, 'detail': note, 'lat': lat, 'lng': lng});
-                  
-                  List<Map<String, dynamic>> selectedItems = [];
-                  final List? mItems = _selectedMitra?['items'] as List?;
-                  if (mItems != null) {
-                    _itemCounts.forEach((itemId, count) {
-                      if (count > 0) {
-                        try {
-                          var item = mItems.firstWhere((i) => i['id'] == itemId, orElse: () => null);
-                          if (item != null) {
-                            selectedItems.add({'name': item['name'], 'count': count, 'unit': item['unit']});
-                          }
-                        } catch (e) {
-                          debugPrint("Error processing item $itemId: $e");
+                auth.addToAddressHistory({'address': addr, 'detail': note, 'lat': lat, 'lng': lng});
+                
+                List<Map<String, dynamic>> selectedItems = [];
+                final List? mItems = _selectedMitra?['items'] as List?;
+                if (mItems != null) {
+                  _itemCounts.forEach((itemId, count) {
+                    if (count > 0) {
+                      try {
+                        var item = mItems.firstWhere((i) => i['id'] == itemId, orElse: () => null);
+                        if (item != null) {
+                          selectedItems.add({'name': item['name'], 'count': count, 'unit': item['unit']});
                         }
+                      } catch (e) {
+                        debugPrint("Error processing item $itemId: $e");
                       }
-                    });
-                  }
-
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
-                    totalPrice: _totalPrice, 
-                    totalItems: _totalItems, 
-                    address: addr, 
-                    isPickup: widget.orderType == 'pickup',
-                    mitraId: _selectedMitra?['id'] ?? 0,
-                    mitraName: _selectedMitra?['name'] ?? 'Mitra Laundry',
-                    speed: _serviceSpeed,
-                    distance: (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
-                    dropMethod: _returnMethod,
-                    selectedItemsList: selectedItems,
-                  )));
+                    }
+                  });
                 }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-              child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
-            ),
-          ],
-        ),
+
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
+                  totalPrice: _totalPrice, 
+                  totalItems: _totalItems, 
+                  address: addr, 
+                  isPickup: widget.orderType == 'pickup',
+                  mitraId: _selectedMitra?['id'] ?? 0,
+                  mitraName: _selectedMitra?['name'] ?? 'Mitra Laundry',
+                  speed: _serviceSpeed,
+                  distance: (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
+                  dropMethod: _returnMethod,
+                  selectedItemsList: selectedItems,
+                )));
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
+            child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
