@@ -457,8 +457,13 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             children: [
               Positioned.fill(
                 child: Image.network(
-                  mitra['image'] ?? 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
+                  (mitra['image']?.toString() ?? '').startsWith('http') 
+                      ? mitra['image'] 
+                      : ((mitra['image']?.toString() ?? '').isNotEmpty 
+                          ? 'https://api.nyutji.com/${mitra['image']}' 
+                          : 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400'),
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Image.network('https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400', fit: BoxFit.cover),
                 ),
               ),
               Positioned.fill(
@@ -797,7 +802,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   Widget _buildKiloanRow(Map<String, dynamic> item) {
     final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
     final double priceFast = double.tryParse(item['price_fast']?.toString() ?? '') ?? (priceReg * 2);
-    int itemId = int.tryParse(item['id'].toString()) ?? 0;
+    int itemId = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
     int count = _itemCounts[itemId] ?? 0;
     
     return Container(
@@ -842,7 +847,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
   Widget _buildSatuanRow(Map<String, dynamic> item) {
     final double price = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
-    int itemId = int.tryParse(item['id'].toString()) ?? 0;
+    int itemId = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
     int count = _itemCounts[itemId] ?? 0;
     
     return Container(
