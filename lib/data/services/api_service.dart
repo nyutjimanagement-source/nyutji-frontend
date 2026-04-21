@@ -139,6 +139,11 @@ class ApiService {
   }
 
   // --- PROFILE ENDPOINTS ---
+  Future<Map<String, dynamic>> updateLocation(Map<String, dynamic> data) async {
+    final response = await _dio.put("/users/location", data: data);
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> uploadProfilePhoto(String filePath) async {
     String fileName = filePath.split('/').last;
     FormData formData = FormData.fromMap({

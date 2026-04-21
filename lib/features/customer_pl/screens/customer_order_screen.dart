@@ -38,6 +38,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   List<Map<String, dynamic>> _mitras = [];
   bool _isLoadingMitras = true;
 
+  int _kiloanPage = 0;
+  int _satuanPage = 0;
+
   @override
   void initState() {
     super.initState();
@@ -268,9 +271,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   _buildDenseItemList(cT),
                   const SizedBox(height: 24),
                   
-                  // TOMBOL DOWNLOAD TEMPLATE UNTUK MITRA
-                  _buildTemplateDownloadBtn(),
-                  
+
                   const SizedBox(height: 100), // Ruang agar tidak tertutup footer
                 ],
               ),
@@ -429,6 +430,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         setState(() {
           _selectedMitra = mitra;
           _itemCounts.clear();
+          _kiloanPage = 0;
+          _satuanPage = 0;
         });
 
         // 2. BACKGROUND FETCH: Ambil harga di belakang layar (tanpa await)
@@ -702,20 +705,26 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
     return Column(
       children: [
-        if (kiloanItems.isNotEmpty) _buildPaginatedTable(kiloanItems, "Laundry Kiloan", LucideIcons.layers, true),
+        if (kiloanItems.isNotEmpty) _buildPaginatedTable(kiloanItems, "Laundry Kiloan", LucideIcons.layers, true, _kiloanPage, (idx) => setState(() => _kiloanPage = idx)),
         const SizedBox(height: 24),
-        if (satuanItems.isNotEmpty) _buildPaginatedTable(satuanItems, "Laundry Satuan / Meteran", LucideIcons.shirt, false),
+        if (satuanItems.isNotEmpty) _buildPaginatedTable(satuanItems, "Laundry Satuan / Meteran", LucideIcons.shirt, false, _satuanPage, (idx) => setState(() => _satuanPage = idx)),
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan) {
+  Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan, int currentPage, Function(int) onPageChanged) {
     // Pecah items menjadi chunk per 5 item
     List<List<dynamic>> chunks = [];
     for (var i = 0; i < items.length; i += 5) {
       chunks.add(items.sublist(i, i + 5 > items.length ? items.length : i + 5));
     }
+
+    int itemsRemaining = items.length - (currentPage * 5);
+    int currentItemsCount = itemsRemaining > 5 ? 5 : (itemsRemaining < 0 ? 0 : itemsRemaining);
+    double hHeader = 40.0;
+    double hPageIndicator = chunks.length > 1 ? 25.0 : 0.0;
+    double tableHeight = (currentItemsCount * (isKiloan ? 46.0 : 42.0)) + hHeader + hPageIndicator;
 
     return Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
@@ -749,9 +758,12 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           ),
           
           // PAGE VIEW UNTUK SWIPE PER 5 ITEM
-          SizedBox(
-            height: isKiloan ? 260 : 300, // Sesuaikan tinggi per halaman
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            height: tableHeight,
             child: PageView.builder(
+              onPageChanged: onPageChanged,
               itemCount: chunks.length,
               itemBuilder: (context, pageIdx) {
                 final pageItems = chunks[pageIdx];
@@ -771,7 +783,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 children: List.generate(chunks.length, (index) => Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   width: 6, height: 6,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: primaryTeal.withOpacity(0.3)),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withOpacity(0.3)),
                 )),
               ),
             )
@@ -931,25 +943,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTemplateDownloadBtn() {
-    return Container(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          // Memanggil Jalur Khusus (Sederhana & Aman)
-          // URL: https://api.nyutji.com/api/mitras/template
-        },
-        icon: Icon(LucideIcons.fileSpreadsheet, size: 16, color: primaryTeal),
-        label: Text("Download Template Excel (.xlsx)", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          side: BorderSide(color: primaryTeal.withOpacity(0.3)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );

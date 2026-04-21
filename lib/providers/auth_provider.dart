@@ -29,6 +29,29 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> saveHomeAddress(Map<String, dynamic> addr) async {
     _homeAddress = addr;
+    
+    // 1. Simpan di Database PostgreSQL backend
+    try {
+      await ApiService().updateLocation({
+        'address': addr['address'],
+        'address_detail': addr['detail'],
+        'lat': addr['lat'],
+        'lng': addr['lng']
+      });
+      // Update global user state with address
+      if (_user != null) {
+        _user!['address'] = addr['address'];
+        _user!['address_detail'] = addr['detail'];
+        _user!['lat'] = addr['lat'];
+        _user!['lng'] = addr['lng'];
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_data', jsonEncode(_user));
+      }
+    } catch (e) {
+      debugPrint("Gagal sinkronisasi alamat ke server: $e");
+    }
+
+    // 2. Tetap sinkronkan ke SharedPreferences Lokal HP untuk Fast Load
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('home_address_${_user?['email']}', jsonEncode(addr));
     notifyListeners();

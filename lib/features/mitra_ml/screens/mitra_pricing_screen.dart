@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
 
 class MitraPricingScreen extends StatefulWidget {
@@ -74,13 +75,13 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                 children: [
                   _buildSectionHeader("Laundry Kiloan", LucideIcons.layers),
                   const SizedBox(height: 12),
-                  _buildTableWrapper(_kiloanController, (idx) => setState(() => _kiloanPage = idx), _kiloanList, true),
+                  _buildTableWrapper(_kiloanController, _kiloanPage, (idx) => setState(() => _kiloanPage = idx), _kiloanList, true),
                   _buildPageIndicator(_kiloanPage, (_kiloanList.length / 5).ceil()),
                   const SizedBox(height: 24),
                   
                   _buildSectionHeader("Laundry Satuan / Meteran", LucideIcons.shirt, hasSearch: true),
                   const SizedBox(height: 12),
-                  _buildTableWrapper(_satuanController, (idx) => setState(() => _satuanPage = idx), _satuanList, false),
+                  _buildTableWrapper(_satuanController, _satuanPage, (idx) => setState(() => _satuanPage = idx), _satuanList, false),
                   _buildPageIndicator(_satuanPage, (_satuanList.length / 5).ceil()),
                   const SizedBox(height: 32),
                   
@@ -206,12 +207,20 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     return satuanData;
   }
 
-  Widget _buildTableWrapper(PageController controller, Function(int) onPageChanged, List<Map<String, String>> data, bool isKiloan) {
-    if (data.isEmpty) return SizedBox(height: 100, child: const Center(child: Text("Belum ada layanan")));
+  Widget _buildTableWrapper(PageController controller, int currentPage, Function(int) onPageChanged, List<Map<String, String>> data, bool isKiloan) {
+    if (data.isEmpty) return const SizedBox(height: 100, child: Center(child: Text("Belum ada layanan")));
     int totalPages = (data.length / 5).ceil();
     
-    return Container(
-      height: 320,
+    // Fit the height perfectly dynamically for the CURRENT page
+    int itemsRemaining = data.length - (currentPage * 5);
+    int currentItemsCount = itemsRemaining > 5 ? 5 : (itemsRemaining < 0 ? 0 : itemsRemaining);
+    // Asumsi height: Header ~40px, Row ~40-45px
+    double tableHeight = (currentItemsCount * (isKiloan ? 46.0 : 42.0)) + 40.0;
+    
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      height: tableHeight,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -361,18 +370,23 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       children: [
         Row(
           children: [
-            Expanded(child: _buildLuxuryButton("Upload XLS", LucideIcons.uploadCloud, primaryTeal)),
+            Expanded(child: _buildLuxuryButton("Upload XLS", LucideIcons.uploadCloud, primaryTeal, () {})),
             const SizedBox(width: 12),
-            Expanded(child: _buildLuxuryButton("Template", LucideIcons.download, Colors.blueGrey)),
+            Expanded(child: _buildLuxuryButton("Template", LucideIcons.download, Colors.blueGrey, () async {
+              final url = Uri.parse('https://api.nyutji.com/storage/templates/Template_Layanan_Mitra.xlsx');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            })),
           ],
         ),
         const SizedBox(height: 12),
-        _buildLuxuryButton("Pamflet Promosi Discount", LucideIcons.megaphone, accentGold),
+        _buildLuxuryButton("Pamflet Promosi Discount", LucideIcons.megaphone, accentGold, () {}),
       ],
     );
   }
 
-  Widget _buildLuxuryButton(String title, IconData icon, Color color) {
+  Widget _buildLuxuryButton(String title, IconData icon, Color color, VoidCallback onPressed) {
     return Container(
       width: double.infinity,
       height: 54,
@@ -381,7 +395,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
         boxShadow: [BoxShadow(color: color.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: onPressed,
         icon: Icon(icon, size: 18),
         label: Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800)),
         style: ElevatedButton.styleFrom(

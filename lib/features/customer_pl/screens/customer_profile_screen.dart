@@ -34,7 +34,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               title: Text("Ambil Foto Kamera", style: GoogleFonts.montserrat()),
               onTap: () async {
                 Navigator.pop(context);
-                final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50, maxWidth: 800);
                 if (photo != null) {
                   final success = await auth.updateProfilePhoto(photo.path);
                   if (success && mounted) {
@@ -48,7 +48,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               title: Text("Pilih dari Galeri", style: GoogleFonts.montserrat()),
               onTap: () async {
                 Navigator.pop(context);
-                final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+                final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50, maxWidth: 800);
                 if (image != null) {
                   final success = await auth.updateProfilePhoto(image.path);
                   if (success && mounted) {
