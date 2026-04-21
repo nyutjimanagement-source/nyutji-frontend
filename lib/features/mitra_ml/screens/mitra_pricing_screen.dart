@@ -373,7 +373,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             Expanded(child: _buildLuxuryButton("Upload XLS", LucideIcons.uploadCloud, primaryTeal, () {})),
             const SizedBox(width: 12),
             Expanded(child: _buildLuxuryButton("Template", LucideIcons.download, Colors.blueGrey, () async {
-              final url = Uri.parse('https://api.nyutji.com/storage/templates/Template_Layanan_Mitra.xlsx');
+              final url = Uri.parse('https://api.nyutji.com/api/v1/mitras/template');
               try {
                 await launchUrl(url, mode: LaunchMode.externalApplication);
               } catch (e) {
