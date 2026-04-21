@@ -164,8 +164,18 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final Map<String, dynamic> t = {
+    // Gunakan try-catch di level tertinggi build untuk menangkap error gaib di mode Release
+    try {
+      final auth = Provider.of<AuthProvider>(context);
+      
+      // Sinkronisasi alamat dari AuthProvider jika tersedia
+      if (auth.user != null && _pickupAddress == 'Jl. Kebayoran No 12, Jakarta') {
+         final district = auth.user?['district_name'];
+         final city = auth.user?['city_name'];
+         if (district != null) _pickupAddress = "$district, ${city ?? ''}";
+      }
+
+      final Map<String, dynamic> t = {
       'id': {
         'title_pickup': 'Penjemputan Kurir',
         'title_drop': 'Antar ke Laundry',
@@ -264,6 +274,19 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       ),
       bottomSheet: _buildCompactFooter(cT, auth),
     );
+    } catch (e) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text("Maaf, terjadi kesalahan tampilan. Sedang memulihkan... \n\nDetail: $e", 
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildCompactAppbar(Map<String, dynamic> cT) {
@@ -651,7 +674,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       );
     }
 
-    final allItems = (_selectedMitra!['items'] as List<dynamic>?) ?? [];
+    final allItems = (_selectedMitra?['items'] as List<dynamic>?) ?? [];
     if (allItems.isEmpty) {
       return Container(
         width: double.infinity,
@@ -857,30 +880,44 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: (_totalItems > 0 && _selectedMitra != null) ? () {
-                if (_pickupAddress.isNotEmpty) {
-                  auth.addToAddressHistory({'address': _pickupAddress, 'detail': _pickupNote, 'lat': _selectedLat, 'lng': _selectedLng});
-                }
-                List<Map<String, dynamic>> selectedItems = [];
-                _itemCounts.forEach((itemId, count) {
-                  if (count > 0) {
-                    var item = (_selectedMitra!['items'] as List).firstWhere((i) => i['id'] == itemId);
-                    selectedItems.add({'name': item['name'], 'count': count, 'unit': item['unit']});
+                if (_totalItems > 0 && _selectedMitra != null) {
+                  final String addr = _pickupAddress ?? 'Lokasi tidak diset';
+                  final String note = _pickupNote ?? '';
+                  final double lat = _selectedLat ?? 0.0;
+                  final double lng = _selectedLng ?? 0.0;
+
+                  auth.addToAddressHistory({'address': addr, 'detail': note, 'lat': lat, 'lng': lng});
+                  
+                  List<Map<String, dynamic>> selectedItems = [];
+                  final List? mItems = _selectedMitra?['items'] as List?;
+                  if (mItems != null) {
+                    _itemCounts.forEach((itemId, count) {
+                      if (count > 0) {
+                        try {
+                          var item = mItems.firstWhere((i) => i['id'] == itemId, orElse: () => null);
+                          if (item != null) {
+                            selectedItems.add({'name': item['name'], 'count': count, 'unit': item['unit']});
+                          }
+                        } catch (e) {
+                          debugPrint("Error processing item $itemId: $e");
+                        }
+                      }
+                    });
                   }
-                });
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
-                  totalPrice: _totalPrice, 
-                  totalItems: _totalItems, 
-                  address: _pickupAddress, 
-                  isPickup: widget.orderType == 'pickup',
-                  mitraId: _selectedMitra!['id'],
-                  mitraName: _selectedMitra!['name'] ?? 'Mitra Laundry',
-                  speed: _serviceSpeed,
-                  distance: (_selectedMitra!['distance'] as num?)?.toDouble() ?? 0.1,
-                  dropMethod: _returnMethod,
-                  selectedItemsList: selectedItems,
-                )));
-              } : null,
+
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
+                    totalPrice: _totalPrice, 
+                    totalItems: _totalItems, 
+                    address: addr, 
+                    isPickup: widget.orderType == 'pickup',
+                    mitraId: _selectedMitra?['id'] ?? 0,
+                    mitraName: _selectedMitra?['name'] ?? 'Mitra Laundry',
+                    speed: _serviceSpeed,
+                    distance: (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
+                    dropMethod: _returnMethod,
+                    selectedItemsList: selectedItems,
+                  )));
+                }
               style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
               child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
