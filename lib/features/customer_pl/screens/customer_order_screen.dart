@@ -727,8 +727,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     double tableHeight = (currentItemsCount * (isKiloan ? 46.0 : 42.0)) + hHeader + hPageIndicator;
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.all(16),

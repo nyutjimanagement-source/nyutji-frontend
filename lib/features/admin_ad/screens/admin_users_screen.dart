@@ -178,20 +178,22 @@ class AdminUsersScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              _buildStatCard("Leveling ML", "Atur KPI & Syarat Naik Kelas", LucideIcons.barChart, Colors.orange[50]!, Colors.orange),
+              Expanded(child: _buildStatCard("Leveling ML", "Atur KPI & Syarat Naik Kelas", LucideIcons.barChart, Colors.orange[50]!, Colors.orange)),
               const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () => _showUserListSheet(context),
-                child: _buildStatCard("Kategori ML", "Kecil, Menengah, Enterprise", LucideIcons.tags, Colors.blue[50]!, Colors.blue),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _showUserListSheet(context),
+                  child: _buildStatCard("Kategori ML", "Kecil, Menengah, Enterprise", LucideIcons.tags, Colors.blue[50]!, Colors.blue),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildStatCard("Top ML Rate", "4.9 / 5.0", LucideIcons.star, Colors.amber[50]!, Colors.amber),
+              Expanded(child: _buildStatCard("Top ML Rate", "4.9 / 5.0", LucideIcons.star, Colors.amber[50]!, Colors.amber)),
               const SizedBox(width: 12),
-              _buildStatCard("Top KL Rate", "4.8 / 5.0", LucideIcons.bike, Colors.blue[50]!, Colors.blue),
+              Expanded(child: _buildStatCard("Top KL Rate", "4.8 / 5.0", LucideIcons.bike, Colors.blue[50]!, Colors.blue)),
             ],
           ),
         ],
@@ -300,8 +302,7 @@ class AdminUsersScreen extends StatelessWidget {
   }
 
   Widget _buildStatCard(String title, String desc, IconData icon, Color bg, MaterialColor color) {
-    return Expanded(
-      child: Container(
+    return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
         child: Column(
@@ -314,8 +315,7 @@ class AdminUsersScreen extends StatelessWidget {
             Text(desc, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: color[800]!.withOpacity(0.8))),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildUserManagementGrid() {
