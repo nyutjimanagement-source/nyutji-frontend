@@ -880,6 +880,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               ),
             ),
             ElevatedButton(
+              onPressed: () {
                 if (_totalItems > 0 && _selectedMitra != null) {
                   final String addr = _pickupAddress ?? 'Lokasi tidak diset';
                   final String note = _pickupNote ?? '';
@@ -918,6 +919,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     selectedItemsList: selectedItems,
                   )));
                 }
+              },
               style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
               child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
