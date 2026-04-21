@@ -264,8 +264,14 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   const SizedBox(height: 12),
                   _buildDenseSpeedSelector(cT),
                   const SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   _buildDenseItemList(cT),
-                  const SizedBox(height: 120),
+                  const SizedBox(height: 24),
+                  
+                  // TOMBOL DOWNLOAD TEMPLATE UNTUK MITRA
+                  _buildTemplateDownloadBtn(),
+                  
+                  const SizedBox(height: 100), // Ruang agar tidak tertutup footer
                 ],
               ),
             ),
@@ -696,15 +702,21 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
     return Column(
       children: [
-        if (kiloanItems.isNotEmpty) _buildKiloanTable(kiloanItems, "Laundry Kiloan", LucideIcons.layers),
+        if (kiloanItems.isNotEmpty) _buildPaginatedTable(kiloanItems, "Laundry Kiloan", LucideIcons.layers, true),
         const SizedBox(height: 24),
-        if (satuanItems.isNotEmpty) _buildSatuanTable(satuanItems, "Laundry Satuan / Meteran", LucideIcons.shirt),
-        const SizedBox(height: 40),
+        if (satuanItems.isNotEmpty) _buildPaginatedTable(satuanItems, "Laundry Satuan / Meteran", LucideIcons.shirt, false),
+        const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildKiloanTable(List<dynamic> items, String title, IconData icon) {
+  Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan) {
+    // Pecah items menjadi chunk per 5 item
+    List<List<dynamic>> chunks = [];
+    for (var i = 0; i < items.length; i += 5) {
+      chunks.add(items.sublist(i, i + 5 > items.length ? items.length : i + 5));
+    }
+
     return Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
       child: Column(
@@ -717,7 +729,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 const SizedBox(width: 12),
                 Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
                 const Spacer(),
-                Icon(LucideIcons.edit3, size: 18, color: primaryTeal.withOpacity(0.5)),
+                if (chunks.length > 1) 
+                   Text("Slide untuk lainnya", style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -725,14 +738,43 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             color: const Color(0xFFF9FAFB),
             child: Row(
-              children: [
+              children: isKiloan ? [
                 Expanded(flex: 3, child: Text("SERVICE", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                Expanded(flex: 2, child: Center(child: Text("REGULAR", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
-                Expanded(flex: 2, child: Center(child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+                Expanded(flex: 4, child: Center(child: Text("REGULAR / FAST", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+              ] : [
+                Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
+                Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
               ],
             ),
           ),
-          ...items.map((item) => _buildKiloanRow(item)).toList(),
+          
+          // PAGE VIEW UNTUK SWIPE PER 5 ITEM
+          SizedBox(
+            height: isKiloan ? 260 : 300, // Sesuaikan tinggi per halaman
+            child: PageView.builder(
+              itemCount: chunks.length,
+              itemBuilder: (context, pageIdx) {
+                final pageItems = chunks[pageIdx];
+                return Column(
+                  children: pageItems.map((item) => isKiloan ? _buildKiloanRow(item) : _buildSatuanRow(item)).toList(),
+                );
+              },
+            ),
+          ),
+          
+          // INDIKATOR TITIK (Kalo lebih dari 1 halaman)
+          if (chunks.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(chunks.length, (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  width: 6, height: 6,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: primaryTeal.withOpacity(0.3)),
+                )),
+              ),
+            )
         ],
       ),
     );
@@ -778,41 +820,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               ],
             )
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSatuanTable(List<dynamic> items, String title, IconData icon) {
-     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(icon, size: 20, color: primaryTeal),
-                const SizedBox(width: 12),
-                Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
-                const Spacer(),
-                Icon(LucideIcons.search, size: 18, color: Colors.grey[300]),
-                const SizedBox(width: 16),
-                Icon(LucideIcons.edit3, size: 18, color: primaryTeal.withOpacity(0.5)),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            color: const Color(0xFFF9FAFB),
-            child: Row(
-              children: [
-                Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
-              ],
-            ),
-          ),
-          ...items.map((item) => _buildSatuanRow(item)).toList(),
         ],
       ),
     );
@@ -924,6 +931,25 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTemplateDownloadBtn() {
+    return Container(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          // Meluncur ke URL Template di Server (Folder Public)
+          // URL: https://api.nyutji.com/templates/Template_Layanan_Mitra.xlsx
+        },
+        icon: Icon(LucideIcons.fileSpreadsheet, size: 16, color: primaryTeal),
+        label: Text("Download Template Excel (.xlsx)", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          side: BorderSide(color: primaryTeal.withOpacity(0.3)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );
