@@ -941,8 +941,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: () {
-          // Meluncur ke URL Template di Server (Folder Public)
-          // URL: https://api.nyutji.com/templates/Template_Layanan_Mitra.xlsx
+          // Memanggil Jalur Khusus (Sederhana & Aman)
+          // URL: https://api.nyutji.com/api/mitras/template
         },
         icon: Icon(LucideIcons.fileSpreadsheet, size: 16, color: primaryTeal),
         label: Text("Download Template Excel (.xlsx)", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),

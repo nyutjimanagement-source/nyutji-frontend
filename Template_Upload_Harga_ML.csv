@@ -1,12 +1,6 @@
-ID_MITRA,NAMA_MITRA,KATEGORI,NAMA_LAYANAN,HARGA_REGULER,HARGA_FAST_TRACK,SATUAN
-1,Input ML Fatmawati,Kiloan,Cuci Setrika Reguler,7000,15000,Kg
-1,Input ML Fatmawati,Kiloan,Cuci Lipat Reguler,5000,10000,Kg
-1,Input ML Fatmawati,Kiloan,Paket EKSPRES 6 JAM,15000,25000,Kg
-99,Mitra Auto Laundry Code,Satuan,Baju Anak,10000,,Pcs
-99,Mitra Auto Laundry Code,Satuan,Jas Formal,35000,,Pcs
-99,Mitra Auto Laundry Code,Satuan,Boneka Kecil 0-25cm,10000,,Pcs
-99,Mitra Auto Laundry Code,Kiloan,Cuci Setrika,6500,15000,Kg
-3,Laundry Code 01,Kiloan,Cuci Setrika Reguler,8000,16000,Kg
-3,Laundry Code 01,Satuan,Cuci Karpet Tebal,25000,,M2
-4,Laundry Code,Kiloan,Promo Cuci Setrika,6000,12000,Kg
-4,Laundry Code,Kiloan,Promo Cuci Lipat,4000,8000,Kg
+ID_MITRA;NAMA_MITRA;KATEGORI;NAMA_LAYANAN;HARGA_REGULER;HARGA_FAST_TRACK;SATUAN
+ML-KBY-xxx;CONTOH MITRA NYUTJI;Kiloan;Cuci Setrika Reguler;5000;15000;Kg
+ML-KBY-xxx;CONTOH MITRA NYUTJI;Kiloan;Paket EKSPRES 6 JAM;;10000;Kg
+ML-KBY-xxx;CONTOH MITRA NYUTJI;Satuan;Jas Formal;35000;50000;Pcs
+ML-KBY-xxx;CONTOH MITRA NYUTJI;Kiloan;Promo Cuci Lipat;4000;8000;Kg
+ML-KBY-xxx;CONTOH MITRA NYUTJI;Satuan;Karpet Tebal;25000;75000;M2
