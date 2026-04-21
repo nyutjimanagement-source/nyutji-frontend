@@ -374,8 +374,10 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             const SizedBox(width: 12),
             Expanded(child: _buildLuxuryButton("Template", LucideIcons.download, Colors.blueGrey, () async {
               final url = Uri.parse('https://api.nyutji.com/storage/templates/Template_Layanan_Mitra.xlsx');
-              if (await canLaunchUrl(url)) {
+              try {
                 await launchUrl(url, mode: LaunchMode.externalApplication);
+              } catch (e) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tidak ada browser untuk membuka file.")));
               }
             })),
           ],

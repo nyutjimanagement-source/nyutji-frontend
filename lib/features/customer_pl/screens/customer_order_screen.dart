@@ -793,9 +793,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   }
 
   Widget _buildKiloanRow(Map<String, dynamic> item) {
-    final priceReg = (item['price_regular'] ?? item['price'] ?? 0);
-    final priceFast = (item['price_fast'] ?? priceReg * 2);
-    int count = _itemCounts[item['id']] ?? 0;
+    final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
+    final double priceFast = double.tryParse(item['price_fast']?.toString() ?? '') ?? (priceReg * 2);
+    int itemId = int.tryParse(item['id'].toString()) ?? 0;
+    int count = _itemCounts[itemId] ?? 0;
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -823,9 +824,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
                   child: Row(
                     children: [
-                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(item['id'], -1)),
+                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
                       SizedBox(width: 25, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)))),
-                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(item['id'], 1)),
+                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
                     ],
                   ),
                 )
@@ -838,8 +839,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   }
 
   Widget _buildSatuanRow(Map<String, dynamic> item) {
-    final price = (item['price_regular'] ?? item['price'] ?? 0);
-    int count = _itemCounts[item['id']] ?? 0;
+    final double price = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
+    int itemId = int.tryParse(item['id'].toString()) ?? 0;
+    int count = _itemCounts[itemId] ?? 0;
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -862,9 +864,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
                   child: Row(
                     children: [
-                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(item['id'], -1)),
+                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
                       SizedBox(width: 25, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)))),
-                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(item['id'], 1)),
+                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
                     ],
                   ),
                 )

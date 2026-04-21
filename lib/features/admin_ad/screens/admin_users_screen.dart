@@ -305,6 +305,7 @@ class AdminUsersScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, color: color, size: 24),
             const SizedBox(height: 8),
