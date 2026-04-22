@@ -15,9 +15,11 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _homeAddress;
   List<dynamic> _addressHistory = [];
   String? _temporaryLocalPhoto;
+  dynamic _temporaryWebBytes; // Simpan Uint8List untuk Web preview
 
   bool get isLoading => _isLoading;
   String? get temporaryLocalPhoto => _temporaryLocalPhoto;
+  dynamic get temporaryWebBytes => _temporaryWebBytes;
   String? get role => _role;
   String? get token => _token;
   String get lang => _lang;
@@ -125,6 +127,7 @@ class AuthProvider with ChangeNotifier {
     Future.delayed(const Duration(milliseconds: 500), () {
       _user = null;
       _temporaryLocalPhoto = null;
+      _temporaryWebBytes = null;
       notifyListeners();
     });
   }
@@ -252,12 +255,24 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Upload & Update Foto Profil
-  Future<bool> updateProfilePhoto(String filePath) async {
-    _temporaryLocalPhoto = filePath; // Simpan di memori pusat segera!
+  Future<bool> updateProfilePhoto(dynamic fileSource) async {
+    // fileSource bisa berupa String path (Mobile) atau XFile (Web/Mobile)
+    if (fileSource is String) {
+      _temporaryLocalPhoto = fileSource;
+    } else {
+      // Asumsi XFile
+      _temporaryLocalPhoto = fileSource.path;
+      try {
+        _temporaryWebBytes = await fileSource.readAsBytes();
+      } catch (e) {
+        debugPrint("Gagal baca bytes untuk preview: $e");
+      }
+    }
+    
     notifyListeners();
 
     try {
-      final res = await ApiService().uploadProfilePhoto(filePath);
+      final res = await ApiService().uploadProfilePhoto(fileSource);
       if (res['photo_url'] != null) {
         // Update data user lokal
         if (_user != null) {
@@ -266,7 +281,11 @@ class AuthProvider with ChangeNotifier {
           final prefs = await SharedPreferences.getInstance();
           final email = _user!['email'] ?? "unknown";
           await prefs.setString('cached_photo_$email', res['photo_url']);
-          await prefs.setString('local_photo_$email', filePath); // SIMPAN PERMANEN DI HP
+          
+          if (fileSource is String) {
+             await prefs.setString('local_photo_$email', fileSource);
+          }
+          
           await prefs.setString('user_data', jsonEncode(_user));
           
           notifyListeners();

@@ -144,11 +144,24 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> uploadProfilePhoto(String filePath) async {
-    String fileName = filePath.split('/').last;
-    FormData formData = FormData.fromMap({
-      "photo": await MultipartFile.fromFile(filePath, filename: fileName),
-    });
+  Future<Map<String, dynamic>> uploadProfilePhoto(dynamic fileSource) async {
+    // fileSource bisa berupa String (path) atau XFile
+    FormData formData;
+    
+    if (fileSource is String) {
+      // Legacy support for Mobile path
+      String fileName = fileSource.split('/').last;
+      formData = FormData.fromMap({
+        "photo": await MultipartFile.fromFile(fileSource, filename: fileName),
+      });
+    } else {
+      // Modern support for XFile (Works on Web & Mobile)
+      final xFile = fileSource;
+      final bytes = await xFile.readAsBytes();
+      formData = FormData.fromMap({
+        "photo": MultipartFile.fromBytes(bytes, filename: xFile.name),
+      });
+    }
 
     final response = await _dio.post("/users/profile-photo", data: formData);
     return response.data;

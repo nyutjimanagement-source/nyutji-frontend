@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
@@ -63,20 +64,19 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           'distance': (item['distance'] ?? 0.1).toDouble(),
           'address': item['address'] ?? 'Alamat tidak tersedia',
           'district': item['district'] ?? '',
-          'image': item['image'] ?? item['photo'] ?? 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400',
+          'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
           'items': item['items'] ?? [],
         };
       }).toList();
     } catch (e) {
       debugPrint("API Error, switching to fallback: $e");
     } finally {
-      // --- FINAL CHECK: Jika List tetap kosong (karena error atau DB kosong) ---
       if (_mitras.isEmpty) {
         _mitras = [
-          { 'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 'address': 'Cipete Utara', 'district': 'Cipete Utara', 'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400', 'items': [] },
-          { 'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 'address': 'Serpong', 'district': 'Serpong', 'image': 'https://images.unsplash.com/photo-1521335629791-ce4aec67dd15?w=400', 'items': [] },
-          { 'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 'address': 'Pamulang', 'district': 'Pamulang', 'image': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400', 'items': [] },
-          { 'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 'address': 'Pamulang', 'district': 'Pamulang', 'image': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400', 'items': [] },
+          { 'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 'address': 'Cipete Utara', 'district': 'Cipete Utara', 'image': null, 'items': [] },
+          { 'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 'address': 'Serpong', 'district': 'Serpong', 'image': null, 'items': [] },
+          { 'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'items': [] },
+          { 'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'items': [] },
         ];
       }
       if (mounted) {
@@ -456,14 +456,27 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           child: Stack(
             children: [
               Positioned.fill(
-                child: Image.network(
-                  (mitra['image']?.toString() ?? '').startsWith('http') 
-                      ? mitra['image'] 
-                      : ((mitra['image']?.toString() ?? '').isNotEmpty 
-                          ? 'https://api.nyutji.com/${mitra['image']}' 
-                          : 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400'),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Image.network('https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400', fit: BoxFit.cover),
+                child: Builder(
+                  builder: (context) {
+                    final imgValue = mitra['image']?.toString();
+                    
+                    // Jika data kosong, "null", atau mengandung "unsplash" (data dummy), tampilkan placeholder
+                    bool isDummy = imgValue?.contains("unsplash.com") ?? false;
+
+                    if (imgValue != null && imgValue.isNotEmpty && imgValue != "null" && !isDummy) {
+                      final fullUrl = imgValue.startsWith('http') 
+                          ? imgValue 
+                          : '${ApiConstants.rootUrl}/$imgValue';
+                          
+                      return Image.network(
+                        "$fullUrl?v=${DateTime.now().millisecondsSinceEpoch}",
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+                      );
+                    } else {
+                      return _buildPlaceholderImage();
+                    }
+                  }
                 ),
               ),
               Positioned.fill(
@@ -514,6 +527,25 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   ),
                 )
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Container(
+      color: const Color(0xFFD1D5DB), // Abu-abu yang sedikit lebih tegas
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Center(
+        child: Text(
+          "Profile Mitra Laundry",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: Colors.white, // Putih agar kontras dengan gradasi hitam
+            letterSpacing: 1.5,
           ),
         ),
       ),

@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../core/constants/api_constants.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
@@ -46,7 +48,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 Navigator.pop(context);
                 final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
                 if (photo != null) {
-                  final success = await auth.updateProfilePhoto(photo.path);
+                  final success = await auth.updateProfilePhoto(photo);
                   if (mounted) {
                     _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
                   }
@@ -60,7 +62,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 Navigator.pop(context);
                 final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
                 if (image != null) {
-                  final success = await auth.updateProfilePhoto(image.path);
+                  final success = await auth.updateProfilePhoto(image);
                   if (mounted) {
                     _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
                   }
@@ -213,20 +215,33 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle, 
                           color: primaryTeal.withOpacity(0.1),
-                          image: localPhoto != null
-                              ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
-                              : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                  ? DecorationImage(
-                                      image: NetworkImage(
-                                        photoUrl.toString().startsWith('http') 
-                                          ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                          : "https://api.nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                      ), 
-                                      fit: BoxFit.cover
-                                    ) 
-                                  : null,
+                          image: kIsWeb
+                              ? (auth.temporaryWebBytes != null
+                                  ? DecorationImage(image: MemoryImage(auth.temporaryWebBytes), fit: BoxFit.cover)
+                                  : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                                      ? DecorationImage(
+                                          image: NetworkImage(
+                                            photoUrl.toString().startsWith('http') 
+                                              ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                              : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                          ), 
+                                          fit: BoxFit.cover
+                                        )
+                                      : null)
+                              : (localPhoto != null
+                                  ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                                  : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                                      ? DecorationImage(
+                                          image: NetworkImage(
+                                            photoUrl.toString().startsWith('http') 
+                                              ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                              : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                          ), 
+                                          fit: BoxFit.cover
+                                        ) 
+                                      : null),
                         ),
-                        child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                        child: (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
                             ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
                             : null,
                       ),

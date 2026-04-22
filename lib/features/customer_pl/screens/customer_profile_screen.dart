@@ -6,6 +6,8 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_address_sheet.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
@@ -36,7 +38,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 Navigator.pop(context);
                 final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50, maxWidth: 800);
                 if (photo != null) {
-                  final success = await auth.updateProfilePhoto(photo.path);
+                  final success = await auth.updateProfilePhoto(photo);
                   if (success && mounted) {
                     NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
@@ -50,7 +52,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 Navigator.pop(context);
                 final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50, maxWidth: 800);
                 if (image != null) {
-                  final success = await auth.updateProfilePhoto(image.path);
+                  final success = await auth.updateProfilePhoto(image);
                   if (success && mounted) {
                     NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
@@ -115,16 +117,26 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                         return CircleAvatar(
                           radius: 28, 
                           backgroundColor: Colors.amber[100], 
-                          backgroundImage: localPhoto != null
-                              ? FileImage(File(localPhoto)) as ImageProvider
-                              : (photoUrl != null && photoUrl.toString().isNotEmpty) 
-                                  ? NetworkImage(
-                                      photoUrl.toString().startsWith('http') 
-                                        ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                        : "https://api.nyutji.com/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                    ) 
-                                  : null,
-                          child: (localPhoto == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                          backgroundImage: kIsWeb 
+                              ? (auth.temporaryWebBytes != null 
+                                  ? MemoryImage(auth.temporaryWebBytes) as ImageProvider
+                                  : (photoUrl != null && photoUrl.toString().isNotEmpty)
+                                      ? NetworkImage(
+                                          photoUrl.toString().startsWith('http') 
+                                            ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                            : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                        )
+                                      : null)
+                              : (localPhoto != null
+                                  ? FileImage(File(localPhoto)) as ImageProvider
+                                  : (photoUrl != null && photoUrl.toString().isNotEmpty) 
+                                      ? NetworkImage(
+                                          photoUrl.toString().startsWith('http') 
+                                            ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                            : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                        ) 
+                                      : null),
+                          child: (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
                               ? const Icon(LucideIcons.user, size: 28, color: Colors.amber) 
                               : null
                         );
