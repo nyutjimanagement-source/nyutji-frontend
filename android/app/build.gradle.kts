@@ -15,7 +15,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Blok compilerOptions Modern untuk Kotlin 2.3.10
+    // Blok compilerOptions Modern untuk Kotlin 2.0.21
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
@@ -45,6 +45,14 @@ android {
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            force("org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.21")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
+        }
     }
 }
 
