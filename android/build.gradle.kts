@@ -19,6 +19,15 @@ subprojects {
             enabled = false
         }
     }
+    
+    // Paksa Kotlin Compiler 2.1.0 ke seluruh third party plugin agar tidak berebut versi 2.3.10
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion("2.1.0")
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
