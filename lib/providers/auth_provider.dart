@@ -254,6 +254,27 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> bulkDeleteUsers(List<int> userIds) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      final res = await ApiService().bulkDeleteUsers(userIds);
+      if (res['status'] == 'success') {
+        // Hapus dari list lokal agar UI update otomatis
+        _allUsers.removeWhere((u) => userIds.contains(u['id']));
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint("Bulk Delete Error: $e");
+    }
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   // Upload & Update Foto Profil
   Future<bool> updateProfilePhoto(dynamic fileSource) async {
     // fileSource bisa berupa String path (Mobile) atau XFile (Web/Mobile)

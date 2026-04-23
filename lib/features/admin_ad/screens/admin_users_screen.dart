@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 import 'admin_approval.dart';
 
 class AdminUsersScreen extends StatelessWidget {
@@ -29,7 +30,7 @@ class AdminUsersScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildAdminStatsGrid(context),
             const SizedBox(height: 24),
-            _buildUserManagementGrid(),
+            _buildUserManagementGrid(context),
             const SizedBox(height: 40),
           ],
         ),
@@ -301,6 +302,169 @@ class AdminUsersScreen extends StatelessWidget {
     );
   }
 
+  void _showDeleteUserSheet(BuildContext context) {
+    final auth = context.read<AuthProvider>();
+    auth.fetchAllUsers();
+    final Set<int> selectedIds = {};
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sbContext, setModalState) {
+          return Container(
+            height: MediaQuery.of(sbContext).size.height * 0.75,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      const Icon(LucideIcons.trash2, color: Colors.red),
+                      const SizedBox(width: 12),
+                      Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: darkGray)),
+                      const Spacer(),
+                      if (selectedIds.isNotEmpty)
+                        TextButton(
+                          onPressed: () {
+                            final usersToDelete = auth.allUsers
+                                .where((u) {
+                                  final uid = u['id'] is int ? u['id'] : int.parse(u['id'].toString());
+                                  return selectedIds.contains(uid);
+                                })
+                                .map((u) => u['name']?.toString() ?? 'No Name')
+                                .toList();
+                            
+                            _showConfirmDeleteDialog(sbContext, usersToDelete, () async {
+                              final nav = Navigator.of(sbContext);
+                              final success = await auth.bulkDeleteUsers(selectedIds.toList());
+                              if (success) {
+                                nav.pop(); // Close sheet
+                                // Gunakan context dari sheetContext atau sbContext secara langsung jika .mounted tidak ada
+                                try {
+                                  NyutjiNotif.showSuccess(sbContext, "Berhasil menghapus ${selectedIds.length} user");
+                                } catch (e) {
+                                  debugPrint("Notif Error: $e");
+                                }
+                              }
+                            });
+                          },
+                          child: Text("Hapus", style: GoogleFonts.montserrat(color: Colors.red, fontWeight: FontWeight.bold)),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Consumer<AuthProvider>(
+                    builder: (cContext, authData, _) {
+                      if (authData.allUsers.isEmpty && authData.isLoading) {
+                        return const Center(child: CircularProgressIndicator(color: primaryTeal));
+                      }
+                      
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: authData.allUsers.length,
+                        separatorBuilder: (lvContext, index) => Divider(color: Colors.grey[100]),
+                        itemBuilder: (itemContext, index) {
+                          final u = authData.allUsers[index];
+                          final int id = u['id'] is int ? u['id'] : int.parse(u['id'].toString());
+                          final name = u['name'] ?? 'No Name';
+                          final role = u['role'] ?? '-';
+                          
+                          return CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
+                            subtitle: Text(role, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                            secondary: Container(
+                              width: 32, height: 32,
+                              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
+                              child: const Center(child: Icon(LucideIcons.user, size: 16, color: primaryTeal)),
+                            ),
+                            value: selectedIds.contains(id),
+                            activeColor: primaryTeal,
+                            onChanged: (val) {
+                              setModalState(() {
+                                if (val == true) {
+                                  selectedIds.add(id);
+                                } else {
+                                  selectedIds.remove(id);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      ),
+    );
+  }
+
+  void _showConfirmDeleteDialog(BuildContext context, List<String> names, VoidCallback onConfirm) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(LucideIcons.alertCircle, color: Colors.red, size: 20),
+            const SizedBox(width: 12),
+            Text("Konfirmasi Hapus", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Apakah Anda yakin ingin menghapus user berikut?", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600])),
+            const SizedBox(height: 16),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 150),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.red.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: names.length,
+                separatorBuilder: (context, index) => const Divider(height: 8, color: Colors.transparent),
+                itemBuilder: (context, index) => Text("• ${names[index]}", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red[800])),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text("Batal", style: GoogleFonts.montserrat(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              onConfirm();
+            },
+            child: Text("OK, Hapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatCard(String title, String desc, IconData icon, Color bg, MaterialColor color) {
     return Container(
         padding: const EdgeInsets.all(16),
@@ -318,7 +482,7 @@ class AdminUsersScreen extends StatelessWidget {
       );
   }
 
-  Widget _buildUserManagementGrid() {
+  Widget _buildUserManagementGrid(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -335,7 +499,10 @@ class AdminUsersScreen extends StatelessWidget {
             childAspectRatio: 2.8,
             children: [
               _buildManageBtn("Blokir / Suspend", LucideIcons.ban, Colors.red[600]!),
-              _buildManageBtn("Hapus User", LucideIcons.trash2, Colors.red[800]!),
+              GestureDetector(
+                onTap: () => _showDeleteUserSheet(context),
+                child: _buildManageBtn("Hapus User", LucideIcons.trash2, Colors.red[800]!)
+              ),
               _buildManageBtn("Set Limit Saldo", LucideIcons.sliders, Colors.indigo),
               _buildManageBtn("Review KYC", LucideIcons.fileCheck, Colors.teal),
             ],

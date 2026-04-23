@@ -67,6 +67,11 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  Future<Map<String, dynamic>> bulkDeleteUsers(List<int> userIds) async {
+    final response = await _dio.delete("/admin/users/bulk", data: {'userIds': userIds});
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> processApproval(int targetId, String action) async {
     // action: 'APPROVED' or 'REJECTED'
     final response = await _dio.post("/approvals/process", data: {
