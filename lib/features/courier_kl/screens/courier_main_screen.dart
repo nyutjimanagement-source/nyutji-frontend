@@ -268,11 +268,21 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             _buildDynamicHeader(currentT),
             const SizedBox(height: 8),
             Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const BouncingScrollPhysics(),
-                onPageChanged: (index) => setState(() => _selectedNavIndex = index),
-                children: tabs,
+              child: ColorFiltered(
+                colorFilter: isOnline 
+                  ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                  : const ColorFilter.matrix(<double>[
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0,      0,      0,      1, 0,
+                    ]),
+                child: PageView(
+                  controller: _pageController,
+                  physics: isOnline ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+                  onPageChanged: (index) => setState(() => _selectedNavIndex = index),
+                  children: tabs,
+                ),
               ),
             ),
             _buildBottomNav(currentT),
@@ -287,20 +297,20 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       return _buildCompactHeader(currentT);
     } else if (_selectedNavIndex == 1) {
       return Consumer<AuthProvider>(
-        builder: (context, auth, _) => _buildPageTitleHeader("Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history, auth: auth),
+        builder: (context, auth, _) => _buildPageTitleHeader("Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history, auth: auth, forceIcon: true),
       );
     } else if (_selectedNavIndex == 2) {
       return Consumer<AuthProvider>(
-        builder: (context, auth, _) => _buildPageTitleHeader("Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet, auth: auth),
+        builder: (context, auth, _) => _buildPageTitleHeader("Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet, auth: auth, forceIcon: true),
       );
     } else {
       return Consumer<AuthProvider>(
-        builder: (context, auth, _) => _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.user, auth: auth),
+        builder: (context, auth, _) => _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.user, auth: auth, forceIcon: false),
       );
     }
   }
 
-  Widget _buildPageTitleHeader(String title, IconData icon, {AuthProvider? auth}) {
+  Widget _buildPageTitleHeader(String title, IconData icon, {AuthProvider? auth, bool forceIcon = false}) {
     final photoUrl = auth?.user?['profile_photo'];
     final localPhoto = auth?.temporaryLocalPhoto;
     final district = auth?.user?['district_name'] ?? "Kecamatan";
@@ -312,14 +322,14 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       child: Row(
         children: [
           GestureDetector(
-            onTap: () { if (auth != null) _pickImage(auth); },
+            onTap: () { if (auth != null && !forceIcon) _pickImage(auth); },
             child: Container(
               width: 42, height: 42,
               decoration: BoxDecoration(
                 shape: BoxShape.circle, 
                 color: primaryTeal.withOpacity(0.1),
                 border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                image: kIsWeb
+                image: !forceIcon ? (kIsWeb
                   ? (auth?.temporaryWebBytes != null
                       ? DecorationImage(image: MemoryImage(auth!.temporaryWebBytes), fit: BoxFit.cover)
                       : (photoUrl != null && photoUrl.toString().isNotEmpty)
@@ -343,9 +353,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             ), 
                             fit: BoxFit.cover
                           ) 
-                        : null),
+                        : null)) : null,
               ),
-              child: (localPhoto == null && auth?.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+              child: (forceIcon || (localPhoto == null && auth?.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty))) 
                 ? Icon(icon, color: primaryTeal, size: 18) 
                 : null,
             ),
@@ -478,45 +488,56 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             ),
           ),
           const SizedBox(width: 12),
-          Row(
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Small online toggle
+              Text("ON-OFF KURIR", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: textGrey)),
+              const SizedBox(height: 2),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: isOnline ? accentGreen.withOpacity(0.1) : Colors.grey[200], borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                decoration: BoxDecoration(
+                  color: isOnline ? accentGreen.withOpacity(0.1) : Colors.red.withOpacity(0.1), 
+                  borderRadius: BorderRadius.circular(12)
+                ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(LucideIcons.radio, size: 12, color: isOnline ? accentGreen : textGrey),
-                    const SizedBox(width: 4),
-                    Switch(
-                      value: isOnline,
-                      onChanged: (val) => setState(() => isOnline = val),
-                      activeThumbColor: accentGreen,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Icon(LucideIcons.radio, size: 10, color: isOnline ? accentGreen : Colors.red),
+                    Transform.scale(
+                      scale: 0.7,
+                      child: Switch(
+                        value: isOnline,
+                        onChanged: (val) => setState(() => isOnline = val),
+                        activeColor: accentGreen,
+                        activeTrackColor: accentGreen.withOpacity(0.3),
+                        inactiveThumbColor: Colors.red,
+                        inactiveTrackColor: Colors.red.withOpacity(0.3),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Stack(
-                children: [
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: _scrollToTasks,
-                    icon: Icon(LucideIcons.bell, color: darkText, size: 22),
-                  ),
-                  if (_notificationCount > 0)
-                    Positioned(
-                      right: 0, top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(color: primaryTeal, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
-                        child: Text(_notificationCount.toString(), style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                ],
+            ],
+          ),
+          const SizedBox(width: 8),
+          Stack(
+            children: [
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: _scrollToTasks,
+                icon: Icon(LucideIcons.bell, color: darkText, size: 22),
               ),
+              if (_notificationCount > 0)
+                Positioned(
+                  right: 0, top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
+                    child: Text(_notificationCount.toString(), style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                  ),
+                ),
             ],
           ),
         ],
@@ -859,6 +880,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
         unselectedItemColor: textGrey.withValues(alpha: 0.6),
         showUnselectedLabels: true,
         onTap: (index) {
+          if (!isOnline && index != 0) return; // Disable other tabs when offline
           _pageController.animateToPage(
             index,
             duration: const Duration(milliseconds: 400),
