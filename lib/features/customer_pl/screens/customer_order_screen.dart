@@ -135,7 +135,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   int get _totalItems => _itemCounts.values.fold(0, (a, b) => a + b);
   int get _totalPrice {
     if (_selectedMitra == null) return 0;
-    int baseTotal = 0;
+    double baseTotal = 0;
     
     final allPossibleItems = (_selectedMitra!['items'] as List<dynamic>?) ?? [];
     bool isFast = _serviceSpeed == 'fast';
@@ -143,25 +143,26 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     _itemCounts.forEach((itemId, count) {
       if (count > 0) {
         try {
-          // Gunakan toString() untuk perbandingan ID agar aman (String vs Int dari DB)
+          // Cari item dengan perbandingan String untuk keamanan
           var item = allPossibleItems.firstWhere(
             (i) => i['id'].toString() == itemId.toString(),
             orElse: () => null
           );
           
           if (item != null) {
-            num price = isFast 
-              ? (item['price_fast'] ?? (item['price_regular'] ?? item['price'] ?? 0) * 2)
-              : (item['price_regular'] ?? item['price'] ?? 0);
-              
-            baseTotal += (count * price.toInt());
+            // Pastikan parsing ke double agar tidak error saat perkalian
+            double pReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
+            double pFast = double.tryParse(item['price_fast']?.toString() ?? '') ?? (pReg * 2);
+            
+            double selectedPrice = isFast ? pFast : pReg;
+            baseTotal += (count * selectedPrice);
           }
         } catch (e) {
           debugPrint("Error calculating price for item $itemId: $e");
         }
       }
     });
-    return baseTotal;
+    return baseTotal.toInt();
   }
 
   void _updateItemCount(int itemId, int delta) {
@@ -862,8 +863,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text("Rp ${NumberFormat('#,###', 'id_ID').format(priceReg)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
-                      Text("Rp ${NumberFormat('#,###', 'id_ID').format(priceFast)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
+                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
+                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
                     ],
                   ),
                 ),
@@ -903,12 +904,12 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87))
           ),
           Expanded(
-            flex: 3, 
+            flex: 4, 
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Flexible(
-                  child: Text("Rp ${NumberFormat('#,###', 'id_ID').format(price)}", 
+                  child: Text("Rp ${NumberFormat.decimalPattern('id_ID').format(price)}", 
                     style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal),
                     overflow: TextOverflow.ellipsis,
                   ),
