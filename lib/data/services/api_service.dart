@@ -187,11 +187,9 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> updateMitraPricing(int mitraId, List<Map<String, dynamic>> items) async {
-    // Mengirim pembaruan harga ke backend
-    // Menggunakan POST /mitras/items sesuai rute yang didaftarkan di backend api.js
+    // Mengirim pembaruan harga ke backend (Metode Simpan File JSON - Super Light)
     try {
-      final response = await _dio.post("/mitras/items", data: {
-        'mitra_id': mitraId,
+      final response = await _dio.post("/mitras/save-pricing-file", data: {
         'items': items
       });
       return response.data;
