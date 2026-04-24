@@ -187,11 +187,16 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateMitraPricing(int mitraId, List<Map<String, dynamic>> items) async {
     // Mengirim pembaruan harga ke backend
-    // Mencoba endpoint kolektif /mitras/items
-    final response = await _dio.post("/mitras/items", data: {
-      'mitra_id': mitraId,
-      'items': items
-    });
-    return response.data;
+    // Menggunakan POST /mitras/items sesuai rute yang didaftarkan di backend api.js
+    try {
+      final response = await _dio.post("/mitras/items", data: {
+        'mitra_id': mitraId,
+        'items': items
+      });
+      return response.data;
+    } catch (e) {
+      debugPrint("API Error Detail: $e");
+      rethrow;
+    }
   }
 }
