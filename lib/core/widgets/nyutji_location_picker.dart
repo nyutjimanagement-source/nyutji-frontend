@@ -53,7 +53,6 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
   // Search variables
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
-  bool _isSearching = false;
 
   @override
   void initState() {
@@ -140,7 +139,6 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
       _currentLatLng = newPos;
       _searchResults = [];
       _searchController.clear();
-      _isSearching = false;
     });
 
     _mapController.move(newPos, 16.0);

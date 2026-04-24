@@ -508,7 +508,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       child: Switch(
                         value: isOnline,
                         onChanged: (val) => setState(() => isOnline = val),
-                        activeColor: accentGreen,
+                        activeThumbColor: accentGreen,
                         activeTrackColor: accentGreen.withOpacity(0.3),
                         inactiveThumbColor: Colors.red,
                         inactiveTrackColor: Colors.red.withOpacity(0.3),

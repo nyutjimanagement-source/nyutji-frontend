@@ -23,8 +23,6 @@ class MitraHomeScreen extends StatefulWidget {
 
 class _MitraHomeScreenState extends State<MitraHomeScreen> {
   static const primaryTeal = Color(0xFF1E5655); // Denser, more executive teal
-  static const secondaryTeal = Color(0xFF14403F);
-  static const accentGold = Color(0xFFF59E0B);
   static const bgColor = Color(0xFFF3F4F6);
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
@@ -140,7 +138,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             decoration: BoxDecoration(
               color: success ? primaryTeal : const Color(0xFFC3312E),
               borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
             ),
             child: Row(
               children: [
@@ -538,7 +536,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                       onTap: () => _pickImage(auth),
                       child: CircleAvatar(
                         radius: 30, 
-                        backgroundColor: primaryTeal.withOpacity(0.1),
+                        backgroundColor: primaryTeal.withValues(alpha: 0.1),
                         backgroundImage: kIsWeb
                           ? (auth.temporaryWebBytes != null
                               ? MemoryImage(auth.temporaryWebBytes) as ImageProvider
@@ -599,7 +597,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                   builder: (context, auth, _) => GestureDetector(
                     onTap: () async {
                       await auth.logout();
-                      if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                      if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
                     },
                     child: _buildMenuItem(LucideIcons.logOut, currentT!['logout'], true),
                   ),

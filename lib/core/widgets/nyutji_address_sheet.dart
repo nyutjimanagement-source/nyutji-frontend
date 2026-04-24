@@ -26,6 +26,7 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
     if (result != null) {
       // Tampilkan dialog untuk input Nomor Rumah / Gang
       _detailController.text = "";
+      if (!context.mounted) return;
       bool? saved = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -116,7 +117,7 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
                 IconButton(
                   onPressed: () => _pickHomeAddress(auth),
                   icon: Icon(home != null ? LucideIcons.edit3 : LucideIcons.plus, color: const Color(0xFF1E5655)),
-                  style: IconButton.styleFrom(backgroundColor: const Color(0xFF1E5655).withOpacity(0.05)),
+                  style: IconButton.styleFrom(backgroundColor: const Color(0xFF1E5655).withValues(alpha: 0.05)),
                 )
               ],
             ),

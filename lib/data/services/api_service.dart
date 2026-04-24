@@ -184,4 +184,14 @@ class ApiService {
     final response = await _dio.get("/mitras/$mitraId/items");
     return response.data['data'] ?? [];
   }
+
+  Future<Map<String, dynamic>> updateMitraPricing(int mitraId, List<Map<String, dynamic>> items) async {
+    // Mengirim pembaruan harga ke backend
+    // Mencoba endpoint kolektif /mitras/items
+    final response = await _dio.post("/mitras/items", data: {
+      'mitra_id': mitraId,
+      'items': items
+    });
+    return response.data;
+  }
 }

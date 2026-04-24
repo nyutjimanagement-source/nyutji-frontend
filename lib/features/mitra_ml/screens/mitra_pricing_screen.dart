@@ -4,6 +4,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../data/services/api_service.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class MitraPricingScreen extends StatefulWidget {
   final bool isReadOnly;
@@ -34,65 +36,101 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   final PageController _satuanController = PageController();
   int _kiloanPage = 0;
   int _satuanPage = 0;
-
+  
+  bool _isSwipeForward = true;
   bool _isEditingKiloan = false;
   bool _isEditingSatuan = false;
+  bool _isInitialLoading = true;
+  bool _isSaving = false;
 
-  // Controllers for new entries
   final TextEditingController _newKiloanSvc = TextEditingController();
   final TextEditingController _newKiloanReg = TextEditingController();
   final TextEditingController _newKiloanFast = TextEditingController();
-  
   final TextEditingController _newSatuanName = TextEditingController();
   final TextEditingController _newSatuanPrice = TextEditingController();
 
   final Set<int> _selectedForEdit = {};
   final Map<int, TextEditingController> _editControllers = {};
 
-  // DATA STORE - Menggunakan Map agar data terpisah antar Mitra (Key: Mitra Name/ID)
   static final Map<String, List<Map<String, String>>> kiloanStore = {};
   static final Map<String, List<Map<String, String>>> satuanStore = {};
 
   late List<Map<String, String>> kiloanData;
   late List<Map<String, String>> satuanData;
-  late String currentMitraKey;
+  String? _currentMitraKey;
 
   @override
   void initState() {
     super.initState();
-    // Use mitra name as key to separate data
-    // We determine the key early in build or initState
     if (widget.initialSelected != null) {
       _selectedItems.addAll(widget.initialSelected!);
     }
   }
 
+  Future<void> _loadPricingFromApi() async {
+    setState(() => _isInitialLoading = true);
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final mitraId = auth.user?['id'];
+      if (mitraId == null) return;
+
+      final api = ApiService();
+      final items = await api.getMitraItems(mitraId);
+
+      if (items.isNotEmpty) {
+        setState(() {
+          kiloanData = items.where((i) => i['category'] == 'Kiloan').map<Map<String, String>>((i) => {
+            "id": i['id'].toString(),
+            "svc": i['name']?.toString() ?? "",
+            "reg": i['price_regular']?.toString() ?? "0",
+            "fast": i['price_fast']?.toString() ?? "0",
+          }).toList();
+
+          satuanData = items.where((i) => i['category'] == 'Satuan').map<Map<String, String>>((i) => {
+            "id": i['id'].toString(),
+            "name": i['name']?.toString() ?? "",
+            "price": i['price_regular']?.toString() ?? "0",
+          }).toList();
+          
+          if (_currentMitraKey != null) {
+            kiloanStore[_currentMitraKey!] = kiloanData;
+            satuanStore[_currentMitraKey!] = satuanData;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Gagal mengambil data dari API: $e");
+    } finally {
+      if (mounted) setState(() => _isInitialLoading = false);
+    }
+  }
+
   void _initializeData(String mitraKey) {
-    currentMitraKey = mitraKey;
+    if (_currentMitraKey == mitraKey) return; 
+    _currentMitraKey = mitraKey;
     
-    // Default values if first time
-    if (!kiloanStore.containsKey(mitraKey)) {
-      kiloanStore[mitraKey] = [
+    if (kiloanStore.containsKey(mitraKey)) {
+      kiloanData = kiloanStore[mitraKey]!;
+      satuanData = satuanStore[mitraKey]!;
+      _isInitialLoading = false;
+    } else {
+      kiloanData = [
         {"id": "1", "svc": "Cuci dan Setrika", "reg": "7000", "fast": "15000"},
         {"id": "2", "svc": "Cuci dan Lipat", "reg": "4000", "fast": "10000"},
         {"id": "3", "svc": "Setrika Wangi", "reg": "4000", "fast": "15000"},
         {"id": "4", "svc": "Cuci Selimut Reguler", "reg": "15000", "fast": "25000"},
         {"id": "5", "svc": "Cuci Boneka Kiloan", "reg": "10000", "fast": "25000"},
       ];
-    }
-    
-    if (!satuanStore.containsKey(mitraKey)) {
-      satuanStore[mitraKey] = [
+      satuanData = [
         {"id": "101", "name": "Jas Formal", "price": "45000"},
         {"id": "102", "name": "Bedcover King Size", "price": "50000"},
         {"id": "103", "name": "Sneaker Dewasa", "price": "35000"},
         {"id": "104", "name": "Gordyn Tebal", "price": "15000"},
         {"id": "105", "name": "Baju Anak", "price": "10000"},
       ];
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadPricingFromApi());
     }
-    
-    kiloanData = kiloanStore[mitraKey]!;
-    satuanData = satuanStore[mitraKey]!;
   }
 
   String _formatPrice(String price) {
@@ -101,7 +139,45 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     return clean.replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.");
   }
 
-  void _saveKiloan() {
+  Future<void> _syncPricingToBackend() async {
+    setState(() => _isSaving = true);
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final mitraId = auth.user?['id']; 
+      if (mitraId == null) throw "ID Mitra tidak ditemukan";
+
+      final api = ApiService();
+      List<Map<String, dynamic>> payload = [];
+      
+      for (var item in kiloanData) {
+        payload.add({
+          "id": int.tryParse(item['id']!) ?? 0,
+          "name": item['svc'],
+          "price_regular": int.tryParse(item['reg']!) ?? 0,
+          "price_fast": int.tryParse(item['fast']!) ?? 0,
+          "category": "Kiloan"
+        });
+      }
+      
+      for (var item in satuanData) {
+        payload.add({
+          "id": int.tryParse(item['id']!) ?? 0,
+          "name": item['name'],
+          "price_regular": int.tryParse(item['price']!) ?? 0,
+          "category": "Satuan"
+        });
+      }
+
+      await api.updateMitraPricing(mitraId, payload);
+      if (mounted) NyutjiNotif.showSuccess(context, "Harga berhasil disimpan ke database!");
+    } catch (e) {
+      if (mounted) NyutjiNotif.showError(context, "Gagal menyimpan ke database: $e");
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _saveKiloan() async {
     setState(() {
       if (_newKiloanSvc.text.isNotEmpty) {
         kiloanData.insert(0, {
@@ -144,9 +220,10 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       _editControllers.forEach((k, v) => v.dispose());
       _editControllers.clear();
     });
+    await _syncPricingToBackend();
   }
 
-  void _saveSatuan() {
+  void _saveSatuan() async {
     setState(() {
       if (_newSatuanName.text.isNotEmpty) {
         satuanData.insert(0, {
@@ -185,6 +262,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       _editControllers.forEach((k, v) => v.dispose());
       _editControllers.clear();
     });
+    await _syncPricingToBackend();
   }
 
   @override
@@ -193,55 +271,68 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     final mitraName = widget.customName ?? (auth.user?['name'] ?? "Nyutji Mitra");
     _initializeData(mitraName); 
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _buildElegantHeader(mitraName),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader("Laundry Kiloan", LucideIcons.layers, isEditing: _isEditingKiloan, onToggle: () {
-                    if (_isEditingKiloan) {
-                      _saveKiloan();
-                    } else {
-                      setState(() => _isEditingKiloan = true);
-                    }
-                  }),
-                  const SizedBox(height: 12),
-                  _buildTableWrapper(_kiloanController, _kiloanPage, (idx) {
-                    setState(() => _kiloanPage = idx);
-                  }, kiloanData, true),
-                  _buildPageIndicator(_kiloanPage, (kiloanData.length / (_isEditingKiloan ? 4 : 5)).ceil()),
-                  const SizedBox(height: 24),
-                  
-                  _buildSectionHeader("Laundry Satuan / Meteran", LucideIcons.shirt, hasSearch: true, isEditing: _isEditingSatuan, onToggle: () {
-                    if (_isEditingSatuan) {
-                      _saveSatuan();
-                    } else {
-                      setState(() => _isEditingSatuan = true);
-                    }
-                  }),
-                  const SizedBox(height: 12),
-                  _buildTableWrapper(_satuanController, _satuanPage, (idx) {
-                    setState(() => _satuanPage = idx);
-                  }, satuanData, false),
-                  _buildPageIndicator(_satuanPage, (satuanData.length / (_isEditingSatuan ? 4 : 5)).ceil()),
-                  const SizedBox(height: 32),
-                  
-                  _buildActionButtons(),
-                  if (widget.isSelectionMode) _buildSelectionConfirmButton(),
-                  const SizedBox(height: 40),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: const Color(0xFFF9FAFB),
+          body: _isInitialLoading 
+            ? const Center(child: CircularProgressIndicator(color: primaryTeal))
+            : CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildElegantHeader(mitraName),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader("Laundry Kiloan", LucideIcons.layers, isEditing: _isEditingKiloan, onToggle: () {
+                            if (_isEditingKiloan) {
+                              _saveKiloan();
+                            } else {
+                              setState(() => _isEditingKiloan = true);
+                            }
+                          }),
+                          const SizedBox(height: 12),
+                          _buildTableWrapper(_kiloanController, _kiloanPage, (idx) {
+                            setState(() => _kiloanPage = idx);
+                          }, kiloanData, true),
+                          _buildPageIndicator(_kiloanPage, (kiloanData.length / (_isEditingKiloan ? 4 : 5)).ceil()),
+                          const SizedBox(height: 24),
+                          
+                          _buildSectionHeader("Laundry Satuan / Meteran", LucideIcons.shirt, hasSearch: true, isEditing: _isEditingSatuan, onToggle: () {
+                            if (_isEditingSatuan) {
+                              _saveSatuan();
+                            } else {
+                              setState(() => _isEditingSatuan = true);
+                            }
+                          }),
+                          const SizedBox(height: 12),
+                          _buildTableWrapper(_satuanController, _satuanPage, (idx) {
+                            setState(() => _satuanPage = idx);
+                          }, satuanData, false),
+                          _buildPageIndicator(_satuanPage, (satuanData.length / (_isEditingSatuan ? 4 : 5)).ceil()),
+                          const SizedBox(height: 32),
+                          
+                          _buildActionButtons(),
+                          if (widget.isSelectionMode) _buildSelectionConfirmButton(),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  )
                 ],
               ),
+        ),
+        if (_isSaving)
+          Container(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: const Center(
+              child: CircularProgressIndicator(color: primaryTeal),
             ),
-          )
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -264,7 +355,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           children: [
             Text(
               "DAFTAR HARGA",
-              style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white.withOpacity(0.9), letterSpacing: 1.5),
+              style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white.withValues(alpha: 0.9), letterSpacing: 1.5),
             ),
             const SizedBox(height: 2),
             Padding(
@@ -350,11 +441,18 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     List<Map<String, String>> pageData = data.isNotEmpty ? data.sublist(start, end) : [];
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! < 0) {
-          if (currentPage < totalPages - 1) onPageChanged(currentPage + 1);
+          if (currentPage < totalPages - 1) {
+            setState(() => _isSwipeForward = true);
+            onPageChanged(currentPage + 1);
+          }
         } else if (details.primaryVelocity! > 0) {
-          if (currentPage > 0) onPageChanged(currentPage - 1);
+          if (currentPage > 0) {
+            setState(() => _isSwipeForward = false);
+            onPageChanged(currentPage - 1);
+          }
         }
       },
       child: AnimatedSize(
@@ -365,20 +463,46 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Regular", "Fast Track"] : ["", "Nama Barang", "Harga"], editing),
-              ...pageData.map((item) {
-                int id = int.parse(item['id']!);
-                return isKiloan 
-                  ? _buildKiloanRow(id, item, editing)
-                  : _buildSatuanRow(id, item, editing);
-              }),
-              if (editing) _buildAddRowButton(isKiloan),
+              
+              // ANIMATED SWITCHER FOR SMOOTH SWIPE
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  final offset = _isSwipeForward 
+                    ? (child.key == ValueKey(currentPage) ? const Offset(0.2, 0) : const Offset(-0.2, 0))
+                    : (child.key == ValueKey(currentPage) ? const Offset(-0.2, 0) : const Offset(0.2, 0));
+                    
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(begin: offset, end: Offset.zero).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Column(
+                  key: ValueKey(currentPage), 
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...pageData.map((item) {
+                      int id = int.parse(item['id']!);
+                      return isKiloan 
+                        ? _buildKiloanRow(id, item, editing)
+                        : _buildSatuanRow(id, item, editing);
+                    }),
+                    if (editing) _buildAddRowButton(isKiloan),
+                  ],
+                ),
+              ),
               const SizedBox(height: 8), 
             ],
           ),
@@ -403,7 +527,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: primaryTeal.withOpacity(0.05),
+          color: primaryTeal.withValues(alpha: 0.05),
           border: Border(top: BorderSide(color: Colors.grey[100]!)),
         ),
         child: Row(
@@ -431,7 +555,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           if (isCheck && !widget.isSelectionMode && !editing) return const SizedBox.shrink();
           return Expanded(
             flex: isCheck ? 0 : (t == "Service" || t == "Nama Barang" ? 2 : 1),
-            child: Container(
+            child: SizedBox(
               width: isCheck ? 30 : null,
               child: Text(
                 t.toUpperCase(), 
@@ -502,7 +626,11 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                 onChanged: (v) {
                   setState(() {
                     if (editing) {
-                      if (v!) _selectedForEdit.add(id); else _selectedForEdit.remove(id);
+                      if (v!) {
+                        _selectedForEdit.add(id);
+                      } else {
+                        _selectedForEdit.remove(id);
+                      }
                     } else {
                       _selectedItems[id] = v! ? 1 : 0;
                     }
@@ -543,7 +671,11 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                 onChanged: (v) {
                   setState(() {
                     if (editing) {
-                      if (v!) _selectedForEdit.add(id); else _selectedForEdit.remove(id);
+                      if (v!) {
+                        _selectedForEdit.add(id);
+                      } else {
+                        _selectedForEdit.remove(id);
+                      }
                     } else {
                       _selectedItems[id] = v! ? 1 : 0;
                     }
@@ -599,7 +731,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
               try {
                 await launchUrl(url, mode: LaunchMode.externalApplication);
               } catch (e) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tidak ada browser untuk membuka file.")));
+                if (context.mounted) NyutjiNotif.showError(context, "Tidak ada browser untuk membuka file.");
               }
             })),
           ],
@@ -616,7 +748,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       height: 54,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ElevatedButton.icon(
         onPressed: onPressed,
@@ -632,7 +764,6 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     );
   }
 
-  // LOGIKA CONFIRMATION (REUSE)
   final Map<int, int> _selectedItems = {};
 
   Widget _buildSelectionConfirmButton() {

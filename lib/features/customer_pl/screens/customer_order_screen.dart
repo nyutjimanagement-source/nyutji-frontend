@@ -940,8 +940,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           ElevatedButton(
             onPressed: () {
               if (_totalItems > 0 && _selectedMitra != null) {
-                final String addr = _pickupAddress ?? 'Lokasi tidak diset';
-                final String note = _pickupNote ?? '';
+                final String addr = _pickupAddress;
+                final String note = _pickupNote;
                 final double lat = _selectedLat ?? 0.0;
                 final double lng = _selectedLng ?? 0.0;
 
