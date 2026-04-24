@@ -143,15 +143,21 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     _itemCounts.forEach((itemId, count) {
       if (count > 0) {
         try {
-          var item = allPossibleItems.firstWhere((i) => i['id'] == itemId);
-          // Ambil harga berdasarkan speed yang dipilih user
-          num price = isFast 
-            ? (item['price_fast'] ?? (item['price_regular'] ?? item['price'] ?? 0) * 2)
-            : (item['price_regular'] ?? item['price'] ?? 0);
-            
-          baseTotal += (count * price.toInt());
+          // Gunakan toString() untuk perbandingan ID agar aman (String vs Int dari DB)
+          var item = allPossibleItems.firstWhere(
+            (i) => i['id'].toString() == itemId.toString(),
+            orElse: () => null
+          );
+          
+          if (item != null) {
+            num price = isFast 
+              ? (item['price_fast'] ?? (item['price_regular'] ?? item['price'] ?? 0) * 2)
+              : (item['price_regular'] ?? item['price'] ?? 0);
+              
+            baseTotal += (count * price.toInt());
+          }
         } catch (e) {
-          // Skip
+          debugPrint("Error calculating price for item $itemId: $e");
         }
       }
     });
@@ -469,7 +475,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                           : '${ApiConstants.rootUrl}/$imgValue';
                           
                       return Image.network(
-                        "$fullUrl?v=${DateTime.now().millisecondsSinceEpoch}",
+                        fullUrl, // Hapus timestamp agar tidak flicker/loading ulang saat setState
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
                       );
@@ -847,24 +853,29 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87))
           ),
           Expanded(
-            flex: 4, 
+            flex: 5, // Perbesar flex agar muat harga jutaan + counter
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Column(
-                  children: [
-                    Text("Rp ${priceReg.toInt()}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
-                    Text("Rp ${priceFast.toInt()}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
-                  ],
+                Flexible( // Gunakan Flexible agar teks harga tidak memaksakan ruang jika terlalu panjang
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text("Rp ${NumberFormat('#,###', 'id_ID').format(priceReg)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
+                      Text("Rp ${NumberFormat('#,###', 'id_ID').format(priceFast)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 // TOMBOL COUNTING
                 Container(
                   decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
-                      SizedBox(width: 25, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)))),
+                      SizedBox(width: 22, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)))),
                       _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
                     ],
                   ),
@@ -892,19 +903,25 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87))
           ),
           Expanded(
-            flex: 2, 
+            flex: 3, 
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text("Rp ${price.toInt()}", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal)),
-                const SizedBox(width: 12),
+                Flexible(
+                  child: Text("Rp ${NumberFormat('#,###', 'id_ID').format(price)}", 
+                    style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 // TOMBOL COUNTING
                 Container(
                   decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
-                      SizedBox(width: 25, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)))),
+                      SizedBox(width: 22, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)))),
                       _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
                     ],
                   ),

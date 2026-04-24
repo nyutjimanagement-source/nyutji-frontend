@@ -147,6 +147,33 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       if (mitraId == null) throw "ID Mitra tidak ditemukan";
 
       final api = ApiService();
+      // VALIDASI CERDAS: Cek apakah ada harga yang tidak masuk akal (Terlalu Mahal)
+      const maxPrice = 10000000; // Batas 10 Juta
+      bool tooExpensive = false;
+
+      for (var item in kiloanData) {
+        if (double.parse(item['reg'].toString()) > maxPrice || double.parse(item['fast'].toString()) > maxPrice) {
+          tooExpensive = true;
+          break;
+        }
+      }
+      
+      if (!tooExpensive) {
+        for (var item in satuanData) {
+          if (double.parse(item['price'].toString()) > maxPrice) {
+            tooExpensive = true;
+            break;
+          }
+        }
+      }
+
+      if (tooExpensive) {
+        if (mounted) {
+          NyutjiNotif.showError(context, "Harga Terlalu Mahal! Maksimal Rp 10.000.000");
+        }
+        return;
+      }
+
       List<Map<String, dynamic>> payload = [];
       
       for (var item in kiloanData) {
