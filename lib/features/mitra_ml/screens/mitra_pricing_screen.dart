@@ -147,6 +147,10 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       if (mitraId == null) throw "ID Mitra tidak ditemukan";
 
       final api = ApiService();
+      // VALIDASI CERDAS: Cek apakah ada harga yang tidak masuk akal (Terlalu Mahal)
+      const maxPrice = 10000000; // Batas 10 Juta
+      bool tooExpensive = false;
+
       // Fungsi pembantu untuk membersihkan string dari karakter non-angka
       double cleanParse(dynamic val) {
         if (val == null) return 0;
