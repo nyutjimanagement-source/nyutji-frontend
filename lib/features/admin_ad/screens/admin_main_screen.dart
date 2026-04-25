@@ -457,10 +457,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: darkGray,
                 gradient: LinearGradient(
-                  colors: [darkGray, Color(0xFF1F2937)],
+                  colors: [darkGray, const Color(0xFF1F2937)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
