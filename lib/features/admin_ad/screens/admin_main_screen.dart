@@ -121,45 +121,61 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
 
   Widget _buildDenseHeader() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: darkGray),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
+      decoration: BoxDecoration(
+        color: darkGray,
+        gradient: LinearGradient(
+          colors: [darkGray, const Color(0xFF1F2937)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: primaryTeal.withOpacity(0.3), borderRadius: BorderRadius.circular(8)),
-                child: Icon(LucideIcons.globe, color: accentGold, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Consumer<AuthProvider>(
-                    builder: (context, auth, _) => Text(
-                      auth.user?['name']?.toUpperCase() ?? "GLOBAL COMMAND", 
-                      style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5)
-                    ),
-                  ),
-                  Text("SuperAdmin • Induk Semang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
-                ],
-              ),
-            ],
+          Positioned(
+            right: -30, top: -20,
+            child: Icon(LucideIcons.globe, size: 140, color: Colors.white.withOpacity(0.05)),
           ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildControlIcon(LucideIcons.search),
-              const SizedBox(width: 8),
-              Stack(
+              Row(
                 children: [
-                  _buildControlIcon(LucideIcons.bell),
-                  Positioned(right: 0, top: 0, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)))
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: accentGold.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                    child: Icon(LucideIcons.shieldCheck, color: accentGold, size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) => Text(
+                          auth.user?['name']?.toUpperCase() ?? "GLOBAL COMMAND", 
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5)
+                        ),
+                      ),
+                      Text("SuperAdmin • Induk Semang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  _buildControlIcon(LucideIcons.search),
+                  const SizedBox(width: 10),
+                  Stack(
+                    children: [
+                      _buildControlIcon(LucideIcons.bell),
+                      Positioned(right: 0, top: 0, child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.fromBorderSide(BorderSide(color: Colors.black, width: 2)))))
+                    ],
+                  )
                 ],
               )
             ],
-          )
+          ),
         ],
       ),
     );
@@ -440,21 +456,37 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
-              color: Colors.white,
-              child: Row(
+              padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
+              decoration: const BoxDecoration(
+                color: darkGray,
+                gradient: LinearGradient(
+                  colors: [darkGray, Color(0xFF1F2937)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: accentGold.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                    child: Icon(LucideIcons.shieldCheck, size: 32, color: accentGold),
+                  Positioned(
+                    right: -20, top: -20,
+                    child: Icon(LucideIcons.shieldCheck, size: 140, color: Colors.white.withOpacity(0.05)),
                   ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text("SuperAdmin Nyutji", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkGray)),
-                      Text("ID: AD-CORE-001", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600)),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: accentGold.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                        child: Icon(LucideIcons.user, size: 32, color: accentGold),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("SuperAdmin Nyutji", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                          Text("ID: AD-CORE-001", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white.withOpacity(0.6), fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ],
                   ),
                 ],

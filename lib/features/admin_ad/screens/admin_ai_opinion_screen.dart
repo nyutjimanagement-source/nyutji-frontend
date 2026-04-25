@@ -141,7 +141,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: primaryTeal,
+      backgroundColor: darkBg,
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
         titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
@@ -149,7 +149,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [primaryTeal, const Color(0xFF13413F)],
+              colors: [darkBg, const Color(0xFF1E293B)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

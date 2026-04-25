@@ -43,23 +43,37 @@ class AdminUsersScreen extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
       decoration: const BoxDecoration(
         color: darkGray,
+        gradient: LinearGradient(
+          colors: [darkGray, Color(0xFF1F2937)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Text("Manajemen Users", style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-          Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withOpacity(0.7))),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-            child: Row(
-              children: [
-                const Icon(LucideIcons.search, color: Colors.white70, size: 18),
-                const SizedBox(width: 12),
-                Text("Cari ID/Nama User...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white70)),
-              ],
-            ),
+          Positioned(
+            right: -20, top: -20,
+            child: Icon(LucideIcons.users, size: 140, color: Colors.white.withOpacity(0.05)),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Manajemen Users", style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withOpacity(0.7))),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.search, color: Colors.white70, size: 18),
+                    const SizedBox(width: 12),
+                    Text("Cari ID/Nama User...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white70)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

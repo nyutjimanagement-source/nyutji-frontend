@@ -38,23 +38,39 @@ class AdminIssuesScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
       width: double.infinity,
-      color: darkGray,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      decoration: const BoxDecoration(
+        color: darkGray,
+        gradient: LinearGradient(
+          colors: [darkGray, Color(0xFF1F2937)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Text(
-            "OPERATIONAL ISSUES",
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: 1.5,
-            ),
+          Positioned(
+            right: -20, top: -20,
+            child: Icon(LucideIcons.alertCircle, size: 140, color: Colors.white.withOpacity(0.05)),
           ),
-          const SizedBox(height: 4),
-          Text(
-            "Manajemen Kendala Teknis dari Mitra (ML)",
-            style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400]),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "OPERATIONAL ISSUES",
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Manajemen Kendala Teknis dari Mitra (ML)",
+                style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400]),
+              ),
+            ],
           ),
         ],
       ),
