@@ -506,21 +506,23 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // Pusahkan ke tengah/kanan agar terbaca di area gelap
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.end, // Kembalikan ke Bawah sesuai Request Boss
+                  crossAxisAlignment: CrossAxisAlignment.end, // Tetap di Kanan agar pas dengan gradasi gelapnya
                   children: [
                     Text(
                       mitra['name'] ?? 'Mitra Laundry',
                       style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.2),
                       maxLines: 2, overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.right, // Teks rata kanan agar makin rapi
                     ),
                     const SizedBox(height: 4),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.end, // Ikon & Rating juga rata kanan
                       children: [
                         const Icon(LucideIcons.star, size: 10, color: Color(0xFFF59E0B)),
                         const SizedBox(width: 4),
                         Text("${mitra['rating'] ?? '5.0'}", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-                        const Spacer(),
+                        const SizedBox(width: 8), // Beri jarak sedikit
                         const Icon(LucideIcons.mapPin, size: 10, color: Colors.white70),
                         const SizedBox(width: 4),
                         Text("${mitra['distance'] ?? '0.1'} km", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w500)),
