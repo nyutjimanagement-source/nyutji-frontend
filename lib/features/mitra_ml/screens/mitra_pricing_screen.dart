@@ -147,12 +147,15 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       if (mitraId == null) throw "ID Mitra tidak ditemukan";
 
       final api = ApiService();
-      // VALIDASI CERDAS: Cek apakah ada harga yang tidak masuk akal (Terlalu Mahal)
-      const maxPrice = 10000000; // Batas 10 Juta
-      bool tooExpensive = false;
+      // Fungsi pembantu untuk membersihkan string dari karakter non-angka
+      double cleanParse(dynamic val) {
+        if (val == null) return 0;
+        String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
+        return double.tryParse(s) ?? 0;
+      }
 
       for (var item in kiloanData) {
-        if (double.parse(item['reg'].toString()) > maxPrice || double.parse(item['fast'].toString()) > maxPrice) {
+        if (cleanParse(item['reg']) > maxPrice || cleanParse(item['fast']) > maxPrice) {
           tooExpensive = true;
           break;
         }
@@ -160,7 +163,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       
       if (!tooExpensive) {
         for (var item in satuanData) {
-          if (double.parse(item['price'].toString()) > maxPrice) {
+          if (cleanParse(item['price']) > maxPrice) {
             tooExpensive = true;
             break;
           }
@@ -178,19 +181,19 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       
       for (var item in kiloanData) {
         payload.add({
-          "id": int.tryParse(item['id']!) ?? 0,
+          "id": int.tryParse(item['id']!.toString().replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
           "name": item['svc'],
-          "price_regular": int.tryParse(item['reg']!) ?? 0,
-          "price_fast": int.tryParse(item['fast']!) ?? 0,
+          "price_regular": cleanParse(item['reg']).toInt(),
+          "price_fast": cleanParse(item['fast']).toInt(),
           "category": "Kiloan"
         });
       }
       
       for (var item in satuanData) {
         payload.add({
-          "id": int.tryParse(item['id']!) ?? 0,
+          "id": int.tryParse(item['id']!.toString().replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
           "name": item['name'],
-          "price_regular": int.tryParse(item['price']!) ?? 0,
+          "price_regular": cleanParse(item['price']).toInt(),
           "category": "Satuan"
         });
       }
@@ -210,8 +213,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
         kiloanData.insert(0, {
           "id": DateTime.now().millisecondsSinceEpoch.toString(),
           "svc": _newKiloanSvc.text,
-          "reg": _newKiloanReg.text.replaceAll(".", ""),
-          "fast": _newKiloanFast.text.replaceAll(".", ""),
+          "reg": _newKiloanReg.text.replaceAll(RegExp(r'[^0-9]'), ""),
+          "fast": _newKiloanFast.text.replaceAll(RegExp(r'[^0-9]'), ""),
         });
         _newKiloanSvc.clear();
         _newKiloanReg.clear();
@@ -231,8 +234,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
               idsToRemove.add(entryId.toString());
             } else {
               kiloanData[index]['svc'] = ctrlName.text;
-              if (ctrlReg != null) kiloanData[index]['reg'] = ctrlReg.text.replaceAll(".", "");
-              if (ctrlFast != null) kiloanData[index]['fast'] = ctrlFast.text.replaceAll(".", "");
+              if (ctrlReg != null) kiloanData[index]['reg'] = ctrlReg.text.replaceAll(RegExp(r'[^0-9]'), "");
+              if (ctrlFast != null) kiloanData[index]['fast'] = ctrlFast.text.replaceAll(RegExp(r'[^0-9]'), "");
             }
           }
         }
