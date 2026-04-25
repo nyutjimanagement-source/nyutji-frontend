@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:math';
 
 class AdminAiOpinionScreen extends StatefulWidget {
@@ -28,7 +29,8 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
       "summary": "Para pengusaha laundry di Jabodetabek mulai mengeluhkan kenaikan harga deterjen cair curah hingga 15% dalam sebulan terakhir. Hal ini dipicu oleh kelangkaan bahan baku impor.",
       "sentiment": "Negatif",
       "user": "@LaundryKeren",
-      "icon": LucideIcons.twitter
+      "icon": LucideIcons.twitter,
+      "url": "https://twitter.com/search?q=harga%20sabun%20laundry"
     },
     {
       "source": "Instagram",
@@ -38,7 +40,8 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
       "summary": "Postingan viral menunjukkan antrean panjang di laundry koin Jakarta Selatan. Konsumen lebih memilih laundry koin karena faktor kecepatan dan privasi pakaian dalam.",
       "sentiment": "Positif",
       "user": "JakartaInfo",
-      "icon": LucideIcons.instagram
+      "icon": LucideIcons.instagram,
+      "url": "https://www.instagram.com/explore/tags/laundrykoin/"
     },
     {
       "source": "Youtube",
@@ -48,7 +51,8 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
       "summary": "YouTuber teknologi merilis review mesin pengering terbaru yang hemat listrik hingga 40%. Menjadi topik hangat di kalangan pengusaha laundry franchise.",
       "sentiment": "Positif",
       "user": "TechReviewID",
-      "icon": LucideIcons.youtube
+      "icon": LucideIcons.youtube,
+      "url": "https://www.youtube.com/results?search_query=mesin+laundry+terbaik+2024"
     },
     {
       "source": "Berita Online",
@@ -57,7 +61,8 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
       "summary": "Pemerintah daerah mulai memperketat aturan pembuangan limbah cair laundry. Pengusaha diwajibkan memiliki sistem IPAL sederhana atau terkena sanksi administratif.",
       "sentiment": "Netral",
       "user": "DetikFinance",
-      "icon": LucideIcons.globe
+      "icon": LucideIcons.globe,
+      "url": "https://www.detik.com/search/search_all?query=bisnis+laundry"
     },
     {
       "source": "Facebook",
@@ -66,7 +71,8 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
       "summary": "Grup 'Komunitas Laundry Indonesia' sedang ramai membahas perbandingan profit margin antara ikut franchise besar atau membangun brand mandiri di tahun 2024.",
       "sentiment": "Netral",
       "user": "Budi Santoso",
-      "icon": LucideIcons.facebook
+      "icon": LucideIcons.facebook,
+      "url": "https://www.facebook.com/groups/komunitaslaundryindonesia"
     }
   ];
 
@@ -101,6 +107,17 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
         _opinions.addAll(newItems);
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        debugPrint("Gagal membuka URL: $urlString");
+      }
+    } catch (e) {
+      debugPrint("Error launching URL: $e");
     }
   }
 
@@ -251,10 +268,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: InkWell(
-        onTap: () {
-          // Simulasi buka browser
-          debugPrint("Membuka sumber: ${item['source']}");
-        },
+        onTap: () => _launchUrl(item['url'] ?? "https://google.com"),
         borderRadius: BorderRadius.circular(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
