@@ -871,8 +871,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
+                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
+                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
                     ],
                   ),
                 ),
@@ -917,7 +917,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Flexible(
-                  child: Text("Rp ${NumberFormat.decimalPattern('id_ID').format(price)}", 
+                  child: Text("Rp ${NumberFormat.decimalPattern('id_ID').format(price)} /Pcs", 
                     style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -981,7 +981,12 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                       try {
                         var item = mItems.firstWhere((i) => i['id'] == itemId, orElse: () => null);
                         if (item != null) {
-                          selectedItems.add({'name': item['name'], 'count': count, 'unit': item['unit']});
+                          // Normalisasi Unit: Jika kategori satuan/iron, paksa jadi Pcs (Instruksi Boss)
+                          String unitDisplay = item['unit']?.toString() ?? 'Kg';
+                          if (item['category'] == 'satuan' || item['category'] == 'iron' || unitDisplay.toLowerCase() != 'kg') {
+                            unitDisplay = 'Pcs';
+                          }
+                          selectedItems.add({'name': item['name'], 'count': count, 'unit': unitDisplay});
                         }
                       } catch (e) {
                         debugPrint("Error processing item $itemId: $e");
