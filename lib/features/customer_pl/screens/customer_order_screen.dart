@@ -152,7 +152,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           if (item != null) {
             // Pastikan parsing ke double agar tidak error saat perkalian
             double pReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
-            double pFast = double.tryParse(item['price_fast']?.toString() ?? '') ?? (pReg * 2);
+            
+            // JIKA Fast Track dipilih, tapi harga pFast kosong/nol, maka pakai pReg (Instruksi Boss)
+            double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
+            double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
             
             double selectedPrice = isFast ? pFast : pReg;
             baseTotal += (count * selectedPrice);
@@ -451,6 +454,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         margin: const EdgeInsets.only(right: 16, bottom: 10, top: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
+          // BORDER HIJAU NYUTJI saat terpilih
+          border: isSelected ? Border.all(color: primaryTeal, width: 2) : Border.all(color: Colors.transparent, width: 2),
           boxShadow: [
             BoxShadow(
               color: isSelected ? primaryTeal.withOpacity(0.3) : Colors.black.withOpacity(0.08),
@@ -490,10 +495,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.transparent, Colors.black.withOpacity(0.95)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.2, 1.0],
+                      // GRADASI ELEGAN: Dari Kanan (Hitam) ke Kiri (Transparan) - Sesuai Request Boss
+                      colors: [Colors.black.withOpacity(0.9), Colors.black.withOpacity(0.4), Colors.transparent],
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
                     ),
                   ),
                 ),
@@ -501,8 +506,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center, // Pusahkan ke tengah/kanan agar terbaca di area gelap
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       mitra['name'] ?? 'Mitra Laundry',
@@ -840,7 +845,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
   Widget _buildKiloanRow(Map<String, dynamic> item) {
     final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
-    final double priceFast = double.tryParse(item['price_fast']?.toString() ?? '') ?? (priceReg * 2);
+    final double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
+    final double priceFast = (pFastRaw == null || pFastRaw == 0) ? priceReg : pFastRaw;
     int itemId = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
     int count = _itemCounts[itemId] ?? 0;
     

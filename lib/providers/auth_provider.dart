@@ -38,7 +38,9 @@ class AuthProvider with ChangeNotifier {
         'address': addr['address'],
         'address_detail': addr['detail'],
         'lat': addr['lat'],
-        'lng': addr['lng']
+        'lng': addr['lng'],
+        'district': addr['district'],
+        'city': addr['city']
       });
       // Update global user state with address
       if (_user != null) {
@@ -46,6 +48,8 @@ class AuthProvider with ChangeNotifier {
         _user!['address_detail'] = addr['detail'];
         _user!['lat'] = addr['lat'];
         _user!['lng'] = addr['lng'];
+        _user!['district_name'] = addr['district'];
+        _user!['city_name'] = addr['city'];
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_data', jsonEncode(_user));
       }
