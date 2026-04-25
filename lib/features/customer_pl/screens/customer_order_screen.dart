@@ -99,32 +99,19 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         setState(() {
           int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
           if (idx != -1) {
-            _mitras[idx]['items'] = (items.isEmpty) ? _getDefaultSimulationItems(mitraId) : items;
+            // JANGAN PAKAI DUMMY! Jika kosong, biarkan kosong agar user tahu Mitra belum set harga.
+            _mitras[idx]['items'] = items;
             if (_selectedMitra != null && _selectedMitra!['id'] == mitraId) {
-              _selectedMitra!['items'] = _mitras[idx]['items'];
+              _selectedMitra!['items'] = items;
             }
           }
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
-          if (idx != -1 && (_mitras[idx]['items'] == null || (_mitras[idx]['items'] as List).isEmpty)) {
-            _mitras[idx]['items'] = _getDefaultSimulationItems(mitraId);
-            if (_selectedMitra != null && _selectedMitra!['id'] == mitraId) {
-              _selectedMitra!['items'] = _mitras[idx]['items'];
-            }
-          }
-        });
-      }
+      debugPrint("Error fetching items for mitra $mitraId: $e");
     }
   }
 
-  List<dynamic> _getDefaultSimulationItems(int id) {
-    if (id == 1) return [{ 'id': 999, 'name': 'Paket EKSPRES 6 JAM', 'price': 15000, 'unit': 'Kg' }, { 'id': 101, 'name': 'Cuci Setrika Reguler', 'price': 7000, 'unit': 'Kg' }];
-    return [{ 'id': 101, 'name': 'Cuci Setrika Reguler', 'price': 7000, 'unit': 'Kg' }, { 'id': 102, 'name': 'Cuci Lipat Reguler', 'price': 5000, 'unit': 'Kg' }];
-  }
 
   // STATE SOURCE LOKASI UNTUK ICON
   IconData _locationIcon = LucideIcons.mapPin;
@@ -495,10 +482,16 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      // GRADASI ELEGAN: Dari Kanan (Hitam) ke Kiri (Transparan) - Sesuai Request Boss
-                      colors: [Colors.black.withOpacity(0.9), Colors.black.withOpacity(0.4), Colors.transparent],
+                      // GRADASI SUPER MEWAH: Transisi sangat halus dari Kanan (Gelap) ke Kiri (Clear)
+                      colors: [
+                        Colors.black.withOpacity(0.85), 
+                        Colors.black.withOpacity(0.5),
+                        Colors.black.withOpacity(0.1),
+                        Colors.transparent
+                      ],
                       begin: Alignment.centerRight,
                       end: Alignment.centerLeft,
+                      stops: const [0.0, 0.4, 0.7, 1.0],
                     ),
                   ),
                 ),
@@ -981,12 +974,15 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                       try {
                         var item = mItems.firstWhere((i) => i['id'] == itemId, orElse: () => null);
                         if (item != null) {
-                          // Normalisasi Unit: Jika kategori satuan/iron, paksa jadi Pcs (Instruksi Boss)
-                          String unitDisplay = item['unit']?.toString() ?? 'Kg';
-                          if (item['category'] == 'satuan' || item['category'] == 'iron' || unitDisplay.toLowerCase() != 'kg') {
-                            unitDisplay = 'Pcs';
-                          }
-                          selectedItems.add({'name': item['name'], 'count': count, 'unit': unitDisplay});
+                          // PAKSA UNIT PCS untuk Kategori selain Kiloan
+                          String cat = (item['category'] ?? '').toString().toLowerCase();
+                          String unitDisplay = (cat == 'satuan' || cat == 'iron' || cat == 'dry clean') ? 'Pcs' : 'Kg';
+                          
+                          selectedItems.add({
+                            'name': item['name'], 
+                            'count': count, 
+                            'unit': unitDisplay
+                          });
                         }
                       } catch (e) {
                         debugPrint("Error processing item $itemId: $e");
