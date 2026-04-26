@@ -11,6 +11,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'customer_order_screen.dart';
+import 'customer_status_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -323,23 +324,39 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         final latestOrder = orderProv.activeOrders.first;
         String statusMsg = "Pesanan ${latestOrder['id']} : ${latestOrder['status']}";
         
-        return Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue[100]!)),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(color: Colors.blue[600], shape: BoxShape.circle),
-                child: const Icon(LucideIcons.truck, size: 10, color: Colors.white),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(statusMsg, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blue[900]), overflow: TextOverflow.ellipsis),
-              ),
-              Icon(LucideIcons.chevronRight, size: 14, color: Colors.blue[800])
-            ],
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
+          },
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.blue[50], 
+              borderRadius: BorderRadius.circular(12), 
+              border: Border.all(color: Colors.blue[200]!),
+              boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))]
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(color: Colors.blue[600], shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.loader, size: 12, color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("LACAK PROGRES LIVE", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.blue[700], letterSpacing: 0.5)),
+                      Text(statusMsg, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.blue[900]), overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
+                ),
+                Icon(LucideIcons.chevronRight, size: 16, color: Colors.blue[800])
+              ],
+            ),
           ),
         );
       }
