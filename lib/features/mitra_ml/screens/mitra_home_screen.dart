@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
+import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'mitra_wallet_screen.dart';
 import 'mitra_approval_kl_screen.dart';
@@ -38,6 +39,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     _pageController = PageController(initialPage: _selectedIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallet();
+      context.read<AuthProvider>().fetchCouriers();
     });
   }
 
@@ -297,18 +299,29 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             children: [
               IconButton(onPressed: () {}, icon: const Icon(LucideIcons.search, color: darkText, size: 22), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
               const SizedBox(width: 10),
-              Stack(
-                children: [
-                  IconButton(onPressed: () {}, icon: const Icon(LucideIcons.bell, color: darkText, size: 22), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
-                  Positioned(
-                    right: 0, top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
-                      child: const Text("5", style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+              Consumer<OrderProvider>(
+                builder: (context, orderProv, _) => Stack(
+                  children: [
+                    IconButton(
+                      onPressed: () => orderProv.resetNotif('ML'), 
+                      icon: const Icon(LucideIcons.bell, color: darkText, size: 22), 
+                      padding: EdgeInsets.zero, 
+                      constraints: const BoxConstraints()
                     ),
-                  )
-                ],
+                    if (orderProv.notifCountML > 0)
+                      Positioned(
+                        right: 0, top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                          child: Text(
+                            orderProv.notifCountML > 9 ? "9+" : orderProv.notifCountML.toString(), 
+                            style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)
+                          ),
+                        ),
+                      )
+                  ],
+                ),
               )
             ],
           )

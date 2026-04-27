@@ -299,7 +299,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             children: [
               _buildIconBtn(LucideIcons.search),
               const SizedBox(width: 8),
-              _buildIconBtn(LucideIcons.bell),
+              Consumer<OrderProvider>(
+                builder: (context, orderProv, _) => _buildIconBtn(
+                  LucideIcons.bell, 
+                  badgeCount: orderProv.notifCountPL,
+                  onTap: () => orderProv.resetNotif('PL'),
+                ),
+              ),
             ],
           )
         ],
@@ -307,11 +313,34 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     );
   }
 
-  Widget _buildIconBtn(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-      child: Icon(icon, size: 18, color: textDark),
+  Widget _buildIconBtn(IconData icon, {int badgeCount = 0, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+            child: Icon(icon, size: 18, color: textDark),
+          ),
+          if (badgeCount > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                child: Text(
+                  badgeCount > 9 ? "9+" : badgeCount.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/simulasi_provider.dart';
+import '../../../core/utils/formatters.dart';
 
 class CustomerWalletScreen extends StatefulWidget {
   const CustomerWalletScreen({super.key});
@@ -42,56 +44,74 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.rotateCcw, size: 18, color: Colors.red),
+            onPressed: () => context.read<SimulasiProvider>().resetSimulasi(),
+            tooltip: "Reset Simulasi",
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(16)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(currentT['active_balance'], style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white70)),
-                      const SizedBox(height: 4),
-                      Text("Rp 245.500", style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white)),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(LucideIcons.plus, size: 14),
-                    label: Text(currentT['topup'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black87, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100))),
-                  )
-                ],
+            Consumer<SimulasiProvider>(
+              builder: (context, sim, _) => Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(16)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(currentT['active_balance'], style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white70)),
+                        const SizedBox(height: 4),
+                        Text(Formatters.currencyIdr(sim.saldoPL), style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white)),
+                      ],
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => sim.topUpPL(100000),
+                      icon: const Icon(LucideIcons.plus, size: 14),
+                      label: Text(currentT['topup'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black87, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100))),
+                    )
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(currentT['history'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
-                  const Divider(height: 24),
-                  _buildHistoryRow("${currentT['pay_wash']} KBY-001", "- Rp 45.000", Colors.red),
-                  _buildHistoryRow("${currentT['topup']} BCA", "+ Rp 100.000", Colors.green),
-                  _buildHistoryRow("${currentT['pay_wash']} KBY-000", "- Rp 20.000", Colors.red),
-                ],
+            Consumer<SimulasiProvider>(
+              builder: (context, sim, _) => Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(currentT['history'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Divider(height: 24),
+                    if (sim.mutasiPL.isEmpty)
+                      Center(child: Text("Belum ada mutasi simulasi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)))
+                    else
+                      ...sim.mutasiPL.map((m) => _buildHistoryRow(
+                            m['title'],
+                            "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr((m['amount'] as num).abs().toDouble())}",
+                            m['type'] == 'debit' ? Colors.red : Colors.green,
+                            m['date'],
+                          )),
+                  ],
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHistoryRow(String title, String val, Color c) {
+  Widget _buildHistoryRow(String title, String val, Color c, String date) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -104,13 +124,13 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600)),
-                  Text("12 Apr 2026", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
+                  Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87)),
+                  Text(date, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500])),
                 ],
               ),
             ],
           ),
-          Text(val, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: c)),
+          Text(val, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: c)),
         ],
       ),
     );

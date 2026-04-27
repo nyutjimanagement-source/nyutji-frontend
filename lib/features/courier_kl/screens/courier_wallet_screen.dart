@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/simulasi_provider.dart';
+import '../../../core/utils/formatters.dart';
 
 class CourierWalletScreen extends StatelessWidget {
   const CourierWalletScreen({super.key});
@@ -49,48 +51,55 @@ class CourierWalletScreen extends StatelessWidget {
 
     return Container(
       color: bgColor,
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  _buildBalanceCard(primaryTeal, currentT),
-                  const SizedBox(height: 16),
-                  _buildActionButtons(currentT, primaryTeal),
-                  const SizedBox(height: 24),
-                  _buildWithdrawStatusCard(currentT),
-                  const SizedBox(height: 24),
-                  _buildRecentTransactionsSection(textDark, textGrey, primaryTeal, currentT),
-                  const SizedBox(height: 40),
-                ],
-              ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      icon: const Icon(LucideIcons.rotateCcw, size: 18, color: Colors.red),
+                      onPressed: () => context.read<SimulasiProvider>().resetSimulasi(),
+                      tooltip: "Reset Simulasi",
+                    ),
+                  ],
+                ),
+                _buildBalanceCard(primaryTeal, currentT),
+                const SizedBox(height: 16),
+                _buildActionButtons(currentT, primaryTeal),
+                const SizedBox(height: 24),
+                _buildWithdrawStatusCard(currentT),
+                const SizedBox(height: 24),
+                _buildRecentTransactionsSection(textDark, textGrey, primaryTeal, currentT),
+                const SizedBox(height: 40),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildBalanceCard(Color primaryTeal, Map<String, dynamic> currentT) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: primaryTeal,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(currentT['active_balance'], style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          Text("Rp 2.450.000", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-        ],
+    return Consumer<SimulasiProvider>(
+      builder: (context, sim, _) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: primaryTeal,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(currentT['active_balance'], style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Text(Formatters.currencyIdr(sim.saldoKL), style: GoogleFonts.montserrat(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+          ],
+        ),
       ),
     );
   }
@@ -164,32 +173,46 @@ class CourierWalletScreen extends StatelessWidget {
   }
 
   Widget _buildRecentTransactionsSection(Color textDark, Color textGrey, Color primaryTeal, Map<String, dynamic> currentT) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(currentT['recent_transactions'], style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 12, color: textDark, letterSpacing: 1)),
-            Text(currentT['see_all'], style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        ListView.builder(
-          padding: EdgeInsets.zero,
-          itemCount: 6,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            bool isOut = index % 3 == 0;
-            return _transactionCard(index, isOut, textDark, textGrey, primaryTeal);
-          },
-        ),
-      ],
+    return Consumer<SimulasiProvider>(
+      builder: (context, sim, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(currentT['recent_transactions'], style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 12, color: textDark, letterSpacing: 1)),
+              Text(currentT['see_all'], style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (sim.mutasiKL.isEmpty)
+            Center(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Text("Belum ada mutasi simulasi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+            ))
+          else
+            ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: sim.mutasiKL.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final m = sim.mutasiKL[index];
+                return _transactionCard(
+                  m['title'],
+                  m['date'],
+                  "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr((m['amount'] as num).abs().toDouble())}",
+                  m['type'] == 'debit',
+                  textDark, textGrey, primaryTeal
+                );
+              },
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _transactionCard(int index, bool isOut, Color textDark, Color textGrey, Color primaryTeal) {
+  Widget _transactionCard(String title, String date, String amount, bool isOut, Color textDark, Color textGrey, Color primaryTeal) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -218,21 +241,21 @@ class CourierWalletScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isOut ? "Withdraw ke Bank" : "Bonus Order #${index + 200}",
-                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 14, color: textDark),
+                  title,
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 12, color: textDark),
                 ),
                 Text(
-                  "09 April 2026 • 12:45",
-                  style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w500),
+                  date,
+                  style: GoogleFonts.montserrat(fontSize: 9, color: textGrey, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
           ),
           Text(
-            isOut ? "-Rp 500.000" : "+Rp 15.000",
+            amount,
             style: GoogleFonts.montserrat(
               fontWeight: FontWeight.w900, 
-              fontSize: 14, 
+              fontSize: 12, 
               color: isOut ? Colors.red : Colors.green,
             ),
           ),

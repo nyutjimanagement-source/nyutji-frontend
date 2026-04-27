@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/simulasi_provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/order_provider.dart';
 
 // --- MODELS ---
 
@@ -26,7 +30,7 @@ class Order {
   final double price;
   final List<OrderItem> items;
   final String notes;
-  final String courier;
+  String courier;
   final DateTime deadline;
 
   Order({
@@ -78,7 +82,7 @@ final List<Order> orders = [
     items: [OrderItem(name: "Gorden", qty: 2, unit: "m")],
     notes: "",
     price: 120000,
-    courier: "Agus",
+    courier: "Belum Ada",
     deadline: DateTime.now().add(const Duration(days: 2)),
   )
 ];
@@ -100,11 +104,27 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   String currentFilter = "Semua";
 
   void _advanceOrder(Order order) {
+    final prevStatus = order.status;
     int nextIdx = OrderStatus.values.indexOf(order.status) + 1;
     if (nextIdx < OrderStatus.values.length) {
       setState(() {
         order.status = OrderStatus.values[nextIdx];
       });
+
+      // Saat status mencapai SELESAI → trigger bagi hasil ML 80% + Platform 20%
+      if (order.status == OrderStatus.selesai) {
+        final sim = context.read<SimulasiProvider>();
+        // Jika belum ada order aktif di simulasi, set dulu
+        if (sim.activeOrderId == null) {
+          sim.bayarOrder(
+            orderId: order.id,
+            biayaLaundry: order.price,
+            biayaOngkir: 15000, // ongkir dummy
+          );
+        }
+        // Pickup dummy jika belum
+        if (!sim.ongkirPhase1Done) sim.pickupSelesai(order.id);
+      }
     }
   }
 
@@ -323,24 +343,81 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        ElevatedButton(
-          onPressed: () => _advanceOrder(o),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryTeal, foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            minimumSize: const Size(0, 28),
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        o.courier == "Belum Ada" 
+        ? ElevatedButton(
+            onPressed: () => _showCourierPicker(o),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange[700], foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              minimumSize: const Size(0, 28),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            child: Text("ASSIGN KURIR", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
+          )
+        : ElevatedButton(
+            onPressed: () => _advanceOrder(o),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryTeal, foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              minimumSize: const Size(0, 28),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            child: Text("PROSES", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
           ),
-          child: Row(
-            children: [
-              Text("PROSES", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 4),
-              const Icon(LucideIcons.chevronRight, size: 12),
-            ],
-          ),
-        ),
       ],
+    );
+  }
+
+  void _showCourierPicker(Order order) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          final couriers = auth.couriers;
+          return Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Pilih Kurir Anggota", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 16),
+                if (couriers.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Center(child: Text("Tidak ada kurir aktif di database", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey))),
+                  )
+                else
+                  SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      itemCount: couriers.length,
+                      itemBuilder: (context, index) {
+                        final k = couriers[index];
+                        return ListTile(
+                          leading: const CircleAvatar(backgroundColor: primaryTeal, child: Icon(LucideIcons.user, color: Colors.white, size: 16)),
+                          title: Text(k['name'] ?? "Kurir", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
+                          subtitle: Text(k['email'] ?? "", style: GoogleFonts.montserrat(fontSize: 10)),
+                          onTap: () {
+                            setState(() {
+                              order.courier = k['name'];
+                            });
+                            // Trigger Notif ke KL
+                            context.read<OrderProvider>().addNotif('KL');
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 

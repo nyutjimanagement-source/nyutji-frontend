@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/simulasi_provider.dart';
+import '../../../core/utils/formatters.dart';
 
 class MitraWalletScreen extends StatelessWidget {
   const MitraWalletScreen({super.key});
@@ -17,7 +20,7 @@ class MitraWalletScreen extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            _buildDenseHeader(),
+            _buildDenseHeader(context),
             const SizedBox(height: 16),
             _buildQuickActionAndRankRow(),
             const SizedBox(height: 16),
@@ -31,30 +34,43 @@ class MitraWalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDenseHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
-      decoration: const BoxDecoration(color: primaryTeal),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Dompet Utama Mitra", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.bold)),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(4)), child: Text("AKTIF", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent))),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text("Rp 4.550.000", style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
-              Text("Total Kredit", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54)),
-            ],
-          )
-        ],
+  Widget _buildDenseHeader(BuildContext context) {
+    return Consumer<SimulasiProvider>(
+      builder: (context, sim, _) => Container(
+        padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
+        decoration: const BoxDecoration(color: primaryTeal),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Dompet Utama Mitra", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(LucideIcons.rotateCcw, size: 16, color: Colors.white70),
+                      onPressed: () => sim.resetSimulasi(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(4)), child: Text("AKTIF", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent))),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(Formatters.currencyIdr(sim.saldoML), style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
+                Text("Total Kredit", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54)),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
@@ -166,27 +182,38 @@ class MitraWalletScreen extends StatelessWidget {
   }
 
   Widget _buildTransactionLogs() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Mutasi Log", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
-                const Icon(LucideIcons.list, size: 14, color: Colors.blue),
-              ],
-            ),
-            const Divider(),
-            _buildLogItem("Pencairan Dana", "TRX-0091", "- Rp 1.200.000", Colors.red),
-            _buildLogItem("Pemasukan Order #401", "KBY-0401", "+ Rp 85.000", Colors.green),
-            _buildLogItem("Pemasukan Order #400", "KBY-0400", "+ Rp 120.000", Colors.green),
-            _buildLogItem("Pemasukan Order #399", "KBY-0399", "+ Rp 45.000", Colors.green),
-            _buildLogItem("Biaya Server Nyutji", "FEE-001", "- Rp 5.000", Colors.red),
-          ],
+    return Consumer<SimulasiProvider>(
+      builder: (context, sim, _) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Mutasi Log", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                  const Icon(LucideIcons.list, size: 14, color: Colors.blue),
+                ],
+              ),
+              const Divider(),
+              if (sim.mutasiML.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text("Belum ada mutasi simulasi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                  ),
+                )
+              else
+                ...sim.mutasiML.map((m) => _buildLogItem(
+                      m['title'],
+                      m['date'],
+                      "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr((m['amount'] as num).abs().toDouble())}",
+                      m['type'] == 'debit' ? Colors.red : Colors.green,
+                    )),
+            ],
+          ),
         ),
       ),
     );

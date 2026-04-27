@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+
 import '../../../providers/order_provider.dart';
+import '../../../providers/simulasi_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/formatters.dart';
 
 class CustomerStatusScreen extends StatefulWidget {
@@ -185,13 +189,21 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
             leading: IconButton(
               icon: Icon(LucideIcons.chevronLeft, color: darkBg),
               onPressed: () {
-                context.read<OrderProvider>().clearTracking();
-                if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                } else {
-                  Navigator.pushReplacementNamed(context, '/customer_main');
-                }
-              },
+              // 1. Ambil provider
+              final prov = context.read<OrderProvider>();
+              
+              // 2. Navigasi balik dulu
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                Navigator.pushReplacementNamed(context, '/customer_main');
+              }
+              
+              // 3. Bersihkan state tracking SETELAH navigasi dimulai/selesai
+              Future.delayed(const Duration(milliseconds: 300), () {
+                prov.clearTracking();
+              });
+            },
             ),
             title: Text(
               "Lacak Pesanan #${order['id']}",
@@ -223,6 +235,50 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                   _buildCourierCard(order),
                   const SizedBox(height: 24),
                   _buildOrderSummary(order),
+                  const SizedBox(height: 24),
+                  // TOMBOL KONFIRMASI (Hanya muncul jika sudah sampai tahap akhir di simulasi)
+                  Consumer<OrderProvider>(
+                    builder: (context, provider, _) {
+                      final live = provider.trackingOrder;
+                      if (live != null && live['progress'] >= 8) {
+                        return ElevatedButton(
+                          onPressed: () {
+                            try {
+                              final orderId = live['id']?.toString() ?? "NYJ-Sim";
+                              final simProv = context.read<SimulasiProvider>();
+                              final orderProv = context.read<OrderProvider>();
+                              
+                              // 1. Settlement simulasi
+                              simProv.konfirmTerima(orderId);
+                              
+                              // 2. Notifikasi
+                              NyutjiNotif.showSuccess(context, "Pesanan selesai! Dana telah diteruskan.");
+                              
+                              // 3. Navigasi balik
+                              Navigator.pop(context);
+                              
+                              // 4. Bersihkan state tracking setelah kembali
+                              Future.delayed(const Duration(milliseconds: 100), () {
+                                orderProv.clearTracking();
+                              });
+                            } catch (e) {
+                              NyutjiNotif.showError(context, "Terjadi kesalahan: $e");
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: accentGreen,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 56),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 8,
+                            shadowColor: accentGreen.withOpacity(0.4),
+                          ),
+                          child: Text("KONFIRMASI TERIMA CUCIAN", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 14)),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),

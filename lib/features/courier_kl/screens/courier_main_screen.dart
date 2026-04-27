@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -15,6 +16,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
+import '../../../providers/simulasi_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 // --- MODELS ---
 enum CourierTaskType { pickup, delivery }
@@ -57,7 +60,6 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   final GlobalKey _taskSectionKey = GlobalKey(); 
   bool isOnline = true;
   int _selectedNavIndex = 0;
-  final int _notificationCount = 3;
 
   // Enterprise/Super-App Colors for Courier
   final Color primaryTeal = const Color(0xFF286B6A);
@@ -382,11 +384,29 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             ),
           ),
           const SizedBox(width: 12),
-          IconButton(
-            onPressed: () {},
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            icon: Icon(LucideIcons.bell, color: textGrey, size: 20),
+          Consumer<OrderProvider>(
+            builder: (context, orderProv, _) => Stack(
+              children: [
+                IconButton(
+                  onPressed: () => orderProv.resetNotif('KL'),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: Icon(LucideIcons.bell, color: textGrey, size: 20),
+                ),
+                if (orderProv.notifCountKL > 0)
+                  Positioned(
+                    right: 0, top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
+                      child: Text(
+                        orderProv.notifCountKL > 9 ? "9+" : orderProv.notifCountKL.toString(),
+                        style: const TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           )
         ],
       ),
@@ -521,25 +541,33 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             ],
           ),
           const SizedBox(width: 8),
-          Stack(
-            children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: _scrollToTasks,
-                icon: Icon(LucideIcons.bell, color: darkText, size: 22),
-              ),
-              if (_notificationCount > 0)
-                Positioned(
-                  right: 0, top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
-                    child: Text(_notificationCount.toString(), style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                  ),
+          Consumer<OrderProvider>(
+            builder: (context, orderProv, _) => Stack(
+              children: [
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    _scrollToTasks();
+                    orderProv.resetNotif('KL');
+                  },
+                  icon: Icon(LucideIcons.bell, color: darkText, size: 22),
                 ),
-            ],
-          ),
+                if (orderProv.notifCountKL > 0)
+                  Positioned(
+                    right: 0, top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
+                      child: Text(
+                        orderProv.notifCountKL > 9 ? "9+" : orderProv.notifCountKL.toString(),
+                        style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  )
+              ],
+            ),
+          )
         ],
       ),
     );
@@ -832,10 +860,21 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              final sim = context.read<SimulasiProvider>();
+                              if (task.type == CourierTaskType.pickup) {
+                                sim.pickupSelesai(task.id);
+                                NyutjiNotif.showSuccess(context, "Berhasil pickup! Saldo +Rp 7.500 (Simulasi)");
+                              } else {
+                                sim.konfirmTerima(task.id); 
+                                NyutjiNotif.showSuccess(context, "Tugas pengantaran selesai!");
+                              }
+                              setState(() {
+                                task.status = CourierTaskStatus.completed;
+                              });
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryTeal,
                               foregroundColor: Colors.white,
