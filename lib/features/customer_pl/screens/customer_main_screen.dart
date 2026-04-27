@@ -8,6 +8,7 @@ import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
 import 'customer_status_screen.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/order_provider.dart';
 
 class CustomerMainScreen extends StatefulWidget {
   const CustomerMainScreen({super.key});
@@ -47,6 +48,14 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
   ];
 
   void _onItemTapped(int index) {
+    // Saat tap Tab Status, langsung mulai simulasi tracking jika ada pesanan aktif
+    if (index == 1) {
+      final orderProv = context.read<OrderProvider>();
+      if (orderProv.activeOrders.isNotEmpty && orderProv.trackingOrder == null) {
+        final orderId = orderProv.activeOrders.first['id']?.toString() ?? 'NYJ-001';
+        orderProv.startTrackingSimulation(orderId);
+      }
+    }
     _pageController.animateToPage(
       index, 
       duration: const Duration(milliseconds: 500), 

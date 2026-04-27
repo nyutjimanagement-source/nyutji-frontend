@@ -326,8 +326,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         
         return GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
-          },
+              final orderId = latestOrder['id']?.toString() ?? 'NYJ-001';
+              context.read<OrderProvider>().startTrackingSimulation(orderId);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
+            },
           child: Container(
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
