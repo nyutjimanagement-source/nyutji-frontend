@@ -33,7 +33,56 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
     final order = orderProvider.trackingOrder;
 
     if (order == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: Text("Status Pesanan",
+            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkBg)),
+          centerTitle: true,
+          automaticallyImplyLeading: false,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: primaryTeal.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(LucideIcons.packageSearch, size: 56, color: primaryTeal.withOpacity(0.5)),
+                ),
+                const SizedBox(height: 28),
+                Text("Belum Ada Pesanan Aktif",
+                  style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkBg)),
+                const SizedBox(height: 10),
+                Text("Buat pesanan laundry pertamamu\ndan pantau statusnya di sini secara real-time.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[500], height: 1.6)),
+                const SizedBox(height: 32),
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, '/customer_main'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: primaryTeal,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [BoxShadow(color: primaryTeal.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 6))],
+                    ),
+                    child: Text("Buat Pesanan",
+                      style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     return Scaffold(
