@@ -451,7 +451,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
               Positioned.fill(
