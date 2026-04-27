@@ -184,7 +184,14 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
             backgroundColor: Colors.white,
             leading: IconButton(
               icon: Icon(LucideIcons.chevronLeft, color: darkBg),
-              onPressed: () => context.read<OrderProvider>().clearTracking(),
+              onPressed: () {
+                context.read<OrderProvider>().clearTracking();
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.pushReplacementNamed(context, '/customer_main');
+                }
+              },
             ),
             title: Text(
               "Lacak Pesanan #${order['id']}",
