@@ -768,7 +768,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     int currentItemsCount = itemsRemaining > 5 ? 5 : (itemsRemaining < 0 ? 0 : itemsRemaining);
     double hHeader = 40.0;
     double hPageIndicator = chunks.length > 1 ? 25.0 : 0.0;
-    double tableHeight = (currentItemsCount * (isKiloan ? 46.0 : 42.0)) + hHeader + hPageIndicator;
+    double tableHeight = (currentItemsCount * (isKiloan ? 46.0 : 62.0)) + hHeader + hPageIndicator;
 
     return Container(
       width: double.infinity,
