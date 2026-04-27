@@ -758,82 +758,97 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   }
 
   Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan, int currentPage, Function(int) onPageChanged) {
-    // Pecah items menjadi chunk per 5 item
+    const int perPage = 5;
     List<List<dynamic>> chunks = [];
-    for (var i = 0; i < items.length; i += 5) {
-      chunks.add(items.sublist(i, i + 5 > items.length ? items.length : i + 5));
+    for (var i = 0; i < items.length; i += perPage) {
+      chunks.add(items.sublist(i, i + perPage > items.length ? items.length : i + perPage));
     }
+    final pageItems = chunks.isNotEmpty ? chunks[currentPage.clamp(0, chunks.length - 1)] : [];
 
-
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(icon, size: 20, color: primaryTeal),
-                const SizedBox(width: 12),
-                Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
-                const Spacer(),
-                if (chunks.length > 1) 
-                   Text("Slide untuk lainnya", style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            color: const Color(0xFFF9FAFB),
-            child: Row(
-              children: isKiloan ? [
-                Expanded(flex: 3, child: Text("SERVICE", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                Expanded(flex: 4, child: Center(child: Text("REGULAR / FAST", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
-              ] : [
-                Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
-              ],
-            ),
-          ),
-          
-          // ANIMATEDSIZE: tinggi otomatis mengikuti konten, tidak perlu hitung pixel manual
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: PageView.builder(
-              shrinkWrap: true,
-              onPageChanged: onPageChanged,
-              itemCount: chunks.length,
-              itemBuilder: (context, pageIdx) {
-                final pageItems = chunks[pageIdx];
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: pageItems.map((item) => isKiloan ? _buildKiloanRow(item) : _buildSatuanRow(item)).toList(),
-                );
-              },
-            ),
-          ),
-          
-          // INDIKATOR TITIK (Kalo lebih dari 1 halaman)
-          if (chunks.length > 1)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(chunks.length, (index) => Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  width: 6, height: 6,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withOpacity(0.3)),
-                )),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! < 0 && currentPage < chunks.length - 1) {
+          onPageChanged(currentPage + 1);
+        } else if (details.primaryVelocity! > 0 && currentPage > 0) {
+          onPageChanged(currentPage - 1);
+        }
+      },
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(icon, size: 20, color: primaryTeal),
+                    const SizedBox(width: 12),
+                    Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
+                    const Spacer(),
+                    if (chunks.length > 1)
+                      Text("Slide untuk lainnya", style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
-            )
-        ],
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                color: const Color(0xFFF9FAFB),
+                child: Row(
+                  children: isKiloan ? [
+                    Expanded(flex: 3, child: Text("SERVICE", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
+                    Expanded(flex: 4, child: Center(child: Text("REGULAR / FAST", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+                  ] : [
+                    Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
+                    Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+                  ],
+                ),
+              ),
+              // ANIMATEDSIZE + ANIMATEDSWITCHER: identik dengan ML Pricing Screen
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(0.15, 0), end: Offset.zero).animate(animation),
+                    child: child,
+                  ),
+                ),
+                child: Column(
+                  key: ValueKey(currentPage),
+                  mainAxisSize: MainAxisSize.min,
+                  children: pageItems.map((item) => isKiloan ? _buildKiloanRow(item as Map<String, dynamic>) : _buildSatuanRow(item as Map<String, dynamic>)).toList(),
+                ),
+              ),
+              // INDIKATOR TITIK
+              if (chunks.length > 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(chunks.length, (index) => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      width: 6, height: 6,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withOpacity(0.3)),
+                    )),
+                  ),
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
       ),
     );
   }
+
 
   Widget _buildKiloanRow(Map<String, dynamic> item) {
     final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
