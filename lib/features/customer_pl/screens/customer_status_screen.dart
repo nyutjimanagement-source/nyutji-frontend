@@ -174,6 +174,8 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: CustomScrollView(
+        // Physics smoother
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
             expandedHeight: 0,
@@ -195,9 +197,21 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Column(
                 children: [
-                  _buildMainStatusCard(order),
-                  const SizedBox(height: 24),
-                  _buildLiveTracker(order['progress']),
+                  // Hanya Status Card + Tracker yang perlu rebuild tiap Timer tick
+                  Consumer<OrderProvider>(
+                    builder: (context, provider, _) {
+                      final live = provider.trackingOrder;
+                      if (live == null) return const SizedBox();
+                      return Column(
+                        children: [
+                          _buildMainStatusCard(live),
+                          const SizedBox(height: 24),
+                          _buildLiveTracker(live['progress']),
+                        ],
+                      );
+                    },
+                  ),
+                  // Bagian statis — TIDAK rebuild tiap Timer tick
                   const SizedBox(height: 24),
                   _buildCourierCard(order),
                   const SizedBox(height: 24),
@@ -233,10 +247,25 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
             child: const Icon(LucideIcons.packageCheck, color: Colors.white, size: 40),
           ),
           const SizedBox(height: 20),
-          Text(
-            order['status'].toUpperCase(),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+          // AnimatedSwitcher: transisi teks status yang halus
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.3),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: Text(
+              order['status'].toUpperCase(),
+              key: ValueKey<String>(order['status']),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+            ),
           ),
           const SizedBox(height: 8),
           Text("Update terakhir: Baru saja",
