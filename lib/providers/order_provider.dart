@@ -81,6 +81,12 @@ class OrderProvider extends ChangeNotifier {
     });
   }
 
+  void clearTracking() {
+    _trackingTimer?.cancel();
+    _trackingOrder = null;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _trackingTimer?.cancel();
