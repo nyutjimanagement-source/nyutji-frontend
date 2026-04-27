@@ -764,11 +764,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       chunks.add(items.sublist(i, i + 5 > items.length ? items.length : i + 5));
     }
 
-    int itemsRemaining = items.length - (currentPage * 5);
-    int currentItemsCount = itemsRemaining > 5 ? 5 : (itemsRemaining < 0 ? 0 : itemsRemaining);
-    double hHeader = 40.0;
-    double hPageIndicator = chunks.length > 1 ? 25.0 : 0.0;
-    double tableHeight = (currentItemsCount * (isKiloan ? 46.0 : 62.0)) + hHeader + hPageIndicator;
+
 
     return Container(
       width: double.infinity,
@@ -803,17 +799,18 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             ),
           ),
           
-          // PAGE VIEW UNTUK SWIPE PER 5 ITEM
-          AnimatedContainer(
+          // ANIMATEDSIZE: tinggi otomatis mengikuti konten, tidak perlu hitung pixel manual
+          AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            height: tableHeight,
             child: PageView.builder(
+              shrinkWrap: true,
               onPageChanged: onPageChanged,
               itemCount: chunks.length,
               itemBuilder: (context, pageIdx) {
                 final pageItems = chunks[pageIdx];
                 return Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: pageItems.map((item) => isKiloan ? _buildKiloanRow(item) : _buildSatuanRow(item)).toList(),
                 );
               },
