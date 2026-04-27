@@ -382,10 +382,10 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
           Text("Detail Pesanan",
             style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkBg)),
           const SizedBox(height: 16),
-          _receiptRow(order['items'], Formatters.currencyIdr(order['total'])),
+          _receiptRow(order['items'], Formatters.currencyIdr((order['total'] as num).toDouble())),
           _receiptRow("Biaya Pengantaran", "Rp 5.000"),
           const Divider(height: 32),
-          _receiptRow("Total Pembayaran", Formatters.currencyIdr(order['total'] + 5000), isTotal: true),
+          _receiptRow("Total Pembayaran", Formatters.currencyIdr((order['total'] as num).toDouble() + 5000), isTotal: true),
         ],
       ),
     );

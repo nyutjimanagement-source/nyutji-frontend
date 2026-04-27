@@ -45,7 +45,7 @@ class OrderProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'Gagal memuat data pesanan';
       _activeOrders = [
-        {'id': 'KBY-040426-001', 'status': 'Proses Cuci', 'total': 21000},
+        {'id': 'KBY-040426-001', 'status': 'Proses Cuci', 'total': 21000.0},
       ];
     } finally {
       _isLoading = false;
@@ -65,7 +65,7 @@ class OrderProvider extends ChangeNotifier {
       'courier': 'Budi Santoso',
       'plate': 'B 3912 XYZ',
       'items': 'Laundry Kiloan (3 Kg)',
-      'total': 21000,
+      'total': 21000.0,
     };
     notifyListeners();
 
