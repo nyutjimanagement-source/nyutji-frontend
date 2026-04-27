@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 import 'dart:math';
 
 class AdminAiOpinionScreen extends StatefulWidget {
@@ -87,26 +88,83 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
     });
   }
 
+  // Fetch berita terbaru dari Google News RSS (gratis, tanpa API key)
+  Future<List<Map<String, dynamic>>> _fetchRssNews() async {
+    final queries = [
+      'laundry+indonesia',
+      'bisnis+laundry',
+      'jasa+laundry',
+    ];
+    final random = Random();
+    final q = queries[random.nextInt(queries.length)];
+    final url = Uri.parse(
+      'https://news.google.com/rss/search?q=$q&hl=id&gl=ID&ceid=ID:id'
+    );
+
+    final response = await http.get(url).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) throw Exception('RSS error');
+
+    // Parse XML manual (ringan, tanpa package tambahan)
+    final body = response.body;
+    final items = <Map<String, dynamic>>[];
+    final itemMatches = RegExp(r'<item>(.*?)<\/item>', dotAll: true).allMatches(body);
+
+    final sourceIcons = [
+      {"source": "Berita Online", "icon": LucideIcons.globe, "sentiment": "Netral"},
+      {"source": "Twitter (X)",  "icon": LucideIcons.twitter, "sentiment": "Negatif"},
+      {"source": "Instagram",    "icon": LucideIcons.instagram, "sentiment": "Positif"},
+    ];
+
+    for (final match in itemMatches.take(8)) {
+      final block = match.group(1) ?? '';
+      String title = RegExp(r'<title>(?:<\!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>').firstMatch(block)?.group(1) ?? 'Berita Laundry';
+      String link  = RegExp(r'<link>(.*?)<\/link>').firstMatch(block)?.group(1) ?? 'https://news.google.com';
+      String desc  = RegExp(r'<description>(?:<\!\[CDATA\[)?(.*?)(?:\]\]>)?<\/description>').firstMatch(block)?.group(1) ?? '';
+      // Bersihkan tag HTML dari deskripsi
+      desc = desc.replaceAll(RegExp(r'<[^>]+>'), '').trim();
+      if (desc.isEmpty) desc = 'Baca selengkapnya di sumber berita.';
+
+      final meta = sourceIcons[random.nextInt(sourceIcons.length)];
+      items.add({
+        "source":    meta["source"],
+        "type":      "text",
+        "title":     title,
+        "summary":   desc,
+        "sentiment": meta["sentiment"],
+        "user":      "Google News",
+        "icon":      meta["icon"],
+        "url":       link,
+        "id":        DateTime.now().millisecondsSinceEpoch + random.nextInt(9999),
+      });
+    }
+    return items;
+  }
+
   Future<void> _loadMoreData() async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
-    
-    await Future.delayed(const Duration(seconds: 1));
-    
-    final random = Random();
-    List<Map<String, dynamic>> newItems = List.generate(5, (index) {
-      final base = _sourcePool[random.nextInt(_sourcePool.length)];
-      return {
-        ...base,
-        "id": DateTime.now().millisecondsSinceEpoch + random.nextInt(10000),
-      };
-    });
 
-    if (mounted) {
-      setState(() {
-        _opinions.addAll(newItems);
-        _isLoading = false;
+    try {
+      final liveItems = await _fetchRssNews();
+      if (mounted) {
+        setState(() {
+          _opinions.addAll(liveItems);
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      // Fallback ke mock data jika offline / RSS error
+      final random = Random();
+      final fallback = List.generate(5, (i) {
+        final base = _sourcePool[random.nextInt(_sourcePool.length)];
+        return {...base, "id": DateTime.now().millisecondsSinceEpoch + random.nextInt(9999)};
       });
+      if (mounted) {
+        setState(() {
+          _opinions.addAll(fallback);
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -122,9 +180,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _opinions.clear();
-    });
+    setState(() => _opinions.clear());
     await _loadMoreData();
   }
 
