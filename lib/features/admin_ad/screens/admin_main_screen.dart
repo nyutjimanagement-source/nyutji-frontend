@@ -11,6 +11,7 @@ import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/issue_provider.dart';
 import '../../../providers/sentiment_provider.dart';
+import '../../../providers/simulasi_provider.dart';
 
 class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({super.key});
@@ -241,8 +242,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
             crossAxisSpacing: 10,
             childAspectRatio: 2.2,
             children: [
-              Consumer<WalletProvider>(
-                builder: (context, wallet, _) => _buildKPIBox("Omzet Platform", Formatters.currencyIdr(wallet.balance), "+12.5%", true),
+              Consumer<SimulasiProvider>(
+                builder: (context, sim, _) => _buildKPIBox("Omzet Platform", Formatters.currencyIdr(sim.saldoPlatform), "+12.5%", true),
               ),
               Consumer<OrderProvider>(
                 builder: (context, order, _) => _buildKPIBox("Total Pesanan", (order.activeOrders.length + order.historyOrders.length).toString(), "+5.2%", true),
