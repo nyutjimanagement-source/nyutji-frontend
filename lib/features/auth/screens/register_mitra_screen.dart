@@ -250,9 +250,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          _buildSearchField(opKecController, 'Kecamatan Operasional', LucideIcons.mapPin, greenRetro, onTap: () => _showLocationPicker(false)),
+                          _buildSearchField(opKecController, 'Kecamatan Operasional', LucideIcons.mapPin, greenRetro, readOnly: isSameLocation, onTap: isSameLocation ? null : () => _showLocationPicker(false)),
                           const SizedBox(height: 12),
-                          _buildSearchField(opCityController, 'Kota Operasional', LucideIcons.map, greenRetro),
+                          _buildSearchField(opCityController, 'Kota Operasional', LucideIcons.map, greenRetro, readOnly: isSameLocation),
                           const SizedBox(height: 12),
 
                           
@@ -420,10 +420,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     );
   }
 
-  Widget _buildSearchField(TextEditingController controller, String hint, IconData icon, Color color, {VoidCallback? onTap}) {
+  Widget _buildSearchField(TextEditingController controller, String hint, IconData icon, Color color, {VoidCallback? onTap, bool readOnly = false}) {
     return TextField(
       controller: controller,
-      style: const TextStyle(color: Colors.black87),
+      readOnly: readOnly,
+      style: TextStyle(color: readOnly ? Colors.grey[500] : Colors.black87),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
@@ -431,9 +432,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
           icon: Icon(onTap != null ? LucideIcons.map : LucideIcons.search, size: 18, color: onTap != null ? const Color(0xFF740006) : Colors.grey.withOpacity(0.5)),
           onPressed: onTap,
         ),
-        prefixIcon: Icon(icon, size: 18, color: const Color(0xFF740006)),
+        prefixIcon: Icon(icon, size: 18, color: readOnly ? Colors.grey[400] : const Color(0xFF740006)),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: readOnly ? Colors.grey[100] : Colors.white,
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFF740006).withOpacity(0.2))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF740006), width: 2)),
       ),
