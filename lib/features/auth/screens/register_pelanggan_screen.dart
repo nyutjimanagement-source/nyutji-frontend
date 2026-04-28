@@ -18,26 +18,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passController = TextEditingController();
-  final TextEditingController districtController = TextEditingController();
-  final TextEditingController cityController = TextEditingController();
   bool _obscurePassword = true;
-
-  void _showLocationPicker() async {
-    final NyutjiLocationResult? result = await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const NyutjiLocationPicker(),
-    );
-
-    if (result != null) {
-      setState(() {
-        districtController.text = result.district;
-        cityController.text = result.city;
-      });
-      NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.district}");
-    }
-  }
 
   final Map<String, dynamic> t = {
     'id': {
@@ -64,8 +45,8 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
     }
   };
   void _handleRegister() async {
-    if (nameController.text.isEmpty || phoneController.text.isEmpty || districtController.text.isEmpty) {
-      NyutjiNotif.showError(context, 'Nama, Nomor HP, dan Kecamatan wajib diisi!');
+    if (nameController.text.isEmpty || phoneController.text.isEmpty) {
+      NyutjiNotif.showError(context, 'Nama dan Nomor HP wajib diisi!');
       return;
     }
 
@@ -77,8 +58,6 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
       'phone_number': phoneController.text,
       'password': passController.text,
       'role': 'PL',
-      'districtName': districtController.text,
-      'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
     });
 
     if (!mounted) return;
@@ -163,15 +142,6 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
                           _buildTextField(emailController, currentT['email_hint'], LucideIcons.mail, tealRetro, isEmail: true),
                           const SizedBox(height: 16),
                           _buildTextField(phoneController, currentT['phone_hint'], LucideIcons.phone, tealRetro),
-                          const SizedBox(height: 16),
-                           _buildTextField(districtController, 'Nama Kecamatan', LucideIcons.mapPin, tealRetro, 
-                            suffix: IconButton(
-                              icon: const Icon(LucideIcons.map, size: 20, color: Color(0xFF286B6A)),
-                              onPressed: _showLocationPicker,
-                            )
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, tealRetro),
                           const SizedBox(height: 16),
                           _buildTextField(passController, currentT['pass_hint'], LucideIcons.lock, tealRetro, isPass: true, obscure: _obscurePassword, onToggle: () => setState(() => _obscurePassword = !_obscurePassword)),
                           const SizedBox(height: 32),
