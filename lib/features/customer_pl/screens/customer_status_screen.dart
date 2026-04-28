@@ -8,6 +8,7 @@ import '../../../providers/order_provider.dart';
 import '../../../providers/simulasi_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/formatters.dart';
+import 'customer_review_screen.dart';
 
 class CustomerStatusScreen extends StatefulWidget {
   const CustomerStatusScreen({super.key});
@@ -254,13 +255,12 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                               // 2. Notifikasi
                               NyutjiNotif.showSuccess(context, "Pesanan selesai! Dana telah diteruskan.");
                               
-                              // 3. Navigasi balik
-                              Navigator.pop(context);
-                              
-                              // 4. Bersihkan state tracking setelah kembali
-                              Future.delayed(const Duration(milliseconds: 100), () {
-                                orderProv.clearTracking();
-                              });
+                              // 3. Navigasi ke Halaman Review
+                              // Gunakan push untuk menutupi layar status
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => CustomerReviewScreen(order: live)),
+                              );
                             } catch (e) {
                               NyutjiNotif.showError(context, "Terjadi kesalahan: $e");
                             }
