@@ -11,7 +11,6 @@ import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'mitra_wallet_screen.dart';
-import 'mitra_approval_kl_screen.dart';
 import 'mitra_order_screen.dart';
 import 'mitra_pricing_screen.dart';
 
@@ -32,6 +31,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   int _selectedIndex = 0;
   late PageController _pageController;
   bool isShopOpen = true;
+  bool _isCourierMenuExpanded = false;
 
   @override
   void initState() {
@@ -40,6 +40,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallet();
       context.read<AuthProvider>().fetchCouriers();
+      context.read<AuthProvider>().fetchPendingApprovals();
     });
   }
 
@@ -601,10 +602,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 const Divider(height: 1),
                 _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false),
                 const Divider(height: 1),
-                GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MitraApprovalKlScreen())),
-                  child: _buildMenuItem(LucideIcons.users, "Kelola Kurir Laundry", false),
-                ),
+                _buildExpandableCourierMenu(),
                 const Divider(height: 1),
                 Consumer<AuthProvider>(
                   builder: (context, auth, _) => GestureDetector(
@@ -621,6 +619,167 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildExpandableCourierMenu() {
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        final pendingUsers = auth.pendingApprovals;
+        final activeCouriers = List.from(auth.couriers);
+        activeCouriers.sort((a, b) => (a['name']?.toString() ?? '').compareTo(b['name']?.toString() ?? ''));
+
+        return Column(
+          children: [
+            InkWell(
+              onTap: () => setState(() => _isCourierMenuExpanded = !_isCourierMenuExpanded),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.users, size: 18, color: darkText),
+                    const SizedBox(width: 12),
+                    Text("Kelola Kurir Laundry", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                    if (pendingUsers.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFC3312E), borderRadius: BorderRadius.circular(10)),
+                        child: Text(pendingUsers.length.toString(), style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      )
+                    ],
+                    const Spacer(),
+                    Icon(_isCourierMenuExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+                  ],
+                ),
+              ),
+            ),
+            if (_isCourierMenuExpanded)
+              Container(
+                color: Colors.grey[50],
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (pendingUsers.isNotEmpty) ...[
+                      Text("Antrean Pendaftaran (${pendingUsers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+                      const SizedBox(height: 8),
+                      ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)).toList(),
+                      const SizedBox(height: 12),
+                    ],
+                    Text("Daftar Anggota Aktif (${activeCouriers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
+                    const SizedBox(height: 8),
+                    if (activeCouriers.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text("Belum ada anggota kurir", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontStyle: FontStyle.italic)),
+                      )
+                    else
+                      ...activeCouriers.map((u) => _buildCompactActiveCard(u)).toList(),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              )
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildCompactPendingCard(dynamic user, AuthProvider auth) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: primaryTeal.withOpacity(0.1),
+            child: const Icon(LucideIcons.user, size: 14, color: primaryTeal),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user['name'] ?? 'Tanpa Nama', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkText)),
+                Text(user['phone_number'] ?? '-', style: GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => _handleApproval(user['id'], 'REJECTED', user['name'] ?? 'Pendaftar', auth),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(color: const Color(0xFFC3312E).withOpacity(0.1), shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.x, size: 14, color: Color(0xFFC3312E)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _handleApproval(user['id'], 'APPROVED', user['name'] ?? 'Pendaftar', auth),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.check, size: 14, color: primaryTeal),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactActiveCard(dynamic user) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: Colors.grey[100],
+            child: const Icon(LucideIcons.user, size: 14, color: textGrey),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user['name'] ?? 'Tanpa Nama', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkText)),
+                Text(user['phone_number'] ?? '-', style: GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              Icon(LucideIcons.star, size: 12, color: Colors.orange[400]),
+              const SizedBox(width: 4),
+              Text("5.0", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleApproval(int id, String action, String name, AuthProvider auth) async {
+    final success = await auth.processUserApproval(id, action);
+    if (success && mounted) {
+      if (action == 'APPROVED') {
+        _showBeautifulNotif('$name berhasil di-approve!', true);
+      } else {
+        _showBeautifulNotif('$name telah ditolak.', false);
+      }
+      await Future.wait([
+        auth.fetchPendingApprovals(),
+        auth.fetchCouriers(),
+      ]);
+    }
   }
 
   Widget _buildMenuItem(IconData icon, String title, bool isLogout) {
