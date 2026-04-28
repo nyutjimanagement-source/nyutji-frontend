@@ -96,7 +96,12 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
         _houseNumber = address['house_number'] ?? "";
         _village = address['village'] ?? address['suburb'] ?? address['neighbourhood'] ?? address['hamlet'] ?? "";
         _subdistrict = address['subdistrict'] ?? address['city_district'] ?? "";
+        // Bersihkan awalan "Kecamatan " atau "Kec. " dari OSM agar konsisten
+        _subdistrict = _subdistrict.replaceAll(RegExp(r'^kecamatan\s+', caseSensitive: false), '').replaceAll(RegExp(r'^kec\.\s*', caseSensitive: false), '').trim();
+        
         _city = address['city'] ?? address['regency'] ?? address['county'] ?? "";
+        _city = _city.replaceAll(RegExp(r'^(kota|kabupaten)\s+', caseSensitive: false), '').trim();
+        
         _fullAddress = data['display_name'] ?? "";
 
         setState(() {

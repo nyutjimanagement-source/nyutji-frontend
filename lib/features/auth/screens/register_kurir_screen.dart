@@ -24,7 +24,16 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
 
   String? selectedKecamatan;
   String? selectedMitra;
+  int? selectedMitraId;
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().fetchMitras();
+    });
+  }
 
   void _showLocationPicker() async {
     final NyutjiLocationResult? result = await showModalBottomSheet(
@@ -169,14 +178,37 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                           
                           const SizedBox(height: 30),
                           _buildLabel(currentT['mitra_ref']),
-                          _buildSearchField(searchMitraController, currentT['search_mitra'], LucideIcons.briefcase, orangeRetro),
+                          GestureDetector(
+                            onTap: _showMitraPicker,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: orangeRetro.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(LucideIcons.briefcase, size: 18, color: orangeRetro),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      searchMitraController.text.isEmpty ? currentT['search_mitra'] : searchMitraController.text,
+                                      style: TextStyle(color: searchMitraController.text.isEmpty ? Colors.grey.withOpacity(0.5) : Colors.black87),
+                                    ),
+                                  ),
+                                  const Icon(LucideIcons.search, size: 18, color: Colors.grey),
+                                ],
+                              ),
+                            ),
+                          ),
                           
                           const SizedBox(height: 40),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: auth.isLoading ? null : () async {
-                                if (nameController.text.isEmpty || searchKecController.text.isEmpty || searchMitraController.text.isEmpty) {
+                                if (nameController.text.isEmpty || searchKecController.text.isEmpty || selectedMitraId == null) {
                                   NyutjiNotif.showError(context, 'Nama, Kecamatan, dan Referensi Mitra wajib diisi!');
                                   return;
                                 }
@@ -190,6 +222,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                   'districtName': searchKecController.text,
                                   'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
                                   'mitraRefName': searchMitraController.text,
+                                  'mitra_id': selectedMitraId,
                                 });
 
                                 if (!mounted) return;
@@ -253,17 +286,71 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
     );
   }
 
-  Widget _buildSearchField(TextEditingController controller, String hint, IconData icon, Color color) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: hint,
-        suffixIcon: const Icon(LucideIcons.search, size: 18),
-        prefixIcon: Icon(icon, size: 18, color: color),
-        filled: true,
-        fillColor: Colors.white,
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: color.withOpacity(0.3))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: color, width: 2)),
+  void _showMitraPicker() {
+    if (searchKecController.text.isEmpty) {
+      NyutjiNotif.showError(context, "Silakan pilih Lokasi (Kecamatan) terlebih dahulu");
+      return;
+    }
+
+    final auth = context.read<AuthProvider>();
+    final targetKec = searchKecController.text
+      .replaceAll(RegExp(r'^kecamatan\s+', caseSensitive: false), '')
+      .replaceAll(RegExp(r'^kec\.\s*', caseSensitive: false), '')
+      .trim().toLowerCase();
+    
+    // Filter mitras based on the selected district
+    final filteredMitras = auth.mitras.where((m) {
+      final mDist1 = m['district_name']?.toString().trim().toLowerCase();
+      final mDist2 = m['district']?['name']?.toString().trim().toLowerCase();
+      return mDist1 == targetKec || mDist2 == targetKec;
+    }).toList();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Pilih Mitra di $targetKec", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            if (filteredMitras.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(
+                  child: Text(
+                    "Tidak ada Mitra Laundry yang terdaftar di kecamatan ini.", 
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey)
+                  )
+                ),
+              )
+            else
+              SizedBox(
+                height: 300,
+                child: ListView.builder(
+                  itemCount: filteredMitras.length,
+                  itemBuilder: (context, index) {
+                    final m = filteredMitras[index];
+                    return ListTile(
+                      leading: CircleAvatar(backgroundColor: const Color(0xFFD35400).withOpacity(0.1), child: const Icon(LucideIcons.store, color: Color(0xFFD35400), size: 16)),
+                      title: Text(m['name'] ?? "Mitra Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
+                      subtitle: Text("ID: ${m['id']} • ${m['phone_number'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                      onTap: () {
+                        setState(() {
+                          searchMitraController.text = m['name'];
+                          selectedMitraId = m['id'];
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

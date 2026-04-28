@@ -15,6 +15,7 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _homeAddress;
   List<dynamic> _addressHistory = [];
   List<dynamic> _couriers = [];
+  List<dynamic> _mitras = [];
   String? _temporaryLocalPhoto;
   dynamic _temporaryWebBytes; // Simpan Uint8List untuk Web preview
 
@@ -28,6 +29,7 @@ class AuthProvider with ChangeNotifier {
   List<dynamic> get pendingApprovals => _pendingApprovals;
   List<dynamic> get allUsers => _allUsers;
   List<dynamic> get couriers => _couriers;
+  List<dynamic> get mitras => _mitras;
   Map<String, dynamic>? get homeAddress => _homeAddress;
   List<dynamic> get addressHistory => _addressHistory;
 
@@ -40,6 +42,17 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint("Gagal fetch kurir: $e");
+    }
+  }
+
+  Future<void> fetchMitras() async {
+    try {
+      final all = await ApiService().getPublicMitras();
+      _mitras = all;
+      debugPrint("Fetched ${_mitras.length} mitras from database");
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Gagal fetch mitra: $e");
     }
   }
 

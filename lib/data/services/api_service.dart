@@ -63,6 +63,11 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  Future<List<dynamic>> getPublicMitras() async {
+    final response = await _dio.get("/public/mitras");
+    return response.data['data'] ?? [];
+  }
+
   Future<List<dynamic>> getAllUsers() async {
     final response = await _dio.get("/admin/users");
     return response.data['data'] ?? [];
