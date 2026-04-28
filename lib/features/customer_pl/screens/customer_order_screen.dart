@@ -333,7 +333,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             children: [
               Icon(_locationIcon, size: 16, color: primaryTeal),
               const SizedBox(width: 8),
-              Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+              Text(widget.orderType == 'pickup' ? cT['loc_pickup'] : cT['loc_drop'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
               const Spacer(),
               _pillButton("Ubah", () => _showLocationPicker(cT, auth)),
             ],
