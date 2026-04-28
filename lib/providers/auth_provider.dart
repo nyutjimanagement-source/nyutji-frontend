@@ -35,9 +35,12 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> fetchCouriers() async {
     try {
-      final all = await ApiService().getAllUsers();
-      // Case-insensitive role check for 'KL'
-      _couriers = all.where((u) => u['role']?.toString().toUpperCase() == 'KL').toList();
+      if (_role == 'ML') {
+        _couriers = await ApiService().getMitraCouriers();
+      } else {
+        final all = await ApiService().getAllUsers();
+        _couriers = all.where((u) => u['role']?.toString().toUpperCase() == 'KL').toList();
+      }
       debugPrint("Fetched ${_couriers.length} couriers from database");
       notifyListeners();
     } catch (e) {
