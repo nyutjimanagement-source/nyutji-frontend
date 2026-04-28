@@ -18,14 +18,23 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passController = TextEditingController();
-  final TextEditingController searchKecController = TextEditingController();
-  final TextEditingController cityController = TextEditingController();
+  
+  // Owner location
+  final TextEditingController ownerAddressController = TextEditingController();
+  final TextEditingController ownerDetailController = TextEditingController();
+  String ownerDistrict = "";
+  String ownerCity = "";
+
+  // Operational location
+  final TextEditingController opKecController = TextEditingController();
+  final TextEditingController opCityController = TextEditingController();
+  bool isSameLocation = false;
 
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
   bool _obscurePassword = true;
 
-  void _showLocationPicker() async {
+  void _showLocationPicker(bool isOwner) async {
     final NyutjiLocationResult? result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -35,8 +44,19 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
     if (result != null) {
       setState(() {
-        searchKecController.text = result.subdistrict;
-        cityController.text = result.city;
+        if (isOwner) {
+          ownerAddressController.text = result.address;
+          ownerDistrict = result.subdistrict;
+          ownerCity = result.city;
+          // Auto fill operational if checkbox is checked
+          if (isSameLocation) {
+            opKecController.text = ownerDistrict;
+            opCityController.text = ownerCity;
+          }
+        } else {
+          opKecController.text = result.subdistrict;
+          opCityController.text = result.city;
+        }
       });
       NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.subdistrict}");
     }
@@ -49,9 +69,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       'segment': 'Segmen Usaha',
       'category': 'Kategori Mitra',
       'location': 'Lokasi Wilayah Operasional',
-      'search_kec': 'Cari Kecamatan...',
+      'search_kec': 'Alamat Lengkap (Sesuai KTP)',
       'segments': {'PRIBADI': 'Pribadi', 'BADAN': 'Badan Usaha'},
-      'categories': {'KECIL': 'Kecil', 'SEDANG': 'Sedang', 'BESAR': 'Besar'},
+      'categories': {'KECIL': 'Kecil', 'SEDANG': 'Sedang', 'BESAR': 'Besar', 'SELF_SERVICE': 'Self Service'},
       'info_owner': 'Info Bisnis & Pemilik',
       'name_hint': 'Nama Lengkap Pemilik',
       'email_hint': 'Alamat Email',
@@ -66,6 +86,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         'KECIL': 'Kapasitas < 50kg/hari.',
         'SEDANG': 'Kapasitas 50-200kg/hari.',
         'BESAR': 'Kapasitas > 200kg/hari.',
+        'SELF_SERVICE': 'Pelanggan cuci mandiri.',
       },
       'button': 'DAFTAR SEKARANG',
     },
@@ -75,9 +96,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       'segment': 'Business Segment',
       'category': 'Mitra Category',
       'location': 'Operational District',
-      'search_kec': 'Search District...',
+      'search_kec': 'Full Address (ID Card)',
       'segments': {'PRIBADI': 'Personal', 'BADAN': 'Business Entity'},
-      'categories': {'KECIL': 'Small', 'SEDANG': 'Medium', 'BESAR': 'Large'},
+      'categories': {'KECIL': 'Small', 'SEDANG': 'Medium', 'BESAR': 'Large', 'SELF_SERVICE': 'Self Service'},
       'info_owner': 'Business & Owner Info',
       'name_hint': "Owner's Full Name",
       'email_hint': 'Email Address',
@@ -93,6 +114,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         'KECIL': 'Capacity < 50kg/day.',
         'SEDANG': 'Capacity 50-200kg/day.',
         'BESAR': 'Capacity > 200kg/day.',
+        'SELF_SERVICE': 'Customers wash themselves.',
       },
     }
   };
@@ -168,14 +190,14 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                           _buildLabel(currentT['info_owner']),
                           _buildTextField(nameController, currentT['name_hint'], LucideIcons.user, greenRetro),
                           const SizedBox(height: 12),
-                          _buildTextField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, greenRetro, 
+                          _buildTextField(ownerAddressController, currentT['search_kec'], LucideIcons.mapPin, greenRetro, 
                             suffix: IconButton(
                               icon: const Icon(LucideIcons.map, size: 20, color: Color(0xFF740006)),
-                              onPressed: _showLocationPicker,
+                              onPressed: () => _showLocationPicker(true),
                             )
                           ),
                           const SizedBox(height: 12),
-                          _buildTextField(cityController, 'Nama Kota/Kabupaten', LucideIcons.map, greenRetro),
+                          _buildTextField(ownerDetailController, 'Detail Alamat (Gang, Blok, No Rumah)', LucideIcons.home, greenRetro),
                           const SizedBox(height: 16),
                           _buildTextField(emailController, currentT['email_hint'], LucideIcons.mail, greenRetro, isEmail: true),
                           const SizedBox(height: 16),
@@ -208,11 +230,30 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                           ),
                           
                           const SizedBox(height: 30),
-                           _buildLabel(currentT['location']),
-                           _buildSearchField(searchKecController, currentT['search_kec'], LucideIcons.mapPin, greenRetro),
-                           const SizedBox(height: 12),
-                           _buildSearchField(cityController, 'Nama Kota (Default: Tasikmalaya)', LucideIcons.map, greenRetro),
-                           const SizedBox(height: 12),
+                          _buildLabel(currentT['location']),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: isSameLocation,
+                                activeColor: const Color(0xFF740006),
+                                onChanged: (val) {
+                                  setState(() {
+                                    isSameLocation = val ?? false;
+                                    if (isSameLocation && ownerDistrict.isNotEmpty) {
+                                      opKecController.text = ownerDistrict;
+                                      opCityController.text = ownerCity;
+                                    }
+                                  });
+                                },
+                              ),
+                              Expanded(child: Text("Alamat Usaha sama dengan Alamat KTP Pemilik", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700]))),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          _buildSearchField(opKecController, 'Kecamatan Operasional', LucideIcons.mapPin, greenRetro, onTap: () => _showLocationPicker(false)),
+                          const SizedBox(height: 12),
+                          _buildSearchField(opCityController, 'Kota Operasional', LucideIcons.map, greenRetro),
+                          const SizedBox(height: 12),
 
                           
                           const SizedBox(height: 30),
@@ -245,6 +286,15 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                 isSelected: selectedCategory == 'BESAR',
                                 onTap: () => setState(() => selectedCategory = 'BESAR'),
                               ),
+                              const SizedBox(height: 12),
+                              _buildChoiceItem(
+                                title: currentT['categories']['SELF_SERVICE'],
+                                desc: currentT['cat_desc']['SELF_SERVICE'],
+                                icon: LucideIcons.droplets,
+                                color: greenRetro,
+                                isSelected: selectedCategory == 'SELF_SERVICE',
+                                onTap: () => setState(() => selectedCategory = 'SELF_SERVICE'),
+                              ),
                             ],
                           ),
                           
@@ -253,8 +303,8 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: auth.isLoading ? null : () async {
-                                if (nameController.text.isEmpty || searchKecController.text.isEmpty) {
-                                  NyutjiNotif.showError(context, 'Nama dan Kecamatan wajib diisi!');
+                                if (nameController.text.isEmpty || ownerAddressController.text.isEmpty || opKecController.text.isEmpty) {
+                                  NyutjiNotif.showError(context, 'Nama, Alamat Pemilik, dan Lokasi Operasional wajib diisi!');
                                   return;
                                 }
 
@@ -264,8 +314,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                   'phone_number': phoneController.text,
                                   'password': passController.text,
                                   'role': 'ML',
-                                  'districtName': searchKecController.text,
-                                  'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
+                                  'owner_address': ownerAddressController.text + (ownerDetailController.text.isNotEmpty ? ', ' + ownerDetailController.text : ''),
+                                  'owner_district_name': ownerDistrict,
+                                  'owner_city_name': ownerCity,
+                                  'districtName': opKecController.text,
+                                  'cityName': opCityController.text.isEmpty ? 'Tasikmalaya' : opCityController.text,
                                   'business_type': selectedSegment,
                                   'mitra_category': selectedCategory,
                                 });
@@ -367,14 +420,17 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     );
   }
 
-  Widget _buildSearchField(TextEditingController controller, String hint, IconData icon, Color color) {
+  Widget _buildSearchField(TextEditingController controller, String hint, IconData icon, Color color, {VoidCallback? onTap}) {
     return TextField(
       controller: controller,
       style: const TextStyle(color: Colors.black87),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
-        suffixIcon: Icon(LucideIcons.search, size: 18, color: Colors.grey.withOpacity(0.5)),
+        suffixIcon: IconButton(
+          icon: Icon(onTap != null ? LucideIcons.map : LucideIcons.search, size: 18, color: onTap != null ? const Color(0xFF740006) : Colors.grey.withOpacity(0.5)),
+          onPressed: onTap,
+        ),
         prefixIcon: Icon(icon, size: 18, color: const Color(0xFF740006)),
         filled: true,
         fillColor: Colors.white,
