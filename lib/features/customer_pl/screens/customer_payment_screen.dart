@@ -21,6 +21,9 @@ class CustomerPaymentScreen extends StatefulWidget {
   final String cityName;
   final double lat;
   final double lng;
+  final String pickupNote;
+  final String mitraAddress;
+  final String mitraDistrict;
 
   const CustomerPaymentScreen({
     super.key,
@@ -38,6 +41,9 @@ class CustomerPaymentScreen extends StatefulWidget {
     required this.cityName,
     required this.lat,
     required this.lng,
+    this.pickupNote = '',
+    this.mitraAddress = '',
+    this.mitraDistrict = '',
   });
 
   @override
@@ -200,7 +206,11 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   }
 
   Widget _buildDenseInvoice(int courierFee, int grandTotal) {
-    String invoiceTitle = widget.isPickup ? "Ringkasan Transaksi Pickup Kurir" : "Ringkasan Transaksi Antar Sendiri";
+    String invoiceTitle = widget.isPickup 
+        ? "Ringkasan Transaksi PickUp Kurir" 
+        : widget.dropMethod == 'courier'
+            ? "Ringkasan Transaksi Drop - Diantar Kurir"
+            : "Ringkasan Transaksi Drop - Diambil Sendiri";
     String speedLabel = widget.speed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)";
     
     String courierServiceName = "Self Drop-off (Gratis)";
@@ -209,6 +219,19 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     } else if (widget.dropMethod == 'courier') {
       courierServiceName = "Drop Sendiri Antar Kurir";
     }
+
+    // Buat label lokasi penjemputan
+    final pickupParts = [
+      widget.address,
+      if (widget.pickupNote.isNotEmpty) widget.pickupNote,
+      if (widget.districtName.isNotEmpty) widget.districtName,
+    ];
+    final mitraParts = [
+      if (widget.mitraAddress.isNotEmpty) widget.mitraAddress,
+      if (widget.mitraDistrict.isNotEmpty) widget.mitraDistrict,
+    ];
+    final pickupLabel = pickupParts.join(' · ');
+    final mitraLabel = mitraParts.isNotEmpty ? mitraParts.join(' · ') : widget.mitraName;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -221,6 +244,27 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(invoiceTitle, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.black87)),
+          const SizedBox(height: 12),
+
+          // --- BLOK LOKASI ELEGAN ---
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F7F7),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF1E5655).withOpacity(0.12)),
+            ),
+            child: Column(
+              children: [
+                _locationRow(LucideIcons.mapPin, "Lokasi Penjemputan", pickupLabel),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(height: 1, color: Color(0xFFDDEEEE)),
+                ),
+                _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
+              ],
+            ),
+          ),
           const Divider(height: 32),
           
           // Section a: Layanan Laundry
@@ -278,6 +322,33 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         Icon(icon, size: 14, color: primaryTeal),
         const SizedBox(width: 8),
         Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal, letterSpacing: 0.5), overflow: TextOverflow.ellipsis)),
+      ],
+    );
+  }
+
+  Widget _locationRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: primaryTeal.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 12, color: primaryTeal),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w700, color: primaryTeal, letterSpacing: 0.5)),
+              const SizedBox(height: 2),
+              Text(value.isNotEmpty ? value : '-', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 2),
+            ],
+          ),
+        ),
       ],
     );
   }

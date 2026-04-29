@@ -1045,6 +1045,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   cityName: cityName,
                   lat: _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0,
                   lng: _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0,
+                  pickupNote: note,
+                  mitraAddress: _selectedMitra?['address']?.toString() ?? '',
+                  mitraDistrict: _selectedMitra?['district']?.toString() ?? '',
                 )));
               }
             },
