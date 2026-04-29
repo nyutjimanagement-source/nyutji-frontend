@@ -220,9 +220,14 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       courierServiceName = "Drop Sendiri Antar Kurir";
     }
 
+    // Pangkas alamat panjang GPS — ambil hanya bagian pertama (nama jalan)
+    String shortAddress = widget.address.contains(',')
+        ? widget.address.split(',').first.trim()
+        : widget.address;
+
     // Buat label lokasi penjemputan
     final pickupParts = [
-      widget.address,
+      shortAddress,
       if (widget.pickupNote.isNotEmpty) widget.pickupNote,
       if (widget.districtName.isNotEmpty) widget.districtName,
     ];
@@ -345,7 +350,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             children: [
               Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w700, color: primaryTeal, letterSpacing: 0.5)),
               const SizedBox(height: 2),
-              Text(value.isNotEmpty ? value : '-', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 2),
+              Text(value.isNotEmpty ? value : '-', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 1),
             ],
           ),
         ),
