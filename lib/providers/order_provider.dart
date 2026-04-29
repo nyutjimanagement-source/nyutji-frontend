@@ -135,8 +135,15 @@ class OrderProvider extends ChangeNotifier {
       addNotif('ML'); // Notif buat Mitra ada order baru
       return true;
     } on DioException catch (e) {
-      final serverMsg = e.response?.data?['message'] ?? e.response?.data?['error'];
-      _errorMessage = serverMsg?.toString() ?? 'Gagal menghubungi server.';
+      final data = e.response?.data;
+      debugPrint('[createOrder] DioException: status=${e.response?.statusCode} data=$data');
+      final msg = data?['message']?.toString();
+      final detail = data?['error']?.toString();
+      if (msg != null && detail != null && msg != detail) {
+        _errorMessage = '$msg\n↳ $detail';
+      } else {
+        _errorMessage = msg ?? detail ?? 'Gagal menghubungi server (${e.response?.statusCode}).';
+      }
       _isLoading = false;
       notifyListeners();
       return false;
