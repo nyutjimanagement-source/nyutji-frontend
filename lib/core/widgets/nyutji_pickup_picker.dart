@@ -38,8 +38,7 @@ class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
   bool _isLoading = false;
 
   Future<void> _pickFromMap(AuthProvider auth) async {
-    Navigator.pop(context); // Tutup sheet ini dulu
-
+    // Buka peta DI ATAS sheet yang masih terbuka — JANGAN pop dulu
     final result = await showModalBottomSheet<NyutjiLocationResult>(
       context: context,
       isScrollControlled: true,
@@ -47,7 +46,7 @@ class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
       builder: (context) => const NyutjiLocationPicker(),
     );
 
-    if (result == null || !context.mounted) return;
+    if (result == null || !mounted) return;
 
     // Dialog catatan tambahan
     final noteCtrl = TextEditingController();
@@ -75,7 +74,7 @@ class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
       ),
     );
 
-    if (!context.mounted) return;
+    if (!mounted) return;
     if (saved == null) return; // Dialog ditutup paksa
 
     // Ambil nama jalan saja (potong sebelum koma pertama)
@@ -83,6 +82,7 @@ class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
         ? result.address.split(',').first.trim()
         : result.address;
 
+    // Pop sheet ini sekarang setelah semua data siap
     Navigator.pop(context, NyutjiPickupResult(
       address: shortAddress,
       note: noteCtrl.text.trim(),
