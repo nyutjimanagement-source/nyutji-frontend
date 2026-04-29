@@ -141,7 +141,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
       final payload = {
         'districtName': widget.districtName,
-        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
+        'city': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
         'items': items,
         'lat': widget.lat != 0.0 ? widget.lat : double.tryParse(auth.user?['lat']?.toString() ?? ''),
         'lng': widget.lng != 0.0 ? widget.lng : double.tryParse(auth.user?['lng']?.toString() ?? ''),
