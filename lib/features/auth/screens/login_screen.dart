@@ -165,17 +165,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30),
                     Column(
                       children: [
-                        Container(
-                          width: 90,
-                          height: 90,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
-                          ),
-                          child: ClipOval(
-                            child: Image.asset('assets/images/logo_nyutji.png', fit: BoxFit.contain),
-                          ),
+                        Image.asset(
+                          'assets/images/logo_nyutji.png', 
+                          height: 140,
+                          fit: BoxFit.contain,
                         ),
                         const SizedBox(height: 16),
                         Text(
