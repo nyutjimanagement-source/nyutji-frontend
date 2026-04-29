@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:dio/dio.dart';
 import '../data/services/api_service.dart';
 
 class OrderProvider extends ChangeNotifier {
@@ -126,14 +127,21 @@ class OrderProvider extends ChangeNotifier {
 
   Future<bool> createOrder(Map<String, dynamic> data) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     try {
       await _api.createOrder(data);
       await fetchOrders(); 
       addNotif('ML'); // Notif buat Mitra ada order baru
       return true;
+    } on DioException catch (e) {
+      final serverMsg = e.response?.data?['message'] ?? e.response?.data?['error'];
+      _errorMessage = serverMsg?.toString() ?? 'Gagal menghubungi server.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
-      _errorMessage = 'Gagal membuat pesanan baru';
+      _errorMessage = 'Terjadi kesalahan: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
       return false;
