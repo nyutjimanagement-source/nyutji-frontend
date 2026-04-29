@@ -165,10 +165,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30),
                     Column(
                       children: [
-                        Image.asset(
-                          'assets/images/logo_nyutji.png', 
-                          height: 140,
-                          fit: BoxFit.contain,
+                        SizedBox(
+                          width: 90,
+                          height: 90,
+                          child: Image.asset('assets/images/logo_nyutji.png', fit: BoxFit.contain),
                         ),
                         const SizedBox(height: 16),
                         Text(

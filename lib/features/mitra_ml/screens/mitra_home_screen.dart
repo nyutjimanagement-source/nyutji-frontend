@@ -191,6 +191,33 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
+  Widget _buildProfileImage(AuthProvider auth, dynamic photoUrl, String? localPhoto) {
+    if (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) {
+      return const Icon(LucideIcons.store, color: Colors.white, size: 20);
+    }
+    
+    if (kIsWeb) {
+      if (auth.temporaryWebBytes != null) {
+        return Image.memory(auth.temporaryWebBytes!, fit: BoxFit.cover, gaplessPlayback: true);
+      }
+    } else {
+      if (localPhoto != null) {
+        return Image.file(File(localPhoto), fit: BoxFit.cover, gaplessPlayback: true);
+      }
+    }
+    
+    final url = photoUrl.toString().startsWith('http') 
+        ? photoUrl.toString()
+        : "${ApiConstants.rootUrl}/$photoUrl";
+        
+    return Image.network(
+      url, 
+      fit: BoxFit.cover, 
+      gaplessPlayback: true,
+      errorBuilder: (_, __, ___) => const Icon(LucideIcons.store, color: Colors.white, size: 20),
+    );
+  }
+
   Widget _buildDenseHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -212,35 +239,11 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                         decoration: BoxDecoration(
                           color: primaryTeal,
                           borderRadius: BorderRadius.circular(10),
-                          image: kIsWeb
-                            ? (auth.temporaryWebBytes != null
-                                ? DecorationImage(image: MemoryImage(auth.temporaryWebBytes), fit: BoxFit.cover)
-                                : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                    ? DecorationImage(
-                                        image: NetworkImage(
-                                            photoUrl.toString().startsWith('http') 
-                                              ? photoUrl.toString()
-                                              : "${ApiConstants.rootUrl}/$photoUrl"
-                                        ), 
-                                        fit: BoxFit.cover
-                                      )
-                                    : null)
-                            : (localPhoto != null
-                              ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
-                              : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                  ? DecorationImage(
-                                      image: NetworkImage(
-                                        photoUrl.toString().startsWith('http') 
-                                          ? photoUrl.toString()
-                                          : "${ApiConstants.rootUrl}/$photoUrl"
-                                      ), 
-                                      fit: BoxFit.cover
-                                    ) 
-                                  : null),
                         ),
-                        child: (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
-                          ? const Icon(LucideIcons.store, color: Colors.white, size: 20) 
-                          : null,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: _buildProfileImage(auth, photoUrl, localPhoto),
+                        ),
                       ),
                     );
                   }
