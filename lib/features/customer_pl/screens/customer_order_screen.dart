@@ -32,7 +32,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   
   // STATE UNTUK MAPS & LOKASI
   double? _selectedLat;
-  double? _selectedLng;  
+  double? _selectedLng;
+  String _selectedDistrict = '';
+  String _selectedCity = '';
   
   // STATE MITRA & ITEMS (LIVE DATABASE)
   Map<String, dynamic>? _selectedMitra;
@@ -646,6 +648,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         _pickupAddress = result.address;
         _selectedLat = result.lat;
         _selectedLng = result.lng;
+        _selectedDistrict = result.subdistrict;
+        _selectedCity = result.city;
         _locationIcon = targetIcon;
       });
     }
@@ -1003,6 +1007,14 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   });
                 }
 
+                // Ambil district & city: prioritas dari location picker, fallback dari auth profile
+                final String districtName = _selectedDistrict.isNotEmpty
+                    ? _selectedDistrict
+                    : (auth.user?['district_name'] ?? '');
+                final String cityName = _selectedCity.isNotEmpty
+                    ? _selectedCity
+                    : (auth.user?['city_name'] ?? 'Tasikmalaya');
+
                 Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
                   totalPrice: _totalPrice, 
                   totalItems: _totalItems, 
@@ -1014,6 +1026,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   distance: (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
                   dropMethod: _returnMethod,
                   selectedItemsList: selectedItems,
+                  districtName: districtName,
+                  cityName: cityName,
+                  lat: _selectedLat ?? (auth.user?['lat'] as num?)?.toDouble() ?? 0.0,
+                  lng: _selectedLng ?? (auth.user?['lng'] as num?)?.toDouble() ?? 0.0,
                 )));
               }
             },

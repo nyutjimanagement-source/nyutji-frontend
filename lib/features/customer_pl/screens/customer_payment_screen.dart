@@ -17,6 +17,10 @@ class CustomerPaymentScreen extends StatefulWidget {
   final double distance;
   final String dropMethod;
   final List<Map<String, dynamic>> selectedItemsList;
+  final String districtName;
+  final String cityName;
+  final double lat;
+  final double lng;
 
   const CustomerPaymentScreen({
     super.key,
@@ -30,6 +34,10 @@ class CustomerPaymentScreen extends StatefulWidget {
     required this.distance,
     required this.dropMethod,
     required this.selectedItemsList,
+    required this.districtName,
+    required this.cityName,
+    required this.lat,
+    required this.lng,
   });
 
   @override
@@ -126,11 +134,11 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
 
       final payload = {
-        'districtName': auth.user?['district_name'] ?? '',
-        'cityName': auth.user?['city_name'] ?? 'Tasikmalaya',
+        'districtName': widget.districtName,
+        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
         'items': items,
-        'lat': auth.user?['lat'],
-        'lng': auth.user?['lng'],
+        'lat': widget.lat != 0.0 ? widget.lat : auth.user?['lat'],
+        'lng': widget.lng != 0.0 ? widget.lng : auth.user?['lng'],
         'isFastTrack': isFastTrack,
         'servicePrice': widget.totalPrice,
         'deliveryFee': deliveryFee,
