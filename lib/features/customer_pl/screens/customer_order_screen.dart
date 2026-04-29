@@ -616,6 +616,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     _pickupAddress = auth.homeAddress!['address'];
                     _pickupNote = auth.homeAddress!['detail'] ?? "";
                     _locationIcon = LucideIcons.home;
+                    // Ambil Kecamatan & Kota dari profil auth user
+                    _selectedDistrict = auth.user?['district_name']?.toString() ?? '';
+                    _selectedCity = auth.user?['city_name']?.toString() ?? '';
                   });
                 }
                 Navigator.pop(context);
@@ -1010,10 +1013,22 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 // Ambil district & city: prioritas dari location picker, fallback dari auth profile
                 final String districtName = _selectedDistrict.isNotEmpty
                     ? _selectedDistrict
-                    : (auth.user?['district_name'] ?? '');
+                    : (auth.user?['district_name']?.toString() ?? '');
                 final String cityName = _selectedCity.isNotEmpty
                     ? _selectedCity
-                    : (auth.user?['city_name'] ?? 'Tasikmalaya');
+                    : (auth.user?['city_name']?.toString() ?? '');
+
+                // VALIDASI: Kecamatan wajib ada sebelum lanjut ke pembayaran
+                if (districtName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Pilih Lokasi Penjemputan terlebih dahulu agar Kecamatan terisi.'),
+                      backgroundColor: Colors.red[700],
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
 
                 Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
                   totalPrice: _totalPrice, 
