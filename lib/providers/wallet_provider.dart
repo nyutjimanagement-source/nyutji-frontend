@@ -54,6 +54,21 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> forceTopup(double amount) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _api.forceTopup(amount);
+      await fetchWallet();
+      return true;
+    } catch (e) {
+      _errorMessage = "Gagal memproses Force Top Up";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> requestWithdraw(double amount) async {
     if (amount > _balance) {
       _errorMessage = "Saldo tidak mencukupi";

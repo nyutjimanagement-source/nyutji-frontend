@@ -123,6 +123,11 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> forceTopup(double amount) async {
+    final response = await _dio.post("/wallet/force-topup", data: {'amount': amount});
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> requestWithdraw(double amount) async {
     final response = await _dio.post(ApiConstants.withdraw, data: {'amount': amount});
     return response.data;
