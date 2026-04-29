@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/order_provider.dart';
+import '../../../providers/auth_provider.dart';
 
 class CustomerPaymentScreen extends StatefulWidget {
   final int totalPrice;
@@ -41,6 +44,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   String _selectedPayment = "Dompet Nyutji";
   bool _isVAExpanded = false;
   bool _isEWalletExpanded = false;
+  bool _isSubmitting = false;
 
   final List<Map<String, String>> _vaBanks = [
     {'name': 'Bank BCA', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/512px-Bank_Central_Asia.svg.png'},
@@ -90,6 +94,67 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     Future.delayed(const Duration(seconds: 3), () {
       if (overlayEntry.mounted) overlayEntry.remove();
     });
+  }
+
+  Future<void> _handleConfirmOrder(int grandTotal) async {
+    if (_isSubmitting) return;
+
+    final auth = context.read<AuthProvider>();
+    final orderProv = context.read<OrderProvider>();
+
+    // Validasi — pastikan metode pembayaran Dompet Nyutji
+    if (_selectedPayment != "Dompet Nyutji") {
+      _showBeautifulNotif("Saat ini hanya Dompet Nyutji yang tersedia. Pilih Dompet Nyutji.", false);
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      // Bangun payload item sesuai format backend
+      final items = widget.selectedItemsList.map((item) => {
+        'category': item['category'] ?? 'Umum',
+        'itemName': item['name'] ?? '',
+        'qty': item['count'] ?? 1,
+        'unit': item['unit'] ?? 'pcs',
+        'pricePerUnit': item['price'] ?? 0,
+        'notes': '',
+      }).toList();
+
+      final isFastTrack = widget.speed == 'fast';
+      final deliveryFee = (widget.isPickup || widget.dropMethod == 'courier') ? 15000 : 0;
+      final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
+
+      final payload = {
+        'districtName': auth.user?['district_name'] ?? '',
+        'cityName': auth.user?['city_name'] ?? 'Tasikmalaya',
+        'items': items,
+        'lat': auth.user?['lat'],
+        'lng': auth.user?['lng'],
+        'isFastTrack': isFastTrack,
+        'servicePrice': widget.totalPrice,
+        'deliveryFee': deliveryFee,
+        'delivery_type': deliveryType,
+        'mitraId': widget.mitraId,
+      };
+
+      final success = await orderProv.createOrder(payload);
+
+      if (!mounted) return;
+
+      if (success) {
+        _showBeautifulNotif("Pesanan Berhasil Dikonfirmasi & Disimpan!", true);
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
+        });
+      } else {
+        _showBeautifulNotif(orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.", false);
+      }
+    } catch (e) {
+      if (mounted) _showBeautifulNotif("Terjadi kesalahan: ${e.toString()}", false);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -336,20 +401,21 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
         ),
         child: ElevatedButton(
-          onPressed: () {
-            _showBeautifulNotif("Pesanan Berhasil Dikonfirmasi!", true);
-            Future.delayed(const Duration(seconds: 2), () {
-              Navigator.popUntil(context, (route) => route.isFirst);
-            });
-          },
+          onPressed: _isSubmitting ? null : () => _handleConfirmOrder(grandTotal),
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryTeal,
             foregroundColor: Colors.white,
+            disabledBackgroundColor: primaryTeal.withOpacity(0.6),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             elevation: 0,
           ),
-          child: Text("KONFIRMASI PESANAN", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
+          child: _isSubmitting
+              ? const SizedBox(
+                  height: 20, width: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+              : Text("KONFIRMASI PESANAN", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
         ),
       ),
     );
