@@ -218,9 +218,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                                 : (photoUrl != null && photoUrl.toString().isNotEmpty)
                                     ? DecorationImage(
                                         image: NetworkImage(
-                                          photoUrl.toString().startsWith('http') 
-                                            ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                            : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                            photoUrl.toString().startsWith('http') 
+                                              ? photoUrl.toString()
+                                              : "${ApiConstants.rootUrl}/$photoUrl"
                                         ), 
                                         fit: BoxFit.cover
                                       )
@@ -231,8 +231,8 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                                   ? DecorationImage(
                                       image: NetworkImage(
                                         photoUrl.toString().startsWith('http') 
-                                          ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                          : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                          ? photoUrl.toString()
+                                          : "${ApiConstants.rootUrl}/$photoUrl"
                                       ), 
                                       fit: BoxFit.cover
                                     ) 
