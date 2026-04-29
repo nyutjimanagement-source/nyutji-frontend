@@ -302,8 +302,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   void _showOrderListModal(BuildContext context, OrderProvider orderProv) {
     final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
     allOrders.sort((a, b) {
-      double totalA = (a['total'] ?? 0).toDouble();
-      double totalB = (b['total'] ?? 0).toDouble();
+      double totalA = double.tryParse(a['total']?.toString() ?? '0') ?? 0.0;
+      double totalB = double.tryParse(b['total']?.toString() ?? '0') ?? 0.0;
       return totalB.compareTo(totalA); // Highest first
     });
 
@@ -380,7 +380,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                         itemBuilder: (context, index) {
                           final o = allOrders[index];
                           final id = o['id']?.toString() ?? 'N/A';
-                          final total = (o['total'] ?? 0).toDouble();
+                          final total = double.tryParse(o['total']?.toString() ?? '0') ?? 0.0;
                           final mitraId = o['mitra_id']?.toString() ?? o['mitra_identifier']?.toString() ?? '-';
                           final status = o['status']?.toString() ?? 'Pending';
 
