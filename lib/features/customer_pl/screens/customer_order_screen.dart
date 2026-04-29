@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/api_constants.dart';
-import '../../../core/widgets/nyutji_location_picker.dart';
+import '../../../core/widgets/nyutji_pickup_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
@@ -337,7 +337,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               const SizedBox(width: 8),
               Text(widget.orderType == 'pickup' ? cT['loc_pickup'] : cT['loc_drop'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
               const Spacer(),
-              _pillButton("Ubah", () => _showLocationPicker(cT, auth)),
+              _pillButton("Ubah", () => _showPickupPicker()),
             ],
           ),
           const SizedBox(height: 12),
@@ -590,70 +590,23 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     );
   }
 
-  void _showLocationPicker(Map<String, dynamic> cT, AuthProvider auth) {
-    showModalBottomSheet(
+  void _showPickupPicker() async {
+    final result = await showModalBottomSheet<NyutjiPickupResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
-              const SizedBox(height: 12),
-              Text("Silakan pilih cara penentuan lokasi penjemputan:", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
-              const SizedBox(height: 20),
-              _locOption(cT['opt_home'], auth.homeAddress != null ? "${auth.homeAddress!['detail']} ${auth.homeAddress!['address']}" : "Belum Set Alamat Rumah", LucideIcons.home, () {
-                if (auth.homeAddress != null) {
-                  setState(() {
-                    _pickupAddress = auth.homeAddress!['address'];
-                    _pickupNote = auth.homeAddress!['detail'] ?? "";
-                    _locationIcon = LucideIcons.home;
-                    // Ambil Kecamatan & Kota dari profil auth user
-                    _selectedDistrict = auth.user?['district_name']?.toString() ?? '';
-                    _selectedCity = auth.user?['city_name']?.toString() ?? '';
-                  });
-                }
-                Navigator.pop(context);
-              }),
-              _locOption(cT['opt_gps'], cT['opt_gps_desc'], LucideIcons.crosshair, () async {
-                Navigator.pop(context); 
-                _launchMapPicker(LucideIcons.crosshair);
-              }),
-              _locOption(cT['opt_map'], cT['opt_map_desc'], LucideIcons.map, () async {
-                Navigator.pop(context); 
-                _launchMapPicker(LucideIcons.map);
-              }),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
+      builder: (context) => const NyutjiPickupPicker(),
     );
-  }
 
-  void _launchMapPicker(IconData targetIcon) async {
-    final NyutjiLocationResult? result = await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const NyutjiLocationPicker(),
-    );
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() {
         _pickupAddress = result.address;
+        _pickupNote = result.note;
+        _selectedDistrict = result.district;
+        _selectedCity = result.city;
         _selectedLat = result.lat;
         _selectedLng = result.lng;
-        _selectedDistrict = result.subdistrict;
-        _selectedCity = result.city;
-        _locationIcon = targetIcon;
+        _locationIcon = LucideIcons.mapPin;
       });
     }
   }
