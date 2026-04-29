@@ -52,7 +52,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
     
-    final success = await auth.register({
+    final errorMsg = await auth.register({
       'name': nameController.text,
       'email': emailController.text,
       'phone_number': phoneController.text,
@@ -62,11 +62,11 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
 
     if (!mounted) return;
     
-    if (success) {
+    if (errorMsg == null) {
       NyutjiNotif.showSuccess(context, 'Pendaftaran Berhasil! Menunggu Approval.');
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     } else {
-      NyutjiNotif.showError(context, 'Gagal Mendaftarkan Akun. Silakan cek kembali data Anda.');
+      NyutjiNotif.showError(context, errorMsg);
     }
 }
 

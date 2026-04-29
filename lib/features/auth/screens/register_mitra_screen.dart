@@ -308,7 +308,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                   return;
                                 }
 
-                                final success = await auth.register({
+                                final errorMsg = await auth.register({
                                   'name': nameController.text,
                                   'email': emailController.text,
                                   'phone_number': phoneController.text,
@@ -324,11 +324,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                 });
 
                                 if (!mounted) return;
-                                if (success) {
+                                if (errorMsg == null) {
                                   NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Menunggu Approval Admin.');
                                   Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
-                                  NyutjiNotif.showError(context, 'Gagal Registrasi. Coba lagi atau hubungi IT.');
+                                  NyutjiNotif.showError(context, errorMsg);
                                 }
                               },
                               style: ElevatedButton.styleFrom(

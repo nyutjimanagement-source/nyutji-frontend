@@ -213,7 +213,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                   return;
                                 }
 
-                                final success = await auth.register({
+                                final errorMsg = await auth.register({
                                   'name': nameController.text,
                                   'email': emailController.text,
                                   'phone_number': phoneController.text,
@@ -226,11 +226,11 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                 });
 
                                 if (!mounted) return;
-                                if (success) {
+                                if (errorMsg == null) {
                                   NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Hubungi Mitra untuk Approval.');
                                   Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
-                                  NyutjiNotif.showError(context, 'Gagal Registrasi Kurir. Silakan coba lagi.');
+                                  NyutjiNotif.showError(context, errorMsg);
                                 }
                               },
                               style: ElevatedButton.styleFrom(

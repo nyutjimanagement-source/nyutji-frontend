@@ -231,7 +231,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Versi trial: Mengirim data Kecamatan manual dan Referensi Mitra
-  Future<bool> register(Map<String, dynamic> regData) async {
+  Future<String?> register(Map<String, dynamic> regData) async {
     _isLoading = true;
     notifyListeners();
 
@@ -241,14 +241,20 @@ class AuthProvider with ChangeNotifier {
       if (response['message'] != null) {
         _isLoading = false; 
         notifyListeners();
-        return true;
+        return null; // Success
       }
+    } on DioException catch (e) {
+      debugPrint("Register Error: ${e.response?.data}");
+      _isLoading = false;
+      notifyListeners();
+      return e.response?.data?['error'] ?? e.response?.data?['message'] ?? 'Gagal menghubungi server';
     } catch (e) {
       debugPrint("Register Error: $e");
       _isLoading = false;
       notifyListeners();
+      return 'Terjadi kesalahan internal. Coba lagi.';
     }
-    return false;
+    return 'Terjadi kesalahan tidak terduga';
   }
 
   // Khusus Admin & Mitra: Ambil antrean approval
