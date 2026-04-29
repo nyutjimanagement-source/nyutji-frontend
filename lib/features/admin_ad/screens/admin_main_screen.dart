@@ -246,7 +246,13 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                 builder: (context, sim, _) => _buildKPIBox("Omzet Platform", Formatters.currencyIdr(sim.saldoPlatform), "+12.5%", true),
               ),
               Consumer<OrderProvider>(
-                builder: (context, order, _) => _buildKPIBox("Total Pesanan", (order.activeOrders.length + order.historyOrders.length).toString(), "+5.2%", true),
+                builder: (context, order, _) => _buildKPIBox(
+                  "Total Pesanan", 
+                  (order.activeOrders.length + order.historyOrders.length).toString(), 
+                  "+5.2%", 
+                  true,
+                  onTap: () => _showOrderListModal(context, order)
+                ),
               ),
               _buildKPIBox("User Aktif", "15", "+0%", true),
               _buildKPIBox("Mitra Online", "8", "+0%", true),
@@ -257,10 +263,12 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     );
   }
 
-  Widget _buildKPIBox(String title, String val, String percent, bool isUp) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
+  Widget _buildKPIBox(String title, String val, String percent, bool isUp, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -287,6 +295,157 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
           )
         ],
       ),
+    ),
+    );
+  }
+
+  void _showOrderListModal(BuildContext context, OrderProvider orderProv) {
+    final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
+    allOrders.sort((a, b) {
+      double totalA = (a['total'] ?? 0).toDouble();
+      double totalB = (b['total'] ?? 0).toDouble();
+      return totalB.compareTo(totalA); // Highest first
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: BoxDecoration(
+            color: darkGray,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 40, spreadRadius: 10)],
+            border: Border(top: BorderSide(color: accentGold.withOpacity(0.3), width: 1)),
+          ),
+          child: Column(
+            children: [
+              // Handle Bar
+              Container(
+                margin: const EdgeInsets.only(top: 16, bottom: 24),
+                width: 50,
+                height: 5,
+                decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(10)),
+              ),
+              
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: accentGold.withOpacity(0.15), shape: BoxShape.circle),
+                      child: Icon(LucideIcons.listOrdered, color: accentGold, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Rekap Total Pesanan", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text("Diurutkan berdasarkan nominal tertinggi", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400])),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Divider(color: Colors.white10, height: 1),
+
+              // Content List
+              Expanded(
+                child: allOrders.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(LucideIcons.inbox, size: 64, color: Colors.white24),
+                            const SizedBox(height: 16),
+                            Text(
+                              "Nyutji Management - Tidak ada order",
+                              style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[400], fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(20),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: allOrders.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final o = allOrders[index];
+                          final id = o['id']?.toString() ?? 'N/A';
+                          final total = (o['total'] ?? 0).toDouble();
+                          final mitraId = o['mitra_id']?.toString() ?? o['mitra_identifier']?.toString() ?? '-';
+                          final status = o['status']?.toString() ?? 'Pending';
+
+                          // Tentukan warna status
+                          Color statusColor = Colors.grey;
+                          if (status.toLowerCase().contains('selesai')) statusColor = Colors.greenAccent;
+                          else if (status.toLowerCase().contains('batal')) statusColor = Colors.redAccent;
+                          else statusColor = Colors.blueAccent;
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: secondaryDark,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withOpacity(0.05)),
+                            ),
+                            child: Row(
+                              children: [
+                                // Nominal & ID
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(id, style: GoogleFonts.montserrat(fontSize: 12, color: accentGold, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                                      const SizedBox(height: 4),
+                                      Text(Formatters.currencyIdr(total), style: GoogleFonts.montserrat(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                                // Mitra ID & Status
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(LucideIcons.store, size: 12, color: Colors.grey[500]),
+                                        const SizedBox(width: 4),
+                                        Text("ML: $mitraId", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w600)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: statusColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                                      ),
+                                      child: Text(
+                                        status.toUpperCase(),
+                                        style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: statusColor, letterSpacing: 0.5),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
