@@ -1028,8 +1028,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   selectedItemsList: selectedItems,
                   districtName: districtName,
                   cityName: cityName,
-                  lat: _selectedLat ?? (auth.user?['lat'] as num?)?.toDouble() ?? 0.0,
-                  lng: _selectedLng ?? (auth.user?['lng'] as num?)?.toDouble() ?? 0.0,
+                  lat: _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0,
+                  lng: _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0,
                 )));
               }
             },
