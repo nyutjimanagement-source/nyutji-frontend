@@ -23,16 +23,14 @@ class WalletProvider extends ChangeNotifier {
 
     try {
       final data = await _api.getWalletData();
+      debugPrint('[fetchWallet] data: $data');
       _balance = double.parse(data['balance'].toString());
       _mutasiList = data['logs'] ?? [];
     } catch (e) {
-      _errorMessage = 'Gagal memuat saldo dompet';
-      // Fallback Dummy Data jika Backend mati
-      _balance = 245500;
-      _mutasiList = [
-        {'title': 'Bayar Cuci KBY-001', 'amount': -45000, 'type': 'debit', 'date': '12 Apr 2026'},
-        {'title': 'Top Up BCA', 'amount': 100000, 'type': 'kredit', 'date': '10 Apr 2026'},
-      ];
+      debugPrint('[fetchWallet] ERROR: $e');
+      _errorMessage = 'Gagal memuat saldo dompet: $e';
+      _balance = 0.0;
+      _mutasiList = [];
     } finally {
       _isLoading = false;
       notifyListeners();
