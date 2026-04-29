@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
@@ -32,6 +33,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   late PageController _pageController;
   bool isShopOpen = true;
   bool _isCourierMenuExpanded = false;
+  Timer? _pollingTimer;
 
   @override
   void initState() {
@@ -42,10 +44,18 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       context.read<AuthProvider>().fetchCouriers();
       context.read<AuthProvider>().fetchPendingApprovals();
     });
+
+    // Auto-refresh data kurir tiap 5 detik
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) {
+        context.read<AuthProvider>().fetchPendingApprovals();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
