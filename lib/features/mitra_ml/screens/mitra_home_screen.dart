@@ -561,31 +561,15 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                   children: [
                     GestureDetector(
                       onTap: () => _pickImage(auth),
-                      child: CircleAvatar(
-                        radius: 30, 
-                        backgroundColor: primaryTeal.withValues(alpha: 0.1),
-                        backgroundImage: kIsWeb
-                          ? (auth.temporaryWebBytes != null
-                              ? MemoryImage(auth.temporaryWebBytes) as ImageProvider
-                              : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                  ? NetworkImage(
-                                      photoUrl.toString().startsWith('http') 
-                                        ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                        : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                    )
-                                  : null)
-                          : (localPhoto != null
-                            ? FileImage(File(localPhoto)) as ImageProvider
-                            : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                ? NetworkImage(
-                                    photoUrl.toString().startsWith('http') 
-                                      ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                      : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                  )
-                                : null),
-                        child: (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
-                          ? const Icon(LucideIcons.store, color: primaryTeal, size: 30) 
-                          : null,
+                      child: Container(
+                        width: 60, height: 60,
+                        decoration: BoxDecoration(
+                          color: primaryTeal.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipOval(
+                          child: _buildProfileImage(auth, photoUrl, localPhoto),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
