@@ -100,6 +100,16 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  Future<Map<String, dynamic>> getPriceQuote(double distance, bool isFastTrack, double lat, double lng) async {
+    final response = await _dio.post("/orders/quote", data: {
+      'distance': distance,
+      'is_fast_track': isFastTrack,
+      'lat': lat,
+      'lng': lng
+    });
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
     final response = await _dio.post("/orders", data: orderData);
     return response.data;

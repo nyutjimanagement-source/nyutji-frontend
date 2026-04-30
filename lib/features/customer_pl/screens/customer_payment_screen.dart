@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/wallet_provider.dart';
+import '../../../data/services/api_service.dart';
+import 'dart:math' show cos, sqrt, asin;
 
 class CustomerPaymentScreen extends StatefulWidget {
   final int totalPrice;
@@ -21,6 +24,8 @@ class CustomerPaymentScreen extends StatefulWidget {
   final String cityName;
   final double lat;
   final double lng;
+  final double mitraLat;
+  final double mitraLng;
   final String pickupNote;
   final String mitraAddress;
   final String mitraDistrict;
@@ -41,6 +46,8 @@ class CustomerPaymentScreen extends StatefulWidget {
     required this.cityName,
     required this.lat,
     required this.lng,
+    this.mitraLat = 0.0,
+    this.mitraLng = 0.0,
     this.pickupNote = '',
     this.mitraAddress = '',
     this.mitraDistrict = '',
@@ -59,6 +66,60 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   bool _isVAExpanded = false;
   bool _isEWalletExpanded = false;
   bool _isSubmitting = false;
+
+  double _calculatedDistance = 0.0;
+  int _dynamicCourierFee = 15000;
+  bool _isLoadingPrice = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initPaymentData();
+    });
+  }
+
+  double _haversine(double lat1, double lon1, double lat2, double lon2) {
+    if (lat1 == 0 || lat2 == 0) return 0.1;
+    var p = 0.017453292519943295;
+    var a = 0.5 - cos((lat2 - lat1) * p) / 2 +
+        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
+    return 12742 * asin(sqrt(a));
+  }
+
+  Future<void> _initPaymentData() async {
+    // 1. Hitung Jarak Real (Handal & Best Practice Haversine)
+    double dist = _haversine(widget.lat, widget.lng, widget.mitraLat, widget.mitraLng);
+    if (dist < 0.1) dist = 0.1; 
+
+    setState(() {
+      _calculatedDistance = dist;
+    });
+
+    // 2. Refresh Saldo Dompet Nyutji
+    final walletProv = Provider.of<WalletProvider>(context, listen: false);
+    await walletProv.fetchWallet();
+
+    // 3. Ambil Biaya Kurir Dinamis (Logic AD: Sesi Waktu, Hari Libur, dll)
+    try {
+      final api = ApiService();
+      final quote = await api.getPriceQuote(
+        dist, 
+        widget.speed == 'fast',
+        widget.lat,
+        widget.lng
+      );
+      if (quote['status'] == 'success') {
+        setState(() {
+          _dynamicCourierFee = (quote['data']['delivery_fee'] as num).toInt();
+          _isLoadingPrice = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Gagal sinkronisasi harga kurir: $e");
+      setState(() => _isLoadingPrice = false);
+    }
+  }
 
   final List<Map<String, String>> _vaBanks = [
     {'name': 'Bank BCA', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/512px-Bank_Central_Asia.svg.png'},
@@ -136,7 +197,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       }).toList();
 
       final isFastTrack = widget.speed == 'fast';
-      final deliveryFee = (widget.isPickup || widget.dropMethod == 'courier') ? 15000 : 0;
+      final deliveryFee = (widget.isPickup || widget.dropMethod == 'courier') ? _dynamicCourierFee : 0;
       final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
 
       final payload = {
@@ -174,8 +235,11 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     bool needsCourier = widget.isPickup || widget.dropMethod == 'courier';
-    int courierFee = needsCourier ? 15000 : 0;
+    int courierFee = needsCourier ? _dynamicCourierFee : 0;
     int grandTotal = widget.totalPrice + courierFee;
+    
+    final walletProv = context.watch<WalletProvider>();
+    final balanceText = NumberFormat.currency(locale: 'id_ID', symbol: 'Saldo: Rp ', decimalDigits: 0).format(walletProv.balance);
     
     return Scaffold(
       backgroundColor: bgColor,
@@ -301,8 +365,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
           _invoiceSectionHeader(LucideIcons.truck, "Layanan Kurir - Menunggu Penugasan Kurir"),
           const SizedBox(height: 12),
           _invoiceDetailRow("Layanan Kurir", courierServiceName),
-          _invoiceDetailRow("Jarak Antar", "${widget.distance} Km"),
-          _invoiceDetailRow("Biaya Kurir", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(courierFee), isBold: true),
+          _invoiceDetailRow("Jarak Antar", "${_calculatedDistance.toStringAsFixed(1)} Km"),
+          _invoiceDetailRow("Biaya Kurir", _isLoadingPrice ? "Menghitung..." : NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(courierFee), isBold: true),
           
           const Divider(height: 40),
           
@@ -386,7 +450,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             child: Text("Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900)),
           ),
           
-          _paymentParentOption("Dompet Nyutji", "Saldo: Rp 250.000", LucideIcons.wallet, null, isSelected: _selectedPayment == "Dompet Nyutji"),
+          _paymentParentOption("Dompet Nyutji", balanceText, LucideIcons.wallet, null, isSelected: _selectedPayment == "Dompet Nyutji"),
           
           _paymentParentOption("Virtual Account", "BCA, Mandiri, BNI, dll", LucideIcons.building, () {
             setState(() => _isVAExpanded = !_isVAExpanded);
