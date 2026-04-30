@@ -26,7 +26,7 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
     if (result != null) {
       // Tampilkan dialog untuk input Nomor Rumah / Gang
       _detailController.text = "";
-      if (!context.mounted) return;
+      if (!mounted) return;
       bool? saved = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(

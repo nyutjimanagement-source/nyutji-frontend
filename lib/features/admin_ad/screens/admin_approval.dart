@@ -35,6 +35,10 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
     final auth = context.read<AuthProvider>();
     final success = await auth.processUserApproval(id, action);
     
+    if (!mounted) {
+      return;
+    }
+
     if (success) {
       NyutjiNotif.showSuccess(context, '$name berhasil disetujui!');
       _loadPending();
@@ -87,7 +91,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10)],
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -123,7 +127,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                 child: const Row(
                   children: [
                     Icon(LucideIcons.info, size: 16, color: Colors.amber),
@@ -164,7 +168,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
       child: Text(label.toUpperCase(), style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color)),
     );
   }

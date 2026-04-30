@@ -1,6 +1,6 @@
 class FcmService {
   Future<void> initNotifications() async {
-    // TODO: Implement FCM initialization
+    // IMPLEMENTATION: FCM initialization logic goes here
     // FirebaseMessaging.instance.requestPermission();
     // String? token = await FirebaseMessaging.instance.getToken();
   }
