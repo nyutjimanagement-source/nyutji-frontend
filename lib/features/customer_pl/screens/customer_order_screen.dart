@@ -67,6 +67,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           'address': item['address'] ?? 'Alamat tidak tersedia',
           'district': item['district'] ?? '',
           'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
+          'lat': (item['lat'] ?? 0.0).toDouble(),
+          'lng': (item['lng'] ?? 0.0).toDouble(),
           'items': item['items'] ?? [],
         };
       }).toList();
@@ -75,10 +77,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     } finally {
       if (_mitras.isEmpty) {
         _mitras = [
-          { 'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 'address': 'Cipete Utara', 'district': 'Cipete Utara', 'image': null, 'items': [] },
-          { 'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 'address': 'Serpong', 'district': 'Serpong', 'image': null, 'items': [] },
-          { 'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'items': [] },
-          { 'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'items': [] },
+          { 'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 'address': 'Cipete Utara', 'district': 'Cipete Utara', 'image': null, 'lat': -6.2411, 'lng': 106.8000, 'items': [] },
+          { 'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 'address': 'Serpong', 'district': 'Serpong', 'image': null, 'lat': -6.3000, 'lng': 106.6700, 'items': [] },
+          { 'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'lat': -6.3400, 'lng': 106.7400, 'items': [] },
+          { 'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'lat': -6.3450, 'lng': 106.7450, 'items': [] },
         ];
       }
       if (mounted) {
