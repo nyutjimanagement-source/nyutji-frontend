@@ -924,6 +924,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                       try {
                         var item = mItems.firstWhere((i) => i['id'] == itemId, orElse: () => null);
                         if (item != null) {
+                          bool isFast = _serviceSpeed == 'fast';
+                          double pReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
+                          double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
+                          double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
+
                           // PAKSA UNIT PCS untuk Kategori selain Kiloan
                           String cat = (item['category'] ?? '').toString().toLowerCase();
                           String unitDisplay = (cat == 'satuan' || cat == 'iron' || cat == 'dry clean') ? 'Pcs' : 'Kg';
