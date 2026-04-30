@@ -41,7 +41,7 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
       );
 
       if (success) {
-        if (!mounted) return;
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Laporan berhasil dikirim!'),
@@ -50,7 +50,7 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
         );
         Navigator.pop(context);
       } else {
-        if (!mounted) return;
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal: ${context.read<IssueProvider>().error}'),
@@ -166,7 +166,7 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
                     ),
                     elevation: 0,
                   ).copyWith(
-                    overlayColor: WidgetStateProperty.all(Colors.black.withOpacity(0.1)),
+                    overlayColor: WidgetStateProperty.all(Colors.black.withValues(alpha: 0.1)),
                   ),
                   child: context.watch<IssueProvider>().isLoading
                       ? const CircularProgressIndicator(color: Colors.black)

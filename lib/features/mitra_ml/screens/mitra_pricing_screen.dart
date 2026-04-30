@@ -766,7 +766,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
               try {
                 await launchUrl(url, mode: LaunchMode.externalApplication);
               } catch (e) {
-                if (context.mounted) NyutjiNotif.showError(context, "Tidak ada browser untuk membuka file.");
+                if (!context.mounted) return;
+                NyutjiNotif.showError(context, "Tidak ada browser untuk membuka file.");
               }
             })),
           ],

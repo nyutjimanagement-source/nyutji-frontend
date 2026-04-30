@@ -609,8 +609,13 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 Consumer<AuthProvider>(
                   builder: (context, auth, _) => GestureDetector(
                     onTap: () async {
-                      await auth.logout();
-                      if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+                      try {
+                        await auth.logout();
+                        if (!context.mounted) return;
+                        Navigator.pushReplacementNamed(context, '/login');
+                      } catch (e) {
+                        if (!context.mounted) return;
+                      }
                     },
                     child: _buildMenuItem(LucideIcons.logOut, currentT!['logout'], true),
                   ),
@@ -659,7 +664,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(LucideIcons.locateFixed, size: 10, color: primaryTeal),
+                          const Icon(LucideIcons.locateFixed, size: 10, color: primaryTeal),
                           const SizedBox(width: 4),
                           Text("GPS: $lat, $lng", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
                         ],
@@ -668,7 +673,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                       ElevatedButton(
                         onPressed: () {}, // Future: Update Location
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryTeal.withOpacity(0.1),
+                          backgroundColor: primaryTeal.withValues(alpha: 0.1),
                           foregroundColor: primaryTeal,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -728,7 +733,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                     if (pendingUsers.isNotEmpty) ...[
                       Text("Antrean Pendaftaran (${pendingUsers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
                       const SizedBox(height: 8),
-                      ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)).toList(),
+                      ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)),
                       const SizedBox(height: 12),
                     ],
                     Text("Daftar Anggota Aktif (${activeCouriers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
@@ -739,7 +744,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                         child: Text("Belum ada anggota kurir", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontStyle: FontStyle.italic)),
                       )
                     else
-                      ...activeCouriers.map((u) => _buildCompactActiveCard(u)).toList(),
+                      ...activeCouriers.map((u) => _buildCompactActiveCard(u)),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -759,7 +764,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundColor: primaryTeal.withOpacity(0.1),
+            backgroundColor: primaryTeal.withValues(alpha: 0.1),
             child: const Icon(LucideIcons.user, size: 14, color: primaryTeal),
           ),
           const SizedBox(width: 12),
@@ -778,7 +783,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 onTap: () => _handleApproval(user['id'], 'REJECTED', user['name'] ?? 'Pendaftar', auth),
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(color: const Color(0xFFC3312E).withOpacity(0.1), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: const Color(0xFFC3312E).withValues(alpha: 0.1), shape: BoxShape.circle),
                   child: const Icon(LucideIcons.x, size: 14, color: Color(0xFFC3312E)),
                 ),
               ),
@@ -787,7 +792,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 onTap: () => _handleApproval(user['id'], 'APPROVED', user['name'] ?? 'Pendaftar', auth),
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
                   child: const Icon(LucideIcons.check, size: 14, color: primaryTeal),
                 ),
               ),
