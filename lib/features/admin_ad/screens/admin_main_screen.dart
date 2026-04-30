@@ -381,7 +381,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                           final o = allOrders[index];
                           final id = o['id']?.toString() ?? 'N/A';
                           final total = double.tryParse(o['total']?.toString() ?? '0') ?? 0.0;
-                          final mitraId = o['mitra_id']?.toString() ?? o['mitra_identifier']?.toString() ?? '-';
+                          final mitraId = o['mitra_identifier']?.toString() ?? o['mitra_id']?.toString() ?? '-';
                           final status = o['status']?.toString() ?? 'Pending';
 
                           // Tentukan warna status
