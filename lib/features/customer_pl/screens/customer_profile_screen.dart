@@ -39,7 +39,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50, maxWidth: 800);
                 if (photo != null) {
                   final success = await auth.updateProfilePhoto(photo);
-                  if (success && mounted) {
+                  if (success && context.mounted) {
                     NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
                 }
@@ -53,7 +53,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50, maxWidth: 800);
                 if (image != null) {
                   final success = await auth.updateProfilePhoto(image);
-                  if (success && mounted) {
+                  if (success && context.mounted) {
                     NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
                 }

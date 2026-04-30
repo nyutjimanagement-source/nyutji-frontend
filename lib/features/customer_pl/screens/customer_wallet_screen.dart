@@ -84,7 +84,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                     ElevatedButton.icon(
                       onPressed: wallet.isLoading ? null : () async {
                         final ok = await wallet.forceTopup(1000000);
-                        if(ok && mounted) {
+                        if(ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Topup Berhasil (Simulation)'), behavior: SnackBarBehavior.floating)
                           );

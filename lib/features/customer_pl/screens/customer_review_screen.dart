@@ -90,7 +90,7 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: primaryTeal.withOpacity(0.1),
+                color: primaryTeal.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(LucideIcons.checkCircle, size: 64, color: primaryTeal),
@@ -172,7 +172,7 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
                 minimumSize: const Size(double.infinity, 56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 4,
-                shadowColor: primaryTeal.withOpacity(0.4),
+                shadowColor: primaryTeal.withValues(alpha: 0.4),
               ),
               child: Text("KIRIM ULASAN", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
             ),

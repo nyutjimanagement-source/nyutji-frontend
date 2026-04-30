@@ -227,11 +227,12 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                   'mitra_id': selectedMitraId,
                                 });
 
-                                if (!mounted) return;
+                                if (!context.mounted) return;
                                 if (errorMsg == null) {
                                   NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Hubungi Mitra untuk Approval.');
                                   navigator.pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
+                                  if (!context.mounted) return;
                                   NyutjiNotif.showError(context, errorMsg);
                                 }
                               },

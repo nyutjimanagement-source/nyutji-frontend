@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       backgroundColor: Color(0xFFF3F4F6),
                     ),
                   ),
-                  Icon(Icons.water_drop, size: 20, color: const Color(0xFF1E5655).withOpacity(0.4)),
+                  Icon(Icons.water_drop, size: 20, color: const Color(0xFF1E5655).withValues(alpha: 0.4)),
                 ],
               ),
               const SizedBox(height: 16),
