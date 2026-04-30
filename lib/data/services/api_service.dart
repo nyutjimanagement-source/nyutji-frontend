@@ -121,6 +121,21 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> getCourierPricing() async {
+    final response = await _dio.get("/admin/courier-pricing");
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> updateCourierPricing(List<Map<String, dynamic>> pricings) async {
+    final response = await _dio.post("/admin/courier-pricing", data: {'pricings': pricings});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> deleteCourierPricing(dynamic id) async {
+    final response = await _dio.delete("/admin/courier-pricing/$id");
+    return response.data;
+  }
+
   // --- WALLET & MITRA ENDPOINTS ---
   Future<Map<String, dynamic>> getWalletData() async {
     final response = await _dio.get("/wallet/balance");

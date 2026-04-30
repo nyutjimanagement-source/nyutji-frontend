@@ -27,6 +27,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   static const bgColor = Color(0xFFF3F4F6);
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
+  bool _isCourierMenuExpanded = false;
+  bool _isAddressExpanded = false;
+
   final ImagePicker _picker = ImagePicker();
 
   int _selectedIndex = 0;
@@ -595,7 +598,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
             child: Column(
               children: [
-                _buildMenuItem(LucideIcons.userCheck, "Informasi KYC Eksekutif", false),
+                _buildExpandableAddressMenu(auth),
                 const Divider(height: 1),
                 _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false),
                 const Divider(height: 1),
@@ -615,6 +618,69 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildExpandableAddressMenu(AuthProvider auth) {
+    final address = auth.user?['address'] ?? "Alamat belum diatur";
+    final lat = auth.user?['lat'] ?? "-";
+    final lng = auth.user?['lng'] ?? "-";
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: () => setState(() => _isAddressExpanded = !_isAddressExpanded),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.mapPin, size: 18, color: darkText),
+                const SizedBox(width: 12),
+                Text("Alamat Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                const Spacer(),
+                Icon(_isAddressExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: _isAddressExpanded
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(46, 0, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(address, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(LucideIcons.locateFixed, size: 10, color: primaryTeal),
+                          const SizedBox(width: 4),
+                          Text("GPS: $lat, $lng", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () {}, // Future: Update Location
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryTeal.withOpacity(0.1),
+                          foregroundColor: primaryTeal,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          minimumSize: const Size(0, 24),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        ),
+                        child: Text("Ubah Lokasi GPS", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold)),
+                      )
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 

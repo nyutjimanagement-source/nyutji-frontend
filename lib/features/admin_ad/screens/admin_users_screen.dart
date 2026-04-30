@@ -6,15 +6,60 @@ import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import 'admin_approval.dart';
 
-class AdminUsersScreen extends StatelessWidget {
+class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
 
+  @override
+  State<AdminUsersScreen> createState() => _AdminUsersScreenState();
+}
+
+class _AdminUsersScreenState extends State<AdminUsersScreen> {
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color bgColor = Color(0xFFF3F4F6);
   static const Color darkGray = Color(0xFF111827);
 
+  bool _isPricingExpanded = false;
+  bool _isEditingPricing = false;
+  bool _isLoadingPricing = false;
+  List<Map<String, dynamic>> _courierPricings = [];
+
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    _fetchCourierPricing();
+  }
+
+  Future<void> _fetchCourierPricing() async {
+    setState(() => _isLoadingPricing = true);
+    try {
+      final api = ApiService();
+      final res = await api.getCourierPricing(); // I'll add this to ApiService
+      if (res['status'] == 'success') {
+        setState(() {
+          _courierPricings = List<Map<String, dynamic>>.from(res['data']);
+        });
+      }
+    } catch (e) {
+      debugPrint("Gagal fetch pricing: $e");
+    } finally {
+      setState(() => _isLoadingPricing = false);
+    }
+  }
+
+  Future<void> _saveCourierPricing() async {
+    setState(() => _isLoadingPricing = true);
+    try {
+      final api = ApiService();
+      await api.updateCourierPricing(_courierPricings);
+      _isEditingPricing = false;
+      NyutjiNotif.showSuccess(context, "Harga kurir berhasil disimpan");
+      _fetchCourierPricing();
+    } catch (e) {
+      NyutjiNotif.showError(context, "Gagal simpan harga: $e");
+    } finally {
+      setState(() => _isLoadingPricing = false);
+    }
+  }
     return Container(
       color: bgColor,
       child: SingleChildScrollView(
@@ -29,6 +74,8 @@ class AdminUsersScreen extends StatelessWidget {
             _buildApprovalSection(context),
             const SizedBox(height: 24),
             _buildAdminStatsGrid(context),
+            const SizedBox(height: 24),
+            _buildCourierPricingCard(),
             const SizedBox(height: 24),
             _buildUserManagementGrid(context),
             const SizedBox(height: 40),
@@ -539,6 +586,194 @@ class AdminUsersScreen extends StatelessWidget {
           Icon(icon, color: color, size: 16),
           const SizedBox(width: 8),
           Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkGray)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCourierPricingCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: () => setState(() => _isPricingExpanded = !_isPricingExpanded),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.orange[50], shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.truck, color: Colors.orange, size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Harga per Km Kurir", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
+                          Text("Atur tarif dinamis sistem", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    if (_isEditingPricing)
+                      IconButton(
+                        icon: const Icon(LucideIcons.save, color: Colors.green, size: 20),
+                        onPressed: _saveCourierPricing,
+                      )
+                    else
+                      IconButton(
+                        icon: const Icon(LucideIcons.edit, color: primaryTeal, size: 20),
+                        onPressed: () => setState(() => _isEditingPricing = true),
+                      ),
+                    Icon(_isPricingExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 18, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _isPricingExpanded
+                  ? Column(
+                      children: [
+                        const Divider(height: 1),
+                        if (_isLoadingPricing)
+                          const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: primaryTeal))
+                        else if (_courierPricings.isEmpty)
+                          _buildEmptyPricingState()
+                        else
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _courierPricings.length,
+                            itemBuilder: (context, index) {
+                              return _buildPricingRow(_courierPricings[index], index);
+                            },
+                          ),
+                        _buildAddPricingBtn(),
+                        const SizedBox(height: 16),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyPricingState() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Text("Belum ada aturan harga.", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddPricingBtn() {
+    if (!_isEditingPricing) return const SizedBox.shrink();
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _courierPricings.add({
+            'id': 'temp_${DateTime.now().millisecondsSinceEpoch}',
+            'sessionName': 'Pagi',
+            'basePrice': 5000,
+            'multiplier': 1.0,
+            'dayType': 'WEEKDAY',
+            'isActive': true,
+          });
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(color: primaryTeal.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: primaryTeal.withOpacity(0.1))),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(LucideIcons.plusCircle, size: 16, color: primaryTeal),
+            const SizedBox(width: 8),
+            Text("Tambah Aturan Harga", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPricingRow(Map<String, dynamic> item, int index) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[50]!))),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: _isEditingPricing
+                ? DropdownButton<String>(
+                    value: item['sessionName'],
+                    isDense: true,
+                    style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkGray),
+                    underline: const SizedBox(),
+                    items: ['Pagi', 'Siang', 'Sore', 'Malam'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                    onChanged: (val) => setState(() => item['sessionName'] = val),
+                  )
+                : Text(item['sessionName'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkGray)),
+          ),
+          Expanded(
+            flex: 2,
+            child: _isEditingPricing
+                ? TextFormField(
+                    initialValue: item['basePrice'].toString(),
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
+                    decoration: const InputDecoration(isDense: true, border: InputBorder.none, prefixText: 'Rp '),
+                    onChanged: (val) => item['basePrice'] = double.tryParse(val) ?? 0,
+                  )
+                : Text("Rp ${item['basePrice']}", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+          ),
+          Expanded(
+            flex: 2,
+            child: _isEditingPricing
+                ? DropdownButton<String>(
+                    value: item['dayType'],
+                    isDense: true,
+                    style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                    underline: const SizedBox(),
+                    items: ['WEEKDAY', 'WEEKEND', 'HOLIDAY'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                    onChanged: (val) => setState(() => item['dayType'] = val),
+                  )
+                : Text(item['dayType'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600])),
+          ),
+          if (_isEditingPricing)
+            IconButton(
+              icon: const Icon(LucideIcons.trash2, color: Colors.red, size: 16),
+              onPressed: () {
+                setState(() {
+                  if (item['id'].toString().startsWith('temp')) {
+                    _courierPricings.removeAt(index);
+                  } else {
+                     // Need delete API
+                     final api = ApiService();
+                     api.deleteCourierPricing(item['id']);
+                     _courierPricings.removeAt(index);
+                  }
+                });
+              },
+            )
         ],
       ),
     );
