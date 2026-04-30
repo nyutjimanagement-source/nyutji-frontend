@@ -348,7 +348,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   Widget _buildActiveTrackingBanner(Map<String, dynamic> currentT) {
     return Consumer<OrderProvider>(
       builder: (context, orderProv, _) {
-        if (orderProv.activeOrders.isEmpty) return const SizedBox.shrink();
+        if (orderProv.activeOrders.isEmpty) {
+          return const SizedBox.shrink();
+        }
         
         final latestOrder = orderProv.activeOrders.first;
         String statusMsg = "Pesanan ${latestOrder['id']} : ${latestOrder['status']}";

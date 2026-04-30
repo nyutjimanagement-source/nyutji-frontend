@@ -323,7 +323,10 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                   'mitra_category': selectedCategory,
                                 });
 
-                                if (!mounted) return;
+                                if (!mounted) {
+                                  return;
+                                }
+                                
                                 if (errorMsg == null) {
                                   NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Menunggu Approval Admin.');
                                   Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);

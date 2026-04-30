@@ -346,11 +346,17 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
     ];
 
     int mappedProgress = 0;
-    if (currentProgress >= 8)      mappedProgress = 5;
-    else if (currentProgress >= 7) mappedProgress = 4;
-    else if (currentProgress >= 5) mappedProgress = 3;
-    else if (currentProgress >= 4) mappedProgress = 2;
-    else if (currentProgress >= 3) mappedProgress = 1;
+    if (currentProgress >= 8) {
+      mappedProgress = 5;
+    } else if (currentProgress >= 7) {
+      mappedProgress = 4;
+    } else if (currentProgress >= 5) {
+      mappedProgress = 3;
+    } else if (currentProgress >= 4) {
+      mappedProgress = 2;
+    } else if (currentProgress >= 3) {
+      mappedProgress = 1;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),

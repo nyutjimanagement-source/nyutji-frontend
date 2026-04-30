@@ -65,12 +65,16 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
     LocationPermission permission;
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    if (!serviceEnabled) {
+      return;
+    }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+      if (permission == LocationPermission.denied) {
+        return;
+      }
     }
 
     final pos = await Geolocator.getCurrentPosition();
@@ -230,7 +234,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
                         ),
                         child: TextField(
                           controller: _searchController,
@@ -253,7 +257,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
                           ),
                           child: ListView.separated(
                             shrinkWrap: true,
@@ -304,7 +308,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 30, offset: const Offset(0, -10))],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 30, offset: const Offset(0, -10))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +317,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           children: [
                             Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(color: const Color(0xFF1E5655).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                              decoration: BoxDecoration(color: const Color(0xFF1E5655).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                               child: const Icon(LucideIcons.navigation, size: 16, color: Color(0xFF1E5655)),
                             ),
                             const SizedBox(width: 12),

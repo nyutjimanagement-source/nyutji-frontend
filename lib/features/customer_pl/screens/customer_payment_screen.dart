@@ -80,7 +80,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   }
 
   double _haversine(double lat1, double lon1, double lat2, double lon2) {
-    if (lat1 == 0 || lat2 == 0) return 0.1;
+    if (lat1 == 0 || lat2 == 0) {
+      return 0.1;
+    }
     var p = 0.017453292519943295;
     var a = 0.5 - cos((lat2 - lat1) * p) / 2 +
         cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
@@ -172,7 +174,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   }
 
   Future<void> _handleConfirmOrder(int grandTotal) async {
-    if (_isSubmitting) return;
+    if (_isSubmitting) {
+      return;
+    }
 
     final auth = context.read<AuthProvider>();
     final orderProv = context.read<OrderProvider>();
@@ -215,7 +219,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
       final success = await orderProv.createOrder(payload);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (success) {
         _showBeautifulNotif("Pesanan Berhasil Dikonfirmasi & Disimpan!", true);
