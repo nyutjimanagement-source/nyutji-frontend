@@ -13,7 +13,7 @@ class CourierHistoryScreen extends StatefulWidget {
 
 class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
   final Color primaryTeal = const Color(0xFF286B6A);
-  final Color bgColor = const Color(0xFFF8F4E6);
+  final Color bgColor = const Color(0xFFF3F4F6);
   final Color textDark = const Color(0xFF2D2A26);
   final Color textGrey = const Color(0xFF78716C);
 

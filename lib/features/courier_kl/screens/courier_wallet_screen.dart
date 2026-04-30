@@ -12,7 +12,7 @@ class CourierWalletScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const Color primaryTeal = Color(0xFF286B6A);
-    const Color bgColor = Color(0xFFF8F4E6);
+    const Color bgColor = Color(0xFFF3F4F6);
     const Color textDark = Color(0xFF2D2A26);
     const Color textGrey = Color(0xFF78716C);
     
