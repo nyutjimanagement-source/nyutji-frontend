@@ -214,6 +214,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                   return;
                                 }
 
+                                final navigator = Navigator.of(context);
                                 final errorMsg = await auth.register({
                                   'name': nameController.text,
                                   'email': emailController.text,
@@ -229,7 +230,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                 if (!mounted) return;
                                 if (errorMsg == null) {
                                   NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Hubungi Mitra untuk Approval.');
-                                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                                  navigator.pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
                                   NyutjiNotif.showError(context, errorMsg);
                                 }

@@ -678,8 +678,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                   Consumer<AuthProvider>(
                     builder: (context, auth, _) => GestureDetector(
                       onTap: () async {
+                        final navigator = Navigator.of(context);
                         await auth.logout();
-                        if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                        if (!mounted) return;
+                        navigator.pushReplacementNamed('/login');
                       },
                       child: _buildMenuItem(LucideIcons.logOut, "Tutup Sesi (Logout)", true),
                     ),

@@ -58,6 +58,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
           opCityController.text = result.city;
         }
       });
+      if (!mounted) return;
       NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.subdistrict}");
     }
   }
@@ -308,13 +309,14 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                   return;
                                 }
 
+                                final navigator = Navigator.of(context);
                                 final errorMsg = await auth.register({
                                   'name': nameController.text,
                                   'email': emailController.text,
                                   'phone_number': phoneController.text,
                                   'password': passController.text,
                                   'role': 'ML',
-                                  'owner_address': ownerAddressController.text + (ownerDetailController.text.isNotEmpty ? ', ' + ownerDetailController.text : ''),
+                                  'owner_address': '${ownerAddressController.text}${ownerDetailController.text.isNotEmpty ? ', ${ownerDetailController.text}' : ''}',
                                   'owner_district_name': ownerDistrict,
                                   'owner_city_name': ownerCity,
                                   'districtName': opKecController.text,
@@ -323,13 +325,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                   'mitra_category': selectedCategory,
                                 });
 
-                                if (!mounted) {
-                                  return;
-                                }
+                                if (!mounted) return;
                                 
                                 if (errorMsg == null) {
                                   NyutjiNotif.showSuccess(context, 'Registrasi Berhasil! Menunggu Approval Admin.');
-                                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                                  navigator.pushNamedAndRemoveUntil('/login', (route) => false);
                                 } else {
                                   NyutjiNotif.showError(context, errorMsg);
                                 }
