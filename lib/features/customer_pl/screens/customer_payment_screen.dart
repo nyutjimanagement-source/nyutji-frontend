@@ -193,10 +193,10 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       // Bangun payload item sesuai format backend
       final items = widget.selectedItemsList.map((item) => {
         'category': item['category'] ?? 'Umum',
-        'itemName': item['name'] ?? '',
+        'item_name': item['name'] ?? '',
         'qty': item['count'] ?? 1,
         'unit': item['unit'] ?? 'pcs',
-        'pricePerUnit': item['price'] ?? 0,
+        'price_per_unit': item['price'] ?? 0,
         'notes': '',
       }).toList();
 
@@ -205,17 +205,18 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
 
       final payload = {
-        'districtName': widget.districtName,
-        'city': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
+        'address': widget.address, // Tambahkan Alamat Lengkap!
+        'district_name': widget.districtName,
+        'city_name': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
         'items': items,
         'lat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
         'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
-        'isFastTrack': isFastTrack,
-        'servicePrice': widget.totalPrice,
-        'deliveryFee': deliveryFee,
+        'is_fast_track': isFastTrack,
+        'service_price': widget.totalPrice,
+        'delivery_fee': deliveryFee,
         'delivery_type': deliveryType,
-        'mitraId': widget.mitraId,
-        'distance': _calculatedDistance, // Kirim jarak agar backend bisa validasi biaya kurir
+        'mitra_id': widget.mitraId,
+        'distance': _calculatedDistance,
       };
 
       final success = await orderProv.createOrder(payload);
