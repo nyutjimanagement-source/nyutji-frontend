@@ -471,7 +471,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                             )
                                           ),
                                       ) 
-                                    : null)
+                                    : Icon(LucideIcons.user, color: primaryTeal, size: 20))
                             : (localPhoto != null
                               ? Container(decoration: BoxDecoration(shape: BoxShape.circle, image: DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)))
                               : (photoUrl != null && photoUrl.toString().isNotEmpty)
@@ -487,14 +487,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                             fit: BoxFit.cover
                                           )
                                         ),
-                                    ) 
-                                  : null),
-                        child: (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
-                          ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
-                          : null,
+                                  : Icon(LucideIcons.user, color: primaryTeal, size: 20)),
                       ),
                     );
-                  }
+                  },
                 ),
                 const SizedBox(width: 12),
                 Expanded(

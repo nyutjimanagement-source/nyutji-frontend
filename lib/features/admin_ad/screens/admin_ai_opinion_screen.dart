@@ -393,7 +393,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
                       Container(
                         width: 24, height: 24,
                         decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
-                        child: Center(child: Text(item['user'][0].toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
+                        child: Center(child: Text(item['user'][0].toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
                       ),
                       const SizedBox(width: 8),
                       Text(item['user'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey[800])),

@@ -146,7 +146,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(LucideIcons.shieldCheck, color: accentGold, size: 24),
+                    child: Icon(LucideIcons.shieldCheck, color: accentGold, size: 24),
                   ),
                   const SizedBox(width: 16),
                   Column(
@@ -338,7 +338,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.15), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.listOrdered, color: accentGold, size: 24),
+                      child: Icon(LucideIcons.listOrdered, color: accentGold, size: 24),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -646,7 +646,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(LucideIcons.user, size: 32, color: accentGold),
+                        child: Icon(LucideIcons.user, size: 32, color: accentGold),
                       ),
                       const SizedBox(width: 16),
                       Column(
