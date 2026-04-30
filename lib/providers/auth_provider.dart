@@ -366,4 +366,37 @@ class AuthProvider with ChangeNotifier {
     }
     return false;
   }
+
+  // UPDATE LOKASI (UMUM UNTUK PL/ML/KL)
+  Future<bool> updateLocation(Map<String, dynamic> locData) async {
+    try {
+      // 1. Update ke Backend
+      final res = await ApiService().updateLocation({
+        'address': locData['address'],
+        'district_name': locData['district_name'],
+        'city_name': locData['city_name'],
+        'lat': locData['lat'],
+        'lng': locData['lng'],
+      });
+
+      if (res['message'] != null || res['status'] == 'success') {
+        // 2. Update Local State _user
+        if (_user != null) {
+          _user!['address'] = locData['address'];
+          _user!['district_name'] = locData['district_name'];
+          _user!['city_name'] = locData['city_name'];
+          _user!['lat'] = locData['lat'];
+          _user!['lng'] = locData['lng'];
+          
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(_user));
+        }
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint("Gagal update lokasi di AuthProvider: $e");
+    }
+    return false;
+  }
 }

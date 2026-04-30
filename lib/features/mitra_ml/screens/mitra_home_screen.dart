@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
@@ -53,7 +54,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     _pageController = PageController(initialPage: _selectedIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
-      auth.fetchWallet();
+      context.read<WalletProvider>().fetchWallet();
       auth.fetchCouriers();
       auth.fetchPendingApprovals();
 
@@ -647,10 +648,6 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   }
 
   Widget _buildExpandableAddressMenu(AuthProvider auth) {
-    final address = auth.user?['address'] ?? "Alamat belum diatur";
-    final lat = auth.user?['lat'] ?? "-";
-    final lng = auth.user?['lng'] ?? "-";
-
     return Column(
       children: [
         InkWell(
