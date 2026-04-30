@@ -34,26 +34,30 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      final success = await context.read<IssueProvider>().reportIssue(
+      final messenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
+      final issueProv = context.read<IssueProvider>();
+
+      final success = await issueProv.reportIssue(
         _issueType,
         _descriptionController.text,
         _priority,
       );
 
+      if (!mounted) return;
+
       if (success) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Laporan berhasil dikirim!'),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        navigator.pop();
       } else {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
-            content: Text('Gagal: ${context.read<IssueProvider>().error}'),
+            content: Text('Gagal: ${issueProv.error}'),
             backgroundColor: Colors.red,
           ),
         );
