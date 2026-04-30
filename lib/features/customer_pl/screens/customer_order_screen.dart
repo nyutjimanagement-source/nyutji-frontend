@@ -931,7 +931,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                           selectedItems.add({
                             'name': item['name'], 
                             'count': count, 
-                            'unit': unitDisplay
+                            'unit': unitDisplay,
+                            'price': isFast ? pFast : pReg,
+                            'category': item['category'] ?? 'Umum',
                           });
                         }
                       } catch (e) {

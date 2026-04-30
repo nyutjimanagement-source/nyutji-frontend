@@ -208,13 +208,14 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         'districtName': widget.districtName,
         'city': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
         'items': items,
-        'lat': widget.lat != 0.0 ? widget.lat : double.tryParse(auth.user?['lat']?.toString() ?? ''),
-        'lng': widget.lng != 0.0 ? widget.lng : double.tryParse(auth.user?['lng']?.toString() ?? ''),
+        'lat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
+        'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
         'isFastTrack': isFastTrack,
         'servicePrice': widget.totalPrice,
         'deliveryFee': deliveryFee,
         'delivery_type': deliveryType,
         'mitraId': widget.mitraId,
+        'distance': _calculatedDistance, // Kirim jarak agar backend bisa validasi biaya kurir
       };
 
       final success = await orderProv.createOrder(payload);
