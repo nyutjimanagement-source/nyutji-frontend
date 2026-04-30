@@ -205,9 +205,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
 
       final payload = {
-        'address': widget.address, // Tambahkan Alamat Lengkap!
-        'district_name': widget.districtName,
-        'city_name': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
+        'address': widget.address,
+        'districtName': widget.districtName, // Kembali ke CamelCase sesuai referensi sukses
+        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya', // Sesuai referensi sukses
         'items': items,
         'lat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
         'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
