@@ -259,7 +259,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
               children: [
                 _buildDenseInvoice(courierFee, grandTotal),
                 const SizedBox(height: 16),
-                _buildPaymentMenu(),
+                _buildPaymentMenu(balanceText),
               ],
             ),
           ),
@@ -435,7 +435,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     );
   }
 
-  Widget _buildPaymentMenu() {
+  Widget _buildPaymentMenu(String balanceText) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white, 
