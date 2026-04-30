@@ -487,6 +487,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                             fit: BoxFit.cover
                                           )
                                         ),
+                                    ) 
                                   : Icon(LucideIcons.user, color: primaryTeal, size: 20)),
                       ),
                     );
@@ -609,7 +610,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Consumer<WalletProvider>(
+          Consumer<WalletProvider>(
               builder: (context, wallet, _) => _buildStatCol("Pendapatan", Formatters.currencyIdr(wallet.balance), LucideIcons.wallet, Colors.green[700]!),
             ),
             Container(width: 1, height: 30, color: Colors.grey[200]),
