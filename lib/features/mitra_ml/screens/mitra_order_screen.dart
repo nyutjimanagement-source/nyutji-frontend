@@ -92,7 +92,7 @@ class MitraOrderScreen extends StatefulWidget {
   const MitraOrderScreen({super.key});
 
   @override
-  _MitraOrderScreenState createState() => _MitraOrderScreenState();
+  State<MitraOrderScreen> createState() => _MitraOrderScreenState();
 }
 
 class _MitraOrderScreenState extends State<MitraOrderScreen> {
@@ -104,7 +104,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   String currentFilter = "Semua";
 
   void _advanceOrder(Order order) {
-    final prevStatus = order.status;
     int nextIdx = OrderStatus.values.indexOf(order.status) + 1;
     if (nextIdx < OrderStatus.values.length) {
       setState(() {
@@ -216,7 +215,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   Widget _buildDenseOrderRow(Order o) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+        borderRadius: BorderRadius.circular(10), 
+        border: Border.all(color: Colors.grey[200]!)
+      ),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,

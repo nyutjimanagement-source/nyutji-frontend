@@ -51,7 +51,7 @@ class AdminIssuesScreen extends StatelessWidget {
         children: [
           Positioned(
             right: -20, top: -20,
-            child: Icon(LucideIcons.alertCircle, size: 140, color: Colors.white.withOpacity(0.05)),
+            child: Icon(LucideIcons.alertCircle, size: 140, color: Colors.white.withValues(alpha: 0.05)),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +137,7 @@ class AdminIssuesScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
       ),
       child: Icon(icon, color: darkGray, size: 20),
     );
@@ -244,7 +244,7 @@ class AdminIssuesScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

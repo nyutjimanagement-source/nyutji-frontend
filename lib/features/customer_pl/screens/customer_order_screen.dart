@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -331,7 +331,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   Widget _buildAddressSection(Map<String, dynamic> cT, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -419,7 +419,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
         child: Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
       ),
     );
@@ -451,7 +451,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           border: isSelected ? Border.all(color: primaryTeal, width: 2) : Border.all(color: Colors.transparent, width: 2),
           boxShadow: [
             BoxShadow(
-              color: isSelected ? primaryTeal.withOpacity(0.3) : Colors.black.withOpacity(0.08),
+              color: isSelected ? primaryTeal.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.08),
               blurRadius: 12, offset: const Offset(0, 6)
             )
           ],
@@ -490,9 +490,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     gradient: LinearGradient(
                       // GRADASI SUPER MEWAH: Transisi sangat halus dari Kanan (Gelap) ke Kiri (Clear)
                       colors: [
-                        Colors.black.withOpacity(0.85), 
-                        Colors.black.withOpacity(0.5),
-                        Colors.black.withOpacity(0.1),
+                        Colors.black.withValues(alpha: 0.85), 
+                        Colors.black.withValues(alpha: 0.5),
+                        Colors.black.withValues(alpha: 0.1),
                         Colors.transparent
                       ],
                       begin: Alignment.centerRight,
@@ -615,33 +615,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     }
   }
 
-  Widget _locOption(String title, String desc, IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
-              child: Icon(icon, size: 16, color: primaryTeal),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
-                  Text(desc, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
-                ],
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildDenseSpeedSelector(Map<String, dynamic> cT) {
     return Container(
@@ -662,11 +636,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       onTap: () => setState(() => _serviceSpeed = id),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(color: isSel ? activeC.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: isSel ? activeC.withValues(alpha: 0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
         child: Column(
           children: [
             Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? activeC : Colors.grey[400])),
-            Text(desc, style: GoogleFonts.montserrat(fontSize: 9, color: isSel ? activeC.withOpacity(0.8) : Colors.grey[400])),
+            Text(desc, style: GoogleFonts.montserrat(fontSize: 9, color: isSel ? activeC.withValues(alpha: 0.8) : Colors.grey[400])),
           ],
         ),
       ),
@@ -699,7 +673,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
         child: Column(
           children: [
-            SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: primaryTeal.withOpacity(0.5))),
+            SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: primaryTeal.withValues(alpha: 0.5))),
             const SizedBox(height: 16),
             Text("Sedang mengambil daftar harga...", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
           ],
@@ -743,7 +717,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         curve: Curves.easeInOut,
         child: Container(
           width: double.infinity,
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20)]),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -801,7 +775,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     children: List.generate(chunks.length, (index) => Container(
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       width: 6, height: 6,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withOpacity(0.3)),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withValues(alpha: 0.3)),
                     )),
                   ),
                 ),
@@ -919,7 +893,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   Widget _buildCompactFooter(Map<String, dynamic> cT, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
+      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))]),
       child: Row(
         children: [
           Expanded(
@@ -979,7 +953,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 if (districtName.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Pilih Lokasi Penjemputan terlebih dahulu agar Kecamatan terisi.'),
+                      content: const Text('Pilih Lokasi Penjemputan terlebih dahulu agar Kecamatan terisi.'),
                       backgroundColor: Colors.red[700],
                       behavior: SnackBarBehavior.floating,
                     ),
