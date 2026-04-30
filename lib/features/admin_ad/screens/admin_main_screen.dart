@@ -363,7 +363,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(LucideIcons.inbox, size: 64, color: Colors.white24),
+                            const Icon(LucideIcons.inbox, size: 64, color: Colors.white24),
                             const SizedBox(height: 16),
                             Text(
                               "Nyutji Management - Tidak ada order",
@@ -387,9 +387,13 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
 
                           // Tentukan warna status
                           Color statusColor = Colors.grey;
-                          if (status.toLowerCase().contains('selesai')) statusColor = Colors.greenAccent;
-                          else if (status.toLowerCase().contains('batal')) statusColor = Colors.redAccent;
-                          else statusColor = Colors.blueAccent;
+                          if (status.toLowerCase().contains('selesai')) {
+                            statusColor = Colors.greenAccent;
+                          } else if (status.toLowerCase().contains('batal')) {
+                            statusColor = Colors.redAccent;
+                          } else {
+                            statusColor = Colors.blueAccent;
+                          }
 
                           return Container(
                             padding: const EdgeInsets.all(16),

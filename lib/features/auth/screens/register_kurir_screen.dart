@@ -48,6 +48,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
         searchKecController.text = result.subdistrict;
         cityController.text = result.city;
       });
+      if (!mounted) return;
       NyutjiNotif.showSuccess(context, "Lokasi terdeteksi: ${result.subdistrict}");
     }
   }
@@ -189,7 +190,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(LucideIcons.briefcase, size: 18, color: orangeRetro),
+                                  const Icon(LucideIcons.briefcase, size: 18, color: orangeRetro),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
