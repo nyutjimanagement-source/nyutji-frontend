@@ -11,6 +11,10 @@ class NyutjiNotif {
     _show(context, message, LucideIcons.alertCircle, const Color(0xFFC3312E));
   }
 
+  static void showInfo(BuildContext context, String message) {
+    _show(context, message, LucideIcons.info, const Color(0xFF286B6A));
+  }
+
   static void _show(BuildContext context, String message, IconData icon, Color color) {
     if (!context.mounted) return;
     final overlay = Overlay.of(context);

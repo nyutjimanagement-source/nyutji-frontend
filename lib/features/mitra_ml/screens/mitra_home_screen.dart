@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,7 +37,6 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   int _selectedIndex = 0;
   late PageController _pageController;
   bool isShopOpen = true;
-  bool _isCourierMenuExpanded = false;
   Timer? _pollingTimer;
 
   @override
@@ -546,6 +547,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
 
   // === PROFILE TAB (DENSE) ===
   Widget _buildProfileTab(Map<String, dynamic>? currentT) {
+    final auth = context.watch<AuthProvider>();
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(

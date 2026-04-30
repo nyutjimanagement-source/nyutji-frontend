@@ -4,7 +4,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
-import '../../../core/widgets/nyutji_location_picker.dart';
 
 class RegisterPelangganScreen extends StatefulWidget {
   const RegisterPelangganScreen({super.key});
@@ -105,9 +104,9 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2E7D32).withOpacity(0.1),
+                        color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.2), width: 2),
+                        border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.2), width: 2),
                       ),
                       child: const Icon(LucideIcons.user, size: 40, color: Color(0xFF2E7D32)),
                     ),
@@ -131,7 +130,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(32),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 30)],
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 30)],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +188,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+        hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
         prefixIcon: Icon(icon, size: 20, color: const Color(0xFF2E7D32)),
         suffixIcon: suffix ?? (isPass ? IconButton(
           icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),

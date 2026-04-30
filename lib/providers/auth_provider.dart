@@ -12,6 +12,7 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
   List<dynamic> _pendingApprovals = [];
   List<dynamic> _allUsers = [];
+  String? _lastErrorMessage;
 
   Map<String, dynamic>? _homeAddress;
   List<dynamic> _addressHistory = [];
@@ -33,6 +34,7 @@ class AuthProvider with ChangeNotifier {
   List<dynamic> get mitras => _mitras;
   Map<String, dynamic>? get homeAddress => _homeAddress;
   List<dynamic> get addressHistory => _addressHistory;
+  String? get lastErrorMessage => _lastErrorMessage;
 
   Future<void> fetchCouriers() async {
     try {
@@ -225,6 +227,11 @@ class AuthProvider with ChangeNotifier {
       }
     } catch (e) {
       _isLoading = false;
+      if (e is DioException) {
+        _lastErrorMessage = e.response?.data?['message']?.toString() ?? e.message;
+      } else {
+        _lastErrorMessage = e.toString();
+      }
       notifyListeners();
       debugPrint("Login Error: $e");
     }

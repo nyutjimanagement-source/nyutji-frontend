@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -21,7 +23,24 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   bool _isPricingExpanded = false;
   bool _isEditingPricing = false;
   bool _isLoadingPricing = false;
-  List<Map<String, dynamic>> _courierPricings = [];
+  final List<Map<String, dynamic>> _courierPricings = [
+    {
+      'id': 'dummy1',
+      'sessionName': 'Pagi',
+      'basePrice': 5000.0,
+      'multiplier': 1.0,
+      'dayType': 'WEEKDAY',
+      'isActive': true,
+    },
+    {
+      'id': 'dummy2',
+      'sessionName': 'Malam',
+      'basePrice': 7500.0,
+      'multiplier': 1.2,
+      'dayType': 'WEEKDAY',
+      'isActive': true,
+    }
+  ];
 
   @override
   void initState() {
@@ -30,36 +49,25 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   Future<void> _fetchCourierPricing() async {
-    setState(() => _isLoadingPricing = true);
-    try {
-      final api = ApiService();
-      final res = await api.getCourierPricing(); // I'll add this to ApiService
-      if (res['status'] == 'success') {
-        setState(() {
-          _courierPricings = List<Map<String, dynamic>>.from(res['data']);
-        });
-      }
-    } catch (e) {
-      debugPrint("Gagal fetch pricing: $e");
-    } finally {
-      setState(() => _isLoadingPricing = false);
-    }
+    // Mode Dummy: Tidak memanggil server
+    setState(() {
+      _isLoadingPricing = false;
+    });
   }
 
   Future<void> _saveCourierPricing() async {
     setState(() => _isLoadingPricing = true);
-    try {
-      final api = ApiService();
-      await api.updateCourierPricing(_courierPricings);
+    // Mode Dummy: Hanya simulasi simpan
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() {
       _isEditingPricing = false;
-      NyutjiNotif.showSuccess(context, "Harga kurir berhasil disimpan");
-      _fetchCourierPricing();
-    } catch (e) {
-      NyutjiNotif.showError(context, "Gagal simpan harga: $e");
-    } finally {
-      setState(() => _isLoadingPricing = false);
-    }
+      _isLoadingPricing = false;
+    });
+    NyutjiNotif.showSuccess(context, "Harga kurir (Dummy) berhasil disimpan");
   }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       color: bgColor,
       child: SingleChildScrollView(
@@ -763,14 +771,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               icon: const Icon(LucideIcons.trash2, color: Colors.red, size: 16),
               onPressed: () {
                 setState(() {
-                  if (item['id'].toString().startsWith('temp')) {
-                    _courierPricings.removeAt(index);
-                  } else {
-                     // Need delete API
-                     final api = ApiService();
-                     api.deleteCourierPricing(item['id']);
-                     _courierPricings.removeAt(index);
-                  }
+                  _courierPricings.removeAt(index);
                 });
               },
             )

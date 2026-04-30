@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/auth_provider.dart';
-
 import '../../../providers/order_provider.dart';
 import '../../../providers/simulasi_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
@@ -85,10 +83,10 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
               Container(
                 padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
-                  color: primaryTeal.withOpacity(0.08),
+                  color: primaryTeal.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(LucideIcons.package, size: 56, color: primaryTeal.withOpacity(0.5)),
+                child: Icon(LucideIcons.package, size: 56, color: primaryTeal.withValues(alpha: 0.5)),
               ),
               const SizedBox(height: 28),
               Text("Belum Ada Pesanan Aktif",
@@ -107,7 +105,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                   decoration: BoxDecoration(
                     color: primaryTeal,
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: [BoxShadow(color: primaryTeal.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 6))],
+                    boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))],
                   ),
                   child: Text("Buat Pesanan",
                     style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
@@ -142,13 +140,13 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.grey[100]!),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: primaryTeal.withOpacity(0.08), shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.08), shape: BoxShape.circle),
                     child: Icon(LucideIcons.package, color: primaryTeal, size: 22),
                   ),
                   const SizedBox(width: 16),
@@ -247,7 +245,6 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                             try {
                               final orderId = live['id']?.toString() ?? "NYJ-Sim";
                               final simProv = context.read<SimulasiProvider>();
-                              final orderProv = context.read<OrderProvider>();
                               
                               // 1. Settlement simulasi
                               simProv.konfirmTerima(orderId);
@@ -271,7 +268,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                             minimumSize: const Size(double.infinity, 56),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             elevation: 8,
-                            shadowColor: accentGreen.withOpacity(0.4),
+                            shadowColor: accentGreen.withValues(alpha: 0.4),
                           ),
                           child: Text("KONFIRMASI TERIMA CUCIAN", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 14)),
                         );
@@ -295,7 +292,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: primaryTeal.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+        boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
         gradient: LinearGradient(
           colors: [primaryTeal, const Color(0xFF13413F)],
           begin: Alignment.topLeft,
@@ -306,7 +303,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: const Icon(LucideIcons.packageCheck, color: Colors.white, size: 40),
           ),
           const SizedBox(height: 20),
@@ -332,7 +329,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
           ),
           const SizedBox(height: 8),
           Text("Update terakhir: Baru saja",
-            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withOpacity(0.6), fontWeight: FontWeight.w500)),
+            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withValues(alpha: 0.6), fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -407,7 +404,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
             color: isDone ? accentGreen : Colors.grey[50],
             shape: BoxShape.circle,
             boxShadow: isActive
-              ? [BoxShadow(color: accentGreen.withOpacity(0.4), blurRadius: 10, spreadRadius: 2)]
+              ? [BoxShadow(color: accentGreen.withValues(alpha: 0.4), blurRadius: 10, spreadRadius: 2)]
               : [],
           ),
           child: Icon(icon, size: 18, color: isDone ? Colors.white : Colors.grey[300]),
@@ -452,7 +449,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
           ),
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(LucideIcons.phone, size: 20, color: primaryTeal),
           ),
         ],

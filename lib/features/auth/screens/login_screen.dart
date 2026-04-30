@@ -89,10 +89,20 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacementNamed(context, targetRoute);
     } else {
       if (!mounted) return;
-      NyutjiNotif.showError(
-        context, 
-        auth.lang == 'id' ? 'Kredensial Salah!' : 'Invalid Credentials!'
-      );
+      
+      // LOGIKA NOTIFIKASI KHUSUS STATUS PENDING (KL & ML)
+      String errorMsg = auth.lastErrorMessage ?? "";
+      if (errorMsg.contains("PENDING")) {
+        NyutjiNotif.showInfo(
+          context, 
+          "Mohon Bersabar Ya, Akun Anda sedang Menunggu Approval. Selamat Bergabung dengan Nyutji Bersama"
+        );
+      } else {
+        final displayMsg = errorMsg.isNotEmpty 
+            ? errorMsg 
+            : (auth.lang == 'id' ? 'Kredensial Salah!' : 'Invalid Credentials!');
+        NyutjiNotif.showError(context, displayMsg);
+      }
     }
   }
 

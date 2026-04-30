@@ -35,7 +35,6 @@ class NyutjiPickupPicker extends StatefulWidget {
 
 class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
   static const _teal = Color(0xFF1E5655);
-  bool _isLoading = false;
 
   Future<void> _pickFromMap(AuthProvider auth) async {
     // Buka peta DI ATAS sheet yang masih terbuka — JANGAN pop dulu
@@ -174,14 +173,14 @@ class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
         decoration: BoxDecoration(
           color: enabled ? const Color(0xFFF0F7F7) : Colors.grey[50],
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: enabled ? _teal.withOpacity(0.15) : Colors.grey[200]!),
+          border: Border.all(color: enabled ? _teal.withValues(alpha: 0.15) : Colors.grey[200]!),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: enabled ? _teal.withOpacity(0.1) : Colors.grey[100],
+                color: enabled ? _teal.withValues(alpha: 0.1) : Colors.grey[100],
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 18, color: enabled ? _teal : Colors.grey[400]),
