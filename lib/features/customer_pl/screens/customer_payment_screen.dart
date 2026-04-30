@@ -152,7 +152,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             decoration: BoxDecoration(
               color: success ? primaryTeal : primaryRed,
               borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
             ),
             child: Row(
               children: [
@@ -307,7 +307,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       decoration: BoxDecoration(
         color: Colors.white, 
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,7 +321,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFF0F7F7),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF1E5655).withOpacity(0.12)),
+              border: Border.all(color: const Color(0xFF1E5655).withValues(alpha: 0.12)),
             ),
             child: Column(
               children: [
@@ -402,7 +402,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: primaryTeal.withOpacity(0.1),
+            color: primaryTeal.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, size: 12, color: primaryTeal),
@@ -440,7 +440,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       decoration: BoxDecoration(
         color: Colors.white, 
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,7 +519,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSel ? primaryTeal.withOpacity(0.05) : bgColor.withOpacity(0.5),
+          color: isSel ? primaryTeal.withValues(alpha: 0.05) : bgColor.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isSel ? primaryTeal : Colors.transparent),
         ),
@@ -546,14 +546,14 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
         ),
         child: ElevatedButton(
           onPressed: _isSubmitting ? null : () => _handleConfirmOrder(grandTotal),
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryTeal,
             foregroundColor: Colors.white,
-            disabledBackgroundColor: primaryTeal.withOpacity(0.6),
+            disabledBackgroundColor: primaryTeal.withValues(alpha: 0.6),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             elevation: 0,

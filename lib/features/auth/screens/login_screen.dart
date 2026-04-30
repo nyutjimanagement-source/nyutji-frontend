@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.6),
+                                color: Colors.white.withValues(alpha: 0.6),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: const Color(0xFFE5E5E5)),
                               ),
@@ -155,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF286B6A).withOpacity(0.1),
+                              color: const Color(0xFF286B6A).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -207,9 +207,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(32),
-                          border: Border.all(color: Colors.black.withOpacity(0.05)),
+                          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 30, offset: const Offset(0, 8))
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 30, offset: const Offset(0, 8))
                           ],
                         ),
                         child: ClipRRect(
@@ -406,8 +406,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.black.withOpacity(0.05)),
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+                              border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10)],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,7 +436,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           gradient: LinearGradient(
                                             begin: Alignment.topCenter,
                                             end: Alignment.bottomCenter,
-                                            colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
+                                            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
                                           ),
                                         ),
                                       ),
@@ -472,7 +472,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF286B6A),
                           borderRadius: BorderRadius.circular(32),
-                          boxShadow: [BoxShadow(color: const Color(0xFF286B6A).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                          boxShadow: [BoxShadow(color: const Color(0xFF286B6A).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
                         ),
                         child: Row(
                           children: [
@@ -493,7 +493,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(height: 8),
                                   Text(
                                     currentT['aboutDesc'],
-                                    style: GoogleFonts.montserrat(color: Colors.white.withOpacity(0.9), fontSize: 11, fontWeight: FontWeight.w500),
+                                    style: GoogleFonts.montserrat(color: Colors.white.withValues(alpha: 0.9), fontSize: 11, fontWeight: FontWeight.w500),
                                   ),
                                 ],
                               ),
@@ -501,7 +501,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Container(
                               width: 40,
                               height: 40,
-                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
                               child: const Icon(LucideIcons.chevronRight, color: Colors.white, size: 20),
                             ),
                           ],
@@ -540,8 +540,8 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: color.withOpacity(0.2), width: 1.5),
-              boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))],
+              border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))],
             ),
             child: Icon(icon, size: 22, color: color),
           ),

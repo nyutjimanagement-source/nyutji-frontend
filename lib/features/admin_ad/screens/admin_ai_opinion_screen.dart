@@ -231,7 +231,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
             children: [
               Positioned(
                 right: -20, top: -20,
-                child: Icon(LucideIcons.brainCircuit, size: 150, color: Colors.white.withOpacity(0.05)),
+                child: Icon(LucideIcons.brainCircuit, size: 150, color: Colors.white.withValues(alpha: 0.05)),
               )
             ],
           ),
@@ -258,7 +258,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20, offset: const Offset(0, 10))],
               ),
               child: Row(
                 children: [
@@ -286,7 +286,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
           const SizedBox(height: 12),
           Container(
             height: 4, width: 30,
-            decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(width: 30 * (value/100), height: 4, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10))),
@@ -321,7 +321,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 15, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: InkWell(
         onTap: () => _launchUrl(item['url'] ?? "https://google.com"),
@@ -329,7 +329,6 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Media Header (If Image/Video)
             if (item['type'] != 'text')
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -339,7 +338,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
                     if (item['type'] == 'video')
                       Positioned.fill(
                         child: Container(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           child: const Center(child: Icon(LucideIcons.playCircle, color: Colors.white, size: 50)),
                         ),
                       ),
@@ -347,7 +346,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
                       top: 12, right: 12,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(20)),
+                        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(20)),
                         child: Row(
                           children: [
                             Icon(item['icon'], size: 10, color: Colors.white),
@@ -393,8 +392,8 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
                     children: [
                       Container(
                         width: 24, height: 24,
-                        decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
-                        child: Center(child: Text(item['user'][0].toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
+                        decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+                        child: Center(child: Text(item['user'][0].toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
                       ),
                       const SizedBox(width: 8),
                       Text(item['user'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey[800])),
@@ -414,7 +413,7 @@ class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
   Widget _sentimentTag(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
       child: Text(label, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w800, color: color)),
     );
   }

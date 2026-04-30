@@ -120,9 +120,9 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: orangeRetro.withOpacity(0.1),
+                        color: orangeRetro.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: orangeRetro.withOpacity(0.2), width: 2),
+                        border: Border.all(color: orangeRetro.withValues(alpha: 0.2), width: 2),
                       ),
                       child: const Icon(LucideIcons.truck, size: 40, color: orangeRetro),
                     ),
@@ -148,8 +148,8 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: orangeRetro.withOpacity(0.2)),
-                        boxShadow: [BoxShadow(color: orangeRetro.withOpacity(0.05), blurRadius: 20)],
+                        border: Border.all(color: orangeRetro.withValues(alpha: 0.2)),
+                        boxShadow: [BoxShadow(color: orangeRetro.withValues(alpha: 0.05), blurRadius: 20)],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +185,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: orangeRetro.withOpacity(0.3)),
+                                border: Border.all(color: orangeRetro.withValues(alpha: 0.3)),
                               ),
                               child: Row(
                                 children: [
@@ -194,7 +194,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                   Expanded(
                                     child: Text(
                                       searchMitraController.text.isEmpty ? currentT['search_mitra'] : searchMitraController.text,
-                                      style: TextStyle(color: searchMitraController.text.isEmpty ? Colors.grey.withOpacity(0.5) : Colors.black87),
+                                      style: TextStyle(color: searchMitraController.text.isEmpty ? Colors.grey.withValues(alpha: 0.5) : Colors.black87),
                                     ),
                                   ),
                                   const Icon(LucideIcons.search, size: 18, color: Colors.grey),
@@ -273,7 +273,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+        hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
         prefixIcon: Icon(icon, size: 18, color: const Color(0xFFD35400)),
         suffixIcon: suffix ?? (isPass ? IconButton(
           icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
@@ -335,7 +335,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                   itemBuilder: (context, index) {
                     final m = filteredMitras[index];
                     return ListTile(
-                      leading: CircleAvatar(backgroundColor: const Color(0xFFD35400).withOpacity(0.1), child: const Icon(LucideIcons.store, color: Color(0xFFD35400), size: 16)),
+                      leading: CircleAvatar(backgroundColor: const Color(0xFFD35400).withValues(alpha: 0.1), child: const Icon(LucideIcons.store, color: Color(0xFFD35400), size: 16)),
                       title: Text(m['name'] ?? "Mitra Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
                       subtitle: Text("ID: ${m['id']} • ${m['phone_number'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
                       onTap: () {

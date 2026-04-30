@@ -136,7 +136,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
         children: [
           Positioned(
             right: -30, top: -20,
-            child: Icon(LucideIcons.globe, size: 140, color: Colors.white.withOpacity(0.05)),
+            child: Icon(LucideIcons.globe, size: 140, color: Colors.white.withValues(alpha: 0.05)),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -145,8 +145,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: accentGold.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-                    child: Icon(LucideIcons.shieldCheck, color: accentGold, size: 24),
+                    decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(LucideIcons.shieldCheck, color: accentGold, size: 24),
                   ),
                   const SizedBox(width: 16),
                   Column(
@@ -317,8 +317,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
           decoration: BoxDecoration(
             color: darkGray,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 40, spreadRadius: 10)],
-            border: Border(top: BorderSide(color: accentGold.withOpacity(0.3), width: 1)),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 40, spreadRadius: 10)],
+            border: Border(top: BorderSide(color: accentGold.withValues(alpha: 0.3), width: 1)),
           ),
           child: Column(
             children: [
@@ -337,8 +337,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: accentGold.withOpacity(0.15), shape: BoxShape.circle),
-                      child: Icon(LucideIcons.listOrdered, color: accentGold, size: 24),
+                      decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.15), shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.listOrdered, color: accentGold, size: 24),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -396,7 +396,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                             decoration: BoxDecoration(
                               color: secondaryDark,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.white.withOpacity(0.05)),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                             ),
                             child: Row(
                               children: [
@@ -434,9 +434,9 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: statusColor.withOpacity(0.1),
+                                        color: statusColor.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                                       ),
                                       child: Text(
                                         status.toUpperCase(),
@@ -464,7 +464,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       child: Container(
         height: 120,
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: primaryTeal.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]),
+        decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -639,21 +639,21 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                 children: [
                   Positioned(
                     right: -20, top: -20,
-                    child: Icon(LucideIcons.shieldCheck, size: 140, color: Colors.white.withOpacity(0.05)),
+                    child: Icon(LucideIcons.shieldCheck, size: 140, color: Colors.white.withValues(alpha: 0.05)),
                   ),
                   Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: accentGold.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                        child: Icon(LucideIcons.user, size: 32, color: accentGold),
+                        decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                        child: const Icon(LucideIcons.user, size: 32, color: accentGold),
                       ),
                       const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("SuperAdmin Nyutji", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-                          Text("ID: AD-CORE-001", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white.withOpacity(0.6), fontWeight: FontWeight.w600)),
+                          const Text("SuperAdmin Nyutji", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                          Text("ID: AD-CORE-001", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white.withValues(alpha: 0.6), fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ],
@@ -707,7 +707,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   // === BOTTOM NAV ===
   Widget _buildAdminNavbar() {
     return Container(
-      decoration: BoxDecoration(color: darkGray, border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05)))),
+      decoration: BoxDecoration(color: darkGray, border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05)))),
       child: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(LucideIcons.barChart, size: 18), label: "Beranda"),

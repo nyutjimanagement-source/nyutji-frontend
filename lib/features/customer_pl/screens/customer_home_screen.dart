@@ -90,7 +90,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             decoration: BoxDecoration(
               color: success ? primaryTeal : primaryRed,
               borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
             ),
             child: Row(
               children: [
@@ -215,7 +215,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         width: 40, height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle, 
-                          color: primaryTeal.withOpacity(0.1),
+                          color: primaryTeal.withValues(alpha: 0.1),
                           image: kIsWeb
                               ? (auth.temporaryWebBytes != null
                                   ? DecorationImage(image: MemoryImage(auth.temporaryWebBytes), fit: BoxFit.cover)
@@ -366,7 +366,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               color: Colors.blue[50], 
               borderRadius: BorderRadius.circular(12), 
               border: Border.all(color: Colors.blue[200]!),
-              boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))]
+              boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))]
             ),
             child: Row(
               children: [
@@ -403,7 +403,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         decoration: BoxDecoration(
           color: primaryTeal,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: primaryTeal.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+          boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -511,14 +511,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.grey[200]!),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4)]
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 4)]
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                  Container(
                    padding: const EdgeInsets.all(10),
-                   decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                   decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
                    child: Icon(icon, color: color, size: 22),
                  ),
                  const SizedBox(height: 8),
@@ -581,7 +581,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
-        image: DecorationImage(image: NetworkImage(imgUrl), fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.6), BlendMode.darken))
+        image: DecorationImage(image: NetworkImage(imgUrl), fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.6), BlendMode.darken))
       ),
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -631,13 +631,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 4)]
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 4)]
       ),
       child: Row(
         children: [
            Container(
              width: 42, height: 42,
-             decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+             decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
              child: ClipRRect(
                borderRadius: BorderRadius.circular(10),
                child: Image.network("https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=150&q=80", fit: BoxFit.cover,

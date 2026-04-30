@@ -144,7 +144,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF740006)), // Maroon accent
+                          icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF740006)),
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
@@ -154,9 +154,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF740006).withOpacity(0.05),
+                        color: const Color(0xFF740006).withValues(alpha: 0.05),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF740006).withOpacity(0.1), width: 2),
+                        border: Border.all(color: const Color(0xFF740006).withValues(alpha: 0.1), width: 2),
                       ),
                       child: const Icon(LucideIcons.store, size: 40, color: Color(0xFF740006)),
                     ),
@@ -181,8 +181,8 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: const Color(0xFF740006).withOpacity(0.1)),
-                        boxShadow: [BoxShadow(color: const Color(0xFF740006).withOpacity(0.02), blurRadius: 20)],
+                        border: Border.all(color: const Color(0xFF740006).withValues(alpha: 0.1)),
+                        boxShadow: [BoxShadow(color: const Color(0xFF740006).withValues(alpha: 0.02), blurRadius: 20)],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,7 +371,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+        hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
         prefixIcon: Icon(icon, size: 18, color: const Color(0xFF740006)),
         suffixIcon: suffix ?? (isPass ? IconButton(
           icon: Icon(obscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 18, color: Colors.grey),
@@ -392,7 +392,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF740006).withOpacity(0.05) : Colors.white,
+          color: isSelected ? const Color(0xFF740006).withValues(alpha: 0.05) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: isSelected ? const Color(0xFF740006) : Colors.grey[200]!, width: 2),
         ),
@@ -427,15 +427,15 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       style: TextStyle(color: readOnly ? Colors.grey[500] : Colors.black87),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+        hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
         suffixIcon: IconButton(
-          icon: Icon(onTap != null ? LucideIcons.map : LucideIcons.search, size: 18, color: onTap != null ? const Color(0xFF740006) : Colors.grey.withOpacity(0.5)),
+          icon: Icon(onTap != null ? LucideIcons.map : LucideIcons.search, size: 18, color: onTap != null ? const Color(0xFF740006) : Colors.grey.withValues(alpha: 0.5)),
           onPressed: onTap,
         ),
         prefixIcon: Icon(icon, size: 18, color: readOnly ? Colors.grey[400] : const Color(0xFF740006)),
         filled: true,
         fillColor: readOnly ? Colors.grey[100] : Colors.white,
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFF740006).withOpacity(0.2))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFF740006).withValues(alpha: 0.2))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF740006), width: 2)),
       ),
     );

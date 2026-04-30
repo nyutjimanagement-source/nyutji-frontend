@@ -231,7 +231,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             decoration: BoxDecoration(
               color: success ? primaryTeal : const Color(0xFFC3312E),
               borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
             ),
             child: Row(
               children: [
@@ -329,7 +329,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
               width: 42, height: 42,
               decoration: BoxDecoration(
                 shape: BoxShape.circle, 
-                color: primaryTeal.withOpacity(0.1),
+                color: primaryTeal.withValues(alpha: 0.1),
                 border: Border.all(color: Colors.grey[300]!, width: 1.5),
                 image: !forceIcon ? (kIsWeb
                   ? (auth?.temporaryWebBytes != null
@@ -451,34 +451,44 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         width: 42, height: 42,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle, 
-                          color: primaryTeal.withOpacity(0.1),
+                          color: primaryTeal.withValues(alpha: 0.1),
                           border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                          image: kIsWeb
+                        ),
+                        child: kIsWeb
                             ? (auth.temporaryWebBytes != null
-                                ? DecorationImage(image: MemoryImage(auth.temporaryWebBytes), fit: BoxFit.cover)
+                                ? Container(decoration: BoxDecoration(shape: BoxShape.circle, image: DecorationImage(image: MemoryImage(auth.temporaryWebBytes), fit: BoxFit.cover)))
                                 : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                    ? DecorationImage(
-                                        image: NetworkImage(
-                                          photoUrl.toString().startsWith('http') 
-                                            ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                            : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                        ), 
-                                        fit: BoxFit.cover
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          image: DecorationImage(
+                                              image: NetworkImage(
+                                                photoUrl.toString().startsWith('http') 
+                                                  ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                                  : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                              ), 
+                                              fit: BoxFit.cover
+                                            )
+                                          ),
                                       ) 
                                     : null)
                             : (localPhoto != null
-                              ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
+                              ? Container(decoration: BoxDecoration(shape: BoxShape.circle, image: DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)))
                               : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                  ? DecorationImage(
-                                      image: NetworkImage(
-                                        photoUrl.toString().startsWith('http') 
-                                          ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                          : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                      ), 
-                                      fit: BoxFit.cover
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                            image: NetworkImage(
+                                              photoUrl.toString().startsWith('http') 
+                                                ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                                : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                            ), 
+                                            fit: BoxFit.cover
+                                          )
+                                        ),
                                     ) 
                                   : null),
-                        ),
                         child: (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
                           ? Icon(LucideIcons.user, color: primaryTeal, size: 20) 
                           : null,
@@ -516,7 +526,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                 decoration: BoxDecoration(
-                  color: isOnline ? accentGreen.withOpacity(0.1) : Colors.red.withOpacity(0.1), 
+                  color: isOnline ? accentGreen.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1), 
                   borderRadius: BorderRadius.circular(12)
                 ),
                 child: Row(
@@ -529,9 +539,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         value: isOnline,
                         onChanged: (val) => setState(() => isOnline = val),
                         activeThumbColor: accentGreen,
-                        activeTrackColor: accentGreen.withOpacity(0.3),
+                        activeTrackColor: accentGreen.withValues(alpha: 0.3),
                         inactiveThumbColor: Colors.red,
-                        inactiveTrackColor: Colors.red.withOpacity(0.3),
+                        inactiveTrackColor: Colors.red.withValues(alpha: 0.3),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
@@ -598,7 +608,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.grey[200]!),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -621,7 +631,15 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       children: [
         Row(
           children: [
-            Icon(icon, size: 12, color: color),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+                boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))],
+              ),
+              child: Icon(icon, size: 12, color: color),
+            ),
             const SizedBox(width: 4),
             Text(label, style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600)),
           ],
@@ -681,9 +699,11 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         decoration: BoxDecoration(
-                          color: _tabController.index == 0 ? Colors.white : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: _tabController.index == 0 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 2))] : [],
+                          color: _tabController.index == 0 
+                              ? const Color(0xFF286B6A).withValues(alpha: 0.1) 
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: _tabController.index == 0 ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))] : [],
                         ),
                         child: Center(
                           child: Row(
@@ -716,9 +736,11 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         decoration: BoxDecoration(
-                          color: _tabController.index == 1 ? Colors.white : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: _tabController.index == 1 ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 2))] : [],
+                          color: _tabController.index == 1 
+                              ? const Color(0xFF286B6A).withValues(alpha: 0.1) 
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: _tabController.index == 1 ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))] : [],
                         ),
                         child: Center(
                           child: Row(
@@ -773,9 +795,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 4)],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10)],
       ),
       child: IntrinsicHeight(
         child: Row(
@@ -784,7 +806,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             // Status Strip Indicator
             Container(
               width: 8,
-              decoration: BoxDecoration(color: task.isUrgent ? Colors.red : primaryTeal, borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16))),
+              decoration: BoxDecoration(color: task.isUrgent ? Colors.red : primaryTeal, borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), bottomLeft: Radius.circular(20))),
             ),
             Expanded(
               child: Padding(
@@ -829,9 +851,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         GestureDetector(
                           onTap: () => _openMap(task.address),
                           child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
-                            child: Icon(LucideIcons.navigation, size: 14, color: Colors.blue[700]),
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.2), shape: BoxShape.circle),
+                            child: const Icon(LucideIcons.chevronRight, color: Color(0xFF286B6A), size: 20),
                           ),
                         )
                       ],
@@ -904,8 +927,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
+        border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
       ),
       child: BottomNavigationBar(
         items: <BottomNavigationBarItem>[

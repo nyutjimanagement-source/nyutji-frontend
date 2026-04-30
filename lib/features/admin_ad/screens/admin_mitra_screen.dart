@@ -84,7 +84,7 @@ class AdminMitraScreen extends StatelessWidget {
                   const Icon(LucideIcons.barChart, color: Colors.amber, size: 28),
                   const SizedBox(height: 8),
                   Text("Leveling ML", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber[800])),
-                  Text("Atur KPI & Syarat Naik Kelas", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.amber[900]?.withOpacity(0.8))),
+                  Text("Atur KPI & Syarat Naik Kelas", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.amber[900]?.withValues(alpha: 0.8))),
                 ],
               ),
             ),
@@ -99,7 +99,7 @@ class AdminMitraScreen extends StatelessWidget {
                   const Icon(LucideIcons.tags, color: Colors.blue, size: 28),
                   const SizedBox(height: 8),
                   Text("Kategori ML", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue[800])),
-                  Text("Kecil, Menengah, Enterprise", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.blue[900]?.withOpacity(0.8))),
+                  Text("Kecil, Menengah, Enterprise", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.blue[900]?.withValues(alpha: 0.8))),
                 ],
               ),
             ),
@@ -140,7 +140,7 @@ class AdminMitraScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
           child: Icon(icon, color: color, size: 16),
         ),
         const SizedBox(width: 12),
@@ -224,7 +224,7 @@ class AdminMitraScreen extends StatelessWidget {
     return Container(
       width: 220,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: color.withOpacity(0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.3))),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withValues(alpha: 0.3))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
