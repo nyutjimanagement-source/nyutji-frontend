@@ -382,6 +382,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                           final id = o['id']?.toString() ?? 'N/A';
                           final total = double.tryParse(o['total']?.toString() ?? '0') ?? 0.0;
                           final mitraId = o['mitra_identifier']?.toString() ?? o['mitra_id']?.toString() ?? '-';
+                          final customerId = o['customer_identifier']?.toString() ?? o['customer_id']?.toString() ?? '-';
                           final status = o['status']?.toString() ?? 'Pending';
 
                           // Tentukan warna status
@@ -416,9 +417,17 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(LucideIcons.store, size: 12, color: Colors.grey[500]),
+                                        Icon(LucideIcons.user, size: 10, color: Colors.grey[500]),
                                         const SizedBox(width: 4),
-                                        Text("ML: $mitraId", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w600)),
+                                        Text("PL: $customerId", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        Icon(LucideIcons.store, size: 10, color: Colors.grey[500]),
+                                        const SizedBox(width: 4),
+                                        Text("ML: $mitraId", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
                                       ],
                                     ),
                                     const SizedBox(height: 8),
