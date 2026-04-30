@@ -32,6 +32,14 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   bool _isCourierMenuExpanded = false;
   bool _isAddressExpanded = false;
 
+  // LOCATION UPDATE STATE
+  final TextEditingController _fullAddressController = TextEditingController();
+  String _selectedDistrict = "";
+  String _selectedCity = "";
+  double _selectedLat = 0.0;
+  double _selectedLng = 0.0;
+  bool _isUpdatingLocation = false;
+
   final ImagePicker _picker = ImagePicker();
 
   int _selectedIndex = 0;
@@ -44,9 +52,19 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WalletProvider>().fetchWallet();
-      context.read<AuthProvider>().fetchCouriers();
-      context.read<AuthProvider>().fetchPendingApprovals();
+      final auth = context.read<AuthProvider>();
+      auth.fetchWallet();
+      auth.fetchCouriers();
+      auth.fetchPendingApprovals();
+
+      // Inisialisasi controller dengan alamat user saat ini
+      if (auth.user != null) {
+        _fullAddressController.text = auth.user?['address']?.toString() ?? "";
+        _selectedDistrict = auth.user?['district_name']?.toString() ?? "";
+        _selectedCity = auth.user?['city_name']?.toString() ?? "";
+        _selectedLat = (auth.user?['lat'] as num?)?.toDouble() ?? 0.0;
+        _selectedLng = (auth.user?['lng'] as num?)?.toDouble() ?? 0.0;
+      }
     });
 
     // Auto-refresh data kurir tiap 5 detik
@@ -582,10 +600,10 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(auth.user?['name'] ?? "Berkah Laundry", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)),
-                          Text("ID: ${Formatters.nyutjiId('ML', auth.user?['id'], district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                          Text(auth.user?['name'] ?? "Berkah Laundry", style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: darkText)),
+                          Text("ID: ${Formatters.nyutjiId('ML', auth.user?['id'], district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 2),
-                          Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 10, color: primaryTeal, fontWeight: FontWeight.bold)),
+                          Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 12, color: primaryTeal, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     )
@@ -641,9 +659,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Icon(LucideIcons.mapPin, size: 18, color: darkText),
+                const Icon(LucideIcons.mapPin, size: 20, color: darkText),
                 const SizedBox(width: 12),
-                Text("Alamat Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Alamat Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
                 const Spacer(),
                 Icon(_isAddressExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
               ],
@@ -656,32 +674,88 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           child: _isAddressExpanded
               ? Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(46, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(address, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w500)),
+                      const Divider(),
                       const SizedBox(height: 8),
+                      // TEXT FIELD ALAMAT LENGKAP
+                      Text("Alamat Lengkap", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _fullAddressController,
+                        maxLines: 2,
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
+                        decoration: InputDecoration(
+                          hintText: "Masukkan Alamat Lengkap (Jl, No, Gang, dsb)",
+                          hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryTeal)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // INFO WILAYAH DARI GPS
                       Row(
                         children: [
-                          const Icon(LucideIcons.locateFixed, size: 10, color: primaryTeal),
-                          const SizedBox(width: 4),
-                          Text("GPS: $lat, $lng", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("WILAYAH (GPS)", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: textGrey)),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(LucideIcons.navigation, size: 12, color: primaryTeal),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        _selectedDistrict.isEmpty ? "Belum Set Lokasi" : "$_selectedDistrict, $_selectedCity", 
+                                        style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () => _showLocationPicker(auth),
+                            icon: const Icon(LucideIcons.locateFixed, size: 12),
+                            label: Text("UBAH GPS", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryTeal,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {}, // Future: Update Location
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryTeal.withValues(alpha: 0.1),
-                          foregroundColor: primaryTeal,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          minimumSize: const Size(0, 24),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      const SizedBox(height: 20),
+                      // TOMBOL UPDATE
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isUpdatingLocation ? null : () => _handleUpdateLocation(auth),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF59E0B),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 4,
+                            shadowColor: Colors.orange.withValues(alpha: 0.3),
+                          ),
+                          child: _isUpdatingLocation 
+                            ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : Text("UPDATE DATA LOKASI", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
-                        child: Text("Ubah Lokasi GPS", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold)),
-                      )
+                      ),
                     ],
                   ),
                 )
@@ -849,6 +923,57 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         auth.fetchPendingApprovals(),
         auth.fetchCouriers(),
       ]);
+    }
+  }
+
+  // --- LOGIKA UPDATE LOKASI MITRA ---
+  void _showLocationPicker(AuthProvider auth) async {
+    final result = await showModalBottomSheet<NyutjiLocationResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NyutjiLocationPicker(),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedDistrict = result.subdistrict;
+        _selectedCity = result.city;
+        _selectedLat = result.lat;
+        _selectedLng = result.lng;
+        // Opsional: Jika user belum isi alamat manual, kita bantu isi dari geocoder
+        if (_fullAddressController.text.isEmpty) {
+          _fullAddressController.text = result.address;
+        }
+      });
+      if(mounted) _showBeautifulNotif("Lokasi GPS terpilih: $_selectedDistrict", true);
+    }
+  }
+
+  Future<void> _handleUpdateLocation(AuthProvider auth) async {
+    if (_fullAddressController.text.isEmpty || _selectedDistrict.isEmpty) {
+      _showBeautifulNotif("Mohon isi Alamat dan Set Lokasi GPS!", false);
+      return;
+    }
+
+    setState(() => _isUpdatingLocation = true);
+    
+    final success = await auth.updateLocation({
+      'address': _fullAddressController.text,
+      'district_name': _selectedDistrict,
+      'city_name': _selectedCity,
+      'lat': _selectedLat,
+      'lng': _selectedLng,
+    });
+
+    if (mounted) {
+      setState(() => _isUpdatingLocation = false);
+      if (success) {
+        _showBeautifulNotif("Data Lokasi Mitra berhasil diperbarui!", true);
+        setState(() => _isAddressExpanded = false); // Tutup menu setelah sukses
+      } else {
+        _showBeautifulNotif("Gagal memperbarui data lokasi.", false);
+      }
     }
   }
 
