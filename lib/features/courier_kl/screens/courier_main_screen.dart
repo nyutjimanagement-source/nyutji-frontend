@@ -23,6 +23,27 @@ import '../../../core/widgets/nyutji_notif.dart';
 enum CourierTaskType { pickup, delivery }
 enum CourierTaskStatus { assigned, onTheWay, arrived, completed }
 
+// Model: Order tersedia di kecamatan KL
+class AvailableOrder {
+  final String id;
+  final int totalPrice;
+  final String pickupAddress;
+  final String mitraName;
+  final String mitraAddress;
+  final bool isFastTrack;
+  final double distanceKm;
+
+  AvailableOrder({
+    required this.id,
+    required this.totalPrice,
+    required this.pickupAddress,
+    required this.mitraName,
+    required this.mitraAddress,
+    required this.isFastTrack,
+    required this.distanceKm,
+  });
+}
+
 class CourierTask {
   final String id;
   final String customerName;
@@ -68,6 +89,15 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   final Color darkText = const Color(0xFF111827);
   final Color textGrey = const Color(0xFF6B7280);
   final ImagePicker _picker = ImagePicker();
+
+  // Dummy data: Order tersedia di kecamatan KL (sorted by harga tertinggi)
+  final List<AvailableOrder> _availableOrders = [
+    AvailableOrder(id: "KBY-001", totalPrice: 285000, pickupAddress: "Jl. Kemang Raya No.8", mitraName: "Berkah Laundry", mitraAddress: "Jl. Melati No.3, Kebayoran", isFastTrack: true, distanceKm: 1.2),
+    AvailableOrder(id: "KBY-002", totalPrice: 175000, pickupAddress: "Apartemen Melawai Lt.12", mitraName: "Bersih Jaya Laundry", mitraAddress: "Jl. Bintaro Permai Blok C", isFastTrack: false, distanceKm: 2.8),
+    AvailableOrder(id: "KBY-003", totalPrice: 140000, pickupAddress: "Ruko Grand Kebayoran Blok B", mitraName: "Kilat Bersih", mitraAddress: "Jl. Ciputat Raya No.22", isFastTrack: true, distanceKm: 0.9),
+    AvailableOrder(id: "KBY-004", totalPrice: 98000, pickupAddress: "Jl. Radio Dalam No.55", mitraName: "Laundry Express 24", mitraAddress: "Jl. Senopati No.7", isFastTrack: false, distanceKm: 3.5),
+    AvailableOrder(id: "KBY-005", totalPrice: 67000, pickupAddress: "Perumahan Pesanggrahan Blok D-12", mitraName: "Berkah Laundry", mitraAddress: "Jl. Melati No.3, Kebayoran", isFastTrack: false, distanceKm: 4.1),
+  ];
 
   List<CourierTask> tasks = [
     CourierTask(
@@ -424,6 +454,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           const SizedBox(height: 12),
           _buildCompactStatsPanel(),
           const SizedBox(height: 16),
+          _buildAvailableOrdersCard(),
+          const SizedBox(height: 16),
           _buildDenseTaskSection(currentT),
           const SizedBox(height: 40),
         ],
@@ -644,6 +676,223 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
         const SizedBox(height: 6),
         Text(value, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
       ],
+    );
+  }
+
+  // ============================================================
+  // === CARD ORDER TERSEDIA (PREMIUM MARKETPLACE) ==============
+  // ============================================================
+  Widget _buildAvailableOrdersCard() {
+    // Sort by harga tertinggi
+    final sorted = List<AvailableOrder>.from(_availableOrders)
+      ..sort((a, b) => b.totalPrice.compareTo(a.totalPrice));
+
+    final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(color: const Color(0xFF286B6A).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // HEADER
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(LucideIcons.zap, size: 16, color: Color(0xFFFFD700)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("ORDER TERSEDIA",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 11, fontWeight: FontWeight.w900,
+                            color: const Color(0xFFFFD700), letterSpacing: 1.5,
+                          ),
+                        ),
+                        Consumer<AuthProvider>(
+                          builder: (context, auth, _) => Text(
+                            "Kec. ${auth.user?['district_name'] ?? 'Wilayahmu'} • ${sorted.length} pesanan",
+                            style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
+                        const SizedBox(width: 4),
+                        Text("LIVE", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xFF10B981))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // LIST ORDER (scrollable vertikal, max 220px tinggi)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 280),
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                shrinkWrap: true,
+                itemCount: sorted.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final order = sorted[index];
+                  final isTop = index == 0;
+
+                  return GestureDetector(
+                    onTap: () {},
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isTop
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isTop
+                            ? const Color(0xFFFFD700).withValues(alpha: 0.4)
+                            : Colors.white.withValues(alpha: 0.1),
+                          width: isTop ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ROW 1: Total Harga + Badge
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                fmt.format(order.totalPrice),
+                                style: GoogleFonts.montserrat(
+                                  fontSize: isTop ? 22 : 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: isTop ? const Color(0xFFFFD700) : Colors.white,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (order.isFastTrack)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFF4500)]),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text("⚡ FAST", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white)),
+                                )
+                              else
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: Colors.white24),
+                                  ),
+                                  child: Text("REGULER", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white70)),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // ROW 2: Lokasi Jemput
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.mapPin, size: 11, color: Color(0xFF10B981)),
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text(order.pickupAddress,
+                                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          // ROW 3: Lokasi ML
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.store, size: 11, color: Color(0xFF60A5FA)),
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text("${order.mitraName} – ${order.mitraAddress}",
+                                  style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white60, fontWeight: FontWeight.w500),
+                                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          // ROW 4: Jarak + Tombol AMBIL
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.route, size: 11, color: Colors.white38),
+                              const SizedBox(width: 4),
+                              Text(
+                                "${order.distanceKm} km",
+                                style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w700),
+                              ),
+                              const Spacer(),
+                              GestureDetector(
+                                onTap: () => _showBeautifulNotif("Order #${order.id} berhasil diambil!", true),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                    boxShadow: [
+                                      BoxShadow(color: const Color(0xFF10B981).withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
+                                    ],
+                                  ),
+                                  child: Text("AMBIL",
+                                    style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
