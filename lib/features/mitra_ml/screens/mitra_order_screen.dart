@@ -6,86 +6,6 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 
-// --- MODELS ---
-
-enum OrderStatus { diterima, cuci, setrika, packing, kirim, selesai }
-
-class OrderItem {
-  final String name;
-  final double qty;
-  final String unit;
-
-  OrderItem({required this.name, required this.qty, required this.unit});
-}
-
-enum CustomerTier { vip, gold, reguler }
-
-class Order {
-  final String id;
-  final String customer;
-  final CustomerTier tier;
-  final String type;
-  OrderStatus status;
-  final double price;
-  final List<OrderItem> items;
-  final String notes;
-  String courier;
-  final DateTime deadline;
-
-  Order({
-    required this.id,
-    required this.customer,
-    required this.tier,
-    required this.type,
-    required this.status,
-    required this.price,
-    required this.items,
-    this.notes = "",
-    required this.courier,
-    required this.deadline,
-  });
-}
-
-// --- DUMMY DATA ---
-final List<Order> orders = [
-  Order(
-    id: "KBY-040426-001",
-    customer: "Ibu Rahmawati",
-    tier: CustomerTier.vip,
-    type: "Same Day",
-    status: OrderStatus.cuci,
-    items: [OrderItem(name: "Kemeja", qty: 3, unit: "pcs"), OrderItem(name: "Bed Cover", qty: 1, unit: "pcs")],
-    notes: "Tolong lipat rapi",
-    price: 85000,
-    courier: "Joko",
-    deadline: DateTime.now().add(const Duration(hours: 4)),
-  ),
-  Order(
-    id: "KBY-040426-002",
-    customer: "Bpk Santoso",
-    tier: CustomerTier.gold,
-    type: "Same Day",
-    status: OrderStatus.setrika,
-    items: [OrderItem(name: "Pakaian", qty: 2.5, unit: "kg")],
-    notes: "Merah dipisah",
-    price: 45000,
-    courier: "Anton",
-    deadline: DateTime.now().add(const Duration(hours: 6)),
-  ),
-  Order(
-    id: "KBY-040426-003",
-    customer: "Tiara",
-    tier: CustomerTier.reguler,
-    type: "Reguler",
-    status: OrderStatus.diterima,
-    items: [OrderItem(name: "Gorden", qty: 2, unit: "m")],
-    notes: "",
-    price: 120000,
-    courier: "Belum Ada",
-    deadline: DateTime.now().add(const Duration(days: 2)),
-  )
-];
-
 // --- MAIN SCREEN ---
 class MitraOrderScreen extends StatefulWidget {
   const MitraOrderScreen({super.key});
@@ -352,13 +272,17 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                           title: Text(k['name'] ?? "Kurir", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
                           trailing: const Icon(LucideIcons.chevronRight, size: 16, color: textGrey),
                           onTap: () async {
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
+                            final provider = context.read<OrderProvider>();
                             Navigator.pop(context);
-                            final success = await context.read<OrderProvider>().assignCourier(orderId, k['id']);
+                            
+                            final success = await provider.assignCourier(orderId, k['id']);
                             if (!mounted) return;
+                            
                             if (success) {
                               _showBeautifulNotif("Berhasil menunjuk kurir!", true);
                             } else {
-                              _showBeautifulNotif(context.read<OrderProvider>().errorMessage ?? "Gagal", false);
+                              _showBeautifulNotif(provider.errorMessage ?? "Gagal", false);
                             }
                           },
                         );
@@ -399,8 +323,10 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                   backgroundColor: isCurrent ? primaryTeal : Colors.grey[100],
                   labelStyle: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : textGrey),
                   onPressed: () async {
+                    final provider = context.read<OrderProvider>();
                     Navigator.pop(context);
-                    final success = await context.read<OrderProvider>().updateOrderStatus(orderId, s);
+                    final success = await provider.updateOrderStatus(orderId, s);
+                    if (!mounted) return;
                     if (success) {
                       _showBeautifulNotif("Status diperbarui ke $s", true);
                     }
