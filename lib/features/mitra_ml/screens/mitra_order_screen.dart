@@ -119,82 +119,364 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             orderId: order.id,
             biayaLaundry: order.price,
             biayaOngkir: 15000, // ongkir dummy
-          );
-        }
-        // Pickup dummy jika belum
-        if (!sim.ongkirPhase1Done) sim.pickupSelesai(order.id);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final filteredOrders = orders.where((o) => currentFilter == "Semua" || o.type == currentFilter || (currentFilter == "Baru" && o.status == OrderStatus.diterima)).toList();
-
     return Scaffold(
       backgroundColor: bgColor,
       appBar: _buildCompactAppbar(),
-      body: Column(
-        children: [
-          _buildCompactFilterStrip(),
-          Expanded(
+      body: Consumer<OrderProvider>(
+        builder: (context, orderProv, _) {
+          final liveOrders = orderProv.activeOrders;
+          
+          // Filter logic
+          final filtered = liveOrders.where((o) {
+            if (currentFilter == "Semua") return true;
+            if (currentFilter == "Baru") return o['status'] == 'SEARCHING' || o['status'] == 'WAITING_DROPOFF';
+            if (currentFilter == "Same Day") return o['is_fast_track'] == true || o['serviceType'] == 'SAME_DAY';
+            return true;
+          }).toList();
+
+          if (orderProv.isLoading && filtered.isEmpty) {
+            return const Center(child: CircularProgressIndicator(color: primaryTeal));
+          }
+
+          if (filtered.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(LucideIcons.clipboardList, size: 48, color: Colors.grey[300]),
+                  const SizedBox(height: 16),
+                  Text("Tidak ada pesanan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => orderProv.fetchOrders(),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
-              itemCount: filteredOrders.length,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+              itemCount: filtered.length,
               physics: const BouncingScrollPhysics(),
-              itemBuilder: (context, idx) => _buildDenseOrderRow(filteredOrders[idx]),
+              itemBuilder: (context, idx) => _buildPremiumOrderCard(filtered[idx]),
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPremiumOrderCard(dynamic o) {
+    final status = o['status']?.toString() ?? 'UNKNOWN';
+    final price = (o['total'] as num?)?.toDouble() ?? 0.0;
+    final orderId = o['id']?.toString() ?? '-';
+    final customerName = o['customer_name']?.toString() ?? 'Pelanggan';
+    final courierName = o['courier_name']?.toString() ?? 'Belum Ada';
+    final isFast = o['is_fast_track'] == true || o['service_type'] == 'SAME_DAY';
+    final createdAt = o['created_at'] != null ? DateTime.parse(o['created_at']) : DateTime.now();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           )
         ],
+        border: Border.all(color: Colors.grey[100]!),
       ),
+      child: Column(
+        children: [
+          // Header: ID & Status
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(orderId, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: textGrey, letterSpacing: 0.5)),
+                    const SizedBox(height: 2),
+                    Text(DateFormat('dd MMM yyyy, HH:mm').format(createdAt), style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[400], fontWeight: FontWeight.w500)),
+                  ],
+                ),
+                _buildStatusChip(status),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: Colors.grey[50]),
+          // Body: Customer & Items
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.user, color: primaryTeal, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: Text(customerName, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: darkText))),
+                          if (isFast) _buildBadge("FAST TRACK", Colors.orange),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(price),
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Footer: Courier & Actions
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(LucideIcons.truck, size: 14, color: textGrey),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("KURIR KL", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey[400])),
+                          Text(courierName, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: courierName == "Belum Ada" ? Colors.orange : darkText)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (status == 'SEARCHING' || status == 'WAITING_DROPOFF')
+                  _buildActionButton(
+                    "ASSIGN KURIR", 
+                    Colors.orange[700]!, 
+                    () => _showCourierPicker(orderId)
+                  )
+                else if (status != 'DONE' && status != 'selesai')
+                  _buildActionButton(
+                    "UPDATE STATUS", 
+                    primaryTeal, 
+                    () => _showStatusUpdater(orderId, status)
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color color = Colors.grey;
+    String label = status;
+
+    switch (status.toUpperCase()) {
+      case 'SEARCHING': color = Colors.orange; label = "MENCARI KURIR"; break;
+      case 'WAITING_DROPOFF': color = Colors.blue; label = "MENUNGGU DROP"; break;
+      case 'COURIER_ACCEPTED': color = Colors.indigo; label = "KURIR DIAMBIL"; break;
+      case 'PICKING_UP': color = Colors.teal; label = "DIJEMPUT"; break;
+      case 'WASH_START': color = Colors.blue; label = "DICUCI"; break;
+      case 'IN_PROGRESS': color = Colors.indigo; label = "PROSES"; break;
+      case 'PACKING': color = Colors.purple; label = "PACKING"; break;
+      case 'DELIVERING': color = Colors.teal; label = "DIANTAR"; break;
+      case 'DONE': case 'PAID': color = Colors.green; label = "SELESAI"; break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withValues(alpha: 0.3))),
+      child: Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: color)),
+    );
+  }
+
+  Widget _buildActionButton(String label, Color color, VoidCallback onTap) {
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color, foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+    );
+  }
+
+  void _showCourierPicker(String orderId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        padding: const EdgeInsets.all(24),
+        child: Consumer<AuthProvider>(
+          builder: (context, auth, _) {
+            final couriers = auth.couriers;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Tunjuk Kurir (Fast Track)", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: darkText)),
+                    IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(LucideIcons.x, size: 20)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text("Pilih kurir anggota untuk langsung mengambil tugas ini.", style: GoogleFonts.montserrat(fontSize: 12, color: textGrey)),
+                const SizedBox(height: 20),
+                if (couriers.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Center(child: Text("Belum ada kurir yang bergabung.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500))),
+                  )
+                else
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: couriers.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final k = couriers[index];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.all(12),
+                          tileColor: Colors.grey[50],
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+                          leading: CircleAvatar(backgroundColor: primaryTeal.withValues(alpha: 0.1), child: const Icon(LucideIcons.user, color: primaryTeal, size: 18)),
+                          title: Text(k['name'] ?? "Kurir", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+                          trailing: const Icon(LucideIcons.chevronRight, size: 16, color: textGrey),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            final success = await context.read<OrderProvider>().assignCourier(orderId, k['id']);
+                            if (success) {
+                              _showBeautifulNotif("Berhasil menunjuk kurir!", true);
+                            } else {
+                              _showBeautifulNotif(context.read<OrderProvider>().errorMessage ?? "Gagal", false);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showStatusUpdater(String orderId, String currentStatus) {
+    final stages = [
+      'WAITING_DROPOFF', 'WASH_START', 'IN_PROGRESS', 'PACKING', 'DELIVERING', 'DONE'
+    ];
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Update Status Pesanan", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: darkText)),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 10, runSpacing: 10,
+              children: stages.map((s) {
+                bool isCurrent = s == currentStatus;
+                return ActionChip(
+                  label: Text(s.replaceAll('_', ' ')),
+                  backgroundColor: isCurrent ? primaryTeal : Colors.grey[100],
+                  labelStyle: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : textGrey),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final success = await context.read<OrderProvider>().updateOrderStatus(orderId, s);
+                    if (success) {
+                      _showBeautifulNotif("Status diperbarui ke $s", true);
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBeautifulNotif(String msg, bool isSuccess) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(isSuccess ? LucideIcons.checkCircle : LucideIcons.alertCircle, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Text(msg, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        backgroundColor: isSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String txt, MaterialColor color) {
+    return Container(
+      margin: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(color: color[50], borderRadius: BorderRadius.circular(4), border: Border.all(color: color[200]!)),
+      child: Text(txt, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: color[800], letterSpacing: 0.5)),
     );
   }
 
   PreferredSizeWidget _buildCompactAppbar() {
     return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
+      backgroundColor: Colors.white, elevation: 0,
       automaticallyImplyLeading: false,
-      centerTitle: false,
-      titleSpacing: 16,
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
-            child: const Icon(LucideIcons.listChecks, color: primaryTeal, size: 16),
-          ),
-          const SizedBox(width: 8),
-          Text("Manajemen Pesanan", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
-        ],
-      ),
+      title: Text("Manajemen Pesanan", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)),
       actions: [
-        IconButton(onPressed: () {}, icon: const Icon(LucideIcons.search, color: darkText, size: 18)),
-        IconButton(onPressed: () {}, icon: const Icon(LucideIcons.slidersHorizontal, color: darkText, size: 18)),
+        IconButton(onPressed: () => context.read<OrderProvider>().fetchOrders(), icon: const Icon(LucideIcons.refreshCw, size: 18, color: primaryTeal)),
         const SizedBox(width: 8),
       ],
-      bottom: PreferredSize(preferredSize: const Size.fromHeight(1), child: Container(height: 1, color: Colors.grey[200])),
-    );
-  }
-
-  Widget _buildCompactFilterStrip() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(child: _buildFilterPill("Semua")),
-          const SizedBox(width: 8),
-          Expanded(child: _buildFilterPill("Baru")),
-          const SizedBox(width: 8),
-          Expanded(child: _buildFilterPill("Same Day")),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.grey[300]!)),
-            child: const Icon(LucideIcons.calendar, size: 14, color: textGrey),
-          )
-        ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(50),
+        child: Container(
+          height: 50, color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: ["Semua", "Baru", "Same Day"].map((f) => _buildFilterPill(f)).toList(),
+          ),
+        ),
       ),
     );
   }
@@ -204,265 +486,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     return GestureDetector(
       onTap: () => setState(() => currentFilter = label),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: isSel ? primaryTeal : Colors.grey[100], borderRadius: BorderRadius.circular(6), border: Border.all(color: isSel ? primaryTeal : Colors.grey[300]!)),
-        child: Text(label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: isSel ? FontWeight.bold : FontWeight.w600, color: isSel ? Colors.white : textGrey)),
+        decoration: BoxDecoration(color: isSel ? primaryTeal : Colors.grey[50], borderRadius: BorderRadius.circular(20), border: Border.all(color: isSel ? primaryTeal : Colors.grey[200]!)),
+        child: Text(label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: isSel ? FontWeight.w900 : FontWeight.w600, color: isSel ? Colors.white : textGrey)),
       ),
     );
-  }
-
-  Widget _buildDenseOrderRow(Order o) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white, 
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
-        borderRadius: BorderRadius.circular(10), 
-        border: Border.all(color: Colors.grey[200]!)
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Status Color Bar
-            Container(width: 6, decoration: BoxDecoration(color: _getStatusColor(o.status), borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), bottomLeft: Radius.circular(10)))),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ROW 1: Meta
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Text(o.id, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: textGrey)),
-                            const SizedBox(width: 6),
-                            if(o.tier == CustomerTier.vip) _buildBadge("VIP", Colors.amber),
-                            if(o.type == "Same Day") ...[const SizedBox(width: 4), _buildBadge("STORM", Colors.red)],
-                          ],
-                        ),
-                        Text(NumberFormat.currency(locale:'id_ID', symbol:'Rp', decimalDigits:0).format(o.price), style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // ROW 2: Customer & Time
-                    Row(
-                      children: [
-                        const Icon(LucideIcons.user, size: 12, color: textGrey),
-                        const SizedBox(width: 4),
-                        Expanded(child: Text(o.customer, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText))),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(4)),
-                          child: Row(
-                            children: [
-                              const Icon(LucideIcons.clock, size: 10, color: Colors.red),
-                              const SizedBox(width: 4),
-                              Text("Sisa: ${_getRemainingTime(o.deadline)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.red)),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    // ROW 2.5: Courier Info
-                    Row(
-                      children: [
-                        const Icon(LucideIcons.truck, size: 11, color: textGrey),
-                        const SizedBox(width: 6),
-                        Text("Kurir KL: ", style: GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
-                        Text(o.courier, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // ROW 3: Dense Items List
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(6)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: o.items.map((i) => Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: Row(
-                            children: [
-                              Container(width: 4, height: 4, decoration: const BoxDecoration(color: primaryTeal, shape: BoxShape.circle)),
-                              const SizedBox(width: 6),
-                              Text("${i.name} - ${i.qty.toStringAsFixed(i.qty.truncateToDouble() == i.qty ? 0 : 1)} ${i.unit}", style: GoogleFonts.montserrat(fontSize: 10, color: darkText, fontWeight: FontWeight.w500)),
-                            ],
-                          ),
-                        )).toList(),
-                      ),
-                    ),
-                    if(o.notes.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          const Icon(LucideIcons.info, size: 10, color: Colors.orange),
-                          const SizedBox(width: 4),
-                          Expanded(child: Text('Catatan: "${o.notes}"', style: GoogleFonts.montserrat(fontSize: 9, fontStyle: FontStyle.italic, color: Colors.orange[800]))),
-                        ],
-                      )
-                    ],
-                    const SizedBox(height: 12),
-                    // ROW 4: Action / Progress Tracker
-                    _buildRowActionTracker(o),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRowActionTracker(Order o) {
-    if(o.status == OrderStatus.selesai) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(6)),
-        child: Center(child: Text("SELESAI (Menunggu Pick-up Kurir)", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: textGrey))),
-      );
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 28,
-            decoration: BoxDecoration(color: _getStatusColor(o.status).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: _getStatusColor(o.status).withValues(alpha: 0.3))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(_getStatusIcon(o.status), size: 12, color: _getStatusColor(o.status)),
-                const SizedBox(width: 6),
-                Text("STATUS: ${_getStatusName(o.status)}", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: _getStatusColor(o.status))),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        o.courier == "Belum Ada" 
-        ? ElevatedButton(
-            onPressed: () => _showCourierPicker(o),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange[700], foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              minimumSize: const Size(0, 28),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-            ),
-            child: Text("ASSIGN KURIR", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-          )
-        : ElevatedButton(
-            onPressed: () => _advanceOrder(o),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryTeal, foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              minimumSize: const Size(0, 28),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-            ),
-            child: Text("PROSES", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-          ),
-      ],
-    );
-  }
-
-  void _showCourierPicker(Order order) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Consumer<AuthProvider>(
-        builder: (context, auth, _) {
-          final couriers = auth.couriers;
-          return Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Pilih Kurir Anggota", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 16),
-                if (couriers.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Center(child: Text("Tidak ada kurir aktif di database", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey))),
-                  )
-                else
-                  SizedBox(
-                    height: 200,
-                    child: ListView.builder(
-                      itemCount: couriers.length,
-                      itemBuilder: (context, index) {
-                        final k = couriers[index];
-                        return ListTile(
-                          leading: const CircleAvatar(backgroundColor: primaryTeal, child: Icon(LucideIcons.user, color: Colors.white, size: 16)),
-                          title: Text(k['name'] ?? "Kurir", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
-                          subtitle: Text(k['email'] ?? "", style: GoogleFonts.montserrat(fontSize: 10)),
-                          onTap: () {
-                            setState(() {
-                              order.courier = k['name'];
-                            });
-                            // Trigger Notif ke KL
-                            context.read<OrderProvider>().addNotif('KL');
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildBadge(String txt, MaterialColor color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(color: color[100], borderRadius: BorderRadius.circular(4), border: Border.all(color: color[400]!)),
-      child: Text(txt, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: color[800], letterSpacing: 0.5)),
-    );
-  }
-
-  Color _getStatusColor(OrderStatus s) {
-    switch (s) {
-      case OrderStatus.diterima: return Colors.orange;
-      case OrderStatus.cuci: return Colors.blue;
-      case OrderStatus.setrika: return Colors.indigo;
-      case OrderStatus.packing: return Colors.purple;
-      case OrderStatus.kirim: return Colors.teal;
-      case OrderStatus.selesai: return Colors.green;
-    }
-  }
-
-  String _getStatusName(OrderStatus s) {
-    return s.toString().split('.').last.toUpperCase();
-  }
-
-  IconData _getStatusIcon(OrderStatus s) {
-    switch (s) {
-      case OrderStatus.diterima: return LucideIcons.inbox;
-      case OrderStatus.cuci: return LucideIcons.droplets;
-      case OrderStatus.setrika: return LucideIcons.sun;
-      case OrderStatus.packing: return LucideIcons.package;
-      case OrderStatus.kirim: return LucideIcons.truck;
-      case OrderStatus.selesai: return LucideIcons.checkCircle;
-    }
-  }
-
-  String _getRemainingTime(DateTime dl) {
-    final diff = dl.difference(DateTime.now());
-    if (diff.isNegative) return "Terlambat";
-    if (diff.inHours > 24) return "${diff.inDays} Hari";
-    return "${diff.inHours} Jam ${diff.inMinutes % 60} Menit";
   }
 }

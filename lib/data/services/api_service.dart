@@ -131,6 +131,11 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> updateOrderStatus(String orderId, String status) async {
+    final response = await _dio.patch("/orders/$orderId/status", data: {'status': status});
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
     final response = await _dio.post("/orders", data: orderData);
     return response.data;

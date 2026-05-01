@@ -204,4 +204,51 @@ class OrderProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> assignCourier(String orderId, int courierId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _api.assignCourier(orderId, courierId);
+      // Refresh data agar status berubah di UI
+      await fetchOrders();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message'] ?? 'Gagal menunjuk kurir';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateOrderStatus(String orderId, String status) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _api.updateOrderStatus(orderId, status);
+      await fetchOrders();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message'] ?? 'Gagal update status';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
