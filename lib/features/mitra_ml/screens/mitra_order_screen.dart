@@ -72,7 +72,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
   Widget _buildPremiumOrderCard(dynamic o) {
     final status = o['status']?.toString() ?? 'UNKNOWN';
-    debugPrint('--- [ML_DEBUG] Order: ${o['id']} | Status: $status ---');
     final price = double.tryParse(o['total']?.toString() ?? '0') ?? 0.0;
     final orderId = o['id']?.toString() ?? '-';
     final customerName = o['customer_name']?.toString() ?? 'Pelanggan';
