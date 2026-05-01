@@ -128,7 +128,7 @@ class _DistanceCalculatorScreenState extends State<DistanceCalculatorScreen> {
             Center(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
@@ -136,11 +136,16 @@ class _DistanceCalculatorScreenState extends State<DistanceCalculatorScreen> {
                 ),
                 child: Column(
                   children: [
-                    Text("ESTIMASI JARAK", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.grey, letterSpacing: 2)),
-                    const SizedBox(height: 12),
+                    Text("NYUTJI ROAD DISTANCE (NRCF)", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.blue[700], letterSpacing: 1.5)),
+                    const SizedBox(height: 8),
                     Text(
-                      NyutjiDistance.formatDistance(_calculatedDistance),
+                      NyutjiDistance.formatDistance(NyutjiDistance.calculateRoadDistance(_calculatedDistance)),
                       style: GoogleFonts.montserrat(fontSize: 48, fontWeight: FontWeight.w900, color: primaryTeal),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Garis Lurus: ${NyutjiDistance.formatDistance(_calculatedDistance)}",
+                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey),
                     ),
                     const SizedBox(height: 24),
                     const Divider(),

@@ -14,8 +14,25 @@ class NyutjiDistance {
     return distance;
   }
 
+  /// Menghitung Jarak Jalan Nyutji (NRCF - Nyutji Road-Correction Factor)
+  /// Tiered Multiplier untuk fairness kurir & sistem
+  static double calculateRoadDistance(double straightDistanceKm) {
+    if (straightDistanceKm <= 0) return 0.0;
+    
+    // TIERED LOGIC
+    double multiplier;
+    if (straightDistanceKm < 3.0) {
+      multiplier = 1.5; // Area perumahan/padat (banyak belokan)
+    } else {
+      multiplier = 1.4; // Jalan raya/jarak jauh (lebih stabil)
+    }
+    
+    return straightDistanceKm * multiplier;
+  }
+
   /// Format jarak ke string cantik (Contoh: 1.2 km)
   static String formatDistance(double km) {
+    if (km <= 0) return "0 m";
     if (km < 1) {
       return "${(km * 1000).toStringAsFixed(0)} m";
     }
