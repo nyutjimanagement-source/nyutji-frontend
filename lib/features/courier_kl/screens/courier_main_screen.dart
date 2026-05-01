@@ -856,7 +856,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                           // ROW 4: Jarak + Tombol AMBIL
                           Row(
                             children: [
-                              const Icon(LucideIcons.route, size: 11, color: Colors.white38),
+                              const Icon(LucideIcons.navigation2, size: 11, color: Colors.white38),
                               const SizedBox(width: 4),
                               Text(
                                 "${order.distanceKm} km",
