@@ -626,15 +626,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       builder: (context, orderProv, auth, _) {
         // Gunakan data live jika ada, fallback ke dummy jika kosong
         final liveOrders = orderProv.availableOrders;
-        final displayOrders = liveOrders.isNotEmpty ? liveOrders : _availableOrders.map((o) => {
-          'id': o.id,
-          'total_price': o.totalPrice,
-          'address': o.pickupAddress,
-          'mitra_name': o.mitraName,
-          'mitra_address': o.mitraAddress,
-          'is_fast_track': o.isFastTrack,
-          'distance': o.distanceKm,
-        }).toList();
+        final displayOrders = liveOrders;
 
         final district = auth.user?['district_name'] ?? 'Wilayahmu';
         final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
@@ -1127,9 +1119,13 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             onPressed: () async {
                               final provider = context.read<OrderProvider>();
                               String nextStatus = 'DONE';
-                              if (status == 'COURIER_ACCEPTED' || status == 'SEARCHING') nextStatus = 'PICKING_UP';
-                              else if (status == 'PICKING_UP') nextStatus = 'WAITING_DROPOFF';
-                              else if (status == 'DELIVERING') nextStatus = 'DONE';
+                              if (status == 'COURIER_ACCEPTED' || status == 'SEARCHING') {
+                                nextStatus = 'PICKING_UP';
+                              } else if (status == 'PICKING_UP') {
+                                nextStatus = 'WAITING_DROPOFF';
+                              } else if (status == 'DELIVERING') {
+                                nextStatus = 'DONE';
+                              }
                               
                               final success = await provider.updateOrderStatus(orderId, nextStatus);
                               if (mounted) {
