@@ -100,6 +100,14 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  // GET order tersedia di kecamatan KL (untuk marketplace kurir)
+  Future<List<dynamic>> getAvailableOrders(String districtName) async {
+    final response = await _dio.get("/orders/available", queryParameters: {
+      'district_name': districtName,
+    });
+    return response.data['data'] ?? [];
+  }
+
   Future<Map<String, dynamic>> getPriceQuote(double distance, bool isFastTrack, double lat, double lng) async {
     final response = await _dio.post("/orders/quote", data: {
       'distance': distance,

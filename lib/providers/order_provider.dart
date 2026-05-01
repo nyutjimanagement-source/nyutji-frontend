@@ -13,6 +13,10 @@ class OrderProvider extends ChangeNotifier {
   List<dynamic> _historyOrders = [];
   List<dynamic> get historyOrders => _historyOrders;
 
+  // Order tersedia untuk Kurir (marketplace KL)
+  List<dynamic> _availableOrders = [];
+  List<dynamic> get availableOrders => _availableOrders;
+
   Map<String, dynamic>? _trackingOrder;
   Map<String, dynamic>? get trackingOrder => _trackingOrder;
 
@@ -75,6 +79,26 @@ class OrderProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // Fetch order tersedia di kecamatan KL dari backend
+  // Jika backend belum siap (endpoint belum ada), fallback ke dummy agar UI tidak crash
+  Future<void> fetchAvailableOrders(String districtName) async {
+    try {
+      final List<dynamic> data = await _api.getAvailableOrders(districtName);
+      // Sort by total_price tertinggi
+      data.sort((a, b) {
+        final aPrice = (a['total_price'] as num?)?.toInt() ?? 0;
+        final bPrice = (b['total_price'] as num?)?.toInt() ?? 0;
+        return bPrice.compareTo(aPrice);
+      });
+      _availableOrders = data;
+    } catch (e) {
+      // Backend belum siap? Tetap tampilkan dummy agar UI tidak kosong
+      debugPrint('[fetchAvailableOrders] Endpoint belum aktif, gunakan dummy: $e');
+      _availableOrders = []; // kosongkan agar dummy di UI tetap tampil
+    }
+    notifyListeners();
   }
 
   // Simulasi WebSocket Tracking

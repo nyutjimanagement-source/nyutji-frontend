@@ -176,6 +176,12 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallet();
       context.read<OrderProvider>().fetchOrders();
+      // Fetch order tersedia di kecamatan KL
+      final auth = context.read<AuthProvider>();
+      final district = auth.user?['district_name']?.toString() ?? '';
+      if (district.isNotEmpty) {
+        context.read<OrderProvider>().fetchAvailableOrders(district);
+      }
     });
   }
 
@@ -683,218 +689,221 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   // === CARD ORDER TERSEDIA (PREMIUM MARKETPLACE) ==============
   // ============================================================
   Widget _buildAvailableOrdersCard() {
-    // Sort by harga tertinggi
-    final sorted = List<AvailableOrder>.from(_availableOrders)
-      ..sort((a, b) => b.totalPrice.compareTo(a.totalPrice));
+    return Consumer2<OrderProvider, AuthProvider>(
+      builder: (context, orderProv, auth, _) {
+        // Gunakan data live jika ada, fallback ke dummy jika kosong
+        final liveOrders = orderProv.availableOrders;
+        final displayOrders = liveOrders.isNotEmpty ? liveOrders : _availableOrders.map((o) => {
+          'id': o.id,
+          'total_price': o.totalPrice,
+          'address': o.pickupAddress,
+          'mitra_name': o.mitraName,
+          'mitra_address': o.mitraAddress,
+          'is_fast_track': o.isFastTrack,
+          'distance': o.distanceKm,
+        }).toList();
 
-    final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+        final district = auth.user?['district_name'] ?? 'Wilayahmu';
+        final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(color: const Color(0xFF286B6A).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // HEADER
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(LucideIcons.zap, size: 16, color: Color(0xFFFFD700)),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("ORDER TERSEDIA",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 11, fontWeight: FontWeight.w900,
-                            color: const Color(0xFFFFD700), letterSpacing: 1.5,
-                          ),
-                        ),
-                        Consumer<AuthProvider>(
-                          builder: (context, auth, _) => Text(
-                            "Kec. ${auth.user?['district_name'] ?? 'Wilayahmu'} • ${sorted.length} pesanan",
-                            style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
-                        const SizedBox(width: 4),
-                        Text("LIVE", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xFF10B981))),
-                      ],
-                    ),
-                  ),
-                ],
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              boxShadow: [
+                BoxShadow(color: const Color(0xFF286B6A).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
+              ],
             ),
-
-            // LIST ORDER (scrollable vertikal, max 220px tinggi)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 280),
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                shrinkWrap: true,
-                itemCount: sorted.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final order = sorted[index];
-                  final isTop = index == 0;
-
-                  return GestureDetector(
-                    onTap: () {},
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isTop
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : Colors.white.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isTop
-                            ? const Color(0xFFFFD700).withValues(alpha: 0.4)
-                            : Colors.white.withValues(alpha: 0.1),
-                          width: isTop ? 1.5 : 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // HEADER
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(LucideIcons.zap, size: 16, color: Color(0xFFFFD700)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("ORDER TERSEDIA",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 11, fontWeight: FontWeight.w900,
+                                color: const Color(0xFFFFD700), letterSpacing: 1.5,
+                              ),
+                            ),
+                            Text(
+                              "Kec. $district \u2022 ${displayOrders.length} pesanan",
+                              style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // ROW 1: Total Harga + Badge
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                fmt.format(order.totalPrice),
-                                style: GoogleFonts.montserrat(
-                                  fontSize: isTop ? 22 : 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: isTop ? const Color(0xFFFFD700) : Colors.white,
-                                ),
-                              ),
-                              const Spacer(),
-                              if (order.isFastTrack)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFF4500)]),
-                                    borderRadius: BorderRadius.circular(6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
+                            const SizedBox(width: 4),
+                            Text(liveOrders.isNotEmpty ? "LIVE" : "DEMO",
+                              style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900,
+                                color: liveOrders.isNotEmpty ? const Color(0xFF10B981) : Colors.orange)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // LIST ORDER
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 280),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    shrinkWrap: true,
+                    itemCount: displayOrders.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final order = displayOrders[index];
+                      final isTop = index == 0;
+                      final price = (order['total_price'] as num?)?.toInt() ?? 0;
+                      final pickup = order['address']?.toString() ?? '-';
+                      final mitraName = order['mitra_name']?.toString() ?? order['mitra']?['name']?.toString() ?? 'Mitra';
+                      final mitraAddr = order['mitra_address']?.toString() ?? order['mitra']?['address']?.toString() ?? '-';
+                      final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1;
+                      final distance = (order['distance'] as num?)?.toDouble() ?? 0.0;
+                      final orderId = order['id']?.toString() ?? '-';
+
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isTop ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isTop ? const Color(0xFFFFD700).withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.1),
+                            width: isTop ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(fmt.format(price),
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: isTop ? 22 : 18, fontWeight: FontWeight.w900,
+                                    color: isTop ? const Color(0xFFFFD700) : Colors.white,
                                   ),
-                                  child: Text("⚡ FAST", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white)),
-                                )
-                              else
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: Colors.white24),
-                                  ),
-                                  child: Text("REGULER", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white70)),
                                 ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // ROW 2: Lokasi Jemput
-                          Row(
-                            children: [
-                              const Icon(LucideIcons.mapPin, size: 11, color: Color(0xFF10B981)),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text(order.pickupAddress,
-                                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
-                                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          // ROW 3: Lokasi ML
-                          Row(
-                            children: [
-                              const Icon(LucideIcons.store, size: 11, color: Color(0xFF60A5FA)),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text("${order.mitraName} – ${order.mitraAddress}",
-                                  style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white60, fontWeight: FontWeight.w500),
-                                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          // ROW 4: Jarak + Tombol AMBIL
-                          Row(
-                            children: [
-                              const Icon(LucideIcons.navigation2, size: 11, color: Colors.white38),
-                              const SizedBox(width: 4),
-                              Text(
-                                "${order.distanceKm} km",
-                                style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w700),
-                              ),
-                              const Spacer(),
-                              GestureDetector(
-                                onTap: () => _showBeautifulNotif("Order #${order.id} berhasil diambil!", true),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                const Spacer(),
+                                isFast
+                                  ? Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFF4500)]),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text("\u26a1 FAST", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white)),
+                                    )
+                                  : Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.white24),
+                                      ),
+                                      child: Text("REGULER", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white70)),
                                     ),
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(color: const Color(0xFF10B981).withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
-                                    ],
-                                  ),
-                                  child: Text("AMBIL",
-                                    style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(LucideIcons.mapPin, size: 11, color: Color(0xFF10B981)),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(pickup,
+                                    style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                                    maxLines: 1, overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(LucideIcons.store, size: 11, color: Color(0xFF60A5FA)),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text("$mitraName \u2013 $mitraAddr",
+                                    style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white60, fontWeight: FontWeight.w500),
+                                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                const Icon(LucideIcons.navigation2, size: 11, color: Colors.white38),
+                                const SizedBox(width: 4),
+                                Text("${distance > 0 ? distance.toStringAsFixed(1) : '~'} km",
+                                  style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w700),
+                                ),
+                                const Spacer(),
+                                GestureDetector(
+                                  onTap: () => _showBeautifulNotif("Order #$orderId berhasil diambil!", true),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)]),
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(color: const Color(0xFF10B981).withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
+                                      ],
+                                    ),
+                                    child: Text("AMBIL",
+                                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
+
 
   Widget _buildDenseTaskSection(Map<String, dynamic> currentT) {
     return Container(
