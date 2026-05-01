@@ -103,22 +103,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   
   String currentFilter = "Semua";
 
-  void _advanceOrder(Order order) {
-    int nextIdx = OrderStatus.values.indexOf(order.status) + 1;
-    if (nextIdx < OrderStatus.values.length) {
-      setState(() {
-        order.status = OrderStatus.values[nextIdx];
-      });
-
-      // Saat status mencapai SELESAI → trigger bagi hasil ML 80% + Platform 20%
-      if (order.status == OrderStatus.selesai) {
-        final sim = context.read<SimulasiProvider>();
-        // Jika belum ada order aktif di simulasi, set dulu
-        if (sim.activeOrderId == null) {
-          sim.bayarOrder(
-            orderId: order.id,
-            biayaLaundry: order.price,
-            biayaOngkir: 15000, // ongkir dummy
   @override
   Widget build(BuildContext context) {
     return Scaffold(
