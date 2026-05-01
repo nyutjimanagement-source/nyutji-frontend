@@ -12,6 +12,7 @@ import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'customer_order_screen.dart';
 import 'customer_status_screen.dart';
+import 'distance_calculator_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -140,6 +141,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         'service_unit': 'Nyutji Coin',
         'service_iron': 'Setrika Khusus',
         'service_dryclean': 'Dry Clean',
+        'service_calc': 'Calculator',
         'service_more': 'Lainnya',
         'promo_title': 'Promo & Diskon Spesial',
         'nearest_mitra': 'Mitra Terdekat Nyutji',
@@ -489,6 +491,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               _buildServiceGridItem(currentT['service_unit'], LucideIcons.userCheck, Colors.indigo, false, currentT),
               _buildServiceGridItem(currentT['service_iron'], LucideIcons.wind, Colors.orange, false, currentT),
               _buildServiceGridItem(currentT['service_dryclean'], LucideIcons.sprayCan, Colors.purple, false, currentT),
+              _buildServiceGridItem(currentT['service_calc'], LucideIcons.calculator, Colors.blue, false, currentT),
               _buildServiceGridItem(currentT['service_more'], LucideIcons.layoutGrid, textGrey, false, currentT),
             ],
           )
@@ -502,6 +505,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       onTap: () {
         if(title == currentT['service_pickup'] || title == currentT['service_dropoff']) {
            Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerOrderScreen(orderType: title == currentT['service_pickup'] ? 'pickup' : 'drop')));
+        } else if (title == currentT['service_calc']) {
+           Navigator.push(context, MaterialPageRoute(builder: (_) => const DistanceCalculatorScreen()));
         }
       },
       child: Stack(
