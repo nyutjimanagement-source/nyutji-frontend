@@ -709,12 +709,12 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     itemBuilder: (context, index) {
                       final order = displayOrders[index];
                       final isTop = index == 0;
-                      final price = (order['total_price'] as num?)?.toInt() ?? 0;
+                      final price = int.tryParse(order['total_price']?.toString() ?? '0') ?? 0;
                       final pickup = order['address']?.toString() ?? '-';
                       final mitraName = order['mitra_name']?.toString() ?? order['mitra']?['name']?.toString() ?? 'Mitra';
                       final mitraAddr = order['mitra_address']?.toString() ?? order['mitra']?['address']?.toString() ?? '-';
                       final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1;
-                      final distance = (order['distance'] as num?)?.toDouble() ?? 0.0;
+                      final distance = double.tryParse(order['distance']?.toString() ?? '0') ?? 0.0;
                       final orderId = order['id']?.toString() ?? '-';
 
                       return AnimatedContainer(

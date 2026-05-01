@@ -63,8 +63,8 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         _fullAddressController.text = auth.user?['address']?.toString() ?? "";
         _selectedDistrict = auth.user?['district_name']?.toString() ?? "";
         _selectedCity = auth.user?['city_name']?.toString() ?? "";
-        _selectedLat = (auth.user?['lat'] as num?)?.toDouble() ?? 0.0;
-        _selectedLng = (auth.user?['lng'] as num?)?.toDouble() ?? 0.0;
+        _selectedLat = double.tryParse(auth.user?['lat']?.toString() ?? '0') ?? 0.0;
+        _selectedLng = double.tryParse(auth.user?['lng']?.toString() ?? '0') ?? 0.0;
       }
     });
 

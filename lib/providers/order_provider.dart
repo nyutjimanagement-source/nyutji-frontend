@@ -88,8 +88,8 @@ class OrderProvider extends ChangeNotifier {
       final List<dynamic> data = await _api.getAvailableOrders(districtName);
       // Sort by total_price tertinggi
       data.sort((a, b) {
-        final aPrice = (a['total_price'] as num?)?.toInt() ?? 0;
-        final bPrice = (b['total_price'] as num?)?.toInt() ?? 0;
+        final aPrice = int.tryParse(a['total_price']?.toString() ?? '0') ?? 0;
+        final bPrice = int.tryParse(b['total_price']?.toString() ?? '0') ?? 0;
         return bPrice.compareTo(aPrice);
       });
       _availableOrders = data;
