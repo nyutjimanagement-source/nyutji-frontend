@@ -95,12 +95,17 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
     // 3. Ambil Biaya Kurir Dinamis (Logic AD: Sesi Waktu, Hari Libur, dll)
     try {
+      String currentOrderType = widget.isPickup 
+          ? 'pickup' 
+          : (widget.dropMethod == 'courier' ? 'delivery' : 'mandiri');
+
       final api = ApiService();
       final quote = await api.getPriceQuote(
         _calculatedDistance, 
         widget.speed == 'fast',
         widget.lat,
-        widget.lng
+        widget.lng,
+        currentOrderType
       );
       if (quote['status'] == 'success') {
         setState(() {
@@ -204,10 +209,14 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
         'is_fast_track': isFastTrack,
         'service_price': widget.totalPrice,
+        'servicePrice': widget.totalPrice,
         'delivery_fee': deliveryFee,
+        'deliveryFee': deliveryFee,
         'delivery_type': deliveryType,
+        'deliveryType': deliveryType,
         'mitra_id': widget.mitraId,
-        'distance': _calculatedDistance,
+        'mitraId': widget.mitraId,
+        'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
       };
 
       final success = await orderProv.createOrder(payload);

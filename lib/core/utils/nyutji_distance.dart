@@ -11,6 +11,9 @@ class NyutjiDistance {
     
     double distance = 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
     
+    // ANTI-NaN PROTECTION
+    if (distance.isNaN) return 0.1;
+    
     return distance;
   }
 

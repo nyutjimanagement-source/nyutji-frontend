@@ -1,11 +1,10 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/utils/nyutji_parser.dart';
 import '../../../core/widgets/nyutji_pickup_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
@@ -69,13 +68,14 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           'address': item['address'] ?? 'Alamat tidak tersedia',
           'district': item['district'] ?? '',
           'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
-          'lat': double.tryParse(item['lat']?.toString() ?? '0') ?? 0.0,
-          'lng': double.tryParse(item['lng']?.toString() ?? '0') ?? 0.0,
+          'lat': NyutjiParser.toDouble(item['lat']),
+          'lng': NyutjiParser.toDouble(item['lng']),
           'items': item['items'] ?? [],
         };
       }).toList();
-    } catch (e) {
-      debugPrint("API Error, switching to fallback: $e");
+    } catch (e, stack) {
+      debugPrint("Nyutji Error Mapping: $e");
+      debugPrint("Stack: $stack");
     } finally {
       if (mounted) {
         setState(() => _isLoadingMitras = false);
@@ -983,8 +983,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   cityName: cityName,
                   lat: _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0,
                   lng: _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0,
-                  mitraLat: (_selectedMitra?['lat'] as num?)?.toDouble() ?? 0.0,
-                  mitraLng: (_selectedMitra?['lng'] as num?)?.toDouble() ?? 0.0,
+                  mitraLat: NyutjiParser.toDouble(_selectedMitra?['lat']),
+                  mitraLng: NyutjiParser.toDouble(_selectedMitra?['lng']),
                   pickupNote: note,
                   mitraAddress: _selectedMitra?['address']?.toString() ?? '',
                   mitraDistrict: _selectedMitra?['district']?.toString() ?? '',
