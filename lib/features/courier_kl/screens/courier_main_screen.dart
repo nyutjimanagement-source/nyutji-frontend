@@ -44,28 +44,9 @@ class AvailableOrder {
   });
 }
 
-class CourierTask {
-  final String id;
-  final String customerName;
-  final String address;
-  final CourierTaskType type;
-  final String serviceName;
-  final bool isUrgent;
-  final int price; 
-  CourierTaskStatus status;
-
-  CourierTask({
-    required this.id,
-    required this.customerName,
-    required this.address,
-    required this.type,
-    required this.serviceName,
-    required this.isUrgent,
-    required this.price,
-    this.status = CourierTaskStatus.assigned,
-  });
-}
-
+  // Models for available orders are kept as they are used for parsing available orders API
+  // but we will use dynamic Maps for tasks
+  
 // --- SCREEN ---
 class CourierMainScreen extends StatefulWidget {
   const CourierMainScreen({super.key});
@@ -89,54 +70,6 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   final Color darkText = const Color(0xFF111827);
   final Color textGrey = const Color(0xFF6B7280);
   final ImagePicker _picker = ImagePicker();
-
-  // Dummy data: Order tersedia di kecamatan KL (sorted by harga tertinggi)
-  final List<AvailableOrder> _availableOrders = [
-    AvailableOrder(id: "KBY-001", totalPrice: 285000, pickupAddress: "Jl. Kemang Raya No.8", mitraName: "Berkah Laundry", mitraAddress: "Jl. Melati No.3, Kebayoran", isFastTrack: true, distanceKm: 1.2),
-    AvailableOrder(id: "KBY-002", totalPrice: 175000, pickupAddress: "Apartemen Melawai Lt.12", mitraName: "Bersih Jaya Laundry", mitraAddress: "Jl. Bintaro Permai Blok C", isFastTrack: false, distanceKm: 2.8),
-    AvailableOrder(id: "KBY-003", totalPrice: 140000, pickupAddress: "Ruko Grand Kebayoran Blok B", mitraName: "Kilat Bersih", mitraAddress: "Jl. Ciputat Raya No.22", isFastTrack: true, distanceKm: 0.9),
-    AvailableOrder(id: "KBY-004", totalPrice: 98000, pickupAddress: "Jl. Radio Dalam No.55", mitraName: "Laundry Express 24", mitraAddress: "Jl. Senopati No.7", isFastTrack: false, distanceKm: 3.5),
-    AvailableOrder(id: "KBY-005", totalPrice: 67000, pickupAddress: "Perumahan Pesanggrahan Blok D-12", mitraName: "Berkah Laundry", mitraAddress: "Jl. Melati No.3, Kebayoran", isFastTrack: false, distanceKm: 4.1),
-  ];
-
-  List<CourierTask> tasks = [
-    CourierTask(
-      id: "KBY-09042026-001",
-      customerName: "Budi Santoso",
-      address: "Jl. Melati No. 12, Kebayoran Baru",
-      type: CourierTaskType.pickup,
-      serviceName: "Cuci Komplit",
-      isUrgent: true,
-      price: 45000,
-    ),
-    CourierTask(
-      id: "SMN-09042026-002",
-      customerName: "Siti Aminah",
-      address: "Apartemen Semanggi Tower A-12",
-      type: CourierTaskType.pickup,
-      serviceName: "Setrika Saja",
-      isUrgent: false,
-      price: 25000,
-    ),
-    CourierTask(
-      id: "SUD-09042026-003",
-      customerName: "Robert Downey",
-      address: "Jl. Sudirman Kav 52, Jakarta",
-      type: CourierTaskType.delivery,
-      serviceName: "Cuci Satuan",
-      isUrgent: false,
-      price: 120000,
-    ),
-    CourierTask(
-      id: "TSR-09042026-004",
-      customerName: "Tony Stark",
-      address: "Avengers Tower, Tanah Sereal",
-      type: CourierTaskType.delivery,
-      serviceName: "Cuci Premium",
-      isUrgent: true,
-      price: 250000,
-    ),
-  ];
 
   final Map<String, dynamic> t = {
     'id': {
@@ -1035,19 +968,52 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           ),
           const SizedBox(height: 16),
           
-          // Dense List View
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: tasks.length,
-            itemBuilder: (context, index) {
-              final task = tasks[index];
-              bool isPickupType = _tabController.index == 0;
-              if (isPickupType && task.type != CourierTaskType.pickup) return const SizedBox();
-              if (!isPickupType && task.type != CourierTaskType.delivery) return const SizedBox();
+          // Dense List View (Real Data)
+          Consumer<OrderProvider>(
+            builder: (context, orderProv, _) {
+              final activeOrders = orderProv.activeOrders;
+              bool isPickupTab = _tabController.index == 0;
+              
+              final filtered = activeOrders.where((o) {
+                final s = o['status']?.toString().toUpperCase() ?? '';
+                if (isPickupTab) {
+                  // Pickup tasks are usually SEARCHING, WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
+                  return s == 'SEARCHING' || s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
+                } else {
+                  // Delivery tasks are usually PACKING, DELIVERING
+                  return s == 'PACKING' || s == 'DELIVERING';
+                }
+              }).toList();
 
-              return _buildDenseTaskCard(task, currentT);
+              if (orderProv.isLoading && filtered.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (filtered.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Column(
+                    children: [
+                      Icon(LucideIcons.clipboardCheck, size: 48, color: Colors.grey[300]),
+                      const SizedBox(height: 16),
+                      Text("Tidak ada antrean tugas", style: GoogleFonts.montserrat(fontSize: 12, color: textGrey, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  return _buildDenseTaskCard(filtered[index], currentT);
+                },
+              );
             },
           ),
         ],
@@ -1055,7 +1021,15 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     );
   }
 
-  Widget _buildDenseTaskCard(CourierTask task, Map<String, dynamic> currentT) {
+  Widget _buildDenseTaskCard(dynamic task, Map<String, dynamic> currentT) {
+    final String orderId = task['id']?.toString() ?? '-';
+    final String customerName = task['customer_name']?.toString() ?? 'Pelanggan';
+    final String status = task['status']?.toString().toUpperCase() ?? 'UNKNOWN';
+    final double price = (task['total'] as num?)?.toDouble() ?? 0.0;
+    final bool isFast = task['is_fast_track'] == true || task['service_type'] == 'SAME_DAY';
+    // Address extraction: current API might need to provide specific delivery/pickup address
+    final String address = task['customer_address'] ?? "Alamat Pelanggan"; 
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -1071,7 +1045,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             // Status Strip Indicator
             Container(
               width: 8,
-              decoration: BoxDecoration(color: task.isUrgent ? Colors.red : primaryTeal, borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), bottomLeft: Radius.circular(20))),
+              decoration: BoxDecoration(color: isFast ? Colors.red : primaryTeal, borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), bottomLeft: Radius.circular(20))),
             ),
             Expanded(
               child: Padding(
@@ -1083,8 +1057,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(task.id, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: textGrey)),
-                        if (task.isUrgent)
+                        Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: textGrey)),
+                        if (isFast)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(4)),
@@ -1097,9 +1071,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(task.customerName, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+                        Text(customerName, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
                         Text(
-                          NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(task.price),
+                          NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
                           style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 13, color: primaryTeal),
                         ),
                       ],
@@ -1111,10 +1085,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       children: [
                         Icon(LucideIcons.mapPin, size: 14, color: primaryTeal),
                         const SizedBox(width: 6),
-                        Expanded(child: Text(task.address, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis)),
+                        Expanded(child: Text(address, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis)),
                         const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: () => _openMap(task.address),
+                          onTap: () => _openMap(address),
                           child: Container(
                             width: 40,
                             height: 40,
@@ -1150,18 +1124,21 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         ),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {
-                              final sim = context.read<SimulasiProvider>();
-                              if (task.type == CourierTaskType.pickup) {
-                                sim.pickupSelesai(task.id);
-                                NyutjiNotif.showSuccess(context, "Berhasil pickup! Saldo +Rp 7.500 (Simulasi)");
-                              } else {
-                                sim.konfirmTerima(task.id); 
-                                NyutjiNotif.showSuccess(context, "Tugas pengantaran selesai!");
+                            onPressed: () async {
+                              final provider = context.read<OrderProvider>();
+                              String nextStatus = 'DONE';
+                              if (status == 'COURIER_ACCEPTED' || status == 'SEARCHING') nextStatus = 'PICKING_UP';
+                              else if (status == 'PICKING_UP') nextStatus = 'WAITING_DROPOFF';
+                              else if (status == 'DELIVERING') nextStatus = 'DONE';
+                              
+                              final success = await provider.updateOrderStatus(orderId, nextStatus);
+                              if (mounted) {
+                                if (success) {
+                                  _showBeautifulNotif("Status diperbarui ke $nextStatus", true);
+                                } else {
+                                  _showBeautifulNotif(provider.errorMessage ?? "Gagal", false);
+                                }
                               }
-                              setState(() {
-                                task.status = CourierTaskStatus.completed;
-                              });
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryTeal,
