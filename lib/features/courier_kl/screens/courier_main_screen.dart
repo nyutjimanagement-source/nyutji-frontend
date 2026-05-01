@@ -1015,7 +1015,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     final String orderId = task['id']?.toString() ?? '-';
     final String customerName = task['customer_name']?.toString() ?? 'Pelanggan';
     final String status = task['status']?.toString().toUpperCase() ?? 'UNKNOWN';
-    final double price = (task['total'] as num?)?.toDouble() ?? 0.0;
+    final double price = double.tryParse(task['total']?.toString() ?? '0') ?? 0.0;
     final bool isFast = task['is_fast_track'] == true || task['service_type'] == 'SAME_DAY';
     // Address extraction: current API might need to provide specific delivery/pickup address
     final String address = task['customer_address'] ?? "Alamat Pelanggan"; 
