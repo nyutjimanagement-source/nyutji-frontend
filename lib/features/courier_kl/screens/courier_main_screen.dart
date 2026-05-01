@@ -875,6 +875,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 GestureDetector(
                                   onTap: () async {
                                     final success = await context.read<OrderProvider>().acceptOrder(orderId);
+                                    if (!mounted) return;
                                     if (success) {
                                       _showBeautifulNotif("Order #$orderId berhasil diambil!", true);
                                     } else {

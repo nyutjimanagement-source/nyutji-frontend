@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/simulasi_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 
@@ -348,13 +347,14 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                         return ListTile(
                           contentPadding: const EdgeInsets.all(12),
                           tileColor: Colors.grey[50],
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey[200]!)),
                           leading: CircleAvatar(backgroundColor: primaryTeal.withValues(alpha: 0.1), child: const Icon(LucideIcons.user, color: primaryTeal, size: 18)),
                           title: Text(k['name'] ?? "Kurir", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
                           trailing: const Icon(LucideIcons.chevronRight, size: 16, color: textGrey),
                           onTap: () async {
                             Navigator.pop(context);
                             final success = await context.read<OrderProvider>().assignCourier(orderId, k['id']);
+                            if (!mounted) return;
                             if (success) {
                               _showBeautifulNotif("Berhasil menunjuk kurir!", true);
                             } else {
