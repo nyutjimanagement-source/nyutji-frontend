@@ -7,7 +7,7 @@ import '../../../providers/order_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../data/services/api_service.dart';
-import 'dart:math' show cos, sqrt, asin;
+import '../../../core/utils/nyutji_distance.dart';
 
 class CustomerPaymentScreen extends StatefulWidget {
   final int totalPrice;
@@ -79,23 +79,14 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     });
   }
 
-  double _haversine(double lat1, double lon1, double lat2, double lon2) {
-    if (lat1 == 0 || lat2 == 0) {
-      return 0.1;
-    }
-    var p = 0.017453292519943295;
-    var a = 0.5 - cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
-    return 12742 * asin(sqrt(a));
-  }
-
   Future<void> _initPaymentData() async {
-    // 1. Hitung Jarak Real (Handal & Best Practice Haversine)
-    double dist = _haversine(widget.lat, widget.lng, widget.mitraLat, widget.mitraLng);
-    if (dist < 0.1) dist = 0.1; 
+    // 1. Hitung Jarak Real & Apply NRCF Multiplier
+    double straightDist = NyutjiDistance.calculateDistance(widget.lat, widget.lng, widget.mitraLat, widget.mitraLng);
+    double roadDist = NyutjiDistance.calculateRoadDistance(straightDist);
+    if (roadDist < 0.1) roadDist = 0.1; 
 
     setState(() {
-      _calculatedDistance = dist;
+      _calculatedDistance = roadDist; // Simpan Jarak Jalan untuk Ongkir
     });
 
     // 2. Refresh Saldo Dompet Nyutji
@@ -106,7 +97,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     try {
       final api = ApiService();
       final quote = await api.getPriceQuote(
-        dist, 
+        _calculatedDistance, 
         widget.speed == 'fast',
         widget.lat,
         widget.lng

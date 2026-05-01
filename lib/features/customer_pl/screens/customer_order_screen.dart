@@ -10,6 +10,7 @@ import '../../../core/widgets/nyutji_pickup_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
+import '../../../core/utils/nyutji_distance.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -87,6 +88,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       }
       if (mounted) {
         setState(() => _isLoadingMitras = false);
+        
+        // RECALCULATE DISTANCE: Gunakan koordinat saat ini untuk hitung NRCF ke tiap Mitra
+        _recalculateMitraDistances();
+
         // CURI START: Pre-fetch semua item mitra di background agar saat diklik langsung 'Instan'
         for (var m in _mitras) {
           _fetchMitraItems(m['id']);
@@ -116,6 +121,35 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     } catch (e) {
       debugPrint("Error fetching items for mitra $mitraId: $e");
     }
+  }
+
+  void _recalculateMitraDistances() {
+    final auth = context.read<AuthProvider>();
+    double curLat = _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '0') ?? 0.0;
+    double curLng = _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '0') ?? 0.0;
+
+    if (curLat == 0.0 || curLng == 0.0) return;
+
+    setState(() {
+      for (var m in _mitras) {
+        double mLat = (m['lat'] ?? 0.0).toDouble();
+        double mLng = (m['lng'] ?? 0.0).toDouble();
+        
+        if (mLat != 0.0 && mLng != 0.0) {
+          double straightDist = NyutjiDistance.calculateDistance(curLat, curLng, mLat, mLng);
+          double roadDist = NyutjiDistance.calculateRoadDistance(straightDist);
+          m['distance'] = roadDist; // Simpan Jarak Jalan (NRCF)
+        }
+      }
+      // Sortir ulang: terdekat di depan
+      _mitras.sort((a, b) => (a['distance'] as double).compareTo(b['distance'] as double));
+      
+      // Jika mitra terpilih berubah posisinya/jaraknya, update juga di selectedMitra
+      if (_selectedMitra != null) {
+        final updated = _mitras.firstWhere((m) => m['id'] == _selectedMitra!['id'], orElse: () => _selectedMitra!);
+        _selectedMitra!['distance'] = updated['distance'];
+      }
+    });
   }
 
 
@@ -524,7 +558,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                         const SizedBox(width: 8), // Beri jarak sedikit
                         const Icon(LucideIcons.mapPin, size: 10, color: Colors.white70),
                         const SizedBox(width: 4),
-                        Text("${mitra['distance'] ?? '0.1'} km", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w500)),
+                        Text(NyutjiDistance.formatDistance(double.tryParse(mitra['distance']?.toString() ?? '0.1') ?? 0.1), style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ],
@@ -612,6 +646,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         _selectedLng = result.lng;
         _locationIcon = LucideIcons.mapPin;
       });
+      _recalculateMitraDistances();
     }
   }
 
