@@ -10,7 +10,6 @@ import '../../../core/widgets/nyutji_pickup_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
-import '../../../core/utils/nyutji_distance.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -70,28 +69,16 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           'address': item['address'] ?? 'Alamat tidak tersedia',
           'district': item['district'] ?? '',
           'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
-          'lat': (item['lat'] ?? 0.0).toDouble(),
-          'lng': (item['lng'] ?? 0.0).toDouble(),
+          'lat': double.tryParse(item['lat']?.toString() ?? '0') ?? 0.0,
+          'lng': double.tryParse(item['lng']?.toString() ?? '0') ?? 0.0,
           'items': item['items'] ?? [],
         };
       }).toList();
     } catch (e) {
       debugPrint("API Error, switching to fallback: $e");
     } finally {
-      if (_mitras.isEmpty) {
-        _mitras = [
-          { 'id': 1, 'name': 'Input ML Fatmawati', 'rating': 5.0, 'distance': 0.8, 'address': 'Cipete Utara', 'district': 'Cipete Utara', 'image': null, 'lat': -6.2411, 'lng': 106.8000, 'items': [] },
-          { 'id': 99, 'name': 'Mitra Auto Laundry Code', 'rating': 5.0, 'distance': 1.2, 'address': 'Serpong', 'district': 'Serpong', 'image': null, 'lat': -6.3000, 'lng': 106.6700, 'items': [] },
-          { 'id': 3, 'name': 'Laundry Code 01', 'rating': 4.9, 'distance': 2.5, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'lat': -6.3400, 'lng': 106.7400, 'items': [] },
-          { 'id': 4, 'name': 'Laundry Code', 'rating': 4.8, 'distance': 3.1, 'address': 'Pamulang', 'district': 'Pamulang', 'image': null, 'lat': -6.3450, 'lng': 106.7450, 'items': [] },
-        ];
-      }
       if (mounted) {
         setState(() => _isLoadingMitras = false);
-        
-        // RECALCULATE DISTANCE: Gunakan koordinat saat ini untuk hitung NRCF ke tiap Mitra
-        _recalculateMitraDistances();
-
         // CURI START: Pre-fetch semua item mitra di background agar saat diklik langsung 'Instan'
         for (var m in _mitras) {
           _fetchMitraItems(m['id']);
@@ -121,35 +108,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     } catch (e) {
       debugPrint("Error fetching items for mitra $mitraId: $e");
     }
-  }
-
-  void _recalculateMitraDistances() {
-    final auth = context.read<AuthProvider>();
-    double curLat = _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '0') ?? 0.0;
-    double curLng = _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '0') ?? 0.0;
-
-    if (curLat == 0.0 || curLng == 0.0) return;
-
-    setState(() {
-      for (var m in _mitras) {
-        double mLat = (m['lat'] ?? 0.0).toDouble();
-        double mLng = (m['lng'] ?? 0.0).toDouble();
-        
-        if (mLat != 0.0 && mLng != 0.0) {
-          double straightDist = NyutjiDistance.calculateDistance(curLat, curLng, mLat, mLng);
-          double roadDist = NyutjiDistance.calculateRoadDistance(straightDist);
-          m['distance'] = roadDist; // Simpan Jarak Jalan (NRCF)
-        }
-      }
-      // Sortir ulang: terdekat di depan
-      _mitras.sort((a, b) => (a['distance'] as double).compareTo(b['distance'] as double));
-      
-      // Jika mitra terpilih berubah posisinya/jaraknya, update juga di selectedMitra
-      if (_selectedMitra != null) {
-        final updated = _mitras.firstWhere((m) => m['id'] == _selectedMitra!['id'], orElse: () => _selectedMitra!);
-        _selectedMitra!['distance'] = updated['distance'];
-      }
-    });
   }
 
 
@@ -283,15 +241,23 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           SliverToBoxAdapter(
             child: _isLoadingMitras 
               ? const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
-              : SizedBox(
-                  height: 170,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _mitras.length,
-                    itemBuilder: (context, index) => _buildHorizontalMitraCard(_mitras[index]),
+              : _mitras.isEmpty 
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Text("Tidak ada mitra tersedia di wilayah ini", 
+                        style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w500)),
+                    ),
+                  )
+                : SizedBox(
+                    height: 170,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _mitras.length,
+                      itemBuilder: (context, index) => _buildHorizontalMitraCard(_mitras[index]),
+                    ),
                   ),
-                ),
           ),
 
           SliverToBoxAdapter(
@@ -558,7 +524,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                         const SizedBox(width: 8), // Beri jarak sedikit
                         const Icon(LucideIcons.mapPin, size: 10, color: Colors.white70),
                         const SizedBox(width: 4),
-                        Text(NyutjiDistance.formatDistance(double.tryParse(mitra['distance']?.toString() ?? '0.1') ?? 0.1), style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w500)),
+                        Text("${mitra['distance'] ?? '0.1'} km", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ],
@@ -646,7 +612,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         _selectedLng = result.lng;
         _locationIcon = LucideIcons.mapPin;
       });
-      _recalculateMitraDistances();
     }
   }
 
@@ -1011,15 +976,15 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   mitraId: _selectedMitra?['id'] ?? 0,
                   mitraName: _selectedMitra?['name'] ?? 'Mitra Laundry',
                   speed: _serviceSpeed,
-                  distance: double.tryParse(_selectedMitra?['distance']?.toString() ?? '0') ?? 0.1,
+                  distance: (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
                   dropMethod: _returnMethod,
                   selectedItemsList: selectedItems,
                   districtName: districtName,
                   cityName: cityName,
-                  lat: _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '0') ?? 0.0,
-                  lng: _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '0') ?? 0.0,
-                  mitraLat: double.tryParse(_selectedMitra?['lat']?.toString() ?? '0') ?? 0.0,
-                  mitraLng: double.tryParse(_selectedMitra?['lng']?.toString() ?? '0') ?? 0.0,
+                  lat: _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0,
+                  lng: _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0,
+                  mitraLat: (_selectedMitra?['lat'] as num?)?.toDouble() ?? 0.0,
+                  mitraLng: (_selectedMitra?['lng'] as num?)?.toDouble() ?? 0.0,
                   pickupNote: note,
                   mitraAddress: _selectedMitra?['address']?.toString() ?? '',
                   mitraDistrict: _selectedMitra?['district']?.toString() ?? '',
