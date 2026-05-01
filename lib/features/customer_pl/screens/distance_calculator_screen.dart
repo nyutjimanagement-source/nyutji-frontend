@@ -78,15 +78,23 @@ class _DistanceCalculatorScreenState extends State<DistanceCalculatorScreen> {
             
             // PICKUP LOCATION
             _buildSectionTitle("LOKASI JEMPUT (PL)"),
-            NyutjiLocationPicker(
-              initialAddress: _pickupAddress,
-              onLocationSelected: (addr, lat, lng, dist, city) {
-                setState(() {
-                  _pickupAddress = addr;
-                  _pickupLat = lat;
-                  _pickupLng = lng;
-                });
-                _updateDistance();
+            _buildLocationSelector(
+              address: _pickupAddress,
+              onTap: () async {
+                final result = await showModalBottomSheet<NyutjiLocationResult>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const NyutjiLocationPicker(),
+                );
+                if (result != null) {
+                  setState(() {
+                    _pickupAddress = result.address;
+                    _pickupLat = result.lat;
+                    _pickupLng = result.lng;
+                  });
+                  _updateDistance();
+                }
               },
             ),
             
@@ -94,15 +102,23 @@ class _DistanceCalculatorScreenState extends State<DistanceCalculatorScreen> {
             
             // MITRA LOCATION
             _buildSectionTitle("LOKASI MITRA (ML)"),
-            NyutjiLocationPicker(
-              initialAddress: _mitraAddress,
-              onLocationSelected: (addr, lat, lng, dist, city) {
-                setState(() {
-                  _mitraAddress = addr;
-                  _mitraLat = lat;
-                  _mitraLng = lng;
-                });
-                _updateDistance();
+            _buildLocationSelector(
+              address: _mitraAddress,
+              onTap: () async {
+                final result = await showModalBottomSheet<NyutjiLocationResult>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const NyutjiLocationPicker(),
+                );
+                if (result != null) {
+                  setState(() {
+                    _mitraAddress = result.address;
+                    _mitraLat = result.lat;
+                    _mitraLng = result.lng;
+                  });
+                  _updateDistance();
+                }
               },
             ),
             
@@ -146,6 +162,36 @@ class _DistanceCalculatorScreenState extends State<DistanceCalculatorScreen> {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(title, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: primaryTeal, letterSpacing: 1)),
+    );
+  }
+
+  Widget _buildLocationSelector({required String address, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: primaryTeal.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Icon(LucideIcons.mapPin, size: 18, color: primaryTeal),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                address.isNotEmpty ? address : "Ketuk untuk pilih lokasi...",
+                style: GoogleFonts.montserrat(fontSize: 12, color: address.isNotEmpty ? Colors.black87 : Colors.grey),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(LucideIcons.chevronRight, size: 16, color: primaryTeal.withValues(alpha: 0.5)),
+          ],
+        ),
+      ),
     );
   }
 
