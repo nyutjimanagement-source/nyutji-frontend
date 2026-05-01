@@ -6,6 +6,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_location_picker.dart';
+import '../../../core/utils/nyutji_distance.dart';
 import 'admin_approval.dart';
 
 class AdminUsersScreen extends StatefulWidget {
@@ -41,6 +43,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       'isActive': true,
     }
   ];
+  
+  // NRCF Calculator State
+  String _pickupAddress = "";
+  double _pickupLat = 0.0;
+  double _pickupLng = 0.0;
+  String _mitraAddress = "";
+  double _mitraLat = 0.0;
+  double _mitraLng = 0.0;
+  double _rawDistance = 0.0;
 
   @override
   void initState() {
@@ -84,6 +95,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             _buildAdminStatsGrid(context),
             const SizedBox(height: 24),
             _buildCourierPricingCard(),
+            const SizedBox(height: 24),
+            _buildNRCFSimulator(),
             const SizedBox(height: 24),
             _buildUserManagementGrid(context),
             const SizedBox(height: 40),
@@ -776,6 +789,107 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               },
             )
         ],
+      ),
+    );
+  }
+
+  // --- NRCF SIMULATOR CARD ---
+  Widget _buildNRCFSimulator() {
+    final roadDist = NyutjiDistance.calculateRoadDistance(_rawDistance);
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(LucideIcons.gauge, color: Colors.blue, size: 20),
+                const SizedBox(width: 12),
+                Text("Simulator Jarak & NRCF", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildMiniLocationSelector("Asal (PL)", _pickupAddress, () async {
+              final result = await showModalBottomSheet<NyutjiLocationResult>(
+                context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
+                builder: (context) => const NyutjiLocationPicker(),
+              );
+              if (result != null) {
+                setState(() {
+                  _pickupAddress = result.address;
+                  _pickupLat = result.lat;
+                  _pickupLng = result.lng;
+                  _rawDistance = NyutjiDistance.calculateDistance(_pickupLat, _pickupLng, _mitraLat, _mitraLng);
+                });
+              }
+            }),
+            const SizedBox(height: 8),
+            _buildMiniLocationSelector("Tujuan (ML)", _mitraAddress, () async {
+              final result = await showModalBottomSheet<NyutjiLocationResult>(
+                context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
+                builder: (context) => const NyutjiLocationPicker(),
+              );
+              if (result != null) {
+                setState(() {
+                  _mitraAddress = result.address;
+                  _mitraLat = result.lat;
+                  _mitraLng = result.lng;
+                  _rawDistance = NyutjiDistance.calculateDistance(_pickupLat, _pickupLng, _mitraLat, _mitraLng);
+                });
+              }
+            }),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("ESTIMASI NRCF", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal, letterSpacing: 1)),
+                      Text(NyutjiDistance.formatDistance(roadDist), style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: primaryTeal)),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text("GARIS LURUS", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey, letterSpacing: 1)),
+                      Text(NyutjiDistance.formatDistance(_rawDistance), style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniLocationSelector(String label, String address, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(border: Border.all(color: Colors.grey[200]!), borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            Text("$label: ", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+            Expanded(child: Text(address.isNotEmpty ? address : "Pilih Lokasi...", style: GoogleFonts.montserrat(fontSize: 11, color: address.isNotEmpty ? darkGray : Colors.grey[400]), overflow: TextOverflow.ellipsis)),
+            const Icon(LucideIcons.chevronRight, size: 14, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }
