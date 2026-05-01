@@ -272,7 +272,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                           title: Text(k['name'] ?? "Kurir", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
                           trailing: const Icon(LucideIcons.chevronRight, size: 16, color: textGrey),
                           onTap: () async {
-                            final scaffoldMessenger = ScaffoldMessenger.of(context);
                             final provider = context.read<OrderProvider>();
                             Navigator.pop(context);
                             
