@@ -118,6 +118,19 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> acceptOrder(String orderId) async {
+    final response = await _dio.post("/courier/pickup", data: {'orderId': orderId});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> assignCourier(String orderId, int courierId) async {
+    final response = await _dio.post("/orders/assign-courier", data: {
+      'orderId': orderId,
+      'courierId': courierId
+    });
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
     final response = await _dio.post("/orders", data: orderData);
     return response.data;

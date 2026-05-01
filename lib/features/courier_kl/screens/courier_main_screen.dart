@@ -873,7 +873,15 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 ),
                                 const Spacer(),
                                 GestureDetector(
-                                  onTap: () => _showBeautifulNotif("Order #$orderId berhasil diambil!", true),
+                                  onTap: () async {
+                                    final success = await context.read<OrderProvider>().acceptOrder(orderId);
+                                    if (success) {
+                                      _showBeautifulNotif("Order #$orderId berhasil diambil!", true);
+                                    } else {
+                                      final error = context.read<OrderProvider>().errorMessage;
+                                      _showBeautifulNotif(error ?? "Gagal mengambil order", false);
+                                    }
+                                  },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                                     decoration: BoxDecoration(

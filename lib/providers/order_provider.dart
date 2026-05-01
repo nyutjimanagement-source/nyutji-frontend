@@ -178,4 +178,30 @@ class OrderProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> acceptOrder(String orderId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _api.acceptOrder(orderId);
+      // Refresh data
+      await fetchOrders();
+      // Reset available orders locally or fetch again
+      _availableOrders.removeWhere((o) => o['id'] == orderId);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message'] ?? 'Gagal mengambil order';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
