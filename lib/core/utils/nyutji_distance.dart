@@ -22,9 +22,9 @@ class NyutjiDistance {
     // TIERED LOGIC
     double multiplier;
     if (straightDistanceKm < 3.0) {
-      multiplier = 1.5; // Area perumahan/padat (banyak belokan)
+      multiplier = 1.59; // Area perumahan/padat (banyak belokan)
     } else {
-      multiplier = 1.4; // Jalan raya/jarak jauh (lebih stabil)
+      multiplier = 1.48; // Jalan raya/jarak jauh (lebih stabil)
     }
     
     return straightDistanceKm * multiplier;
