@@ -78,41 +78,39 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       final api = ApiService();
       final items = await api.getMitraItems(mitraId);
 
-      if (items.isNotEmpty) {
-        setState(() {
-          // FUNGSI BERSIH-BERSIH INTERNAL
-          double parseSafe(dynamic val) {
-            if (val == null) return 0;
-            String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
-            return double.tryParse(s) ?? 0;
-          }
+      // FIX: Selalu update data walaupun kosong agar 'hantu' hilang jika dihapus di backend
+      setState(() {
+        double parseSafe(dynamic val) {
+          if (val == null) return 0;
+          String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
+          return double.tryParse(s) ?? 0;
+        }
 
-          // FILTER GENIUS V2: Bersihkan dulu baru cek harga (Maksimal 1 Juta untuk filter hantu)
-          kiloanData = items
-            .where((i) => i['category'] == 'Kiloan')
-            .where((i) => parseSafe(i['price_regular']) < 1000000)
-            .map<Map<String, String>>((i) => {
-            "id": i['id'].toString(),
-            "svc": i['name']?.toString() ?? "",
-            "reg": i['price_regular']?.toString() ?? "0",
-            "fast": i['price_fast']?.toString() ?? "0",
-          }).toList();
+        // FILTER DIPERBAIKI: Gunakan limit 10 Juta (sama dengan validasi simpan) agar tidak ada item tersembunyi
+        kiloanData = items
+          .where((i) => i['category'] == 'Kiloan')
+          .where((i) => parseSafe(i['price_regular']) < 10000000)
+          .map<Map<String, String>>((i) => {
+          "id": i['id'].toString(),
+          "svc": i['name']?.toString() ?? "",
+          "reg": i['price_regular']?.toString() ?? "0",
+          "fast": i['price_fast']?.toString() ?? "0",
+        }).toList();
 
-          satuanData = items
-            .where((i) => i['category'] == 'Satuan')
-            .where((i) => parseSafe(i['price_regular']) < 1000000)
-            .map<Map<String, String>>((i) => {
-            "id": i['id'].toString(),
-            "name": i['name']?.toString() ?? "",
-            "price": i['price_regular']?.toString() ?? "0",
-          }).toList();
-          
-          if (_currentMitraKey != null) {
-            kiloanStore[_currentMitraKey!] = kiloanData;
-            satuanStore[_currentMitraKey!] = satuanData;
-          }
-        });
-      }
+        satuanData = items
+          .where((i) => i['category'] == 'Satuan')
+          .where((i) => parseSafe(i['price_regular']) < 10000000)
+          .map<Map<String, String>>((i) => {
+          "id": i['id'].toString(),
+          "name": i['name']?.toString() ?? "",
+          "price": i['price_regular']?.toString() ?? "0",
+        }).toList();
+        
+        if (_currentMitraKey != null) {
+          kiloanStore[_currentMitraKey!] = kiloanData;
+          satuanStore[_currentMitraKey!] = satuanData;
+        }
+      });
     } catch (e) {
       debugPrint("Gagal mengambil data dari API: $e");
     } finally {
@@ -125,8 +123,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     _currentMitraKey = mitraKey;
     
     if (kiloanStore.containsKey(mitraKey)) {
-      kiloanData = kiloanStore[mitraKey]!;
-      satuanData = satuanStore[mitraKey]!;
+      kiloanData = List.from(kiloanStore[mitraKey]!);
+      satuanData = List.from(satuanStore[mitraKey]!);
       _isInitialLoading = false;
     } else {
       kiloanData = [
@@ -143,9 +141,9 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
         {"id": "104", "name": "Gordyn Tebal", "price": "15000"},
         {"id": "105", "name": "Baju Anak", "price": "10000"},
       ];
-      
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadPricingFromApi());
     }
+    // FIX: Selalu panggil API untuk memastikan data segar (Solve masalah Re-Login / Multi Device)
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadPricingFromApi());
   }
 
   String _formatPrice(String price) {
