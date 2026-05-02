@@ -155,10 +155,149 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           _buildActionBtn("Tambah\nKecamatan", LucideIcons.mapPin, Colors.orange),
           const SizedBox(width: 12),
-          _buildActionBtn("Lihat\nSaldo", LucideIcons.wallet, Colors.green),
+          GestureDetector(
+            onTap: () => _showTopupSimulatorSheet(context),
+            child: _buildActionBtn("Topup\nSimulasi", LucideIcons.wallet, Colors.green),
+          ),
           const SizedBox(width: 12),
           _buildActionBtn("Reset\nPassword", LucideIcons.key, Colors.blue),
         ],
+      ),
+    );
+  }
+
+  void _showTopupSimulatorSheet(BuildContext context) {
+    final auth = context.read<AuthProvider>();
+    auth.fetchAllUsers();
+    
+    String selectedIdentifier = "";
+    String selectedName = "";
+    final TextEditingController amountController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sbContext, setModalState) {
+          return Container(
+            height: MediaQuery.of(sbContext).size.height * 0.8,
+            decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(sbContext).viewInsets.bottom),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10))),
+                
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: Colors.green[50], shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.banknote, color: Colors.green, size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Topup Simulasi", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkGray)),
+                          Text("Suntik saldo instan ke user", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("1. Pilih Target User", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkGray)),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
+                          child: DropdownButtonHideUnderline(
+                            child: Consumer<AuthProvider>(
+                              builder: (context, authData, _) {
+                                return DropdownButton<String>(
+                                  isExpanded: true,
+                                  hint: Text("Pilih User...", style: GoogleFonts.montserrat(fontSize: 12)),
+                                  value: selectedIdentifier.isEmpty ? null : selectedIdentifier,
+                                  items: authData.allUsers.map((u) {
+                                    final ident = u['identifier']?.toString() ?? '';
+                                    final name = u['name'] ?? 'No Name';
+                                    final role = u['role'] ?? '-';
+                                    return DropdownMenuItem(
+                                      value: ident,
+                                      child: Text("$role - $name ($ident)", style: GoogleFonts.montserrat(fontSize: 12)),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    final user = authData.allUsers.firstWhere((u) => u['identifier'] == val);
+                                    setModalState(() {
+                                      selectedIdentifier = val!;
+                                      selectedName = user['name'] ?? '';
+                                    });
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text("2. Nominal Topup (Rp)", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkGray)),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: amountController,
+                          keyboardType: TextInputType.number,
+                          style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: primaryTeal),
+                          decoration: InputDecoration(
+                            hintText: "0",
+                            prefixText: "Rp ",
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey[200]!)),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: primaryTeal, width: 2)),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryTeal,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              elevation: 0,
+                            ),
+                            onPressed: (selectedIdentifier.isEmpty || amountController.text.isEmpty) ? null : () async {
+                               final amount = double.tryParse(amountController.text) ?? 0;
+                               if (amount <= 0) return;
+
+                               final success = await auth.forceTopup(amount, selectedIdentifier);
+                               if (success) {
+                                 Navigator.pop(sbContext);
+                                 NyutjiNotif.showSuccess(context, "Berhasil suntik saldo Rp ${amountController.text} ke $selectedName");
+                               } else {
+                                 NyutjiNotif.showError(context, "Gagal melakukan topup simulasi");
+                               }
+                            },
+                            child: Text("Suntik Saldo Sekarang", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -387,6 +526,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   void _showDeleteUserSheet(BuildContext context) {
     final auth = context.read<AuthProvider>();
     auth.fetchAllUsers();
+    
+    String searchQuery = "";
+    String selectedRole = "SEMUA";
     final Set<String> selectedIdentifiers = {};
 
     showModalBottomSheet(
@@ -396,31 +538,45 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       builder: (sheetContext) => StatefulBuilder(
         builder: (sbContext, setModalState) {
           return Container(
-            height: MediaQuery.of(sbContext).size.height * 0.75,
+            height: MediaQuery.of(sbContext).size.height * 0.85,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
             ),
             child: Column(
               children: [
                 const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10))),
+                
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
                   child: Row(
                     children: [
-                      const Icon(LucideIcons.trash2, color: Colors.red),
-                      const SizedBox(width: 12),
-                      Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: darkGray)),
-                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.trash2, color: Colors.red, size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkGray)),
+                            Text("Kelola ekosistem Nyutji", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
                       if (selectedIdentifiers.isNotEmpty)
-                        TextButton(
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
                           onPressed: () {
                             final usersToDelete = auth.allUsers
-                                .where((u) {
-                                  final ident = u['identifier']?.toString() ?? '';
-                                  return selectedIdentifiers.contains(ident);
-                                })
+                                .where((u) => selectedIdentifiers.contains(u['identifier']?.toString() ?? ''))
                                 .map((u) => u['name']?.toString() ?? 'No Name')
                                 .toList();
                             
@@ -428,57 +584,121 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                               final nav = Navigator.of(sbContext);
                               final success = await auth.bulkDeleteUsers(selectedIdentifiers.toList());
                               if (success) {
-                                nav.pop(); // Close sheet
-                                try {
-                                  NyutjiNotif.showSuccess(sbContext, "Berhasil menghapus ${selectedIdentifiers.length} user");
-                                } catch (e) {
-                                  debugPrint("Notif Error: $e");
-                                }
+                                nav.pop();
+                                NyutjiNotif.showSuccess(context, "Berhasil menghapus ${selectedIdentifiers.length} user");
                               }
                             });
                           },
-                          child: Text("Hapus", style: GoogleFonts.montserrat(color: Colors.red, fontWeight: FontWeight.bold)),
+                          child: Text("Hapus (${selectedIdentifiers.length})", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
+                        child: TextField(
+                          onChanged: (val) => setModalState(() => searchQuery = val.toLowerCase()),
+                          decoration: InputDecoration(
+                            icon: const Icon(LucideIcons.search, size: 18, color: Colors.grey),
+                            hintText: "Cari Nama atau ID...",
+                            hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: ["SEMUA", "PL", "ML", "KL"].map((role) {
+                            final isSelected = selectedRole == role;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text(role, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.grey)),
+                                selected: isSelected,
+                                selectedColor: primaryTeal,
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: isSelected ? primaryTeal : Colors.grey[200]!)),
+                                onSelected: (val) => setModalState(() => selectedRole = role),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Expanded(
                   child: Consumer<AuthProvider>(
                     builder: (cContext, authData, _) {
-                      if (authData.allUsers.isEmpty && authData.isLoading) {
+                      if (authData.isLoading && authData.allUsers.isEmpty) {
                         return const Center(child: CircularProgressIndicator(color: primaryTeal));
                       }
-                      
+                      final filtered = authData.allUsers.where((u) {
+                        final name = (u['name'] ?? '').toString().toLowerCase();
+                        final ident = (u['identifier'] ?? '').toString().toLowerCase();
+                        final role = u['role'] ?? '';
+                        final matchSearch = name.contains(searchQuery) || ident.contains(searchQuery);
+                        final matchRole = selectedRole == "SEMUA" || role == selectedRole;
+                        return matchSearch && matchRole;
+                      }).toList();
+                      if (filtered.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(LucideIcons.userX, size: 64, color: Colors.grey[200]),
+                            const SizedBox(height: 16),
+                            Text("Data tidak tersedia", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey)),
+                          ],
+                        );
+                      }
                       return ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        itemCount: authData.allUsers.length,
-                        separatorBuilder: (lvContext, index) => Divider(color: Colors.grey[100]),
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        itemCount: filtered.length,
+                        separatorBuilder: (lvContext, index) => const SizedBox(height: 8),
                         itemBuilder: (itemContext, index) {
-                          final u = authData.allUsers[index];
+                          final u = filtered[index];
                           final String identifier = u['identifier']?.toString() ?? '-';
                           final name = u['name'] ?? 'No Name';
                           final role = u['role'] ?? '-';
-                          
-                          return CheckboxListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
-                            subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
-                            secondary: Container(
-                              width: 32, height: 32,
-                              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
-                              child: const Center(child: Icon(LucideIcons.user, size: 16, color: primaryTeal)),
+                          final isSelected = selectedIdentifiers.contains(identifier);
+                          Color roleColor = primaryTeal;
+                          if (role == 'ML') roleColor = Colors.blue;
+                          if (role == 'KL') roleColor = Colors.orange;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.red[50] : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: isSelected ? Colors.red[200]! : Colors.grey[100]!),
                             ),
-                            value: selectedIdentifiers.contains(identifier),
-                            activeColor: primaryTeal,
-                            onChanged: (val) {
-                              setModalState(() {
-                                if (val == true) {
-                                  selectedIdentifiers.add(identifier);
-                                } else {
-                                  selectedIdentifiers.remove(identifier);
-                                }
-                              });
-                            },
+                            child: CheckboxListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
+                              subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                              secondary: Container(
+                                width: 40, height: 40,
+                                decoration: BoxDecoration(color: roleColor.withOpacity(0.1), shape: BoxShape.circle),
+                                child: Center(child: Text(role, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: roleColor))),
+                              ),
+                              value: isSelected,
+                              activeColor: Colors.red,
+                              checkColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              onChanged: (val) {
+                                setModalState(() {
+                                  if (val == true) selectedIdentifiers.add(identifier);
+                                  else selectedIdentifiers.remove(identifier);
+                                });
+                              },
+                            ),
                           );
                         },
                       );

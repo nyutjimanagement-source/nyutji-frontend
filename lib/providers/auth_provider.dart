@@ -447,4 +447,19 @@ class AuthProvider with ChangeNotifier {
     }
     return false;
   }
+  Future<bool> forceTopup(double amount, String targetIdentifier) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final res = await ApiService().forceTopup(amount, targetIdentifier: targetIdentifier);
+      _isLoading = false;
+      notifyListeners();
+      return res['message'] != null;
+    } catch (e) {
+      debugPrint("Force Topup Error: $e");
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

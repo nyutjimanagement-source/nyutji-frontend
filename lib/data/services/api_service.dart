@@ -174,7 +174,7 @@ class ApiService {
   Future<Map<String, dynamic>> forceTopup(double amount, {String? targetIdentifier}) async {
     final response = await _dio.post("/wallet/force-topup", data: {
       'amount': amount,
-      'identifier': targetIdentifier, // Jika admin melakukan topup untuk user lain
+      'targetIdentifier': targetIdentifier, // Disamakan dengan backend
     });
     return response.data;
   }
