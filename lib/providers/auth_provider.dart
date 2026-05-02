@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
+import '../core/utils/formatters.dart';
 import '../data/services/api_service.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -92,7 +93,8 @@ class AuthProvider with ChangeNotifier {
 
     // 2. Tetap sinkronkan ke SharedPreferences Lokal HP untuk Fast Load
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('home_address_${_user?['email']}', jsonEncode(addr));
+    final key = _user?['identifier'] ?? _user?['email'] ?? 'unknown';
+    await prefs.setString('home_address_$key', jsonEncode(addr));
     notifyListeners();
   }
 
@@ -128,10 +130,23 @@ class AuthProvider with ChangeNotifier {
         }
       }
       // Load Addresses
-      final homeAddrStr = prefs.getString('home_address_${_user?['email']}');
-      if (homeAddrStr != null) _homeAddress = jsonDecode(homeAddrStr);
+      final key = _user?['identifier'] ?? _user?['email'];
+      final homeAddrStr = prefs.getString('home_address_$key');
+      if (homeAddrStr != null) {
+        _homeAddress = jsonDecode(homeAddrStr);
+      } else if (_user != null && _user!['address'] != null) {
+        // RESTORE DARI DATABASE: Jika di HP baru alamat kosong, ambil dari SQL
+        _homeAddress = {
+          'address': _user!['address'],
+          'detail': _user!['address_detail'],
+          'lat': _user!['lat'],
+          'lng': _user!['lng'],
+          'district': _user!['district_name'],
+          'city': _user!['city_name'],
+        };
+      }
       
-      final historyStr = prefs.getString('address_history_${_user?['email']}');
+      final historyStr = prefs.getString('address_history_$key');
       if (historyStr != null) _addressHistory = jsonDecode(historyStr);
       
       // LOAD LOCAL PHOTO PATH PERSISTENCE
@@ -203,14 +218,25 @@ class AuthProvider with ChangeNotifier {
           await prefs.setString('user_data', jsonEncode(_user));
 
           // Load Addresses after login
-          final homeAddrStr = prefs.getString('home_address_${_user?['email']}');
+          final key = _user?['identifier'] ?? _user?['email'];
+          final homeAddrStr = prefs.getString('home_address_$key');
           if (homeAddrStr != null) {
             _homeAddress = jsonDecode(homeAddrStr);
+          } else if (_user != null && _user!['address'] != null) {
+            // RESTORE DARI DATABASE
+            _homeAddress = {
+              'address': _user!['address'],
+              'detail': _user!['address_detail'],
+              'lat': _user!['lat'],
+              'lng': _user!['lng'],
+              'district': _user!['district_name'],
+              'city': _user!['city_name'],
+            };
           } else {
             _homeAddress = null;
           }
           
-          final historyStr = prefs.getString('address_history_${_user?['email']}');
+          final historyStr = prefs.getString('address_history_$key');
           if (historyStr != null) {
             _addressHistory = jsonDecode(historyStr);
           } else {
@@ -279,9 +305,9 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Proses Approve/Reject
-  Future<bool> processUserApproval(int targetId, String action) async {
+  Future<bool> processUserApproval(dynamic targetIdentifier, String action) async {
     try {
-      final res = await ApiService().processApproval(targetId, action);
+      final res = await ApiService().processApproval(targetIdentifier, action);
       return res['message'] != null;
     } catch (e) {
       debugPrint("Process Approval Error: $e");
@@ -302,15 +328,35 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> bulkDeleteUsers(List<int> userIds) async {
+  Future<bool> approveUser(dynamic identifier, String action) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final res = await ApiService().processApproval(identifier, action);
+      if (res['status'] == 'success') {
+        // Hapus dari list pending lokal
+        _pendingApprovals.removeWhere((u) => u['identifier'] == identifier);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint("Approve Error: $e");
+    }
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  Future<bool> bulkDeleteUsers(List<dynamic> identifiers) async {
     try {
       _isLoading = true;
       notifyListeners();
       
-      final res = await ApiService().bulkDeleteUsers(userIds);
+      final res = await ApiService().bulkDeleteUsers(identifiers);
       if (res['status'] == 'success') {
-        // Hapus dari list lokal agar UI update otomatis
-        _allUsers.removeWhere((u) => userIds.contains(u['id']));
+        // Hapus dari list lokal agar UI update otomatis menggunakan identifier
+        _allUsers.removeWhere((u) => identifiers.contains(u['identifier']));
         _isLoading = false;
         notifyListeners();
         return true;
@@ -374,6 +420,7 @@ class AuthProvider with ChangeNotifier {
       final res = await ApiService().updateLocation({
         'address': locData['address'],
         'district_name': locData['district_name'],
+        'district_code': Formatters.generateDistrictCode(locData['district_name']),
         'city_name': locData['city_name'],
         'lat': locData['lat'],
         'lng': locData['lng'],
@@ -384,6 +431,7 @@ class AuthProvider with ChangeNotifier {
         if (_user != null) {
           _user!['address'] = locData['address'];
           _user!['district_name'] = locData['district_name'];
+          _user!['district_code'] = Formatters.generateDistrictCode(locData['district_name']);
           _user!['city_name'] = locData['city_name'];
           _user!['lat'] = locData['lat'];
           _user!['lng'] = locData['lng'];

@@ -78,15 +78,15 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
-  Future<Map<String, dynamic>> bulkDeleteUsers(List<int> userIds) async {
-    final response = await _dio.delete("/admin/users/bulk", data: {'userIds': userIds});
+  Future<Map<String, dynamic>> bulkDeleteUsers(List<dynamic> identifiers) async {
+    final response = await _dio.delete("/admin/users/bulk", data: {'identifiers': identifiers});
     return response.data;
   }
 
-  Future<Map<String, dynamic>> processApproval(int targetId, String action) async {
+  Future<Map<String, dynamic>> processApproval(dynamic targetIdentifier, String action) async {
     // action: 'APPROVED' or 'REJECTED'
     final response = await _dio.post("/approvals/process", data: {
-      'targetId': targetId,
+      'targetIdentifier': targetIdentifier, // Gunakan identifier, bukan ID integer
       'action': action
     });
     return response.data;
@@ -124,9 +124,10 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> assignCourier(String orderId, int courierId) async {
+  Future<Map<String, dynamic>> assignCourier(String orderId, dynamic courierId) async {
     final response = await _dio.post("/orders/assign-courier", data: {
       'orderId': orderId,
+      'courier_id': courierId, // Gunakan identifier
       'courierId': courierId
     });
     return response.data;
@@ -170,8 +171,11 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> forceTopup(double amount) async {
-    final response = await _dio.post("/wallet/force-topup", data: {'amount': amount});
+  Future<Map<String, dynamic>> forceTopup(double amount, {String? targetIdentifier}) async {
+    final response = await _dio.post("/wallet/force-topup", data: {
+      'amount': amount,
+      'identifier': targetIdentifier, // Jika admin melakukan topup untuk user lain
+    });
     return response.data;
   }
 
@@ -242,13 +246,13 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
-  Future<List<dynamic>> getMitraItems(int mitraId) async {
+  Future<List<dynamic>> getMitraItems(dynamic mitraId) async {
     // Menarik daftar harga asli mitra tertentu dari DB
     final response = await _dio.get("/mitras/$mitraId/items");
     return response.data['data'] ?? [];
   }
 
-  Future<Map<String, dynamic>> updateMitraPricing(int mitraId, List<Map<String, dynamic>> items) async {
+  Future<Map<String, dynamic>> updateMitraPricing(dynamic mitraId, List<Map<String, dynamic>> items) async {
     // Mengirim pembaruan harga ke backend (Sinkronisasi Database SQL)
     try {
       final response = await _dio.post("/mitras/items", data: {

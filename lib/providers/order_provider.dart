@@ -188,7 +188,8 @@ class OrderProvider extends ChangeNotifier {
       // Refresh data
       await fetchOrders();
       // Reset available orders locally or fetch again
-      _availableOrders.removeWhere((o) => o['id'] == orderId);
+      // Gunakan order_number sebagai prioritas identitas pesanan
+      _availableOrders.removeWhere((o) => (o['order_number'] ?? o['id']) == orderId);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -205,7 +206,7 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> assignCourier(String orderId, int courierId) async {
+  Future<bool> assignCourier(String orderId, dynamic courierId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();

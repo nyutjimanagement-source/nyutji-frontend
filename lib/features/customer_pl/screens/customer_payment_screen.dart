@@ -14,7 +14,7 @@ class CustomerPaymentScreen extends StatefulWidget {
   final int totalItems;
   final String address;
   final bool isPickup;
-  final int mitraId;
+  final dynamic mitraId;
   final String mitraName;
   final String speed;
   final double distance;
@@ -214,7 +214,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         'deliveryFee': deliveryFee,
         'delivery_type': deliveryType,
         'deliveryType': deliveryType,
-        'mitra_id': widget.mitraId,
+        'customer_id': auth.user?['identifier'], // Gunakan identifier PL
+        'mitra_id': widget.mitraId, // Gunakan identifier ML
         'mitraId': widget.mitraId,
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
       };

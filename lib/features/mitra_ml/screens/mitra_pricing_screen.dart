@@ -71,7 +71,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     setState(() => _isInitialLoading = true);
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      final mitraId = auth.user?['id'];
+      final mitraId = auth.user?['identifier'] ?? auth.user?['mitra_id'];
       if (mitraId == null) return;
 
       final api = ApiService();
@@ -137,7 +137,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     setState(() => _isSaving = true);
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      final mitraId = auth.user?['id']; 
+      final mitraId = auth.user?['identifier'] ?? auth.user?['mitra_id']; 
       if (mitraId == null) throw "ID Mitra tidak ditemukan";
 
       final api = ApiService();
@@ -294,11 +294,18 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = Provider.of<AuthProvider>(context);
+    final mitraName = widget.customName ?? (auth.user?['name'] ?? "Nyutji Mitra");
+    _initializeData(mitraName);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final mitraName = widget.customName ?? (auth.user?['name'] ?? "Nyutji Mitra");
-    _initializeData(mitraName); 
-
+    
     return Stack(
       children: [
         Scaffold(
@@ -489,7 +496,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Regular", "Fast Track"] : ["", "Nama Barang", "Harga"], editing),
+              if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Regular", "Fast Track"] : ["", "Service", "Harga"], editing),
               
               // ANIMATED SWITCHER FOR SMOOTH SWIPE
               AnimatedSwitcher(
@@ -514,7 +521,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ...pageData.map((item) {
-                      int id = int.parse(item['id']!);
+                      int id = int.tryParse(item['id']?.toString() ?? "") ?? 0;
                       return isKiloan 
                         ? _buildKiloanRow(id, item, editing)
                         : _buildSatuanRow(id, item, editing);
@@ -574,7 +581,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           bool isCheck = t == "";
           if (isCheck && !widget.isSelectionMode && !editing) return const SizedBox.shrink();
           return Expanded(
-            flex: isCheck ? 0 : (t == "Service" || t == "Nama Barang" ? 2 : 1),
+            flex: isCheck ? 0 : (t == "Service" || t == "Service" ? 2 : 1),
             child: SizedBox(
               width: isCheck ? 30 : null,
               child: Text(

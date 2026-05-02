@@ -31,9 +31,9 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
     });
   }
 
-  Future<void> _handleAction(int id, String action, String name) async {
+  Future<void> _handleAction(dynamic identifier, String action, String name) async {
     final auth = context.read<AuthProvider>();
-    final success = await auth.processUserApproval(id, action);
+    final success = await auth.processUserApproval(identifier, action);
     
     if (!mounted) {
       return;
@@ -141,7 +141,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => _handleAction(user['id'], 'APPROVED', user['name']),
+                      onPressed: () => _handleAction(user['identifier'], 'APPROVED', user['name']),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         foregroundColor: Colors.white,

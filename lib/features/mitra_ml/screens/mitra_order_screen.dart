@@ -73,7 +73,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   Widget _buildPremiumOrderCard(dynamic o) {
     final status = o['status']?.toString() ?? 'UNKNOWN';
     final price = double.tryParse(o['total']?.toString() ?? '0') ?? 0.0;
-    final orderId = o['id']?.toString() ?? '-';
+    // Prioritaskan order_number agar konsisten dengan database baru
+    final orderId = (o['order_number'] ?? o['id'] ?? '-').toString();
     final customerName = o['customer_name']?.toString() ?? 'Pelanggan';
     final courierName = o['courier_name']?.toString() ?? 'Belum Ada';
     final isFast = o['is_fast_track'] == true || o['service_type'] == 'SAME_DAY';
@@ -275,7 +276,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                             final provider = context.read<OrderProvider>();
                             Navigator.pop(context);
                             
-                            final success = await provider.assignCourier(orderId, k['id']);
+                            final success = await provider.assignCourier(orderId, k['identifier'] ?? k['id']);
                             if (!mounted) return;
                             
                             if (success) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
@@ -320,6 +321,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                   'owner_district_name': ownerDistrict,
                                   'owner_city_name': ownerCity,
                                   'districtName': opKecController.text,
+                                  'district_code': Formatters.generateDistrictCode(opKecController.text),
                                   'cityName': opCityController.text.isEmpty ? 'Tasikmalaya' : opCityController.text,
                                   'business_type': selectedSegment,
                                   'mitra_category': selectedCategory,

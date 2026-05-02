@@ -387,7 +387,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   void _showDeleteUserSheet(BuildContext context) {
     final auth = context.read<AuthProvider>();
     auth.fetchAllUsers();
-    final Set<int> selectedIds = {};
+    final Set<String> selectedIdentifiers = {};
 
     showModalBottomSheet(
       context: context,
@@ -413,25 +413,24 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       const SizedBox(width: 12),
                       Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: darkGray)),
                       const Spacer(),
-                      if (selectedIds.isNotEmpty)
+                      if (selectedIdentifiers.isNotEmpty)
                         TextButton(
                           onPressed: () {
                             final usersToDelete = auth.allUsers
                                 .where((u) {
-                                  final uid = u['id'] is int ? u['id'] : int.parse(u['id'].toString());
-                                  return selectedIds.contains(uid);
+                                  final ident = u['identifier']?.toString() ?? '';
+                                  return selectedIdentifiers.contains(ident);
                                 })
                                 .map((u) => u['name']?.toString() ?? 'No Name')
                                 .toList();
                             
                             _showConfirmDeleteDialog(sbContext, usersToDelete, () async {
                               final nav = Navigator.of(sbContext);
-                              final success = await auth.bulkDeleteUsers(selectedIds.toList());
+                              final success = await auth.bulkDeleteUsers(selectedIdentifiers.toList());
                               if (success) {
                                 nav.pop(); // Close sheet
-                                // Gunakan context dari sheetContext atau sbContext secara langsung jika .mounted tidak ada
                                 try {
-                                  NyutjiNotif.showSuccess(sbContext, "Berhasil menghapus ${selectedIds.length} user");
+                                  NyutjiNotif.showSuccess(sbContext, "Berhasil menghapus ${selectedIdentifiers.length} user");
                                 } catch (e) {
                                   debugPrint("Notif Error: $e");
                                 }
@@ -456,27 +455,27 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         separatorBuilder: (lvContext, index) => Divider(color: Colors.grey[100]),
                         itemBuilder: (itemContext, index) {
                           final u = authData.allUsers[index];
-                          final int id = u['id'] is int ? u['id'] : int.parse(u['id'].toString());
+                          final String identifier = u['identifier']?.toString() ?? '-';
                           final name = u['name'] ?? 'No Name';
                           final role = u['role'] ?? '-';
                           
                           return CheckboxListTile(
                             contentPadding: EdgeInsets.zero,
                             title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
-                            subtitle: Text(role, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                            subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
                             secondary: Container(
                               width: 32, height: 32,
                               decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
                               child: const Center(child: Icon(LucideIcons.user, size: 16, color: primaryTeal)),
                             ),
-                            value: selectedIds.contains(id),
+                            value: selectedIdentifiers.contains(identifier),
                             activeColor: primaryTeal,
                             onChanged: (val) {
                               setModalState(() {
                                 if (val == true) {
-                                  selectedIds.add(id);
+                                  selectedIdentifiers.add(identifier);
                                 } else {
-                                  selectedIds.remove(id);
+                                  selectedIdentifiers.remove(identifier);
                                 }
                               });
                             },

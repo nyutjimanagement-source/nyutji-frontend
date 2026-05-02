@@ -28,8 +28,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   String _serviceSpeed = 'regular';
   String _returnMethod = 'self'; // 'self' atau 'courier'
   
-  // STATE UNTUK PESANAN (Item ID -> Count)
-  final Map<int, int> _itemCounts = {};
+  // STATE UNTUK PESANAN (Item ID/Identifier -> Count)
+  final Map<dynamic, int> _itemCounts = {};
   
   // STATE UNTUK MAPS & LOKASI
   double? _selectedLat;
@@ -61,7 +61,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       _mitras = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
         return {
-          'id': item['id'] ?? item['mitra_id'] ?? 0,
+          'id': item['identifier'] ?? item['id'] ?? item['mitra_id'] ?? 0,
           'name': item['name'] ?? item['brand_name'] ?? item['full_name'] ?? item['mitra_name'] ?? 'Mitra Nyutji',
           'rating': (item['rating'] ?? 5.0).toDouble(),
           'distance': (item['distance'] ?? 0.1).toDouble(),
@@ -87,7 +87,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     }
   }
 
-  Future<void> _fetchMitraItems(int mitraId) async {
+  Future<void> _fetchMitraItems(dynamic mitraId) async {
     try {
       final api = ApiService();
       // Set timeout manual untuk simulasi kilat

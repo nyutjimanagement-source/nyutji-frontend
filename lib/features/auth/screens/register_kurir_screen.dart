@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
@@ -25,6 +26,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
   String? selectedKecamatan;
   String? selectedMitra;
   int? selectedMitraId;
+  String? selectedMitraIdentifier;
   bool _obscurePassword = true;
 
   @override
@@ -222,9 +224,12 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                   'password': passController.text,
                                   'role': 'KL',
                                   'districtName': searchKecController.text,
+                                  'district_code': Formatters.generateDistrictCode(searchKecController.text),
                                   'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
                                   'mitraRefName': searchMitraController.text,
                                   'mitra_id': selectedMitraId,
+                                  'mitra_ref_id': selectedMitraIdentifier,
+                                  'mitra_ref_identifier': selectedMitraIdentifier,
                                 });
 
                                 if (!context.mounted) return;
@@ -340,11 +345,12 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                     return ListTile(
                       leading: CircleAvatar(backgroundColor: const Color(0xFFD35400).withValues(alpha: 0.1), child: const Icon(LucideIcons.store, color: Color(0xFFD35400), size: 16)),
                       title: Text(m['name'] ?? "Mitra Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
-                      subtitle: Text("ID: ${m['id']} • ${m['phone_number'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                      subtitle: Text("ID: ${m['identifier'] ?? m['id']} • ${m['phone_number'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
                       onTap: () {
                         setState(() {
                           searchMitraController.text = m['name'];
                           selectedMitraId = m['id'];
+                          selectedMitraIdentifier = m['identifier'];
                         });
                         Navigator.pop(context);
                       },
