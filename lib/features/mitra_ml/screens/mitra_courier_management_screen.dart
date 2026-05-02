@@ -84,7 +84,7 @@ class _MitraCourierManagementScreenState extends State<MitraCourierManagementScr
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(kl['name'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
-                    Text("${kl['id']} • ${kl['loc']} • ${kl['time']}", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                    Text("${kl['identifier'] ?? '-'} • ${kl['loc']} • ${kl['time']}", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),
@@ -144,7 +144,7 @@ class _MitraCourierManagementScreenState extends State<MitraCourierManagementScr
               child: ListTile(
                 leading: const CircleAvatar(backgroundColor: Color(0xFFF3F4F6), child: Icon(LucideIcons.user, size: 18, color: Colors.teal)),
                 title: Text(kl['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
-                subtitle: Text("${kl['id']} • Rating: ${kl['rating']}", style: GoogleFonts.montserrat(fontSize: 11)),
+                subtitle: Text("${kl['identifier'] ?? '-'} • Rating: ${kl['rating']}", style: GoogleFonts.montserrat(fontSize: 11)),
                 trailing: const Icon(LucideIcons.moreVertical, size: 16),
               ),
             );

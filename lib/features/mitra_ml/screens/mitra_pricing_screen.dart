@@ -73,7 +73,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       // Deteksi MitraId: Prioritas identifier user, fallback ke mitra_id (untuk Admin/Kurir view)
-      final mitraId = auth.user?['identifier'] ?? auth.user?['id'] ?? '0000';
+      final mitraId = auth.user?['identifier'] ?? '0000';
       if (mitraId == null) {
         debugPrint("Error: MitraId tidak ditemukan di AuthProvider");
         return;
@@ -142,7 +142,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     setState(() => _isSaving = true);
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      final mitraId = auth.user?['identifier'] ?? auth.user?['mitra_id']; 
+      final mitraId = auth.user?['identifier']; 
       if (mitraId == null) {
         throw "ID Mitra (Identifier) tidak ditemukan. Pastikan Anda sudah Login dengan benar.";
       }

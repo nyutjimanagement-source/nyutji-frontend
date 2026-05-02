@@ -348,11 +348,11 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                     return ListTile(
                       leading: CircleAvatar(backgroundColor: const Color(0xFFD35400).withValues(alpha: 0.1), child: const Icon(LucideIcons.store, color: Color(0xFFD35400), size: 16)),
                       title: Text(m['name'] ?? "Mitra Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
-                      subtitle: Text("ID: ${m['identifier'] ?? m['id']} • ${m['phone_number'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                      subtitle: Text("ID: ${m['identifier'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
                       onTap: () {
                         setState(() {
                           searchMitraController.text = m['name'];
-                          selectedMitraIdentifier = m['identifier'] ?? m['id'];
+                          selectedMitraIdentifier = m['identifier'];
                         });
                         Navigator.pop(context);
                       },

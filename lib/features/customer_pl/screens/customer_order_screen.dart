@@ -61,7 +61,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       _mitras = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
         return {
-          'id': item['identifier'] ?? item['id'] ?? item['mitra_id'] ?? 0,
+          'id': item['identifier'] ?? '-',
           'name': item['name'] ?? item['brand_name'] ?? item['full_name'] ?? item['mitra_name'] ?? 'Mitra Nyutji',
           'rating': (item['rating'] ?? 5.0).toDouble(),
           'distance': (item['distance'] ?? 0.1).toDouble(),
@@ -792,7 +792,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
     final double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
     final double priceFast = (pFastRaw == null || pFastRaw == 0) ? priceReg : pFastRaw;
-    int itemId = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
+    String itemId = item['id']?.toString() ?? '0';
     int count = _itemCounts[itemId] ?? 0;
     
     return Container(
@@ -842,7 +842,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
   Widget _buildSatuanRow(Map<String, dynamic> item) {
     final double price = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
-    int itemId = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
+    String itemId = item['id']?.toString() ?? '0';
     int count = _itemCounts[itemId] ?? 0;
     
     return Container(
