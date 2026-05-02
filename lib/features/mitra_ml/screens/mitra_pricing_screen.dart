@@ -71,8 +71,12 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     setState(() => _isInitialLoading = true);
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
+      // Deteksi MitraId: Prioritas identifier user, fallback ke mitra_id (untuk Admin/Kurir view)
       final mitraId = auth.user?['identifier'] ?? auth.user?['mitra_id'];
-      if (mitraId == null) return;
+      if (mitraId == null) {
+        debugPrint("Error: MitraId tidak ditemukan di AuthProvider");
+        return;
+      }
 
       final api = ApiService();
       final items = await api.getMitraItems(mitraId);
@@ -138,7 +142,9 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final mitraId = auth.user?['identifier'] ?? auth.user?['mitra_id']; 
-      if (mitraId == null) throw "ID Mitra tidak ditemukan";
+      if (mitraId == null) {
+        throw "ID Mitra (Identifier) tidak ditemukan. Pastikan Anda sudah Login dengan benar.";
+      }
 
       final api = ApiService();
       // VALIDASI CERDAS: Cek apakah ada harga yang tidak masuk akal (Terlalu Mahal)

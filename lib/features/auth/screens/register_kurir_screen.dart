@@ -305,11 +305,15 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
       .replaceAll(RegExp(r'^kec\.\s*', caseSensitive: false), '')
       .trim().toLowerCase();
     
-    // Filter mitras based on the selected district
+    // Filter mitras based on the selected district or global status
     final filteredMitras = auth.mitras.where((m) {
       final mDist1 = m['district_name']?.toString().trim().toLowerCase();
       final mDist2 = m['district']?['name']?.toString().trim().toLowerCase();
-      return mDist1 == targetKec || mDist2 == targetKec;
+      
+      // Munculkan jika: 
+      // 1. Nama kecamatan cocok
+      // 2. Mitra tersebut diset sebagai global/default ('000')
+      return mDist1 == targetKec || mDist2 == targetKec || mDist1 == '000' || mDist1 == 'pamulang';
     }).toList();
 
     showModalBottomSheet(
