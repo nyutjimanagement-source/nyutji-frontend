@@ -153,7 +153,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     return baseTotal.toInt();
   }
 
-  void _updateItemCount(int itemId, int delta) {
+  void _updateItemCount(dynamic itemId, int delta) {
     setState(() {
       _itemCounts[itemId] = (_itemCounts[itemId] ?? 0) + delta;
       if (_itemCounts[itemId]! < 0) _itemCounts[itemId] = 0;
