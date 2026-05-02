@@ -50,10 +50,9 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   final TextEditingController _newSatuanName = TextEditingController();
   final TextEditingController _newSatuanPrice = TextEditingController();
 
-  final Set<int> _selectedForEdit = {};
-  final Map<int, TextEditingController> _editControllers = {};
-
-
+  final Set<String> _selectedForEdit = {};
+  final Map<String, TextEditingController> _editControllers = {};
+  final Map<String, int> _selectedItems = {};
 
   late List<Map<String, String>> kiloanData;
   late List<Map<String, String>> satuanData;
@@ -63,7 +62,9 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   void initState() {
     super.initState();
     if (widget.initialSelected != null) {
-      _selectedItems.addAll(widget.initialSelected!);
+      widget.initialSelected!.forEach((key, value) {
+        _selectedItems[key.toString()] = value;
+      });
     }
   }
 
@@ -226,21 +227,21 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       }
       
       List<String> idsToRemove = [];
-      for (var entryId in _selectedForEdit) {
-        final ctrlName = _editControllers[entryId * 10 + 1];
-        final ctrlReg = _editControllers[entryId * 10 + 2];
-        final ctrlFast = _editControllers[entryId * 10 + 3];
+      for (int index = 0; index < kiloanData.length; index++) {
+        final String id = kiloanData[index]['id']!;
+        if (!_selectedForEdit.contains(id)) continue;
+
+        final ctrlName = _editControllers["$id-1"];
+        final ctrlReg = _editControllers["$id-2"];
+        final ctrlFast = _editControllers["$id-3"];
 
         if (ctrlName != null) {
-          int index = kiloanData.indexWhere((item) => item['id'] == entryId.toString());
-          if (index != -1) {
-            if (ctrlName.text.trim().isEmpty) {
-              idsToRemove.add(entryId.toString());
-            } else {
-              kiloanData[index]['svc'] = ctrlName.text;
-              if (ctrlReg != null) kiloanData[index]['reg'] = ctrlReg.text.replaceAll(RegExp(r'[^0-9]'), "");
-              if (ctrlFast != null) kiloanData[index]['fast'] = ctrlFast.text.replaceAll(RegExp(r'[^0-9]'), "");
-            }
+          if (ctrlName.text.trim().isEmpty) {
+            idsToRemove.add(id);
+          } else {
+            kiloanData[index]['svc'] = ctrlName.text;
+            if (ctrlReg != null) kiloanData[index]['reg'] = ctrlReg.text.replaceAll(RegExp(r'[^0-9]'), "");
+            if (ctrlFast != null) kiloanData[index]['fast'] = ctrlFast.text.replaceAll(RegExp(r'[^0-9]'), "");
           }
         }
       }
@@ -270,19 +271,19 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       }
 
       List<String> idsToRemove = [];
-      for (var entryId in _selectedForEdit) {
-        final ctrlName = _editControllers[entryId * 10 + 1];
-        final ctrlPrice = _editControllers[entryId * 10 + 2];
+      for (int index = 0; index < satuanData.length; index++) {
+        final String id = satuanData[index]['id']!;
+        if (!_selectedForEdit.contains(id)) continue;
+
+        final ctrlName = _editControllers["$id-1"];
+        final ctrlPrice = _editControllers["$id-2"];
 
         if (ctrlName != null) {
-          int index = satuanData.indexWhere((item) => item['id'] == entryId.toString());
-          if (index != -1) {
-            if (ctrlName.text.trim().isEmpty) {
-              idsToRemove.add(entryId.toString());
-            } else {
-              satuanData[index]['name'] = ctrlName.text;
-              if (ctrlPrice != null) satuanData[index]['price'] = ctrlPrice.text.replaceAll(".", "");
-            }
+          if (ctrlName.text.trim().isEmpty) {
+            idsToRemove.add(id);
+          } else {
+            satuanData[index]['name'] = ctrlName.text;
+            if (ctrlPrice != null) satuanData[index]['price'] = ctrlPrice.text.replaceAll(".", "");
           }
         }
       }
@@ -527,7 +528,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ...pageData.map((item) {
-                      int id = int.tryParse(item['id']?.toString() ?? "") ?? 0;
+                      String id = item['id']?.toString() ?? "";
                       return isKiloan 
                         ? _buildKiloanRow(id, item, editing)
                         : _buildSatuanRow(id, item, editing);
@@ -548,11 +549,11 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     return InkWell(
       onTap: () {
         setState(() {
-          final newId = DateTime.now().millisecondsSinceEpoch;
+          final newId = DateTime.now().millisecondsSinceEpoch.toString();
           if (isKiloan) {
-            kiloanData.add({"id": newId.toString(), "svc": "", "reg": "", "fast": ""});
+            kiloanData.add({"id": newId, "svc": "", "reg": "", "fast": ""});
           } else {
-            satuanData.add({"id": newId.toString(), "name": "", "price": ""});
+            satuanData.add({"id": newId, "name": "", "price": ""});
           }
           _selectedForEdit.add(newId);
         });
@@ -632,8 +633,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     );
   }
 
-  TextEditingController _getEditController(int id, int subId, String initialText) {
-    int key = id * 10 + subId;
+  TextEditingController _getEditController(String id, int subId, String initialText) {
+    String key = "$id-$subId";
     if (!_editControllers.containsKey(key)) {
       String text = (subId > 1) ? _formatPrice(initialText) : initialText;
       _editControllers[key] = TextEditingController(text: text);
@@ -641,7 +642,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     return _editControllers[key]!;
   }
 
-  Widget _buildKiloanRow(int id, Map<String, String> item, bool editing) {
+  Widget _buildKiloanRow(String id, Map<String, String> item, bool editing) {
     bool isSelected = (_selectedItems[id] ?? 0) > 0;
     bool isBeingEdited = _selectedForEdit.contains(id);
 
@@ -686,7 +687,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     );
   }
 
-  Widget _buildSatuanRow(int id, Map<String, String> item, bool editing) {
+  Widget _buildSatuanRow(String id, Map<String, String> item, bool editing) {
     bool isSelected = (_selectedItems[id] ?? 0) > 0;
     bool isBeingEdited = _selectedForEdit.contains(id);
 
