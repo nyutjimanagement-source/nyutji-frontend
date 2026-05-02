@@ -80,14 +80,21 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
 
       if (items.isNotEmpty) {
         setState(() {
-          kiloanData = items.where((i) => i['category'] == 'Kiloan').map<Map<String, String>>((i) => {
+          // FILTER GENIUS: Hanya ambil harga yang masuk akal (di bawah 1 juta)
+          kiloanData = items
+            .where((i) => i['category'] == 'Kiloan')
+            .where((i) => (double.tryParse(i['price_regular']?.toString() ?? '0') ?? 0) < 1000000)
+            .map<Map<String, String>>((i) => {
             "id": i['id'].toString(),
             "svc": i['name']?.toString() ?? "",
             "reg": i['price_regular']?.toString() ?? "0",
             "fast": i['price_fast']?.toString() ?? "0",
           }).toList();
 
-          satuanData = items.where((i) => i['category'] == 'Satuan').map<Map<String, String>>((i) => {
+          satuanData = items
+            .where((i) => i['category'] == 'Satuan')
+            .where((i) => (double.tryParse(i['price_regular']?.toString() ?? '0') ?? 0) < 1000000)
+            .map<Map<String, String>>((i) => {
             "id": i['id'].toString(),
             "name": i['name']?.toString() ?? "",
             "price": i['price_regular']?.toString() ?? "0",
@@ -428,39 +435,31 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             Icon(icon, size: 18, color: primaryTeal),
             const SizedBox(width: 8),
             Text(title, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkBg)),
+            const SizedBox(width: 12), // Spasi untuk icon edit
+            // ICON EDIT DIPINDAH KE SINI AGAR RAPI (TIDAK MINGGI KE KANAN)
+            if (!widget.isReadOnly && !isEditing)
+              IconButton(
+                onPressed: onToggle,
+                icon: const Icon(LucideIcons.edit, size: 16, color: primaryTeal),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                splashRadius: 20,
+              ),
           ],
         ),
-        Flexible(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (hasSearch && !isEditing) 
-                IconButton(onPressed: () {}, icon: const Icon(LucideIcons.search, size: 18, color: Colors.grey), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
-              if (hasSearch && !isEditing) const SizedBox(width: 12), 
-              if (!widget.isReadOnly)
-                isEditing 
-                ? ElevatedButton(
-                    onPressed: onToggle,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: const Size(60, 30),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Text("SAVE", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-                  )
-                : IconButton(
-                    onPressed: onToggle,
-                    icon: const Icon(LucideIcons.edit, size: 18, color: primaryTeal),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    splashRadius: 20,
-                  ),
-            ],
+        if (isEditing)
+          ElevatedButton(
+            onPressed: onToggle,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              minimumSize: const Size(60, 30),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text("SAVE", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
           ),
-        )
       ],
     );
   }
