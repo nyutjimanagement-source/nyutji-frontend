@@ -100,13 +100,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             const SizedBox(height: 24),
             _buildUserManagementGrid(context),
             const SizedBox(height: 40),
-            Center(
-              child: Text(
-                "Version 1.5.4",
-                style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.withValues(alpha: 0.5)),
-              ),
-            ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -129,17 +122,17 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           Positioned(
             right: -20, top: -20,
-            child: Icon(LucideIcons.users, size: 140, color: Colors.white.withValues(alpha: 0.05)),
+            child: Icon(LucideIcons.users, size: 140, color: Colors.white.withOpacity(0.05)),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Manajemen Users", style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withValues(alpha: 0.7))),
+              Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withOpacity(0.7))),
               const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
                 child: Row(
                   children: [
                     const Icon(LucideIcons.search, color: Colors.white70, size: 18),
@@ -162,7 +155,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           _buildActionBtn("Tambah\nKecamatan", LucideIcons.mapPin, Colors.orange),
           const SizedBox(width: 12),
-          _buildActionBtn("Lihat\nSaldo", LucideIcons.wallet, Colors.green),
+          GestureDetector(
+            onTap: () => _showTopupSimulatorSheet(context),
+            child: _buildActionBtn("Topup\nSimulasi", LucideIcons.wallet, Colors.green),
+          ),
           const SizedBox(width: 12),
           _buildActionBtn("Reset\nPassword", LucideIcons.key, Colors.blue),
         ],
@@ -373,7 +369,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
               child: const Icon(LucideIcons.userCheck, color: primaryTeal, size: 18),
             ),
             const SizedBox(width: 12),
@@ -388,7 +384,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(color: const Color(0xFF286B6A).withValues(alpha: 0.8), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: const Color(0xFF286B6A).withOpacity(0.8), borderRadius: BorderRadius.circular(8)),
               child: Text("Review", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ],
@@ -530,6 +526,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   void _showDeleteUserSheet(BuildContext context) {
     final auth = context.read<AuthProvider>();
     auth.fetchAllUsers();
+    
+    String searchQuery = "";
+    String selectedRole = "SEMUA";
     final Set<String> selectedIdentifiers = {};
 
     showModalBottomSheet(
@@ -539,25 +538,42 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       builder: (sheetContext) => StatefulBuilder(
         builder: (sbContext, setModalState) {
           return Container(
-            height: MediaQuery.of(sbContext).size.height * 0.75,
+            height: MediaQuery.of(sbContext).size.height * 0.85,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
             ),
             child: Column(
               children: [
                 const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+                Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10))),
+                
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
                   child: Row(
                     children: [
-                      const Icon(LucideIcons.trash2, color: Colors.red),
-                      const SizedBox(width: 12),
-                      Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: darkGray)),
-                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.trash2, color: Colors.red, size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkGray)),
+                            Text("Kelola ekosistem Nyutji", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
                       if (selectedIdentifiers.isNotEmpty)
-                        TextButton(
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
                           onPressed: () {
                             final usersToDelete = auth.allUsers
                                 .where((u) => selectedIdentifiers.contains(u['identifier']?.toString() ?? ''))
@@ -573,8 +589,49 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                               }
                             });
                           },
-                          child: Text("Hapus (${selectedIdentifiers.length})", style: GoogleFonts.montserrat(color: Colors.red, fontWeight: FontWeight.bold)),
+                          child: Text("Hapus (${selectedIdentifiers.length})", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
+                        child: TextField(
+                          onChanged: (val) => setModalState(() => searchQuery = val.toLowerCase()),
+                          decoration: InputDecoration(
+                            icon: const Icon(LucideIcons.search, size: 18, color: Colors.grey),
+                            hintText: "Cari Nama atau ID...",
+                            hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: ["SEMUA", "PL", "ML", "KL"].map((role) {
+                            final isSelected = selectedRole == role;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text(role, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.grey)),
+                                selected: isSelected,
+                                selectedColor: primaryTeal,
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: isSelected ? primaryTeal : Colors.grey[200]!)),
+                                onSelected: (val) => setModalState(() => selectedRole = role),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -584,35 +641,67 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       if (authData.isLoading && authData.allUsers.isEmpty) {
                         return const Center(child: CircularProgressIndicator(color: primaryTeal));
                       }
-                      
+                      final filtered = authData.allUsers.where((u) {
+                        final name = (u['name'] ?? '').toString().toLowerCase();
+                        final ident = (u['identifier'] ?? '').toString().toLowerCase();
+                        final role = u['role'] ?? '';
+                        final matchSearch = name.contains(searchQuery) || ident.contains(searchQuery);
+                        final matchRole = selectedRole == "SEMUA" || role == selectedRole;
+                        return matchSearch && matchRole;
+                      }).toList();
+                      if (filtered.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(LucideIcons.userX, size: 64, color: Colors.grey[200]),
+                            const SizedBox(height: 16),
+                            Text("Data tidak tersedia", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey)),
+                          ],
+                        );
+                      }
                       return ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        itemCount: authData.allUsers.length,
-                        separatorBuilder: (lvContext, index) => Divider(color: Colors.grey[100]),
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        itemCount: filtered.length,
+                        separatorBuilder: (lvContext, index) => const SizedBox(height: 8),
                         itemBuilder: (itemContext, index) {
-                          final u = authData.allUsers[index];
+                          final u = filtered[index];
                           final String identifier = u['identifier']?.toString() ?? '-';
                           final name = u['name'] ?? 'No Name';
                           final role = u['role'] ?? '-';
                           final isSelected = selectedIdentifiers.contains(identifier);
-                          
-                          return CheckboxListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
-                            subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
-                            secondary: Container(
-                              width: 32, height: 32,
-                              decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
-                              child: const Center(child: Icon(LucideIcons.user, size: 16, color: primaryTeal)),
+                          Color roleColor = primaryTeal;
+                          if (role == 'ML') roleColor = Colors.blue;
+                          if (role == 'KL') roleColor = Colors.orange;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.red[50] : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: isSelected ? Colors.red[200]! : Colors.grey[100]!),
                             ),
-                            value: isSelected,
-                            activeColor: primaryTeal,
-                            onChanged: (val) {
+                            child: CheckboxListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
+                              subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                              secondary: Container(
+                                width: 40, height: 40,
+                                decoration: BoxDecoration(color: roleColor.withOpacity(0.1), shape: BoxShape.circle),
+                                child: Center(child: Text(role, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: roleColor))),
+                              ),
+                              value: isSelected,
+                              activeColor: Colors.red,
+                              checkColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              onChanged: (val) {
                                 setModalState(() {
-                                  if (val == true) selectedIdentifiers.add(identifier);
-                                  else selectedIdentifiers.remove(identifier);
+                                  if (val == true) {
+                                    selectedIdentifiers.add(identifier);
+                                  } else {
+                                    selectedIdentifiers.remove(identifier);
+                                  }
                                 });
-                            },
+                              },
+                            ),
                           );
                         },
                       );
@@ -648,7 +737,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             Container(
               constraints: const BoxConstraints(maxHeight: 150),
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Colors.red.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: names.length,
@@ -691,7 +780,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             const SizedBox(height: 8),
             Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: color[900]!)),
             const SizedBox(height: 2),
-            Text(desc, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: color[800]!.withValues(alpha: 0.8))),
+            Text(desc, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: color[800]!.withOpacity(0.8))),
           ],
         ),
       );
@@ -718,10 +807,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 onTap: () => _showDeleteUserSheet(context),
                 child: _buildManageBtn("Hapus User", LucideIcons.trash2, Colors.red[800]!)
               ),
-              GestureDetector(
-                onTap: () => _showTopupSimulatorSheet(context),
-                child: _buildManageBtn("Set Limit Saldo", LucideIcons.sliders, Colors.indigo),
-              ),
+              _buildManageBtn("Set Limit Saldo", LucideIcons.sliders, Colors.indigo),
               _buildManageBtn("Review KYC", LucideIcons.fileCheck, Colors.teal),
             ],
           ),
@@ -735,7 +821,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       decoration: BoxDecoration(
         color: Colors.white, 
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 5)],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5)],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -755,7 +841,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           children: [
@@ -858,7 +944,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: primaryTeal.withValues(alpha: 0.1))),
+        decoration: BoxDecoration(color: primaryTeal.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: primaryTeal.withOpacity(0.1))),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -940,7 +1026,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -985,7 +1071,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
