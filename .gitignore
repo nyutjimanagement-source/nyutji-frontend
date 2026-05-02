@@ -1,51 +1,48 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# VS Code related
-.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Dasar Nyutji - Abaikan Sampah Kompilasi
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
 build/
 /build/
 
-# Android related
+# Android & iOS
 **/android/**/build/
 **/android/.gradle/
 **/android/local.properties
-**/android/app/debug/
-**/android/app/profile/
-**/android/app/release/
+**/ios/.generated/
+**/ios/Flutter/.last_build_id
+**/ios/Pods/
+**/ios/ServiceDefinitions.json
 
-# Log files and other artifacts
-*.txt
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Log & Temporary
 *.log
+*.lock
+.history
+.DS_Store
+
+# NYUTJI DOCUMENTATION (LOCAL ARCHIVE ONLY)
+NYUTJI_DOCUMENTATION_STAGE_1.md
+generate_doc.py
+*.pdf
 *.docx
 *.zip
-*.json
-!pubspec.json
-!manifest.json
-!package.json
-!composer.json
+*.txt
+!README.md
+01052006*
+check_orders.js
+check_simulation.js
+cleanup_simulation.js
+
+# Data Browser / Debugging
+chrome-user-data/
+**/chrome-device/
