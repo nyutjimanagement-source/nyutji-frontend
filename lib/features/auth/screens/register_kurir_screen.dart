@@ -25,7 +25,6 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
 
   String? selectedKecamatan;
   String? selectedMitra;
-  int? selectedMitraId;
   String? selectedMitraIdentifier;
   bool _obscurePassword = true;
 
@@ -211,7 +210,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: auth.isLoading ? null : () async {
-                                if (nameController.text.isEmpty || searchKecController.text.isEmpty || selectedMitraId == null) {
+                                if (nameController.text.isEmpty || searchKecController.text.isEmpty || selectedMitraIdentifier == null) {
                                   NyutjiNotif.showError(context, 'Nama, Kecamatan, dan Referensi Mitra wajib diisi!');
                                   return;
                                 }
@@ -227,7 +226,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                                   'district_code': Formatters.generateDistrictCode(searchKecController.text),
                                   'cityName': cityController.text.isEmpty ? 'Tasikmalaya' : cityController.text,
                                   'mitraRefName': searchMitraController.text,
-                                  'mitra_id': selectedMitraId,
+                                  'mitra_id': selectedMitraIdentifier,
                                   'mitra_ref_id': selectedMitraIdentifier,
                                   'mitra_ref_identifier': selectedMitraIdentifier,
                                 });
@@ -349,8 +348,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
                       onTap: () {
                         setState(() {
                           searchMitraController.text = m['name'];
-                          selectedMitraId = m['id'];
-                          selectedMitraIdentifier = m['identifier'];
+                          selectedMitraIdentifier = m['identifier'] ?? m['id'];
                         });
                         Navigator.pop(context);
                       },

@@ -179,7 +179,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       
       for (var item in kiloanData) {
         payload.add({
-          "id": int.tryParse(item['id']!.toString().replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
+          "id": item['id'],
           "name": item['svc'],
           "price_regular": cleanParse(item['reg']).toInt(),
           "price_fast": cleanParse(item['fast']).toInt(),
@@ -189,7 +189,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       
       for (var item in satuanData) {
         payload.add({
-          "id": int.tryParse(item['id']!.toString().replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
+          "id": item['id'],
           "name": item['name'],
           "price_regular": cleanParse(item['price']).toInt(),
           "category": "Satuan"
