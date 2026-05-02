@@ -3,7 +3,7 @@ description: Aplikasi Mobile Nyutji Laundry dengan desain retro Neo-Brutalism.
 
 publish_to: 'none' # Menahan rilis ke pub.dev secara tidak sengaja
 
-version: 1.0.0+1
+version: 1.5.4+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -508,6 +508,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 30),
+                    Center(
+                      child: Text(
+                        "Version 1.5.4",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 10, 
+                          fontWeight: FontWeight.bold, 
+                          color: const Color(0xFF286B6A).withValues(alpha: 0.5)
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 60),
                   ],
                 ),

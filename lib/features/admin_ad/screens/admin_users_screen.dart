@@ -100,6 +100,13 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             const SizedBox(height: 24),
             _buildUserManagementGrid(context),
             const SizedBox(height: 40),
+            Center(
+              child: Text(
+                "Version 1.5.4",
+                style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.withValues(alpha: 0.5)),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
