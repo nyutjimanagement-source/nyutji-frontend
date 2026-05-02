@@ -316,7 +316,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  Text("ID: ${Formatters.nyutjiId('ML', id, district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700)),
+                                  Text("ID: ${auth.user?['identifier'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700)),
                                 ],
                               ),
                               const SizedBox(height: 2),
@@ -602,7 +602,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(auth.user?['name'] ?? "Berkah Laundry", style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: darkText)),
-                          Text("ID: ${Formatters.nyutjiId('ML', auth.user?['identifier'] ?? auth.user?['id'], district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
+                          Text("ID: ${auth.user?['identifier'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 2),
                           Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 12, color: primaryTeal, fontWeight: FontWeight.bold)),
                         ],

@@ -342,7 +342,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                 style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 0.2),
               ),
               Text(
-                auth != null ? "ID: ${auth.user?['identifier'] ?? Formatters.nyutjiId('KL', auth.user?['id'], district, districtCode: auth.user?['district_code'])} • $district - $city" : "Abang Kurir Jago",
+                auth != null ? "ID: ${auth.user?['identifier'] ?? '-'} • $district - $city" : "Abang Kurir Jago",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
