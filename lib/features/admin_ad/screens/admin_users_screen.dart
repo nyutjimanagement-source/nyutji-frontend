@@ -122,17 +122,17 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           Positioned(
             right: -20, top: -20,
-            child: Icon(LucideIcons.users, size: 140, color: Colors.white.withOpacity(0.05)),
+            child: Icon(LucideIcons.users, size: 140, color: Colors.white.withValues(alpha: 0.05)),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Manajemen Users", style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withOpacity(0.7))),
+              Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withValues(alpha: 0.7))),
               const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
                 child: Row(
                   children: [
                     const Icon(LucideIcons.search, color: Colors.white70, size: 18),
@@ -366,7 +366,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: const Icon(LucideIcons.userCheck, color: primaryTeal, size: 18),
             ),
             const SizedBox(width: 12),
@@ -381,7 +381,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(color: const Color(0xFF286B6A).withOpacity(0.8), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: const Color(0xFF286B6A).withValues(alpha: 0.8), borderRadius: BorderRadius.circular(8)),
               child: Text("Review", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ],
@@ -595,7 +595,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
                             secondary: Container(
                               width: 32, height: 32,
-                              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
+                              decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
                               child: const Center(child: Icon(LucideIcons.user, size: 16, color: primaryTeal)),
                             ),
                             value: isSelected,
@@ -641,7 +641,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             Container(
               constraints: const BoxConstraints(maxHeight: 150),
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.red.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: names.length,
@@ -684,7 +684,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             const SizedBox(height: 8),
             Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: color[900]!)),
             const SizedBox(height: 2),
-            Text(desc, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: color[800]!.withOpacity(0.8))),
+            Text(desc, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 9, color: color[800]!.withValues(alpha: 0.8))),
           ],
         ),
       );
@@ -728,7 +728,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       decoration: BoxDecoration(
         color: Colors.white, 
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 5)],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -748,7 +748,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           children: [
@@ -851,7 +851,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(color: primaryTeal.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: primaryTeal.withOpacity(0.1))),
+        decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: primaryTeal.withValues(alpha: 0.1))),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -933,7 +933,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -978,7 +978,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
