@@ -264,7 +264,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
         satuanData.insert(0, {
           "id": DateTime.now().millisecondsSinceEpoch.toString(),
           "name": _newSatuanName.text,
-          "price": _newSatuanPrice.text.replaceAll(".", ""),
+          "price": _newSatuanPrice.text.replaceAll(RegExp(r'[^0-9]'), ""),
         });
         _newSatuanName.clear();
         _newSatuanPrice.clear();
@@ -283,7 +283,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             idsToRemove.add(id);
           } else {
             satuanData[index]['name'] = ctrlName.text;
-            if (ctrlPrice != null) satuanData[index]['price'] = ctrlPrice.text.replaceAll(".", "");
+            if (ctrlPrice != null) satuanData[index]['price'] = ctrlPrice.text.replaceAll(RegExp(r'[^0-9]'), "");
           }
         }
       }

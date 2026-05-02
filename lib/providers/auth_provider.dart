@@ -68,7 +68,7 @@ class AuthProvider with ChangeNotifier {
     
     // 1. Simpan di Database PostgreSQL backend
     try {
-      await ApiService().updateLocation({
+      final res = await ApiService().updateLocation({
         'address': addr['address'],
         'address_detail': addr['detail'],
         'lat': addr['lat'],
@@ -76,16 +76,32 @@ class AuthProvider with ChangeNotifier {
         'district': addr['district'],
         'city': addr['city']
       });
-      // Update global user state with address
-      if (_user != null) {
-        _user!['address'] = addr['address'];
-        _user!['address_detail'] = addr['detail'];
-        _user!['lat'] = addr['lat'];
-        _user!['lng'] = addr['lng'];
-        _user!['district_name'] = addr['district'];
-        _user!['city_name'] = addr['city'];
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_data', jsonEncode(_user));
+
+      if (res['status'] == 'success' || res['message'] != null) {
+        // Update global user state with address
+        if (_user != null) {
+          final newData = res['data'] ?? {};
+          _user!['address'] = newData['address'] ?? addr['address'];
+          _user!['address_detail'] = newData['detail'] ?? addr['detail'];
+          _user!['lat'] = newData['lat'] ?? addr['lat'];
+          _user!['lng'] = newData['lng'] ?? addr['lng'];
+          _user!['district_name'] = newData['district_name'] ?? addr['district'];
+          _user!['city_name'] = newData['city_name'] ?? addr['city'];
+
+          // HANDLE IDENTITY CHANGE (Baptisan PL)
+          if (res['new_token'] != null) {
+            _token = res['new_token'];
+          }
+          if (res['new_identifier'] != null) {
+            _user!['identifier'] = res['new_identifier'];
+          }
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(_user));
+          if (res['new_token'] != null) {
+            await prefs.setString('token', _token!);
+          }
+        }
       }
     } catch (e) {
       debugPrint("Gagal sinkronisasi alamat ke server: $e");

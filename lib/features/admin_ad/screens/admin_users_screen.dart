@@ -582,10 +582,19 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             
                             _showConfirmDeleteDialog(sbContext, usersToDelete, () async {
                               final nav = Navigator.of(sbContext);
-                              final success = await auth.bulkDeleteUsers(selectedIdentifiers.toList());
-                              if (success) {
-                                nav.pop();
-                                NyutjiNotif.showSuccess(context, "Berhasil menghapus ${selectedIdentifiers.length} user");
+                              setModalState(() => _isLoadingPricing = true); // Pakai flag loading yang ada
+                              try {
+                                final success = await auth.bulkDeleteUsers(selectedIdentifiers.toList());
+                                if (success) {
+                                  nav.pop();
+                                  NyutjiNotif.showSuccess(context, "Berhasil menghapus ${selectedIdentifiers.length} user");
+                                } else {
+                                  NyutjiNotif.showError(context, "Gagal menghapus user. Silakan coba lagi.");
+                                }
+                              } catch (e) {
+                                NyutjiNotif.showError(context, "Terjadi kesalahan: $e");
+                              } finally {
+                                if (sbContext.mounted) setModalState(() => _isLoadingPricing = false);
                               }
                             });
                           },
