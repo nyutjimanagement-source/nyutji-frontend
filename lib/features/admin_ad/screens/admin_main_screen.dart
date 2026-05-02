@@ -138,8 +138,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
             right: -30, top: -20,
             child: Icon(LucideIcons.globe, size: 140, color: Colors.white.withValues(alpha: 0.05)),
           ),
-          Positioned(
-            left: 0, right: 0, top: 0,
+          SizedBox(
+            width: MediaQuery.of(context).size.width - 40,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
