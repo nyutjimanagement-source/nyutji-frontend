@@ -80,10 +80,17 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
 
       if (items.isNotEmpty) {
         setState(() {
-          // FILTER GENIUS: Hanya ambil harga yang masuk akal (di bawah 1 juta)
+          // FUNGSI BERSIH-BERSIH INTERNAL
+          double parseSafe(dynamic val) {
+            if (val == null) return 0;
+            String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
+            return double.tryParse(s) ?? 0;
+          }
+
+          // FILTER GENIUS V2: Bersihkan dulu baru cek harga (Maksimal 1 Juta untuk filter hantu)
           kiloanData = items
             .where((i) => i['category'] == 'Kiloan')
-            .where((i) => (double.tryParse(i['price_regular']?.toString() ?? '0') ?? 0) < 1000000)
+            .where((i) => parseSafe(i['price_regular']) < 1000000)
             .map<Map<String, String>>((i) => {
             "id": i['id'].toString(),
             "svc": i['name']?.toString() ?? "",
@@ -93,7 +100,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
 
           satuanData = items
             .where((i) => i['category'] == 'Satuan')
-            .where((i) => (double.tryParse(i['price_regular']?.toString() ?? '0') ?? 0) < 1000000)
+            .where((i) => parseSafe(i['price_regular']) < 1000000)
             .map<Map<String, String>>((i) => {
             "id": i['id'].toString(),
             "name": i['name']?.toString() ?? "",
@@ -142,8 +149,10 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   }
 
   String _formatPrice(String price) {
-    if (price.isEmpty) return "";
-    String clean = price.replaceAll(".", "");
+    if (price.isEmpty) return "0";
+    // Bersihkan dulu dari karakter aneh
+    String clean = price.toString().replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.isEmpty) return "0";
     return clean.replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.");
   }
 
