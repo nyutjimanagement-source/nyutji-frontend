@@ -658,7 +658,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               children: [
                 const Icon(LucideIcons.mapPin, size: 20, color: darkText),
                 const SizedBox(width: 12),
-                Text("Alamat Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
                 const Spacer(),
                 Icon(_isAddressExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
               ],
