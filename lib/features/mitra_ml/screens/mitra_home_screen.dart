@@ -851,7 +851,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => _handleApproval(user['id'], 'REJECTED', user['name'] ?? 'Pendaftar', auth),
+                onTap: () => _handleApproval(user['identifier'], 'REJECTED', user['name'] ?? 'Pendaftar', auth),
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(color: const Color(0xFFC3312E).withValues(alpha: 0.1), shape: BoxShape.circle),
@@ -860,7 +860,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () => _handleApproval(user['id'], 'APPROVED', user['name'] ?? 'Pendaftar', auth),
+                onTap: () => _handleApproval(user['identifier'], 'APPROVED', user['name'] ?? 'Pendaftar', auth),
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
@@ -908,8 +908,8 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  Future<void> _handleApproval(int id, String action, String name, AuthProvider auth) async {
-    final success = await auth.processUserApproval(id, action);
+  Future<void> _handleApproval(dynamic identifier, String action, String name, AuthProvider auth) async {
+    final success = await auth.processUserApproval(identifier, action);
     if (success && mounted) {
       if (action == 'APPROVED') {
         _showBeautifulNotif('$name berhasil di-approve!', true);
