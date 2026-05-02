@@ -122,17 +122,17 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           Positioned(
             right: -20, top: -20,
-            child: Icon(LucideIcons.users, size: 140, color: Colors.white.withOpacity(0.05)),
+            child: Icon(LucideIcons.users, size: 140, color: Colors.white.withValues(alpha: 0.05)),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Manajemen Users", style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withOpacity(0.7))),
+              Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withValues(alpha: 0.7))),
               const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
                 child: Row(
                   children: [
                     const Icon(LucideIcons.search, color: Colors.white70, size: 18),
