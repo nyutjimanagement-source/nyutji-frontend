@@ -13,7 +13,7 @@ class MitraPricingScreen extends StatefulWidget {
   final bool isSelectionMode;
   final String? customName;
   final List<Map<String, dynamic>>? items; 
-  final Map<int, int>? initialSelected; 
+  final Map<dynamic, int>? initialSelected; 
 
   const MitraPricingScreen({
     super.key, 
@@ -73,7 +73,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       // Deteksi MitraId: Prioritas identifier user, fallback ke mitra_id (untuk Admin/Kurir view)
-      final mitraId = auth.user?['identifier'] ?? auth.user?['mitra_id'];
+      final mitraId = auth.user?['identifier'] ?? auth.user?['id'] ?? '0000';
       if (mitraId == null) {
         debugPrint("Error: MitraId tidak ditemukan di AuthProvider");
         return;
@@ -799,7 +799,6 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     );
   }
 
-  final Map<int, int> _selectedItems = {};
 
   Widget _buildSelectionConfirmButton() {
     int total = _selectedItems.values.where((v) => v > 0).length;
