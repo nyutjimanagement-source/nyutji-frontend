@@ -53,8 +53,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   final Set<int> _selectedForEdit = {};
   final Map<int, TextEditingController> _editControllers = {};
 
-  static final Map<String, List<Map<String, String>>> kiloanStore = {};
-  static final Map<String, List<Map<String, String>>> satuanStore = {};
+
 
   late List<Map<String, String>> kiloanData;
   late List<Map<String, String>> satuanData;
@@ -106,10 +105,6 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
           "price": i['price_regular']?.toString() ?? "0",
         }).toList();
         
-        if (_currentMitraKey != null) {
-          kiloanStore[_currentMitraKey!] = kiloanData;
-          satuanStore[_currentMitraKey!] = satuanData;
-        }
       });
     } catch (e) {
       debugPrint("Gagal mengambil data dari API: $e");
@@ -122,27 +117,11 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     if (_currentMitraKey == mitraKey) return; 
     _currentMitraKey = mitraKey;
     
-    if (kiloanStore.containsKey(mitraKey)) {
-      kiloanData = List.from(kiloanStore[mitraKey]!);
-      satuanData = List.from(satuanStore[mitraKey]!);
-      _isInitialLoading = false;
-    } else {
-      kiloanData = [
-        {"id": "1", "svc": "Cuci dan Setrika", "reg": "7000", "fast": "15000"},
-        {"id": "2", "svc": "Cuci dan Lipat", "reg": "4000", "fast": "10000"},
-        {"id": "3", "svc": "Setrika Wangi", "reg": "4000", "fast": "15000"},
-        {"id": "4", "svc": "Cuci Selimut Reguler", "reg": "15000", "fast": "25000"},
-        {"id": "5", "svc": "Cuci Boneka Kiloan", "reg": "10000", "fast": "25000"},
-      ];
-      satuanData = [
-        {"id": "101", "name": "Jas Formal", "price": "45000"},
-        {"id": "102", "name": "Bedcover King Size", "price": "50000"},
-        {"id": "103", "name": "Sneaker Dewasa", "price": "35000"},
-        {"id": "104", "name": "Gordyn Tebal", "price": "15000"},
-        {"id": "105", "name": "Baju Anak", "price": "10000"},
-      ];
-    }
-    // FIX: Selalu panggil API untuk memastikan data segar (Solve masalah Re-Login / Multi Device)
+    // JANGAN PAKAI DUMMY (Hantu)! Inisialisasi kosong dan ambil langsung dari Database
+    kiloanData = [];
+    satuanData = [];
+    _isInitialLoading = true;
+    
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadPricingFromApi());
   }
 
