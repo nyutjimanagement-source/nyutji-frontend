@@ -79,7 +79,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> bulkDeleteUsers(List<dynamic> identifiers) async {
-    final response = await _dio.delete("/admin/users/bulk", data: {'identifiers': identifiers});
+    final response = await _dio.post("/admin/users/bulk-delete", data: {'identifiers': identifiers});
     return response.data;
   }
 
