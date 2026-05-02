@@ -141,27 +141,33 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-                    child: Icon(LucideIcons.shieldCheck, color: accentGold, size: 24),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Consumer<AuthProvider>(
-                        builder: (context, auth, _) => Text(
-                          auth.user?['name']?.toUpperCase() ?? "GLOBAL COMMAND", 
-                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5)
-                        ),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+                      child: Icon(LucideIcons.shieldCheck, color: accentGold, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Consumer<AuthProvider>(
+                            builder: (context, auth, _) => Text(
+                              auth.user?['name']?.toUpperCase() ?? "GLOBAL COMMAND", 
+                              style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          Text("SuperAdmin • Induk Semang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis, maxLines: 1),
+                        ],
                       ),
-                      Text("SuperAdmin • Induk Semang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
               Row(
                 children: [
