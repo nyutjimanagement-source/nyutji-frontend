@@ -127,7 +127,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                 child: const Row(
                   children: [
                     Icon(LucideIcons.info, size: 16, color: Colors.amber),

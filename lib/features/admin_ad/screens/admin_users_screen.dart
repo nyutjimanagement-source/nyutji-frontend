@@ -155,10 +155,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           _buildActionBtn("Tambah\nKecamatan", LucideIcons.mapPin, Colors.orange),
           const SizedBox(width: 12),
-          GestureDetector(
-            onTap: () => _showTopupSimulatorSheet(context),
-            child: _buildActionBtn("Topup\nSimulasi", LucideIcons.wallet, Colors.green),
-          ),
+          _buildActionBtn("Lihat\nSaldo", LucideIcons.wallet, Colors.green),
           const SizedBox(width: 12),
           _buildActionBtn("Reset\nPassword", LucideIcons.key, Colors.blue),
         ],
@@ -526,9 +523,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   void _showDeleteUserSheet(BuildContext context) {
     final auth = context.read<AuthProvider>();
     auth.fetchAllUsers();
-    
-    String searchQuery = "";
-    String selectedRole = "SEMUA";
     final Set<String> selectedIdentifiers = {};
 
     showModalBottomSheet(
@@ -538,42 +532,25 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       builder: (sheetContext) => StatefulBuilder(
         builder: (sbContext, setModalState) {
           return Container(
-            height: MediaQuery.of(sbContext).size.height * 0.85,
+            height: MediaQuery.of(sbContext).size.height * 0.75,
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               children: [
                 const SizedBox(height: 12),
-                Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10))),
-                
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+                  padding: const EdgeInsets.all(24),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: Colors.red[50], shape: BoxShape.circle),
-                        child: const Icon(LucideIcons.trash2, color: Colors.red, size: 22),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkGray)),
-                            Text("Kelola ekosistem Nyutji", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
-                          ],
-                        ),
-                      ),
+                      const Icon(LucideIcons.trash2, color: Colors.red),
+                      const SizedBox(width: 12),
+                      Text("Hapus User", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: darkGray)),
+                      const Spacer(),
                       if (selectedIdentifiers.isNotEmpty)
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
+                        TextButton(
                           onPressed: () {
                             final usersToDelete = auth.allUsers
                                 .where((u) => selectedIdentifiers.contains(u['identifier']?.toString() ?? ''))
@@ -589,49 +566,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                               }
                             });
                           },
-                          child: Text("Hapus (${selectedIdentifiers.length})", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+                          child: Text("Hapus (${selectedIdentifiers.length})", style: GoogleFonts.montserrat(color: Colors.red, fontWeight: FontWeight.bold)),
                         ),
-                    ],
-                  ),
-                ),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
-                        child: TextField(
-                          onChanged: (val) => setModalState(() => searchQuery = val.toLowerCase()),
-                          decoration: InputDecoration(
-                            icon: const Icon(LucideIcons.search, size: 18, color: Colors.grey),
-                            hintText: "Cari Nama atau ID...",
-                            hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: ["SEMUA", "PL", "ML", "KL"].map((role) {
-                            final isSelected = selectedRole == role;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text(role, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.grey)),
-                                selected: isSelected,
-                                selectedColor: primaryTeal,
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: isSelected ? primaryTeal : Colors.grey[200]!)),
-                                onSelected: (val) => setModalState(() => selectedRole = role),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -641,64 +577,35 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       if (authData.isLoading && authData.allUsers.isEmpty) {
                         return const Center(child: CircularProgressIndicator(color: primaryTeal));
                       }
-                      final filtered = authData.allUsers.where((u) {
-                        final name = (u['name'] ?? '').toString().toLowerCase();
-                        final ident = (u['identifier'] ?? '').toString().toLowerCase();
-                        final role = u['role'] ?? '';
-                        final matchSearch = name.contains(searchQuery) || ident.contains(searchQuery);
-                        final matchRole = selectedRole == "SEMUA" || role == selectedRole;
-                        return matchSearch && matchRole;
-                      }).toList();
-                      if (filtered.isEmpty) {
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(LucideIcons.userX, size: 64, color: Colors.grey[200]),
-                            const SizedBox(height: 16),
-                            Text("Data tidak tersedia", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey)),
-                          ],
-                        );
-                      }
+                      
                       return ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                        itemCount: filtered.length,
-                        separatorBuilder: (lvContext, index) => const SizedBox(height: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: authData.allUsers.length,
+                        separatorBuilder: (lvContext, index) => Divider(color: Colors.grey[100]),
                         itemBuilder: (itemContext, index) {
-                          final u = filtered[index];
+                          final u = authData.allUsers[index];
                           final String identifier = u['identifier']?.toString() ?? '-';
                           final name = u['name'] ?? 'No Name';
                           final role = u['role'] ?? '-';
                           final isSelected = selectedIdentifiers.contains(identifier);
-                          Color roleColor = primaryTeal;
-                          if (role == 'ML') roleColor = Colors.blue;
-                          if (role == 'KL') roleColor = Colors.orange;
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            decoration: BoxDecoration(
-                              color: isSelected ? Colors.red[50] : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: isSelected ? Colors.red[200]! : Colors.grey[100]!),
+                          
+                          return CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
+                            subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                            secondary: Container(
+                              width: 32, height: 32,
+                              decoration: BoxDecoration(color: primaryTeal.withOpacity(0.1), shape: BoxShape.circle),
+                              child: const Center(child: Icon(LucideIcons.user, size: 16, color: primaryTeal)),
                             ),
-                            child: CheckboxListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                              title: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
-                              subtitle: Text("$role | $identifier", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
-                              secondary: Container(
-                                width: 40, height: 40,
-                                decoration: BoxDecoration(color: roleColor.withOpacity(0.1), shape: BoxShape.circle),
-                                child: Center(child: Text(role, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: roleColor))),
-                              ),
-                              value: isSelected,
-                              activeColor: Colors.red,
-                              checkColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                              onChanged: (val) {
+                            value: isSelected,
+                            activeColor: primaryTeal,
+                            onChanged: (val) {
                                 setModalState(() {
                                   if (val == true) selectedIdentifiers.add(identifier);
                                   else selectedIdentifiers.remove(identifier);
                                 });
-                              },
-                            ),
+                            },
                           );
                         },
                       );
@@ -804,7 +711,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 onTap: () => _showDeleteUserSheet(context),
                 child: _buildManageBtn("Hapus User", LucideIcons.trash2, Colors.red[800]!)
               ),
-              _buildManageBtn("Set Limit Saldo", LucideIcons.sliders, Colors.indigo),
+              GestureDetector(
+                onTap: () => _showTopupSimulatorSheet(context),
+                child: _buildManageBtn("Set Limit Saldo", LucideIcons.sliders, Colors.indigo),
+              ),
               _buildManageBtn("Review KYC", LucideIcons.fileCheck, Colors.teal),
             ],
           ),
