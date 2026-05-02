@@ -297,7 +297,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                         builder: (context, auth, _) {
                           final district = auth.user?['district_name'] ?? "Kecamatan";
                           final city = auth.user?['city_name'] ?? "Kota";
-                          final id = auth.user?['id'] ?? '0000';
+                          final id = auth.user?['identifier'] ?? auth.user?['id'] ?? '0000';
                           
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -602,7 +602,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(auth.user?['name'] ?? "Berkah Laundry", style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: darkText)),
-                          Text("ID: ${Formatters.nyutjiId('ML', auth.user?['id'], district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
+                          Text("ID: ${Formatters.nyutjiId('ML', auth.user?['identifier'] ?? auth.user?['id'], district, districtCode: auth.user?['district_code'])}", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 2),
                           Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 12, color: primaryTeal, fontWeight: FontWeight.bold)),
                         ],

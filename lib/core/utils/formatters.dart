@@ -29,7 +29,14 @@ class Formatters {
       }
     }
 
-    String counting = id.toString().padLeft(3, '0');
+    String counting = id.toString();
+    if (counting.length > 6) {
+      // Jika identifier panjang (ML1714...), ambil 6 karakter terakhir saja agar rapi
+      counting = counting.substring(counting.length - 6);
+    } else {
+      counting = counting.padLeft(3, '0');
+    }
+    
     return "$prefix-$shortCode-$counting";
   }
 
