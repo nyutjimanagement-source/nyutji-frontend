@@ -336,13 +336,13 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
               mainAxisSize: MainAxisSize.min,
               children: [
               Text(
-                title,
+                auth != null ? (auth.user?['name'] ?? "Abang Kurir") : "Abang Kurir Jago",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 0.2),
               ),
               Text(
-                auth != null ? "ID: ${auth.user?['identifier'] ?? '-'} • $district - $city" : "Abang Kurir Jago",
+                auth != null ? "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district - $city" : "Nyutji Logistics Team",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
@@ -477,13 +477,13 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                auth.user?['name'] ?? "Kurir Nyutji", 
+                                auth.user?['name'] ?? "Abang Kurir", 
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
                               ),
                               Text(
-                                "$district - $city",
+                                "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district - $city",
                                 style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
                               ),
                             ],
