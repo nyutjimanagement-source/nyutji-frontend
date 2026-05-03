@@ -750,17 +750,22 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             Text("Apakah Anda yakin ingin menghapus user berikut?", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600])),
             const SizedBox(height: 16),
             SizedBox(
-              width: MediaQuery.of(context).size.width,
+              width: double.infinity,
               child: Container(
-                constraints: const BoxConstraints(maxHeight: 150),
+                constraints: const BoxConstraints(maxHeight: 200),
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  itemCount: names.length,
-                  separatorBuilder: (context, index) => const Divider(height: 8, color: Colors.transparent),
-                  itemBuilder: (context, index) => Text("• ${names[index]}", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red[800])),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: names.map((name) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text("• $name", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red[800])),
+                    )).toList(),
+                  ),
                 ),
               ),
             ),
