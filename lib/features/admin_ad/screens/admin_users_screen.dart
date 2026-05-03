@@ -158,9 +158,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           _buildActionBtn("Tambah\nKecamatan", LucideIcons.mapPin, Colors.orange),
           const SizedBox(width: 12),
-          GestureDetector(
-            onTap: () => _showTopupSimulatorSheet(context),
-            child: _buildActionBtn("Topup\nSimulasi", LucideIcons.wallet, Colors.green),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _showTopupSimulatorSheet(context),
+              child: _buildActionBtn("Topup\nSimulasi", LucideIcons.wallet, Colors.green, noExpanded: true),
+            ),
           ),
           const SizedBox(width: 12),
           _buildActionBtn("Reset\nPassword", LucideIcons.key, Colors.blue),
@@ -305,24 +307,25 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
-  Widget _buildActionBtn(String title, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(title, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkGray)),
-          ],
-        ),
+  Widget _buildActionBtn(String title, IconData icon, Color color, {bool noExpanded = false}) {
+    Widget content = Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(title, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkGray)),
+        ],
       ),
     );
+
+    if (noExpanded) return content;
+    return Expanded(child: content);
   }
 
   Widget _buildApprovalSection(BuildContext context) {
