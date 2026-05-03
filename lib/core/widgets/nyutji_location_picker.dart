@@ -104,7 +104,10 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
         _subdistrict = _subdistrict.replaceAll(RegExp(r'^kecamatan\s+', caseSensitive: false), '').replaceAll(RegExp(r'^kec\.\s*', caseSensitive: false), '').trim();
         
         _city = address['city'] ?? address['regency'] ?? address['county'] ?? "";
-        _city = _city.replaceAll(RegExp(r'^(kota|kabupaten)\s+', caseSensitive: false), '').trim();
+        // SINKRONKAN dengan Database: Gunakan "Kab." dan "Kota "
+        _city = _city.replaceAll(RegExp(r'^kabupaten\s+', caseSensitive: false), 'Kab. ');
+        _city = _city.replaceAll(RegExp(r'^kota\s+', caseSensitive: false), 'Kota ');
+        _city = _city.trim();
         
         _fullAddress = data['display_name'] ?? "";
 
