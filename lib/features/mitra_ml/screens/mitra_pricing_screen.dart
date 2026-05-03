@@ -84,11 +84,11 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
 
       // FIX: Selalu update data walaupun kosong agar 'hantu' hilang jika dihapus di backend
       setState(() {
-        double parseSafe(dynamic val) {
+        int parseSafe(dynamic val) {
           if (val == null) return 0;
-          // HANYA hilangkan karakter non-angka KECUALI titik (desimal)
-          String s = val.toString().replaceAll(RegExp(r'[^0-9.]'), '');
-          return double.tryParse(s) ?? 0;
+          // HANYA ambil angka, buang semua titik (ribuan) dan karakter lain
+          String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
+          return int.tryParse(s) ?? 0;
         }
 
         // FILTER DIPERBAIKI: Gunakan limit 10 Juta (sama dengan validasi simpan) agar tidak ada item tersembunyi
@@ -154,11 +154,11 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       bool tooExpensive = false;
 
       // Fungsi pembantu untuk membersihkan string dari karakter non-angka
-      double cleanParse(dynamic val) {
+      int cleanParse(dynamic val) {
         if (val == null) return 0;
-        // Pertahankan titik desimal agar tidak menjadi jutaan
-        String s = val.toString().replaceAll(RegExp(r'[^0-9.]'), '');
-        return double.tryParse(s) ?? 0;
+        // HANYA ambil angka, buang titik ribuan agar tidak dibaca desimal
+        String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
+        return int.tryParse(s) ?? 0;
       }
 
       for (var item in kiloanData) {
@@ -220,8 +220,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
         kiloanData.insert(0, {
           "id": DateTime.now().millisecondsSinceEpoch.toString(),
           "svc": _newKiloanSvc.text,
-          "reg": _newKiloanReg.text.replaceAll(RegExp(r'[^0-9.]'), ""),
-          "fast": _newKiloanFast.text.replaceAll(RegExp(r'[^0-9.]'), ""),
+          "reg": _newKiloanReg.text.replaceAll(RegExp(r'[^0-9]'), ""),
+          "fast": _newKiloanFast.text.replaceAll(RegExp(r'[^0-9]'), ""),
         });
         _newKiloanSvc.clear();
         _newKiloanReg.clear();
@@ -242,8 +242,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             idsToRemove.add(id);
           } else {
             kiloanData[index]['svc'] = ctrlName.text;
-            if (ctrlReg != null) kiloanData[index]['reg'] = ctrlReg.text.replaceAll(RegExp(r'[^0-9.]'), "");
-            if (ctrlFast != null) kiloanData[index]['fast'] = ctrlFast.text.replaceAll(RegExp(r'[^0-9.]'), "");
+            if (ctrlReg != null) kiloanData[index]['reg'] = ctrlReg.text.replaceAll(RegExp(r'[^0-9]'), "");
+            if (ctrlFast != null) kiloanData[index]['fast'] = ctrlFast.text.replaceAll(RegExp(r'[^0-9]'), "");
           }
         }
       }
@@ -285,7 +285,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             idsToRemove.add(id);
           } else {
             satuanData[index]['name'] = ctrlName.text;
-            if (ctrlPrice != null) satuanData[index]['price'] = ctrlPrice.text.replaceAll(RegExp(r'[^0-9.]'), "");
+            if (ctrlPrice != null) satuanData[index]['price'] = ctrlPrice.text.replaceAll(RegExp(r'[^0-9]'), "");
           }
         }
       }
