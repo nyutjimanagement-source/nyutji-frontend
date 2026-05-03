@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import '../../../providers/auth_provider.dart';
 import 'admin_users_screen.dart';
 import 'admin_ai_opinion_screen.dart';
@@ -20,7 +21,7 @@ class AdminMainScreen extends StatefulWidget {
   State<AdminMainScreen> createState() => _AdminMainScreenState();
 }
 
-class _AdminMainScreenState extends State<AdminMainScreen> {
+class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProviderStateMixin {
   final Color primaryTeal = const Color(0xFF1E5655);
   final Color darkGray = const Color(0xFF111827);
   final Color secondaryDark = const Color(0xFF1F2937); 
@@ -33,22 +34,59 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   int _selectedIndex = 0;
   late PageController _pageController;
 
+  // SYSTEM STATUS LOGIC
+  Map<String, dynamic>? _systemStatus;
+  bool _isCheckingStatus = false;
+  late AnimationController _blinkController;
+  late Animation<double> _blinkAnimation;
+  Timer? _statusTimer;
+  String _lastSyncStr = "Just now";
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
+    
+    // Setup Blink Animation
+    _blinkController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..repeat(reverse: true);
+    _blinkAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(_blinkController);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WalletProvider>().fetchWallet();
-      context.read<OrderProvider>().fetchOrders();
-      context.read<IssueProvider>().fetchIssues();
-      context.read<SentimentProvider>().fetchSentiments();
-      context.read<AuthProvider>().fetchPendingApprovals(); // Tarik antrean pendaftar
+      _loadAdminData();
+      _fetchSystemStatus();
+      _statusTimer = Timer.periodic(const Duration(seconds: 15), (_) => _fetchSystemStatus());
     });
+  }
+
+  void _loadAdminData() {
+    context.read<WalletProvider>().fetchWallet();
+    context.read<OrderProvider>().fetchOrders();
+    context.read<IssueProvider>().fetchIssues();
+    context.read<SentimentProvider>().fetchSentiments();
+    context.read<AuthProvider>().fetchPendingApprovals();
+    context.read<AuthProvider>().fetchAllUsers(); // Tarik semua user
+  }
+
+  Future<void> _fetchSystemStatus() async {
+    if (_isCheckingStatus) return;
+    try {
+      final res = await ApiService().getSystemStatus();
+      if (mounted) {
+        setState(() {
+          _systemStatus = res;
+          _lastSyncStr = "Last sync: ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}";
+        });
+      }
+    } catch (e) {
+      debugPrint("Gagal fetch status sistem: $e");
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _blinkController.dispose();
+    _statusTimer?.cancel();
     super.dispose();
   }
 
@@ -200,6 +238,20 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   }
 
   Widget _buildSystemStatusStrip() {
+    bool isDbOk = _systemStatus?['database'] == 'Connected';
+    bool isSysOk = _systemStatus?['status'] == 'OK';
+    
+    Color dotColor = Colors.greenAccent;
+    String statusText = "SEMUA SISTEM BERJALAN NORMAL";
+    
+    if (!isDbOk && _systemStatus != null) {
+      dotColor = Colors.redAccent;
+      statusText = "DATABASE TERPUTUS - PERIKSA SEGERA";
+    } else if (!isSysOk && _systemStatus != null) {
+      dotColor = Colors.orangeAccent;
+      statusText = "GANGGUAN LAYANAN TERDETEKSI";
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: secondaryDark,
@@ -208,12 +260,15 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
         children: [
           Row(
             children: [
-              Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle)),
+              FadeTransition(
+                opacity: _blinkAnimation,
+                child: Container(width: 8, height: 8, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle, boxShadow: [BoxShadow(color: dotColor.withValues(alpha: 0.5), blurRadius: 4)])),
+              ),
               const SizedBox(width: 8),
-              Text("SEMUA SISTEM BERJALAN NORMAL", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent, letterSpacing: 0.5)),
+              Text(statusText, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: dotColor, letterSpacing: 0.5)),
             ],
           ),
-          Text("Last sync: Just now", style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500])),
+          Text(_lastSyncStr, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500])),
         ],
       ),
     );
@@ -251,8 +306,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
             crossAxisSpacing: 10,
             childAspectRatio: 2.2,
             children: [
-              Consumer<SimulasiProvider>(
-                builder: (context, sim, _) => _buildKPIBox("Omzet Platform", Formatters.currencyIdr(sim.saldoPlatform), "+12.5%", true),
+              Consumer<WalletProvider>(
+                builder: (context, wallet, _) => _buildKPIBox("Omzet Platform", Formatters.currencyIdr(wallet.balance), "+12.5%", true),
               ),
               Consumer<OrderProvider>(
                 builder: (context, order, _) => _buildKPIBox(
@@ -263,7 +318,14 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                   onTap: () => _showOrderListModal(context, order)
                 ),
               ),
-              _buildKPIBox("User Aktif", "15", "+0%", true),
+              Consumer<AuthProvider>(
+                builder: (context, auth, _) => _buildKPIBox(
+                  "User Aktif", 
+                  auth.allUsers.where((u) => u['role'] != 'AD').length.toString(), 
+                  "+${auth.pendingApprovals.length} baru", 
+                  true,
+                ),
+              ),
               _buildKPIBox("Mitra Online", "8", "+0%", true),
             ],
           )

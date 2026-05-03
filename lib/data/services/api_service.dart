@@ -41,6 +41,13 @@ class ApiService {
       }
     ));
   }
+  
+  // --- SYSTEM STATUS ---
+  Future<Map<String, dynamic>> getSystemStatus() async {
+    // Tarik status dari ROOT URL: https://api.nyutji.com/
+    final response = await _dio.get(ApiConstants.rootUrl);
+    return response.data;
+  }
 
   // --- AUTH ENDPOINTS ---
   Future<Map<String, dynamic>> login(String identifier, String password) async {
