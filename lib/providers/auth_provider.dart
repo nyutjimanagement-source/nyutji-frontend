@@ -441,9 +441,9 @@ class AuthProvider with ChangeNotifier {
         if (_user != null) {
           final newData = res['data'] ?? {};
           _user!['address'] = newData['address'] ?? locData['address'];
-          _user!['district_name'] = newData['district_name'] ?? locData['district_name'];
+          _user!['district_name'] = newData['owner_district_name'] ?? locData['district_name'];
           _user!['district_code'] = newData['district_code'] ?? Formatters.generateDistrictCode(locData['district_name']);
-          _user!['city_name'] = newData['city_name'] ?? locData['city_name'];
+          _user!['city_name'] = newData['owner_city_name'] ?? locData['city_name'];
           _user!['lat'] = newData['lat'] ?? locData['lat'];
           _user!['lng'] = newData['lng'] ?? locData['lng'];
           
