@@ -9,6 +9,7 @@ import '../../../core/widgets/nyutji_pickup_picker.dart';
 import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -138,14 +139,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         _selectedMitra = _mitras[found];
         _itemCounts.clear();
       });
-      // Scroll to that item (optional, manually selecting is enough for now)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Mitra '${_mitras[found]['name']}' dipilih!"), backgroundColor: primaryTeal)
-      );
+      if (mounted) NyutjiNotif.showSuccess(context, "Mitra '${_mitras[found]['name']}' dipilih!");
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Mitra tidak ditemukan dalam rekomendasi wilayah ini."), backgroundColor: Colors.redAccent)
-      );
+      if (mounted) NyutjiNotif.showError(context, "Mitra tidak ditemukan dalam rekomendasi wilayah ini.");
     }
   }
 
