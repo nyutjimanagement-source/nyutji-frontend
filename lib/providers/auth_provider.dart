@@ -158,8 +158,8 @@ class AuthProvider with ChangeNotifier {
           'detail': _user!['address_detail'],
           'lat': _user!['lat'],
           'lng': _user!['lng'],
-          'subdistrict': _user!['owner_district_name'] ?? _user!['district_name'],
-          'city': _user!['owner_city_name'] ?? _user!['city_name'],
+          'subdistrict': _user!['owner_district_name'] ?? _user!['district_name'] ?? '',
+          'city': _user!['owner_city_name'] ?? _user!['city_name'] ?? '',
         };
       }
       
