@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'nyutji_location_picker.dart';
+import 'nyutji_notif.dart';
 
 class NyutjiAddressSheet extends StatefulWidget {
   const NyutjiAddressSheet({super.key});
@@ -52,7 +53,7 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
       );
 
       if (saved == true) {
-        await auth.saveHomeAddress({
+        final success = await auth.saveHomeAddress({
           'lat': result.lat,
           'lng': result.lng,
           'address': result.address,
@@ -62,6 +63,10 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
           'village': result.district, // Kelurahan masuk ke info tambahan
           'street': result.street,
         });
+
+        if (success && mounted) {
+          NyutjiNotif.showSuccess(context, "Alamat Rumah Berhasil Disimpan & Diperbarui!");
+        }
       }
     }
   }
