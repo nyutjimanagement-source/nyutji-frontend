@@ -86,9 +86,18 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       setState(() {
         int parseSafe(dynamic val) {
           if (val == null) return 0;
-          // HANYA ambil angka, buang semua titik (ribuan) dan karakter lain
-          String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
-          return int.tryParse(s) ?? 0;
+          // Genius Fix: Tangani kemungkinan "4000.00" dari database
+          String s = val.toString();
+          if (s.contains('.')) {
+            // Jika ada titik, kita cek: apakah itu desimal (di akhir) atau ribuan?
+            // Cara paling aman: parse ke double dulu, lalu buang desimalnya
+            double? d = double.tryParse(s);
+            if (d != null) return d.toInt();
+            
+            // Jika double gagal (mungkin karena ada titik ribuan), buang semua titiknya
+            s = s.replaceAll('.', '');
+          }
+          return int.tryParse(s.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
         }
 
         // FILTER DIPERBAIKI: Gunakan limit 10 Juta (sama dengan validasi simpan) agar tidak ada item tersembunyi
@@ -156,9 +165,15 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       // Fungsi pembantu untuk membersihkan string dari karakter non-angka
       int cleanParse(dynamic val) {
         if (val == null) return 0;
-        // HANYA ambil angka, buang titik ribuan agar tidak dibaca desimal
-        String s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
-        return int.tryParse(s) ?? 0;
+        String s = val.toString();
+        // Jika input dari UI (biasanya ada titik ribuan), buang titiknya
+        // Tapi jika ada desimal ".00" dari DB, kita handle secara double
+        if (s.contains('.')) {
+          double? d = double.tryParse(s);
+          if (d != null) return d.toInt();
+          s = s.replaceAll('.', '');
+        }
+        return int.tryParse(s.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
       }
 
       for (var item in kiloanData) {
