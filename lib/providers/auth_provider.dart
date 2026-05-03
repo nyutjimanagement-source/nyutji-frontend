@@ -64,7 +64,11 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> saveHomeAddress(Map<String, dynamic> addr) async {
-    _homeAddress = addr;
+    _homeAddress = {
+      ...addr,
+      'subdistrict': addr['district_name'],
+      'city': addr['city_name'],
+    };
     
     // 1. Simpan di Database PostgreSQL backend
     try {
@@ -78,8 +82,8 @@ class AuthProvider with ChangeNotifier {
           _user!['address_detail'] = newData['detail'] ?? addr['detail'];
           _user!['lat'] = newData['lat'] ?? addr['lat'];
           _user!['lng'] = newData['lng'] ?? addr['lng'];
-          _user!['district_name'] = newData['district_name'] ?? addr['district'];
-          _user!['city_name'] = newData['city_name'] ?? addr['city'];
+          _user!['district_name'] = newData['owner_district_name'] ?? addr['district_name'];
+          _user!['city_name'] = newData['owner_city_name'] ?? addr['city_name'];
 
           // HANDLE IDENTITY CHANGE (Baptisan PL)
           if (res['new_token'] != null) {
@@ -151,8 +155,8 @@ class AuthProvider with ChangeNotifier {
           'detail': _user!['address_detail'],
           'lat': _user!['lat'],
           'lng': _user!['lng'],
-          'district': _user!['district_name'],
-          'city': _user!['city_name'],
+          'subdistrict': _user!['owner_district_name'] ?? _user!['district_name'],
+          'city': _user!['owner_city_name'] ?? _user!['city_name'],
         };
       }
       
