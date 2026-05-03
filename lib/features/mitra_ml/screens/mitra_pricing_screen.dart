@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/utils/formatters.dart';
 
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
@@ -140,13 +141,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadPricingFromApi());
   }
 
-  String _formatPrice(String price) {
-    if (price.isEmpty) return "0";
-    // Bersihkan dulu dari karakter aneh
-    String clean = price.toString().replaceAll(RegExp(r'[^0-9]'), '');
-    if (clean.isEmpty) return "0";
-    return clean.replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => "${m[1]}.");
-  }
+  // _formatPrice LOKAL DIHAPUS - SEKARANG PAKE Formatters.formatPrice UNTUK DISPLAY TAPI RAW UNTUK EDIT
 
   Future<void> _syncPricingToBackend() async {
     setState(() => _isSaving = true);
@@ -690,10 +685,10 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             : Text(item['svc']!, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkBg))),
           Expanded(child: isBeingEdited 
             ? _buildSmallField(_getEditController(id, 2, item['reg']!), "", isCenter: true)
-            : Text("Rp ${_formatPrice(item['reg']!)}", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
+            : Text("Rp ${Formatters.formatPrice(item['reg']!)}", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
           Expanded(child: isBeingEdited
             ? _buildSmallField(_getEditController(id, 3, item['fast']!), "", isCenter: true)
-            : Text("Rp ${_formatPrice(item['fast']!)}", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: accentGold))),
+            : Text("Rp ${Formatters.formatPrice(item['fast']!)}", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: accentGold))),
         ],
       ),
     );
@@ -737,7 +732,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             child: isBeingEdited
             ? _buildSmallField(_getEditController(id, 2, item['price']!), "", isCenter: true)
             : Text(
-                "Rp ${_formatPrice(item['price']!)}", 
+                "Rp ${Formatters.formatPrice(item['price']!)}", 
                 textAlign: TextAlign.left,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
