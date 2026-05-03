@@ -247,9 +247,11 @@ class ApiService {
   }
 
   // --- LIVE MITRA & PRICING ENDPOINTS ---
-  Future<List<dynamic>> getRecommendedMitras() async {
+  Future<List<dynamic>> getRecommendedMitras({String? districtName}) async {
     // Menarik daftar mitra terdekat/rekomendasi dari DB
-    final response = await _dio.get("/mitras/recommended");
+    final response = await _dio.get("/mitras/recommended", queryParameters: {
+      if (districtName != null && districtName.isNotEmpty) 'district_name': districtName
+    });
     return response.data['data'] ?? [];
   }
 

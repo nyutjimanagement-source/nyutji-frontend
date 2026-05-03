@@ -55,10 +55,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     setState(() => _isLoadingMitras = true);
     try {
       final api = ApiService();
-      final data = await api.getRecommendedMitras(); 
+      // 1. FILTER BERDASARKAN KECAMATAN (Jika ada)
+      final data = await api.getRecommendedMitras(districtName: _selectedDistrict); 
       
       final List<dynamic> rawData = data;
-      _mitras = rawData.map((m) {
+      List<Map<String, dynamic>> mapped = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
         return {
           'id': item['identifier'] ?? '-',
@@ -73,17 +74,78 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           'items': item['items'] ?? [],
         };
       }).toList();
+
+      // 2. SORTING: JARAK TERDEKAT & RATING > 4 PRIORITAS
+      mapped.sort((a, b) {
+        // Jika rating a > 4 dan b <= 4, a duluan (prioritas)
+        if (a['rating'] > 4 && b['rating'] <= 4) return -1;
+        if (a['rating'] <= 4 && b['rating'] > 4) return 1;
+        // Jika sama-sama > 4 atau sama-sama <= 4, urutkan berdasarkan JARAK
+        return a['distance'].compareTo(b['distance']);
+      });
+
+      setState(() => _mitras = mapped);
     } catch (e, stack) {
       debugPrint("Nyutji Error Mapping: $e");
-      debugPrint("Stack: $stack");
     } finally {
       if (mounted) {
         setState(() => _isLoadingMitras = false);
-        // CURI START: Pre-fetch semua item mitra di background agar saat diklik langsung 'Instan'
         for (var m in _mitras) {
           _fetchMitraItems(m['id']);
         }
       }
+    }
+  }
+
+  void _showSearchMitra() {
+    final TextEditingController searchCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text("Cari Nama Mitra Laundry", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: searchCtrl,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: "Masukkan nama ML...",
+            hintStyle: GoogleFonts.montserrat(fontSize: 12),
+            prefixIcon: const Icon(LucideIcons.search, size: 16),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onSubmitted: (val) => _performSearch(val),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Tutup")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            onPressed: () => _performSearch(searchCtrl.text),
+            child: const Text("CARI", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _performSearch(String query) {
+    if (query.isEmpty) return;
+    Navigator.pop(context);
+    
+    final found = _mitras.indexWhere((m) => m['name'].toString().toLowerCase().contains(query.toLowerCase()));
+    if (found != -1) {
+      setState(() {
+        _selectedMitra = _mitras[found];
+        _itemCounts.clear();
+      });
+      // Scroll to that item (optional, manually selecting is enough for now)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Mitra '${_mitras[found]['name']}' dipilih!"), backgroundColor: primaryTeal)
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Mitra tidak ditemukan dalam rekomendasi wilayah ini."), backgroundColor: Colors.redAccent)
+      );
     }
   }
 
@@ -231,7 +293,20 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 children: [
                   _buildAddressSection(cT, auth),
                   const SizedBox(height: 24),
-                  Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                      GestureDetector(
+                        onTap: () => _showSearchMitra(),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+                          child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -505,34 +580,50 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end, // Kembalikan ke Bawah sesuai Request Boss
-                  crossAxisAlignment: CrossAxisAlignment.end, // Tetap di Kanan agar pas dengan gradasi gelapnya
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       mitra['name'] ?? 'Mitra Laundry',
-                      style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.2),
+                      style: GoogleFonts.montserrat(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.2),
                       maxLines: 2, overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.right, // Teks rata kanan agar makin rapi
+                      textAlign: TextAlign.right,
                     ),
                     const SizedBox(height: 4),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end, // Ikon & Rating juga rata kanan
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        const Icon(LucideIcons.star, size: 10, color: Color(0xFFF59E0B)),
-                        const SizedBox(width: 4),
-                        Text("${mitra['rating'] ?? '5.0'}", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 8), // Beri jarak sedikit
                         const Icon(LucideIcons.mapPin, size: 10, color: Colors.white70),
                         const SizedBox(width: 4),
-                        Text("${mitra['distance'] ?? '0.1'} km", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 8, fontWeight: FontWeight.w500)),
+                        Text("${mitra['distance'] ?? '0.1'} km", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
                 ),
               ),
+              // RATING: POJOK KIRI ATAS (Desain Mewah Request Boss)
+              Positioned(
+                top: 12, left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4)]
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("${mitra['rating'] ?? '5.0'}", style: GoogleFonts.montserrat(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w900)),
+                      const SizedBox(width: 4),
+                      const Icon(LucideIcons.star, size: 12, color: Colors.red),
+                    ],
+                  ),
+                ),
+              ),
               if (isSelected)
                 Positioned(
-                  top: 10, right: 10,
+                  bottom: 12, left: 12, // Pindah ke kiri bawah agar tidak tabrakan dengan rating
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
@@ -612,6 +703,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         _selectedLng = result.lng;
         _locationIcon = LucideIcons.mapPin;
       });
+      // SINKRONISASI ULANG MITRA BERDASARKAN KECAMATAN BARU
+      _loadLiveMitras();
     }
   }
 
