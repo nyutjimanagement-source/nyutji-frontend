@@ -456,32 +456,33 @@ class AuthProvider with ChangeNotifier {
       });
 
       if (res['status'] == 'success' || res['message'] != null) {
-        // 2. Update Local State _user
-        if (_user != null) {
-          final newData = res['data'] ?? {};
-          _user!['address'] = newData['address'] ?? locData['address'];
-          _user!['address_detail'] = newData['address_detail'] ?? locData['address_detail'];
-          _user!['district_code'] = newData['district_code'] ?? locData['district_code'];
-          _user!['district_name'] = newData['owner_district_name'] ?? locData['district_name'];
-          _user!['owner_district_name'] = newData['owner_district_name'] ?? locData['district_name'];
-          _user!['city_name'] = newData['owner_city_name'] ?? locData['city_name'];
-          _user!['owner_city_name'] = newData['owner_city_name'] ?? locData['city_name'];
-          _user!['lat'] = newData['lat'] ?? locData['lat'];
-          _user!['lng'] = newData['lng'] ?? locData['lng'];
-          
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('user_data', jsonEncode(_user));
-          
-          // HANDLE IDENTITY CHANGE (Baptisan PL)
-          if (res['new_token'] != null) {
-            _token = res['new_token'];
-            await prefs.setString('token', _token!);
-          }
-          if (res['new_identifier'] != null) {
-            _user!['identifier'] = res['new_identifier'];
-            await prefs.setString('user_data', jsonEncode(_user));
-          }
+        // JENIUS: Pake data seger dari backend untuk nimpa state lokal
+        final freshData = res['data'] ?? {};
+        if (freshData.isNotEmpty) {
+          _user = Map<String, dynamic>.from(freshData);
         }
+        
+        // SINKRONKAN ALAMAT RUMAH (UI)
+        _homeAddress = {
+          'address': _user!['address'],
+          'detail': _user!['address_detail'],
+          'lat': _user!['lat'],
+          'lng': _user!['lng'],
+          'subdistrict': _user!['owner_district_name'] ?? _user!['district_name'] ?? '',
+          'city': _user!['owner_city_name'] ?? _user!['city_name'] ?? '',
+        };
+
+        final prefs = await SharedPreferences.getInstance();
+        
+        // Jika ada token baru (karena identifier berubah)
+        if (res['new_token'] != null) {
+          _token = res['new_token'];
+          await prefs.setString('token', _token!);
+        }
+
+        // Selalu simpan perubahan data user ke storage
+        await prefs.setString('user_data', jsonEncode(_user));
+
         notifyListeners();
         return true;
       }

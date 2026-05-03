@@ -61,8 +61,8 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       // Inisialisasi controller dengan alamat user saat ini
       if (auth.user != null) {
         _fullAddressController.text = auth.user?['address']?.toString() ?? "";
-        _selectedDistrict = auth.user?['district_name']?.toString() ?? "";
-        _selectedCity = auth.user?['city_name']?.toString() ?? "";
+        _selectedDistrict = auth.user?['owner_district_name']?.toString() ?? auth.user?['district_name']?.toString() ?? "";
+        _selectedCity = auth.user?['owner_city_name']?.toString() ?? auth.user?['city_name']?.toString() ?? "";
         _selectedLat = double.tryParse(auth.user?['lat']?.toString() ?? '0') ?? 0.0;
         _selectedLng = double.tryParse(auth.user?['lng']?.toString() ?? '0') ?? 0.0;
       }
@@ -577,8 +577,8 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               builder: (context, auth, _) {
                 final photoUrl = auth.user?['profile_photo'];
                 final localPhoto = auth.temporaryLocalPhoto;
-                final district = auth.user?['district_name'] ?? "Kecamatan";
-                final city = auth.user?['city_name'] ?? "Kota/Kabupaten";
+                final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "Kecamatan";
+                final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "Kota/Kabupaten";
                 
                 return Row(
                   children: [
@@ -937,10 +937,8 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         _selectedCity = result.city;
         _selectedLat = result.lat;
         _selectedLng = result.lng;
-        // Opsional: Jika user belum isi alamat manual, kita bantu isi dari geocoder
-        if (_fullAddressController.text.isEmpty) {
-          _fullAddressController.text = result.address;
-        }
+        // JENIUS: Selalu update kotak teks alamat biar user gak bingung
+        _fullAddressController.text = result.address;
       });
       if(mounted) _showBeautifulNotif("Lokasi GPS terpilih: $_selectedDistrict", true);
     }
