@@ -282,8 +282,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   Widget _buildPageTitleHeader(String title, IconData icon, {AuthProvider? auth, bool forceIcon = false}) {
     final photoUrl = auth?.user?['profile_photo'];
     final localPhoto = auth?.temporaryLocalPhoto;
-    final district = auth?.user?['owner_district_name'] ?? auth?.user?['district_name'] ?? "Kecamatan";
-    final city = auth?.user?['owner_city_name'] ?? auth?.user?['city_name'] ?? "Kota";
+    final district = auth?.user?['owner_district_name'] ?? auth?.user?['district_name'] ?? auth?.user?['district_code'] ?? "Kecamatan";
+    final city = auth?.user?['owner_city_name'] ?? auth?.user?['city_name'] ?? "Kota/Kab";
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -470,12 +470,25 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     children: [
                       Text(currentT['welcome'], style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                       Consumer<AuthProvider>(
-                        builder: (context, auth, _) => Text(
-                          auth.user?['name'] ?? "Kurir Nyutji", 
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
-                        ),
+                        builder: (context, auth, _) {
+                          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? auth.user?['district_code'] ?? "Kecamatan";
+                          final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "Kota/Kab";
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                auth.user?['name'] ?? "Kurir Nyutji", 
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
+                              ),
+                              Text(
+                                "$district - $city",
+                                style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          );
+                        }
                       ),
                     ],
                   ),
