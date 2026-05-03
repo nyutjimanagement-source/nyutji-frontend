@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import '../../../data/services/api_service.dart';
 import '../../../providers/auth_provider.dart';
 import 'admin_users_screen.dart';
 import 'admin_ai_opinion_screen.dart';
@@ -12,7 +13,8 @@ import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/issue_provider.dart';
 import '../../../providers/sentiment_provider.dart';
-import '../../../data/services/api_service.dart';
+// ignore: unused_import
+import '../../../providers/simulasi_provider.dart';
 
 class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({super.key});
@@ -36,7 +38,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
 
   // SYSTEM STATUS LOGIC
   Map<String, dynamic>? _systemStatus;
-  bool _isCheckingStatus = false;
+  final bool _isCheckingStatus = false;
   late AnimationController _blinkController;
   late Animation<double> _blinkAnimation;
   Timer? _statusTimer;
