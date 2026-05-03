@@ -12,7 +12,7 @@ import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/issue_provider.dart';
 import '../../../providers/sentiment_provider.dart';
-import '../../../providers/simulasi_provider.dart';
+import '../../../data/services/api_service.dart';
 
 class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({super.key});
