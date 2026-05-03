@@ -628,16 +628,9 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
         textAlign: isCenter ? TextAlign.center : TextAlign.left,
         autofocus: isAuto,
         onChanged: (v) {
-          if (isCenter) {
-            String formatted = _formatPrice(v);
-            if (formatted != v) {
-              ctrl.value = TextEditingValue(
-                text: formatted,
-                selection: TextSelection.collapsed(offset: formatted.length),
-              );
-            }
-          }
+          // FORMAT OTOMATIS SAAT NGETIK DIHAPUS BIAR GAK BUG
         },
+        keyboardType: isCenter ? TextInputType.number : TextInputType.text,
         style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           hintText: hint,
@@ -653,7 +646,9 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   TextEditingController _getEditController(String id, int subId, String initialText) {
     String key = "$id-$subId";
     if (!_editControllers.containsKey(key)) {
-      String text = (subId > 1) ? _formatPrice(initialText) : initialText;
+      // JANGAN DI-FORMAT PAS EDIT (BIAR RAW ANGKA SAJA)
+      // subId 1 adalah NAMA, subId > 1 adalah HARGA
+      String text = (subId > 1) ? initialText.replaceAll(RegExp(r'[^0-9]'), '') : initialText;
       _editControllers[key] = TextEditingController(text: text);
     }
     return _editControllers[key]!;
