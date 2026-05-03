@@ -85,7 +85,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       });
 
       setState(() => _mitras = mapped);
-    } catch (e, stack) {
+    } catch (e) {
       debugPrint("Nyutji Error Mapping: $e");
     } finally {
       if (mounted) {
