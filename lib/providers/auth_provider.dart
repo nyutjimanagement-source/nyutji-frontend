@@ -79,11 +79,14 @@ class AuthProvider with ChangeNotifier {
         if (_user != null) {
           final newData = res['data'] ?? {};
           _user!['address'] = newData['address'] ?? addr['address'];
-          _user!['address_detail'] = newData['detail'] ?? addr['detail'];
+          _user!['address_detail'] = newData['address_detail'] ?? addr['detail'];
           _user!['lat'] = newData['lat'] ?? addr['lat'];
           _user!['lng'] = newData['lng'] ?? addr['lng'];
+          _user!['district_code'] = newData['district_code'] ?? _user!['district_code'];
           _user!['district_name'] = newData['owner_district_name'] ?? addr['district_name'];
+          _user!['owner_district_name'] = newData['owner_district_name'] ?? addr['district_name'];
           _user!['city_name'] = newData['owner_city_name'] ?? addr['city_name'];
+          _user!['owner_city_name'] = newData['owner_city_name'] ?? addr['city_name'];
 
           // HANDLE IDENTITY CHANGE (Baptisan PL)
           if (res['new_token'] != null) {
@@ -445,24 +448,26 @@ class AuthProvider with ChangeNotifier {
         if (_user != null) {
           final newData = res['data'] ?? {};
           _user!['address'] = newData['address'] ?? locData['address'];
+          _user!['address_detail'] = newData['address_detail'] ?? locData['address_detail'];
+          _user!['district_code'] = newData['district_code'] ?? locData['district_code'];
           _user!['district_name'] = newData['owner_district_name'] ?? locData['district_name'];
-          _user!['district_code'] = newData['district_code'] ?? Formatters.generateDistrictCode(locData['district_name']);
+          _user!['owner_district_name'] = newData['owner_district_name'] ?? locData['district_name'];
           _user!['city_name'] = newData['owner_city_name'] ?? locData['city_name'];
+          _user!['owner_city_name'] = newData['owner_city_name'] ?? locData['city_name'];
           _user!['lat'] = newData['lat'] ?? locData['lat'];
           _user!['lng'] = newData['lng'] ?? locData['lng'];
+          
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(_user));
           
           // HANDLE IDENTITY CHANGE (Baptisan PL)
           if (res['new_token'] != null) {
             _token = res['new_token'];
+            await prefs.setString('token', _token!);
           }
           if (res['new_identifier'] != null) {
             _user!['identifier'] = res['new_identifier'];
-          }
-
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('user_data', jsonEncode(_user));
-          if (res['new_token'] != null) {
-            await prefs.setString('token', _token!);
+            await prefs.setString('user_data', jsonEncode(_user));
           }
         }
         notifyListeners();
