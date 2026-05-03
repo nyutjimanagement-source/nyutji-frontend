@@ -282,8 +282,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   Widget _buildPageTitleHeader(String title, IconData icon, {AuthProvider? auth, bool forceIcon = false}) {
     final photoUrl = auth?.user?['profile_photo'];
     final localPhoto = auth?.temporaryLocalPhoto;
-    final district = auth?.user?['district_name'] ?? "Kecamatan";
-    final city = auth?.user?['city_name'] ?? "Kota";
+    final district = auth?.user?['owner_district_name'] ?? auth?.user?['district_name'] ?? "Kecamatan";
+    final city = auth?.user?['owner_city_name'] ?? auth?.user?['city_name'] ?? "Kota";
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
