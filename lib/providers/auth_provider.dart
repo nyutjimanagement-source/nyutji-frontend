@@ -218,6 +218,18 @@ class AuthProvider with ChangeNotifier {
         _role = response['role'] ?? 'PL';
         _user = response['user']; 
         
+        // SINKRONKAN ALAMAT LANGSUNG SETELAH LOGIN
+        if (_user != null) {
+          _homeAddress = {
+            'address': _user!['address'],
+            'detail': _user!['address_detail'],
+            'lat': _user!['lat'],
+            'lng': _user!['lng'],
+            'subdistrict': _user!['owner_district_name'] ?? _user!['district_name'] ?? '',
+            'city': _user!['owner_city_name'] ?? _user!['city_name'] ?? '',
+          };
+        }
+        
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', _token!);
         await prefs.setString('role', _role!);
