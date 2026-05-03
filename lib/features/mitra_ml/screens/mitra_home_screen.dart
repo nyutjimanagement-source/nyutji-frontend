@@ -295,8 +295,8 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                       ),
                       Consumer<AuthProvider>(
                         builder: (context, auth, _) {
-                          final district = auth.user?['district_name'] ?? "Kecamatan";
-                          final city = auth.user?['city_name'] ?? "Kota";
+                          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "Kecamatan";
+                          final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "Kota";
                           
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

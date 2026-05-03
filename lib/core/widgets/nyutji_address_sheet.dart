@@ -114,7 +114,7 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
                           Text("Rumah Utama", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 13)),
                           const SizedBox(height: 4),
                           Text("${home['detail'] ?? ''} ${home['street'] ?? ''}", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[800])),
-                          Text("${home['subdistrict']}, ${home['city']}", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500])),
+                          Text("${home['subdistrict'] ?? ''}, ${home['city'] ?? ''}", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500])),
                         ],
                       )
                     : Text("Belum ada alamat rumah diset", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400], fontStyle: FontStyle.italic)),

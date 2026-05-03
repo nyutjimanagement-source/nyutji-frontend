@@ -269,8 +269,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       ),
                       Consumer<AuthProvider>(
                         builder: (context, auth, _) {
-                          final district = auth.user?['district_name'];
-                          final city = auth.user?['city_name'];
+                          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'];
+                          final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'];
                           final location = (district != null && city != null)
                               ? "$district, $city"
                               : district ?? city ?? "Lokasi tidak diset";
