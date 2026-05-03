@@ -63,7 +63,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> saveHomeAddress(Map<String, dynamic> addr) async {
+  Future<bool> saveHomeAddress(Map<String, dynamic> addr) async {
     _homeAddress = addr;
     
     // 1. Simpan di Database PostgreSQL backend
@@ -105,6 +105,7 @@ class AuthProvider with ChangeNotifier {
     final key = _user?['identifier'] ?? _user?['email'] ?? 'unknown';
     await prefs.setString('home_address_$key', jsonEncode(addr));
     notifyListeners();
+    return true;
   }
 
   Future<void> addToAddressHistory(Map<String, dynamic> addr) async {
