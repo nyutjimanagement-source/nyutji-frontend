@@ -68,14 +68,7 @@ class AuthProvider with ChangeNotifier {
     
     // 1. Simpan di Database PostgreSQL backend
     try {
-      final res = await ApiService().updateLocation({
-        'address': addr['address'],
-        'address_detail': addr['detail'],
-        'lat': addr['lat'],
-        'lng': addr['lng'],
-        'district': addr['district'],
-        'city': addr['city']
-      });
+      final res = await ApiService().updateLocation(addr);
 
       if (res['status'] == 'success' || res['message'] != null) {
         // Update global user state with address

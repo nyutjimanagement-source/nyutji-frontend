@@ -57,9 +57,9 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
           'lng': result.lng,
           'address': result.address,
           'detail': _detailController.text,
-          'district': result.district,
-          'subdistrict': result.subdistrict,
-          'city': result.city,
+          'district_name': result.subdistrict, // Gunakan Kecamatan sebagai rujukan District di DB
+          'city_name': result.city,
+          'village': result.district, // Kelurahan masuk ke info tambahan
           'street': result.street,
         });
       }
