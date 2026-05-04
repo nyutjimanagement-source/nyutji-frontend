@@ -81,25 +81,12 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         };
       }).toList();
 
-      // 3. HITUNG JARAK LIVE (Jika koordinat penjemputan ada)
-      if (_selectedLat != null && _selectedLng != null) {
-        for (var m in mapped) {
-          final double mLat = m['lat'] ?? 0;
-          final double mLng = m['lng'] ?? 0;
-          if (mLat != 0 && mLng != 0) {
-            double rawDist = NyutjiDistance.calculateDistance(_selectedLat!, _selectedLng!, mLat, mLng);
-            // Tambahkan faktor jalanan (Road Distance) agar lebih realistis
-            m['distance'] = NyutjiDistance.calculateRoadDistance(rawDist);
-          }
-        }
-        // SORTING: Yang paling dekat nangkring paling depan
-        mapped.sort((a, b) => a['distance'].compareTo(b['distance']));
-      }
+      _mitras = mapped;
+      _recalculateDistances(); // HITUNG JARAK SETELAH LOAD
 
-      // 4. Update State
+      // 3. Update State
       if (mounted) {
         setState(() {
-          _mitras = mapped;
           _isLoadingMitras = false;
         });
       }
@@ -116,6 +103,27 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         }
       }
     }
+  }
+
+  void _recalculateDistances() {
+    if (_selectedLat == null || _selectedLng == null || _mitras.isEmpty) return;
+
+    for (var m in _mitras) {
+      final double mLat = m['lat'] ?? 0;
+      final double mLng = m['lng'] ?? 0;
+      
+      if (mLat != 0 && mLng != 0) {
+        double rawDist = NyutjiDistance.calculateDistance(_selectedLat!, _selectedLng!, mLat, mLng);
+        m['distance'] = NyutjiDistance.calculateRoadDistance(rawDist);
+      } else {
+        // Jika koordinat mitra 0, beri jarak default tapi jangan 0 biar gak aneh
+        m['distance'] = 0.5; 
+      }
+    }
+
+    // SORTING: Terdekat nangkring paling depan
+    _mitras.sort((a, b) => a['distance'].compareTo(b['distance']));
+    setState(() {}); // Refresh UI
   }
 
   void _showSearchMitra() {
@@ -775,6 +783,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       });
       // SINKRONISASI ULANG MITRA BERDASARKAN KECAMATAN BARU
       _loadLiveMitras();
+      // JIKA KECAMATAN SAMA, TETAP HITUNG ULANG JARAK BERDASARKAN LAT/LNG BARU
+      _recalculateDistances();
     }
   }
 
