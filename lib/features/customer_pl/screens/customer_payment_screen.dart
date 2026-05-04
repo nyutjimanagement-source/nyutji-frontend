@@ -190,9 +190,123 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   }
 
   Future<void> _handleConfirmOrder(int grandTotal) async {
-    if (_isSubmitting) {
-      return;
-    }
+    // 1. Tampilkan Nota Estimasi terlebih dahulu
+    _showEstimationInvoice(grandTotal);
+  }
+
+  void _showEstimationInvoice(int grandTotal) {
+    final auth = context.read<AuthProvider>();
+    final now = DateTime.now();
+    final orderNo = "NYJ-${now.millisecondsSinceEpoch.toString().substring(7)}";
+    final finishDate = widget.speed == 'fast' 
+        ? now.add(const Duration(days: 1)) 
+        : now.add(const Duration(days: 3));
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        contentPadding: EdgeInsets.zero,
+        content: Container(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header Nota
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: BoxDecoration(
+                  color: primaryTeal,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Icon(LucideIcons.fileText, color: Colors.white, size: 30),
+                      const SizedBox(height: 8),
+                      Text("Nota Estimasi Transaksi", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Isi Nota
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _notaRow("No Order", "$orderNo / ${widget.speed.toUpperCase()}"),
+                    _notaRow("Nama PL", auth.user?['name'] ?? 'Pelanggan Nyutji'),
+                    _notaRow("Alamat PL", widget.address, isAddress: true),
+                    _notaRow("Mitra ML", widget.mitraName),
+                    _notaRow("Tgl Pesan", DateFormat('dd MMM yyyy, HH:mm').format(now)),
+                    _notaRow("Est. Selesai", DateFormat('dd MMM yyyy').format(finishDate)),
+                    const Divider(height: 24),
+                    _notaRow("Items Cucian", "${widget.totalItems} Items (Kiloan & Satuan)"),
+                    _notaRow("Total Biaya", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(grandTotal), isBold: true),
+                    _notaRow("Metode Bayar", _selectedPayment, isBold: true),
+                  ],
+                ),
+              ),
+              
+              // Tombol Aksi
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
+                        child: Text("BATAL", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.grey)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _processPayment(grandTotal);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryTeal,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
+                        child: Text("BAYAR", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _notaRow(String label, String value, {bool isBold = false, bool isAddress = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 90, child: Text(label, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600]))),
+          const Text(" :  ", style: TextStyle(fontSize: 10, color: Colors.grey)),
+          Expanded(child: Text(value, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.black87), maxLines: isAddress ? 2 : 1, overflow: TextOverflow.ellipsis)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _processPayment(int grandTotal) async {
+    if (_isSubmitting) return;
 
     final walletProv = context.read<WalletProvider>();
     final auth = context.read<AuthProvider>();
@@ -229,8 +343,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
       final payload = {
         'address': widget.address,
-        'districtName': widget.districtName, // Kembali ke CamelCase sesuai referensi sukses
-        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya', // Sesuai referensi sukses
+        'districtName': widget.districtName,
+        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
         'items': items,
         'lat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
         'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
@@ -241,23 +355,18 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         'deliveryFee': deliveryFee,
         'delivery_type': deliveryType,
         'deliveryType': deliveryType,
-        'customer_id': auth.user?['identifier'], // Gunakan identifier PL
-        'mitra_id': widget.mitraId, // Gunakan identifier ML
+        'customer_id': auth.user?['identifier'],
+        'mitra_id': widget.mitraId,
         'mitraId': widget.mitraId,
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
       };
 
       final success = await orderProv.createOrder(payload);
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       if (success) {
-        _showBeautifulNotif("Pesanan Berhasil Dikonfirmasi & Disimpan!", true);
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
-        });
+        _showMerpatiSuccess();
       } else {
         _showBeautifulNotif(orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.", false);
       }
@@ -266,6 +375,52 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showMerpatiSuccess() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: primaryTeal.withValues(alpha: 0.95),
+      transitionDuration: const Duration(milliseconds: 500),
+      pageBuilder: (context, anim1, anim2) {
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // ANIMASI MERPATI TERBANG (MOCK WITH ICON & ANIMATION)
+                TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: const Duration(seconds: 2),
+                  builder: (context, double val, child) {
+                    return Transform.translate(
+                      offset: Offset(val * 10, -val * 100),
+                      child: Opacity(
+                        opacity: 1 - (val * 0.5),
+                        child: const Icon(LucideIcons.bird, color: Colors.white, size: 80),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                Text("Cucian Anda Sedang Diterbangkan!", 
+                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+                const SizedBox(height: 8),
+                Text("Merpati Nyutji sedang menuju lokasi Anda...", 
+                  style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 12)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    // Otomatis kembali ke Home setelah 3 detik
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
+    });
   }
 
   @override
