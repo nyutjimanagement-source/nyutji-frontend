@@ -62,8 +62,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       final List<dynamic> rawData = data;
       List<Map<String, dynamic>> mapped = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
-        // Ambil info User untuk district (Include dari backend)
-        final uInfo = item['User'] ?? {};
+        // FIX MAPPING: Cek User atau user (case-insensitive)
+        final uInfo = item['User'] ?? item['user'] ?? {};
         return {
           'id': item['identifier'] ?? '-',
           'name': item['name'] ?? item['brand_name'] ?? item['full_name'] ?? item['mitra_name'] ?? 'Mitra Nyutji',
@@ -365,8 +365,18 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(40),
-                      child: Text("Tidak ada mitra tersedia di wilayah ini", 
-                        style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w500)),
+                      child: Column(
+                        children: [
+                          Icon(LucideIcons.ghost, size: 40, color: Colors.grey[200]),
+                          const SizedBox(height: 12),
+                          Text("Belum ada Mitra APPROVED di radar.", 
+                            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text("Pastikan status Mitra sudah 'APPROVED' di Dashboard Admin", 
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
+                        ],
+                      ),
                     ),
                   )
                 : SizedBox(
