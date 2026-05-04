@@ -1109,7 +1109,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   _itemCounts.forEach((itemId, count) {
                     if (count > 0) {
                       try {
-                        var item = mItems.firstWhere((i) => i['id'] == itemId, orElse: () => null);
+                        // FORCE STRING COMPARISON: Mengatasi Type Mismatch (int vs string)
+                        var item = mItems.firstWhere(
+                          (i) => i['id'].toString() == itemId.toString(), 
+                          orElse: () => null
+                        );
                         if (item != null) {
                           bool isFast = _serviceSpeed == 'fast';
                           double pReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
