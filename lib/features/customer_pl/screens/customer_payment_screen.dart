@@ -22,6 +22,7 @@ class CustomerPaymentScreen extends StatefulWidget {
   final String dropMethod;
   final List<Map<String, dynamic>> selectedItemsList;
   final String districtName;
+  final String districtCode;
   final String cityName;
   final double lat;
   final double lng;
@@ -47,6 +48,7 @@ class CustomerPaymentScreen extends StatefulWidget {
     required this.cityName,
     required this.lat,
     required this.lng,
+    this.districtCode = 'NYJ',
     this.mitraLat = 0.0,
     this.mitraLng = 0.0,
     this.pickupNote = '',
@@ -197,7 +199,12 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   void _showEstimationInvoice(int grandTotal) {
     final auth = context.read<AuthProvider>();
     final now = DateTime.now();
-    final orderNo = "NYJ-${now.millisecondsSinceEpoch.toString().substring(7)}";
+    // FORMAT JENDERAL: KODE_KECAMATAN-YYYYMMDD-counting
+    final stringkatBtn = widget.districtCode.toUpperCase();
+    final dateStr = DateFormat('yyyyMMdd').format(now);
+    final counting = now.millisecondsSinceEpoch.toString().substring(9); // 4 digit terakhir timestamp
+    final orderNo = "$stringkatBtn-$dateStr-$counting";
+
     final finishDate = widget.speed == 'fast' 
         ? now.add(const Duration(days: 1)) 
         : now.add(const Duration(days: 3));

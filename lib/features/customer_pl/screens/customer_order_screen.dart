@@ -1149,6 +1149,27 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 final String districtName = _selectedDistrict.isNotEmpty
                     ? _selectedDistrict
                     : (auth.user?['district_name']?.toString() ?? '');
+                
+                // Cari District Code dari list districts (PMU, CIP, dll)
+                String districtCode = 'NYJ'; 
+                if (districtName.isNotEmpty) {
+                  try {
+                    final dData = _districts.firstWhere(
+                      (d) => d['name'].toString().toLowerCase() == districtName.toLowerCase(),
+                      orElse: () => {},
+                    );
+                    if (dData.isNotEmpty && dData['code'] != null) {
+                      districtCode = dData['code'].toString().toUpperCase();
+                    } else if (auth.user?['identifier'] != null) {
+                      // Fallback: Ambil dari identifier PL (PL-PMU-001 -> PMU)
+                      final parts = auth.user!['identifier'].toString().split('-');
+                      if (parts.length >= 2) districtCode = parts[1];
+                    }
+                  } catch (e) {
+                    debugPrint("Gagal dapet kode kecamatan: $e");
+                  }
+                }
+
                 final String cityName = _selectedCity.isNotEmpty
                     ? _selectedCity
                     : (auth.user?['city_name']?.toString() ?? '');
