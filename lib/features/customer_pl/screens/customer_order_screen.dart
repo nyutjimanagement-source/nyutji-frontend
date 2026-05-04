@@ -56,18 +56,26 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     setState(() => _isLoadingMitras = true);
     try {
       final api = ApiService();
-      // MATIIN FILTER: Tampilkan semua Mitra APPROVED untuk saat ini
+      
+      // 1. Ambil data dari server (Tanpa filter kecamatan dulu sesuai perintah)
       final data = await api.getRecommendedMitras(); 
       
+      if (data == null) {
+        throw "Server mengembalikan data NULL";
+      }
+
       final List<dynamic> rawData = data;
+      
+      // 2. Mapping baris per baris dengan proteksi null
       List<Map<String, dynamic>> mapped = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
+        
         return {
-          'id': item['identifier'] ?? '-',
-          'name': item['name'] ?? item['brand_name'] ?? item['full_name'] ?? item['mitra_name'] ?? 'Mitra Nyutji',
-          'rating': (item['rating'] ?? 5.0).toDouble(),
-          'distance': (item['distance'] ?? 0.1).toDouble(),
-          'address': item['address'] ?? 'Alamat tidak tersedia',
+          'id': item['identifier'] ?? item['id'] ?? '-',
+          'name': item['name'] ?? item['brand_name'] ?? 'Mitra Nyutji',
+          'rating': NyutjiParser.toDouble(item['rating'] ?? 5.0),
+          'distance': NyutjiParser.toDouble(item['distance'] ?? 0.1),
+          'address': item['address'] ?? '-',
           'district': item['district_name'] ?? item['owner_district_name'] ?? item['district'] ?? '-',
           'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
           'lat': NyutjiParser.toDouble(item['lat']),
@@ -76,25 +84,26 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         };
       }).toList();
 
-      // 2. SORTING: JARAK TERDEKAT & RATING > 4 PRIORITAS
-      mapped.sort((a, b) {
-        if (a['rating'] > 4 && b['rating'] <= 4) return -1;
-        if (a['rating'] <= 4 && b['rating'] > 4) return 1;
-        return a['distance'].compareTo(b['distance']);
-      });
-
-      setState(() {
-        _mitras = mapped;
-        // Jika forced search berhasil menemukan mitra, tampilkan notif
-        if (forcedDistrict != null && _mitras.isNotEmpty && mounted) {
-           NyutjiNotif.showSuccess(context, "Berhasil menemukan ${_mitras.length} mitra di '$forcedDistrict'");
+      // 3. Update State
+      if (mounted) {
+        setState(() {
+          _mitras = mapped;
+          _isLoadingMitras = false;
+        });
+        
+        // Notif sukses jika ada data
+        if (_mitras.isNotEmpty) {
+          // NyutjiNotif.showSuccess(context, "Berhasil memuat ${_mitras.length} Mitra");
         }
-      });
+      }
     } catch (e) {
-      debugPrint("Nyutji Error Mapping: $e");
-    } finally {
       if (mounted) {
         setState(() => _isLoadingMitras = false);
+        NyutjiNotif.showError(context, "Gagal memuat Mitra: $e");
+      }
+      debugPrint("Nyutji Error: $e");
+    } finally {
+      if (mounted) {
         for (var m in _mitras) {
           _fetchMitraItems(m['id']);
         }
