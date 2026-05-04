@@ -56,20 +56,16 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     setState(() => _isLoadingMitras = true);
     try {
       final api = ApiService();
+      final targetDistrict = forcedDistrict ?? _selectedDistrict;
       
-      // 1. Ambil data dari server (Tanpa filter kecamatan dulu sesuai perintah)
-      final data = await api.getRecommendedMitras(); 
+      // 1. Ambil data dari server (MODE PROFESSIONAL: Dengan Filter Kecamatan)
+      final data = await api.getRecommendedMitras(districtName: targetDistrict); 
       
       final List<dynamic> rawData = data;
       
-      if (rawData.isEmpty) {
-        debugPrint("Radar Nyutji: Server mengembalikan list kosong.");
-      }
-
       // 2. Mapping baris per baris dengan proteksi null
       List<Map<String, dynamic>> mapped = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
-        
         return {
           'id': item['identifier'] ?? item['id'] ?? '-',
           'name': item['name'] ?? item['brand_name'] ?? 'Mitra Nyutji',
@@ -90,11 +86,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           _mitras = mapped;
           _isLoadingMitras = false;
         });
-        
-        // Notif sukses jika ada data
-        if (_mitras.isNotEmpty) {
-          // NyutjiNotif.showSuccess(context, "Berhasil memuat ${_mitras.length} Mitra");
-        }
       }
     } catch (e) {
       if (mounted) {
