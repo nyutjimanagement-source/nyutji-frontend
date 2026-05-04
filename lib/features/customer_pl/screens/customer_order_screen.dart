@@ -1150,23 +1150,13 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     ? _selectedDistrict
                     : (auth.user?['district_name']?.toString() ?? '');
                 
-                // Cari District Code dari list districts (PMU, CIP, dll)
+                // Cari District Code dari ID Mitra (ML-PMU-001 -> PMU)
                 String districtCode = 'NYJ'; 
-                if (districtName.isNotEmpty) {
-                  try {
-                    final dData = _districts.firstWhere(
-                      (d) => d['name'].toString().toLowerCase() == districtName.toLowerCase(),
-                      orElse: () => {},
-                    );
-                    if (dData.isNotEmpty && dData['code'] != null) {
-                      districtCode = dData['code'].toString().toUpperCase();
-                    } else if (auth.user?['identifier'] != null) {
-                      // Fallback: Ambil dari identifier PL (PL-PMU-001 -> PMU)
-                      final parts = auth.user!['identifier'].toString().split('-');
-                      if (parts.length >= 2) districtCode = parts[1];
-                    }
-                  } catch (e) {
-                    debugPrint("Gagal dapet kode kecamatan: $e");
+                if (_selectedMitra != null && _selectedMitra!['id'] != null) {
+                  final mId = _selectedMitra!['id'].toString();
+                  final parts = mId.split('-');
+                  if (parts.length >= 2) {
+                    districtCode = parts[1].toUpperCase();
                   }
                 }
 
