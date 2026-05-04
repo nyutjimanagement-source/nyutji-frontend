@@ -10,6 +10,7 @@ import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/utils/nyutji_distance.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -80,7 +81,22 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         };
       }).toList();
 
-      // 3. Update State
+      // 3. HITUNG JARAK LIVE (Jika koordinat penjemputan ada)
+      if (_selectedLat != null && _selectedLng != null) {
+        for (var m in mapped) {
+          final double mLat = m['lat'] ?? 0;
+          final double mLng = m['lng'] ?? 0;
+          if (mLat != 0 && mLng != 0) {
+            double rawDist = NyutjiDistance.calculateDistance(_selectedLat!, _selectedLng!, mLat, mLng);
+            // Tambahkan faktor jalanan (Road Distance) agar lebih realistis
+            m['distance'] = NyutjiDistance.calculateRoadDistance(rawDist);
+          }
+        }
+        // SORTING: Yang paling dekat nangkring paling depan
+        mapped.sort((a, b) => a['distance'].compareTo(b['distance']));
+      }
+
+      // 4. Update State
       if (mounted) {
         setState(() {
           _mitras = mapped;
@@ -349,8 +365,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 4),
                 ],
               ),
             ),
@@ -648,7 +663,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                       children: [
                         const Icon(LucideIcons.mapPin, size: 10, color: Colors.white70),
                         const SizedBox(width: 4),
-                        Text("${mitra['distance'] ?? '0.1'} km", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+                        Text(NyutjiDistance.formatDistance(mitra['distance'] ?? 0.1), 
+                          style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
