@@ -7,7 +7,6 @@ import '../../../providers/auth_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:math' as Math;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/constants/api_constants.dart';
 import 'courier_history_screen.dart';
