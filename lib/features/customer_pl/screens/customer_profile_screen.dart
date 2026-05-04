@@ -19,6 +19,23 @@ class CustomerProfileScreen extends StatefulWidget {
 
 class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   final ImagePicker _picker = ImagePicker();
+  
+  // STATE UNTUK ALAMAT DINAMIS
+  bool _isAddressExpanded = false;
+  bool _isEditingAddress = false;
+  late TextEditingController _addressDetailController;
+
+  @override
+  void initState() {
+    super.initState();
+    _addressDetailController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _addressDetailController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(AuthProvider auth) async {
     showModalBottomSheet(
@@ -159,14 +176,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             ),
             const SizedBox(height: 12),
             _buildSettingsGroup([
-              _settingRow(LucideIcons.mapPin, currentT['address'], onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const NyutjiAddressSheet(),
-                );
-              }),
+              _buildExpandableAddressRow(currentT, auth),
               _settingRow(LucideIcons.heart, currentT['favorit']),
             ]),
             const SizedBox(height: 12),
@@ -188,6 +198,99 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     );
   }
 
+  Widget _buildExpandableAddressRow(Map<String, dynamic> currentT, AuthProvider auth) {
+    final user = auth.user;
+    final addressDetail = user?['address_detail'] ?? '';
+    final district = user?['district_name'] ?? user?['owner_district_name'] ?? '-';
+    final city = user?['city_name'] ?? user?['owner_city_name'] ?? '-';
+    
+    if (!_isEditingAddress) {
+      _addressDetailController.text = addressDetail;
+    }
+
+    return Column(
+      children: [
+        _settingRow(
+          LucideIcons.mapPin, 
+          currentT['address'], 
+          onTap: () => setState(() => _isAddressExpanded = !_isAddressExpanded),
+          trailing: Icon(
+            _isAddressExpanded ? LucideIcons.chevronDown : LucideIcons.chevronRight, 
+            size: 16, color: Colors.grey[400]
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: _isAddressExpanded 
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(56, 0, 20, 20),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Colors.grey[100]!))
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.home, size: 14, color: Color(0xFF1E5655)),
+                        const SizedBox(width: 8),
+                        Text("Rumah Sendiri", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF1E5655))),
+                        const Spacer(),
+                        if (!_isEditingAddress)
+                          GestureDetector(
+                            onTap: () => setState(() => _isEditingAddress = true),
+                            child: const Icon(LucideIcons.edit3, size: 16, color: Colors.blueAccent),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: () async {
+                              // LOGIKA SAVE GENIUS
+                              final success = await auth.updateLocation({
+                                'address': user?['address'],
+                                'address_detail': _addressDetailController.text,
+                                'district_name': district,
+                                'city_name': city,
+                                'lat': user?['lat'],
+                                'lng': user?['lng'],
+                              });
+                              if (success && mounted) {
+                                NyutjiNotif.showSuccess(context, "Alamat berhasil diperbarui!");
+                                setState(() => _isEditingAddress = false);
+                              }
+                            },
+                            child: Text("SAVE", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.blueAccent)),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (_isEditingAddress)
+                      TextField(
+                        controller: _addressDetailController,
+                        style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black87),
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: "Masukkan detail alamat...",
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+                          contentPadding: const EdgeInsets.all(10),
+                        ),
+                      )
+                    else
+                      Text(addressDetail.isEmpty ? "Belum ada detail alamat" : addressDetail, style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black87)),
+                    
+                    const SizedBox(height: 8),
+                    Text("$district, $city", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              )
+            : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSettingsGroup(List<Widget> children) {
     return Container(
       color: Colors.white,
@@ -197,7 +300,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     );
   }
 
-  Widget _settingRow(IconData icon, String title, {bool isDanger = false, VoidCallback? onTap}) {
+  Widget _settingRow(IconData icon, String title, {bool isDanger = false, VoidCallback? onTap, Widget? trailing}) {
     return InkWell(
       onTap: onTap ?? () {},
       child: Container(
@@ -208,7 +311,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             Icon(icon, size: 18, color: isDanger ? Colors.red : Colors.grey[700]),
             const SizedBox(width: 16),
             Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: isDanger ? Colors.red : Colors.black87))),
-            Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey[400]),
+            trailing ?? Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey[400]),
           ],
         ),
       ),
