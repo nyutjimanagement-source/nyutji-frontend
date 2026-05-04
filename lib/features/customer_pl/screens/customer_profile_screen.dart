@@ -256,7 +256,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                 'lng': user?['lng'],
                               });
                               if (success && mounted) {
-                                NyutjiNotif.showSuccess(context, "Alamat berhasil diperbarui!");
+                                NyutjiNotif.showSuccess(context, "Alamat Rumah Telah Disimpan");
                                 setState(() => _isEditingAddress = false);
                               }
                             },
