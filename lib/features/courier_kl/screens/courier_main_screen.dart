@@ -1135,7 +1135,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.15), shape: BoxShape.circle),
-                                child: Icon(LucideIcons.compass, color: primaryTeal, size: 24),
+                                child: Icon(LucideIcons.navigation, color: primaryTeal, size: 24),
                               ),
                               const SizedBox(height: 4),
                               Text("Tekan Menuju Lokasi", 
