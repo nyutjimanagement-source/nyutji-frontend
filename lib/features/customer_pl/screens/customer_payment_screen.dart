@@ -109,7 +109,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         currentOrderType
       );
       
-      if (quote != null && quote['status'] == 'success') {
+      if (quote['status'] == 'success') {
         setState(() {
           _dynamicCourierFee = (quote['data']['delivery_fee'] as num).toInt();
           _isLoadingPrice = false;
@@ -206,7 +206,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
     // 2. Validasi Metode Pembayaran
     if (_selectedPayment != "Dompet Nyutji") {
-      NyutjiNotif.showWarning(context, "Saat ini hanya Dompet Nyutji yang tersedia.");
+      NyutjiNotif.showError(context, "Saat ini hanya Dompet Nyutji yang tersedia.");
       return;
     }
 
