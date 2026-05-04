@@ -1077,13 +1077,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: textGrey)),
-                            Text(serviceType, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: primaryTeal.withValues(alpha: 0.7))),
-                          ],
-                        ),
+                        Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: textGrey)),
                         if (isFast)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1115,9 +1109,20 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(address, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
+                              Text(
+                                () {
+                                  if (address == "-" || address.isEmpty || address == "Alamat Pelanggan") return address;
+                                  final parts = address.split(',');
+                                  if (parts.length > 2) return "${parts[0].trim()}, ${parts[1].trim()}, ${parts[2].trim()}";
+                                  if (parts.length > 1) return "${parts[0].trim()}, ${parts[1].trim()}";
+                                  return address;
+                                }(),
+                                style: GoogleFonts.montserrat(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w700),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                               const SizedBox(height: 2),
-                              Text("${distance.toStringAsFixed(1)} Km \u2022 $serviceType", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
+                              Text("${distance.toStringAsFixed(1)} Km", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
