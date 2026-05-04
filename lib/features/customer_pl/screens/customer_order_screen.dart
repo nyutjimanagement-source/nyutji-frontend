@@ -10,8 +10,6 @@ import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
-import '../../mitra_ml/providers/mitra_provider.dart';
-import '../../../data/services/api_service.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
