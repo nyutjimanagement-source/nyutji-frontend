@@ -1129,11 +1129,20 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _openMap(address),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.2), shape: BoxShape.circle),
-                            child: const Icon(LucideIcons.chevronRight, color: Color(0xFF286B6A), size: 20),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.15), shape: BoxShape.circle),
+                                child: Icon(LucideIcons.map, color: primaryTeal, size: 24),
+                              ),
+                              const SizedBox(height: 4),
+                              Text("Tekan Menuju Lokasi", 
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(fontSize: 7, color: primaryTeal, fontWeight: FontWeight.w900, letterSpacing: -0.2)
+                              ),
+                            ],
                           ),
                         )
                       ],
