@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_location_picker.dart';
 
 
 class CustomerProfileScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   
   // STATE UNTUK ALAMAT DINAMIS
   bool _isAddressExpanded = false;
-  bool _isEditingAddress = false;
+  // Hapus _isEditingAddress karena sekarang pake Map Picker
   late TextEditingController _addressDetailController;
   
   // FIX FLICKER: Gunakan timestamp tetap yang hanya berubah saat upload
@@ -213,17 +214,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   }
 
   Widget _buildExpandableAddressRow(Map<String, dynamic> currentT, AuthProvider auth) {
-    // FIX DISPLAY: Ambil data paling seger dari Provider
     final user = auth.user;
+    final mainAddress = user?['address']?.toString() ?? 'Pilih Lokasi Rumah';
     final addressDetail = user?['address_detail']?.toString() ?? '';
     final district = user?['district_name']?.toString() ?? user?['owner_district_name']?.toString() ?? '-';
     final city = user?['city_name']?.toString() ?? user?['owner_city_name']?.toString() ?? '-';
     
-    // Sinkronkan controller hanya jika TIDAK sedang mengetik
-    if (!_isEditingAddress && _addressDetailController.text != addressDetail) {
-      _addressDetailController.text = addressDetail;
-    }
-
     return Column(
       children: [
         _settingRow(
@@ -254,47 +250,40 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                         const SizedBox(width: 8),
                         Text("Rumah Sendiri", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF1E5655))),
                         const Spacer(),
-                        if (!_isEditingAddress)
-                          GestureDetector(
-                            onTap: () => setState(() => _isEditingAddress = true),
-                            child: const Icon(LucideIcons.edit3, size: 16, color: Colors.blueAccent),
-                          )
-                        else
-                          GestureDetector(
-                            onTap: () async {
+                        GestureDetector(
+                          onTap: () async {
+                            // GENIUS MOVE: Buka Map Picker
+                            final result = await showModalBottomSheet<NyutjiLocationResult>(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => const NyutjiLocationPicker(),
+                            );
+                            
+                            if (result != null && mounted) {
                               final success = await auth.updateLocation({
-                                'address': user?['address'],
-                                'address_detail': _addressDetailController.text,
-                                'district_name': district,
-                                'city_name': city,
-                                'lat': user?['lat'],
-                                'lng': user?['lng'],
+                                'address': result.address,
+                                'district_name': result.subdistrict,
+                                'city_name': result.city,
+                                'lat': result.lat,
+                                'lng': result.lng,
+                                'address_detail': addressDetail,
                               });
                               if (success && mounted) {
                                 NyutjiNotif.showSuccess(context, "Alamat Rumah Telah Disimpan");
-                                setState(() => _isEditingAddress = false);
                               }
-                            },
-                            child: Text("SAVE", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.blueAccent)),
-                          ),
+                            }
+                          },
+                          child: const Icon(LucideIcons.edit3, size: 16, color: Colors.blueAccent),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    if (_isEditingAddress)
-                      TextField(
-                        controller: _addressDetailController,
-                        style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black87),
-                        maxLines: 2,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: "Masukkan detail alamat...",
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
-                          contentPadding: const EdgeInsets.all(10),
-                        ),
-                      )
-                    else
-                      Text(addressDetail.isEmpty ? "Belum ada detail alamat" : addressDetail, style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black87)),
-                    
+                    Text(mainAddress, style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.w600)),
+                    if (addressDetail.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(addressDetail, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                    ],
                     const SizedBox(height: 8),
                     Text("$district, $city", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w500)),
                   ],
