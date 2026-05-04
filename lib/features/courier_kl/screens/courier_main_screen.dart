@@ -1048,6 +1048,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     // Alamat (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
     final String address = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "Alamat Pelanggan"; 
     final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
+    final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1121,7 +1122,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
-                              Text("${distance.toStringAsFixed(1)} Km", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
+                              Text("${distance.toStringAsFixed(1)} Km \u2022 $serviceType", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
