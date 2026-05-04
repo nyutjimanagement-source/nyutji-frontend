@@ -101,10 +101,11 @@ class ApiService {
 
   // --- ORDER ENDPOINTS ---
   Future<List<dynamic>> getOrders() async {
-    // Akan otomatis menyertakan token dari interceptor
-    // Endpoint ini harusnya return list array di backend, bisa di sesuaikan.
     final response = await _dio.get("/orders");
-    return response.data['data'] ?? [];
+    final data = response.data;
+    if (data is List) return data;
+    if (data is Map && data.containsKey('data')) return data['data'] ?? [];
+    return [];
   }
 
   // GET order tersedia di kecamatan KL (untuk marketplace kurir)

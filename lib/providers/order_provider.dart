@@ -68,13 +68,27 @@ class OrderProvider extends ChangeNotifier {
 
     try {
       final List<dynamic> orders = await _api.getOrders();
-      _activeOrders = orders.where((o) => o['status'] != 'selesai').toList();
-      _historyOrders = orders.where((o) => o['status'] == 'selesai').toList();
+      // SMART FILTER: Mendukung berbagai nama kolom dan case-insensitive
+      _activeOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status != 'selesai' && status != 'completed' && status != 'done';
+      }).toList();
+      
+      _historyOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status == 'selesai' || status == 'completed' || status == 'done';
+      }).toList();
     } catch (e) {
       _errorMessage = 'Gagal memuat data pesanan';
-      _activeOrders = [
-        {'id': 'KBY-040426-001', 'status': 'Proses Cuci', 'total': 21000.0},
-      ];
+      debugPrint("Nyutji Data Error: $e");
+      // Fallback dummy hanya jika benar-benar kosong dan error
+      if (_activeOrders.isEmpty && _historyOrders.isEmpty) {
+        _activeOrders = [
+          {'order_number': 'NYJ-DEBUG-001', 'order_status': 'Proses Cuci', 'grand_total': 21000.0},
+        ];
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
