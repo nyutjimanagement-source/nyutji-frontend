@@ -10,6 +10,8 @@ import '../../../providers/auth_provider.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../mitra_ml/providers/mitra_provider.dart';
+import '../../../data/services/api_service.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -129,6 +131,30 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     );
   }
 
+  String _getSmartAddress(String fullAddress) {
+    if (fullAddress.isEmpty || fullAddress == 'Jl. Kebayoran No 12, Jakarta') return fullAddress;
+    
+    // LOGIKA SMART: Pisahkan koma, buang yang tidak perlu
+    List<String> parts = fullAddress.split(',').map((e) => e.trim()).toList();
+    
+    // Keyword yang dibuang (Propinsi & Negara)
+    List<String> unwanted = [
+      'Indonesia', 'Banten', 'Jawa Barat', 'DKI Jakarta', 'Jawa Tengah', 
+      'Jawa Timur', 'DI Yogyakarta', 'Bali', 'Sumatera', 'Kalimantan', 'Sulawesi'
+    ];
+    
+    // Filter parts yang tidak mengandung unwanted keywords
+    List<String> filtered = parts.where((p) {
+      return !unwanted.any((u) => p.toLowerCase().contains(u.toLowerCase()));
+    }).toList();
+    
+    // Gabungkan kembali (Maksimal 3-4 bagian awal: Jalan, Kec, Kota, Pos)
+    if (filtered.length > 4) {
+      return filtered.sublist(0, 4).join(', ');
+    }
+    return filtered.join(', ');
+  }
+
   void _performSearch(String query) {
     if (query.isEmpty) return;
     Navigator.pop(context);
@@ -224,11 +250,23 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     try {
       final auth = Provider.of<AuthProvider>(context);
       
-      // Sinkronisasi alamat dari AuthProvider jika tersedia
-      if (auth.user != null && _pickupAddress == 'Jl. Kebayoran No 12, Jakarta') {
-         final district = auth.user?['district_name'];
-         final city = auth.user?['city_name'];
-         if (district != null) _pickupAddress = "$district, ${city ?? ''}";
+      // Sinkronisasi alamat dari AuthProvider jika tersedia (Hanya sekali saat awal)
+      if (auth.user != null && (_pickupAddress == 'Jl. Kebayoran No 12, Jakarta' || _selectedDistrict.isEmpty)) {
+         final district = auth.user?['district_name'] ?? auth.user?['owner_district_name'];
+         final city = auth.user?['city_name'] ?? auth.user?['owner_city_name'];
+         final address = auth.user?['address'] ?? auth.user?['address_detail'];
+         
+         if (district != null) {
+           WidgetsBinding.instance.addPostFrameCallback((_) {
+             setState(() {
+               _selectedDistrict = district.toString();
+               _selectedCity = city?.toString() ?? '';
+               _pickupAddress = address?.toString() ?? "$district, ${city ?? ''}";
+             });
+             // LANGSUNG TEMBAK MITRA BEGITU DISTRICT KETEMU
+             _loadLiveMitras();
+           });
+         }
       }
 
       final Map<String, dynamic> t = {
@@ -416,7 +454,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(_pickupAddress, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
+          Text(_getSmartAddress(_pickupAddress), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
           if (_pickupNote.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
