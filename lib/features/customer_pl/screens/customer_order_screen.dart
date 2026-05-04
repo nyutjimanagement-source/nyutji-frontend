@@ -60,12 +60,12 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       // 1. Ambil data dari server (Tanpa filter kecamatan dulu sesuai perintah)
       final data = await api.getRecommendedMitras(); 
       
-      if (data == null) {
-        throw "Server mengembalikan data NULL";
-      }
-
       final List<dynamic> rawData = data;
       
+      if (rawData.isEmpty) {
+        debugPrint("Radar Nyutji: Server mengembalikan list kosong.");
+      }
+
       // 2. Mapping baris per baris dengan proteksi null
       List<Map<String, dynamic>> mapped = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
