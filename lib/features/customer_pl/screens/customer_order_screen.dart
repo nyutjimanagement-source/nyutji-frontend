@@ -1103,13 +1103,20 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
                 auth.addToAddressHistory({'address': addr, 'detail': note, 'lat': lat, 'lng': lng});
                 
+                // 1. Ambil data Mitra tersegar dari list (untuk dapet items terbaru)
+                final currentMitra = _mitras.firstWhere(
+                  (m) => m['id'].toString() == (_selectedMitra?['id']?.toString() ?? ''),
+                  orElse: () => _selectedMitra ?? {},
+                );
+
                 List<Map<String, dynamic>> selectedItems = [];
-                final List? mItems = _selectedMitra?['items'] as List?;
-                if (mItems != null) {
+                final List? mItems = currentMitra['items'] as List?;
+                
+                if (mItems != null && mItems.isNotEmpty) {
                   _itemCounts.forEach((itemId, count) {
                     if (count > 0) {
                       try {
-                        // FORCE STRING COMPARISON: Mengatasi Type Mismatch (int vs string)
+                        // FORCE STRING COMPARISON: Pastikan ID cocok walau beda tipe (int vs string)
                         var item = mItems.firstWhere(
                           (i) => i['id'].toString() == itemId.toString(), 
                           orElse: () => null
@@ -1120,12 +1127,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                           double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
                           double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
 
-                          // PAKSA UNIT PCS untuk Kategori selain Kiloan
                           String cat = (item['category'] ?? '').toString().toLowerCase();
                           String unitDisplay = (cat == 'satuan' || cat == 'iron' || cat == 'dry clean') ? 'Pcs' : 'Kg';
                           
                           selectedItems.add({
-                            'name': item['name'], 
+                            'name': item['name'] ?? item['item_name'] ?? 'Item', 
                             'count': count, 
                             'unit': unitDisplay,
                             'price': isFast ? pFast : pReg,
@@ -1133,7 +1139,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                           });
                         }
                       } catch (e) {
-                        debugPrint("Error processing item $itemId: $e");
+                        debugPrint("Nyutji Error Mapping: $e");
                       }
                     }
                   });
