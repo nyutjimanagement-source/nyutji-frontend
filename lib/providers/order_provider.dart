@@ -95,6 +95,33 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchAdminOrders() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final List<dynamic> orders = await _api.getAdminOrders();
+      // Bagi ke active dan history untuk dashboard admin
+      _activeOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status != 'selesai' && status != 'completed' && status != 'done';
+      }).toList();
+      
+      _historyOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status == 'selesai' || status == 'completed' || status == 'done';
+      }).toList();
+    } catch (e) {
+      _errorMessage = 'Gagal memuat data admin pesanan';
+      debugPrint("Nyutji Admin Data Error: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Fetch order tersedia di kecamatan KL dari backend
   // Jika backend belum siap (endpoint belum ada), fallback ke dummy agar UI tidak crash
   Future<void> fetchAvailableOrders(String districtName) async {

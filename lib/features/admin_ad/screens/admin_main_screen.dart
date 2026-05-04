@@ -62,7 +62,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
 
   void _loadAdminData() {
     context.read<WalletProvider>().fetchWallet();
-    context.read<OrderProvider>().fetchOrders();
+    context.read<OrderProvider>().fetchAdminOrders();
     context.read<IssueProvider>().fetchIssues();
     context.read<SentimentProvider>().fetchSentiments();
     context.read<AuthProvider>().fetchPendingApprovals();
