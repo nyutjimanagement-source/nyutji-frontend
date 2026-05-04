@@ -722,13 +722,19 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     itemBuilder: (context, index) {
                       final order = displayOrders[index];
                       final isTop = index == 0;
-                      final price = int.tryParse(order['total_price']?.toString() ?? '0') ?? 0;
-                      final pickup = order['address']?.toString() ?? '-';
-                      final mitraName = order['mitra_name']?.toString() ?? order['mitra']?['name']?.toString() ?? 'Mitra';
-                      final mitraAddr = order['mitra_address']?.toString() ?? order['mitra']?['address']?.toString() ?? '-';
-                      final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1;
-                      final distance = double.tryParse(order['distance']?.toString() ?? '0') ?? 0.0;
-                      final orderId = order['id']?.toString() ?? '-';
+                      
+                      // SUPER-SMART MAPPING: Mendukung CamelCase & SnakeCase
+                      final orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
+                      final price = int.tryParse((order['total_price'] ?? order['totalPrice'] ?? '0').toString()) ?? 0;
+                      
+                      // Alamat Jemput (Prioritas: customer address)
+                      final pickup = order['customer']?['address']?.toString() ?? order['address']?.toString() ?? '-';
+                      
+                      final mitraName = (order['mitra']?['name'] ?? order['mitra_name'] ?? 'Mitra').toString();
+                      final mitraAddr = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
+                      
+                      final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1 || order['isFastTrack'] == true;
+                      final distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
 
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
