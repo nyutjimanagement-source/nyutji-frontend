@@ -144,15 +144,6 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     }
   }
 
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    if (lat1 == 0 || lon1 == 0 || lat2 == 0 || lon2 == 0) return 0.0;
-    const p = 0.017453292519943295; // Math.PI / 180
-    final a = 0.5 -
-        Math.cos((lat2 - lat1) * p) / 2 +
-        Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
-    return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
-  }
-
   Future<void> _pickImage(AuthProvider auth) async {
     showModalBottomSheet(
       context: context,
@@ -735,7 +726,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       
                       // SUPER-SMART MAPPING: Mendukung CamelCase & SnakeCase
                       final orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
-                      final price = double.tryParse((order['total_price'] ?? order['totalPrice'] ?? '0').toString()) ?? 0.0;
+                      
+                      // KL HANYA BOLEH LIHAT DELIVERY FEE (Sesuai instruksi Jenderal)
+                      final price = double.tryParse((order['delivery_fee'] ?? order['deliveryFee'] ?? '0').toString()) ?? 0.0;
                       
                       // Alamat Jemput (Prioritas: customer address)
                       final pickup = order['customer']?['address']?.toString() ?? order['address']?.toString() ?? '-';
@@ -745,15 +738,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       
                       final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1 || order['isFastTrack'] == true;
                       
-                      // HITUNG JARAK LIVE (Courier vs Pickup)
-                      double distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
-                      if (distance == 0) {
-                        final pLat = double.tryParse((order['pickup_lat'] ?? order['pickupLat'] ?? '0').toString()) ?? 0.0;
-                        final pLng = double.tryParse((order['pickup_lng'] ?? order['pickupLng'] ?? '0').toString()) ?? 0.0;
-                        final cLat = double.tryParse((auth.user?['lat'] ?? '0').toString()) ?? 0.0;
-                        final cLng = double.tryParse((auth.user?['lng'] ?? '0').toString()) ?? 0.0;
-                        distance = _calculateDistance(cLat, cLng, pLat, pLng);
-                      }
+                      // JARAK STATIS DARI DATABASE (Sesuai instruksi Jenderal)
+                      final distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
 
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
