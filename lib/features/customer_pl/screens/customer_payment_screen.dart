@@ -209,7 +209,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         contentPadding: EdgeInsets.zero,
-        content: Container(
+        content: SizedBox(
           width: double.maxFinite,
           child: Column(
             mainAxisSize: MainAxisSize.min,
