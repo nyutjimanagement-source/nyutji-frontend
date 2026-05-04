@@ -493,19 +493,12 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
+                                    Row(
+                                      children: [
                                         Icon(LucideIcons.user, size: 10, color: Colors.grey[500]),
                                         const SizedBox(width: 4),
                                         Text("PL: $customerId", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
                                       ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        Icon(LucideIcons.store, size: 10, color: Colors.grey[500]),
-                                        const SizedBox(width: 4),
-                                        Text("ML: $mitraId", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
-                                      ],
-                                    ),
                                     ),
                                     const SizedBox(height: 2),
                                     Row(
