@@ -6,6 +6,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/simulasi_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
+import 'package:intl/intl.dart';
 
 class CustomerWalletScreen extends StatefulWidget {
   const CustomerWalletScreen({super.key});
@@ -25,6 +26,18 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     });
   }
 
+  // HELPER: Mengelompokkan mutasi berdasarkan bulan
+  Map<String, List<dynamic>> _getGroupedMutasi(List<dynamic> mutasi) {
+    Map<String, List<dynamic>> grouped = {};
+    for (var m in mutasi) {
+      DateTime date = DateTime.tryParse(m['createdAt']?.toString() ?? '') ?? DateTime.now();
+      String monthKey = DateFormat('MMMM yyyy', 'id_ID').format(date);
+      if (!grouped.containsKey(monthKey)) grouped[monthKey] = [];
+      grouped[monthKey]!.add(m);
+    }
+    return grouped;
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -35,6 +48,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         'topup': 'Top Up',
         'history': 'Riwayat Terakhir',
         'pay_wash': 'Bayar Cuci',
+        'cash_flow': 'Arus Kas (1 Tahun)',
       },
       'en': {
         'title': 'Nyutji Wallet',
@@ -42,6 +56,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         'topup': 'Top Up',
         'history': 'Recent History',
         'pay_wash': 'Laundry Payment',
+        'cash_flow': 'Cash Flow (1 Year)',
       }
     };
     final currentT = t[auth.lang] ?? t['id'];
@@ -53,23 +68,20 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.rotateCcw, size: 18, color: Colors.red),
-            onPressed: () => context.read<SimulasiProvider>().resetSimulasi(),
-            tooltip: "Reset Simulasi",
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // CARD SALDO
             Consumer<WalletProvider>(
               builder: (context, wallet, _) => Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: primaryTeal, 
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8))]
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -101,27 +113,51 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
+            // MINI ANALYTICS CHART
             Consumer<WalletProvider>(
-              builder: (context, wallet, _) => Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(currentT['history'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
-                    const Divider(height: 24),
-                    if (wallet.mutasiList.isEmpty)
-                      Center(child: Text("Belum ada riwayat transaksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)))
-                    else
-                      ...wallet.mutasiList.map((m) => _buildHistoryRow(
-                            m['description'] ?? m['title'] ?? 'Transaksi',
-                            "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr(double.tryParse(m['amount'].toString()) ?? 0.0)}",
-                            m['type'] == 'debit' ? Colors.red : Colors.green,
-                            m['createdAt'] ?? m['date'] ?? '-',
-                          )),
-                  ],
-                ),
-              ),
+              builder: (context, wallet, _) => _buildAnalyticsCard(currentT, wallet),
+            ),
+            const SizedBox(height: 16),
+
+            // RIWAYAT TRANSAKSI
+            Consumer<WalletProvider>(
+              builder: (context, wallet, _) {
+                final grouped = _getGroupedMutasi(wallet.mutasiList);
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(currentT['history'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
+                      const Divider(height: 24),
+                      if (wallet.mutasiList.isEmpty)
+                        Center(child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Text("Belum ada riwayat transaksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                        ))
+                      else
+                        ...grouped.entries.map((entry) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text(entry.key, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal)),
+                            ),
+                            ...entry.value.map((m) => _buildHistoryRow(
+                                  m['description'] ?? m['title'] ?? 'Transaksi',
+                                  "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr(double.tryParse(m['amount'].toString()) ?? 0.0)}",
+                                  m['type'] == 'debit' ? Colors.red : Colors.green,
+                                  m['createdAt'] ?? m['date'] ?? '-',
+                                )),
+                            const SizedBox(height: 8),
+                          ],
+                        )).toList(),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -129,7 +165,64 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     );
   }
 
+  Widget _buildAnalyticsCard(Map<String, dynamic> cT, WalletProvider wallet) {
+    double totalIn = 0;
+    double totalOut = 0;
+    for (var m in wallet.mutasiList) {
+      double amt = double.tryParse(m['amount'].toString()) ?? 0.0;
+      if (m['type'] == 'debit') totalOut += amt;
+      else totalIn += amt;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 50, height: 50,
+            child: CustomPaint(painter: MiniPiePainter(totalIn, totalOut)),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(cT['cash_flow'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _chartLegend(Colors.green, "Masuk"),
+                    const SizedBox(width: 12),
+                    _chartLegend(Colors.red, "Keluar"),
+                  ],
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _chartLegend(Color color, String label) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 4),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black54)),
+      ],
+    );
+  }
+
   Widget _buildHistoryRow(String title, String val, Color c, String date) {
+    final bool isOut = c == Colors.red;
+    String formattedDate = "-";
+    try {
+      DateTime dt = DateTime.tryParse(date) ?? DateTime.now();
+      formattedDate = DateFormat('dd MMM, HH:mm').format(dt);
+    } catch (_) {}
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -137,13 +230,17 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         children: [
           Row(
             children: [
-              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle), child: Icon(c == Colors.green ? LucideIcons.arrowDownLeft : LucideIcons.arrowUpRight, size: 14, color: c)),
+              Container(
+                padding: const EdgeInsets.all(8), 
+                decoration: BoxDecoration(color: c.withValues(alpha: 0.1), shape: BoxShape.circle), 
+                child: Icon(isOut ? LucideIcons.arrowUp : LucideIcons.arrowDown, size: 14, color: c)
+              ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87)),
-                  Text(date, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500])),
+                  Text(formattedDate, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500])),
                 ],
               ),
             ],
@@ -154,3 +251,32 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     );
   }
 }
+
+class MiniPiePainter extends CustomPainter {
+  final double income;
+  final double expense;
+  MiniPiePainter(this.income, this.expense);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    double total = income + expense;
+    if (total == 0) {
+      canvas.drawCircle(size.center(Offset.zero), size.width / 2, Paint()..color = Colors.grey[200]!);
+      return;
+    }
+
+    double incomeAngle = (income / total) * 2 * 3.1415926535;
+    double expenseAngle = (expense / total) * 2 * 3.1415926535;
+
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    canvas.drawArc(rect, -3.1415926535 / 2, incomeAngle, true, Paint()..color = Colors.green);
+    canvas.drawArc(rect, -3.1415926535 / 2 + incomeAngle, expenseAngle, true, Paint()..color = Colors.red);
+    
+    // Draw hole for donut style
+    canvas.drawCircle(size.center(Offset.zero), size.width / 4, Paint()..color = Colors.white);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
