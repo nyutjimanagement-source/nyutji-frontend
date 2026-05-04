@@ -246,6 +246,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   IconData _locationIcon = LucideIcons.mapPin;
 
   final Color primaryTeal = const Color(0xFF1E5655);
+  final Color primaryRed = const Color(0xFFEF4444);
   final Color bgColor = const Color(0xFFF3F4F6);
 
   int get _totalItems => _itemCounts.values.fold(0, (a, b) => a + b);
