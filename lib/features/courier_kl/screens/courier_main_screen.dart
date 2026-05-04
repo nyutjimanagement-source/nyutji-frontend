@@ -988,12 +988,13 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
               bool isPickupTab = _tabController.index == 0;
               
               final filtered = activeOrders.where((o) {
-                final s = o['status']?.toString().toUpperCase() ?? '';
+                // Sesuai Tabel Database: menggunakan kolom 'status'
+                final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
                 if (isPickupTab) {
-                  // Pickup tasks are usually SEARCHING, WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
+                    // Pickup tasks are biasanya SEARCHING, WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
                   return s == 'SEARCHING' || s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
                 } else {
-                  // Delivery tasks are usually PACKING, DELIVERING
+                  // Delivery tasks are biasanya PACKING, DELIVERING
                   return s == 'PACKING' || s == 'DELIVERING';
                 }
               }).toList();
@@ -1035,13 +1036,18 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   }
 
   Widget _buildDenseTaskCard(dynamic task, Map<String, dynamic> currentT) {
-    final String orderId = task['id']?.toString() ?? '-';
-    final String customerName = task['customer_name']?.toString() ?? 'Pelanggan';
-    final String status = task['status']?.toString().toUpperCase() ?? 'UNKNOWN';
-    final double price = double.tryParse(task['total']?.toString() ?? '0') ?? 0.0;
-    final bool isFast = task['is_fast_track'] == true || task['service_type'] == 'SAME_DAY';
-    // Address extraction: current API might need to provide specific delivery/pickup address
-    final String address = task['customer_address'] ?? "Alamat Pelanggan"; 
+    // Sinkronisasi dengan Kolom Database Terbaru
+    final String orderId = (task['order_number'] ?? task['id'] ?? '-').toString();
+    final String customerName = task['customer']?['name']?.toString() ?? task['customer_name']?.toString() ?? 'Pelanggan';
+    final String status = (task['status'] ?? task['order_status'] ?? 'UNKNOWN').toString().toUpperCase();
+    
+    // KL HANYA BOLEH LIHAT DELIVERY FEE (Sesuai kolom 'delivery_fee' di database)
+    final double price = double.tryParse((task['delivery_fee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
+    
+    final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1;
+    
+    // Alamat (Mengambil dari relasi customer atau fallback ke kolom address)
+    final String address = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "Alamat Pelanggan"; 
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
