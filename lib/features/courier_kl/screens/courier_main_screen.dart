@@ -1132,7 +1132,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         ),
                         const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: () => _openMap(address),
+                          onTap: () => _openMap(endAddr),
                           child: Container(
                             width: 40,
                             height: 40,
