@@ -375,8 +375,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
   void _showOrderListModal(BuildContext context, OrderProvider orderProv) {
     final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
     allOrders.sort((a, b) {
-      double totalA = double.tryParse(a['total']?.toString() ?? '0') ?? 0.0;
-      double totalB = double.tryParse(b['total']?.toString() ?? '0') ?? 0.0;
+      double totalA = double.tryParse((a['grand_total'] ?? a['total_price'] ?? a['total'] ?? '0').toString()) ?? 0.0;
+      double totalB = double.tryParse((b['grand_total'] ?? b['total_price'] ?? b['total'] ?? '0').toString()) ?? 0.0;
       return totalB.compareTo(totalA); // Highest first
     });
 
@@ -452,11 +452,12 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final o = allOrders[index];
-                          final id = o['id']?.toString() ?? 'N/A';
-                          final total = double.tryParse(o['total']?.toString() ?? '0') ?? 0.0;
+                          // SMART MAPPING UNTUK ADMIN
+                          final id = o['order_number']?.toString() ?? o['identifier']?.toString() ?? o['id']?.toString() ?? 'N/A';
+                          final total = double.tryParse((o['grand_total'] ?? o['total_price'] ?? o['total'] ?? '0').toString()) ?? 0.0;
                           final mitraId = o['mitra_identifier']?.toString() ?? o['mitra_id']?.toString() ?? '-';
                           final customerId = o['customer_identifier']?.toString() ?? o['customer_id']?.toString() ?? '-';
-                          final status = o['status']?.toString() ?? 'Pending';
+                          final status = o['order_status']?.toString() ?? o['status']?.toString() ?? 'Pending';
 
                           // Tentukan warna status
                           Color statusColor = Colors.grey;
