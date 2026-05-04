@@ -56,10 +56,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     setState(() => _isLoadingMitras = true);
     try {
       final api = ApiService();
-      final targetDistrict = forcedDistrict ?? _selectedDistrict;
-      
-      // 1. FILTER BERDASARKAN KECAMATAN
-      final data = await api.getRecommendedMitras(districtName: targetDistrict); 
+      // MATIIN FILTER: Tampilkan semua Mitra APPROVED untuk saat ini
+      final data = await api.getRecommendedMitras(); 
       
       final List<dynamic> rawData = data;
       List<Map<String, dynamic>> mapped = rawData.map((m) {
