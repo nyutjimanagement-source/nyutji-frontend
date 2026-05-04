@@ -121,8 +121,22 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       }
     }
 
-    // SORTING: Terdekat nangkring paling depan
-    _mitras.sort((a, b) => a['distance'].compareTo(b['distance']));
+    // SORTING GENIUS: Prioritas Jarak, lalu Rating sebagai penentu jika jarak mirip
+    _mitras.sort((a, b) {
+      double distA = a['distance'];
+      double distB = b['distance'];
+      double rateA = a['rating'] ?? 0.0;
+      double rateB = b['rating'] ?? 0.0;
+
+      // Jika selisih jarak kurang dari 500 meter (0.5 km), prioritaskan Rating
+      if ((distA - distB).abs() < 0.5) {
+        return rateB.compareTo(rateA); // Rating tinggi di depan
+      }
+      
+      // Jika selisih jarak signifikan, prioritaskan Jarak terdekat
+      return distA.compareTo(distB);
+    });
+    
     setState(() {}); // Refresh UI
   }
 
