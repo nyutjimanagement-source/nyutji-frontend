@@ -146,12 +146,16 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Text(entry.key, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal)),
                             ),
-                            ...entry.value.map((m) => _buildHistoryRow(
-                                  m['description'] ?? m['title'] ?? 'Transaksi',
-                                  "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr(double.tryParse(m['amount'].toString()) ?? 0.0)}",
-                                  m['type'] == 'debit' ? Colors.red : Colors.green,
-                                  m['createdAt'] ?? m['date'] ?? '-',
-                                )),
+                            ...entry.value.map((m) {
+                                  final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
+                                  final isOut = amt < 0;
+                                  return _buildHistoryRow(
+                                    m['description'] ?? m['title'] ?? (m['transaction_type'] ?? 'Transaksi'),
+                                    "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}",
+                                    isOut ? Colors.red : Colors.green,
+                                    m['createdAt'] ?? m['date'] ?? '-',
+                                  );
+                                }),
                             const SizedBox(height: 8),
                           ],
                         )),
@@ -171,8 +175,8 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     double totalOut = 0;
     for (var m in wallet.mutasiList) {
       double amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-      if (m['type'] == 'debit') {
-        totalOut += amt;
+      if (amt < 0) {
+        totalOut += amt.abs();
       } else {
         totalIn += amt;
       }
