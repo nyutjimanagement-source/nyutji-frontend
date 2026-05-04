@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/simulasi_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'package:intl/intl.dart';
@@ -32,7 +31,9 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     for (var m in mutasi) {
       DateTime date = DateTime.tryParse(m['createdAt']?.toString() ?? '') ?? DateTime.now();
       String monthKey = DateFormat('MMMM yyyy', 'id_ID').format(date);
-      if (!grouped.containsKey(monthKey)) grouped[monthKey] = [];
+      if (!grouped.containsKey(monthKey)) {
+        grouped[monthKey] = [];
+      }
       grouped[monthKey]!.add(m);
     }
     return grouped;
@@ -153,7 +154,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                                 )),
                             const SizedBox(height: 8),
                           ],
-                        )).toList(),
+                        )),
                     ],
                   ),
                 );
@@ -170,8 +171,11 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     double totalOut = 0;
     for (var m in wallet.mutasiList) {
       double amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-      if (m['type'] == 'debit') totalOut += amt;
-      else totalIn += amt;
+      if (m['type'] == 'debit') {
+        totalOut += amt;
+      } else {
+        totalIn += amt;
+      }
     }
 
     return Container(
@@ -279,4 +283,5 @@ class MiniPiePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
+
 
