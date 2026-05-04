@@ -8,6 +8,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/utils/nyutji_distance.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class CustomerPaymentScreen extends StatefulWidget {
   final int totalPrice;
@@ -93,7 +94,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     final walletProv = Provider.of<WalletProvider>(context, listen: false);
     await walletProv.fetchWallet();
 
-    // 3. Ambil Biaya Kurir Dinamis (Logic AD: Sesi Waktu, Hari Libur, dll)
+    // 3. Ambil Biaya Kurir Dinamis
     try {
       String currentOrderType = widget.isPickup 
           ? 'pickup' 
@@ -107,16 +108,35 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         widget.lng,
         currentOrderType
       );
-      if (quote['status'] == 'success') {
+      
+      if (quote != null && quote['status'] == 'success') {
         setState(() {
           _dynamicCourierFee = (quote['data']['delivery_fee'] as num).toInt();
           _isLoadingPrice = false;
         });
+      } else {
+        // FALLBACK RUMUS GENIUS (Jarak x Rp/Km) - Jika API Gagal/Null
+        _applyFallbackPricing();
       }
     } catch (e) {
       debugPrint("Gagal sinkronisasi harga kurir: $e");
-      setState(() => _isLoadingPrice = false);
+      _applyFallbackPricing();
     }
+  }
+
+  void _applyFallbackPricing() {
+    // Rumus Wajar: Rp 5.000 (Base) + (Jarak x Rp 2.500/Km)
+    double baseFee = 5000;
+    double perKm = 2500;
+    double calculated = baseFee + (_calculatedDistance * perKm);
+    
+    // Faktor Fast Track (Tambah 5rb jika Same Day)
+    if (widget.speed == 'fast') calculated += 5000;
+
+    setState(() {
+      _dynamicCourierFee = calculated.toInt();
+      _isLoadingPrice = false;
+    });
   }
 
   final List<Map<String, String>> _vaBanks = [
@@ -174,12 +194,19 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       return;
     }
 
+    final walletProv = context.read<WalletProvider>();
     final auth = context.read<AuthProvider>();
     final orderProv = context.read<OrderProvider>();
 
-    // Validasi — pastikan metode pembayaran Dompet Nyutji
+    // 1. Validasi Saldo (INSTRUKSI JENDERAL)
+    if (walletProv.balance < grandTotal) {
+      NyutjiNotif.showError(context, "Saldo Anda Kurang, Lakukan Top Up");
+      return;
+    }
+
+    // 2. Validasi Metode Pembayaran
     if (_selectedPayment != "Dompet Nyutji") {
-      _showBeautifulNotif("Saat ini hanya Dompet Nyutji yang tersedia. Pilih Dompet Nyutji.", false);
+      NyutjiNotif.showWarning(context, "Saat ini hanya Dompet Nyutji yang tersedia.");
       return;
     }
 
@@ -287,10 +314,12 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     String speedLabel = widget.speed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)";
     
     String courierServiceName = "Self Drop-off (Gratis)";
+    bool isFast = widget.speed == 'fast';
+
     if (widget.isPickup) {
-      courierServiceName = "Same Day Pickup Kurir";
+      courierServiceName = isFast ? "Same Day Pickup Kurir" : "Regular Pickup Kurir";
     } else if (widget.dropMethod == 'courier') {
-      courierServiceName = "Drop Sendiri Antar Kurir";
+      courierServiceName = isFast ? "Same Day Delivery Kurir" : "Regular Delivery Kurir";
     }
 
     // Pangkas alamat panjang GPS — ambil hanya bagian pertama (nama jalan)
@@ -352,18 +381,20 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
           
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              children: widget.selectedItemsList.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("• ${item['name']}", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700])),
-                    Text("${item['count']} ${item['unit']}", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
-                  ],
+            child: widget.selectedItemsList.isEmpty 
+              ? Text("Item tidak terbaca, silakan kembali.", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.red))
+              : Column(
+                  children: widget.selectedItemsList.map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("• ${item['name'] ?? item['item_name'] ?? 'Item'}", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700])),
+                        Text("${item['count'] ?? item['qty'] ?? 0} ${item['unit'] ?? ''}", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+                      ],
+                    ),
+                  )).toList(),
                 ),
-              )).toList(),
-            ),
           ),
           
           _invoiceDetailRow("Subtotal Laundry", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(widget.totalPrice), isBold: true),
