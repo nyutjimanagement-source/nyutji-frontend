@@ -52,23 +52,27 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     _loadLiveMitras();
   }
 
-  Future<void> _loadLiveMitras() async {
+  Future<void> _loadLiveMitras({String? forcedDistrict}) async {
     setState(() => _isLoadingMitras = true);
     try {
       final api = ApiService();
-      // 1. FILTER BERDASARKAN KECAMATAN (Jika ada)
-      final data = await api.getRecommendedMitras(districtName: _selectedDistrict); 
+      final targetDistrict = forcedDistrict ?? _selectedDistrict;
+      
+      // 1. FILTER BERDASARKAN KECAMATAN
+      final data = await api.getRecommendedMitras(districtName: targetDistrict); 
       
       final List<dynamic> rawData = data;
       List<Map<String, dynamic>> mapped = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
+        // Ambil info User untuk district (Include dari backend)
+        final uInfo = item['User'] ?? {};
         return {
           'id': item['identifier'] ?? '-',
           'name': item['name'] ?? item['brand_name'] ?? item['full_name'] ?? item['mitra_name'] ?? 'Mitra Nyutji',
           'rating': (item['rating'] ?? 5.0).toDouble(),
           'distance': (item['distance'] ?? 0.1).toDouble(),
           'address': item['address'] ?? 'Alamat tidak tersedia',
-          'district': item['district'] ?? '',
+          'district': uInfo['district_name'] ?? uInfo['owner_district_name'] ?? item['district'] ?? '',
           'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
           'lat': NyutjiParser.toDouble(item['lat']),
           'lng': NyutjiParser.toDouble(item['lng']),
@@ -78,14 +82,18 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
       // 2. SORTING: JARAK TERDEKAT & RATING > 4 PRIORITAS
       mapped.sort((a, b) {
-        // Jika rating a > 4 dan b <= 4, a duluan (prioritas)
         if (a['rating'] > 4 && b['rating'] <= 4) return -1;
         if (a['rating'] <= 4 && b['rating'] > 4) return 1;
-        // Jika sama-sama > 4 atau sama-sama <= 4, urutkan berdasarkan JARAK
         return a['distance'].compareTo(b['distance']);
       });
 
-      setState(() => _mitras = mapped);
+      setState(() {
+        _mitras = mapped;
+        // Jika forced search berhasil menemukan mitra, tampilkan notif
+        if (forcedDistrict != null && _mitras.isNotEmpty && mounted) {
+           NyutjiNotif.showSuccess(context, "Berhasil menemukan ${_mitras.length} mitra di '$forcedDistrict'");
+        }
+      });
     } catch (e) {
       debugPrint("Nyutji Error Mapping: $e");
     } finally {
@@ -157,7 +165,13 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     if (query.isEmpty) return;
     Navigator.pop(context);
     
-    final found = _mitras.indexWhere((m) => m['name'].toString().toLowerCase().contains(query.toLowerCase()));
+    // SMART SEARCH: Cari berdasarkan Nama ATAU Kecamatan
+    final found = _mitras.indexWhere((m) {
+      final nameMatch = m['name'].toString().toLowerCase().contains(query.toLowerCase());
+      final districtMatch = m['district'].toString().toLowerCase().contains(query.toLowerCase());
+      return nameMatch || districtMatch;
+    });
+
     if (found != -1) {
       setState(() {
         _selectedMitra = _mitras[found];
@@ -165,7 +179,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       });
       if (mounted) NyutjiNotif.showSuccess(context, "Mitra '${_mitras[found]['name']}' dipilih!");
     } else {
-      if (mounted) NyutjiNotif.showError(context, "Mitra tidak ditemukan dalam rekomendasi wilayah ini.");
+      // Jika tidak ketemu di list lokal, coba panggil API untuk kecamatan tersebut secara paksa
+      _loadLiveMitras(forcedDistrict: query);
     }
   }
 
