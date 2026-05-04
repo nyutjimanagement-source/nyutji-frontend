@@ -1046,7 +1046,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
     
     // Alamat (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
-    final String address = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "Alamat Pelanggan"; 
+    final String address = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
     final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
     final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
 
