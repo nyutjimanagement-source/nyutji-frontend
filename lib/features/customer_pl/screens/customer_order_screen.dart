@@ -544,21 +544,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
-            GestureDetector(
-              onTap: () => _showSearchMitra(),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
-                child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
+        // 1. SETELAH SELESAI (Sekarang di paling atas)
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)]),
@@ -574,8 +560,50 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   Expanded(child: _returnOption("Diantar Kurir", "courier", LucideIcons.truck, _returnMethod == 'courier')),
                 ],
               ),
+              
+              // 2. EXPAND LOKASI PENGIRIMAN (Hanya jika Diantar Kurir)
+              if (_returnMethod == 'courier') ...[
+                const Divider(height: 32),
+                Row(
+                  children: [
+                    Icon(LucideIcons.mapPin, size: 16, color: primaryRed),
+                    const SizedBox(width: 8),
+                    Text("Lokasi Pengiriman", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    _pillButton("Ubah", () => _showPickupPicker()), // Menggunakan picker yang sama
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(_getSmartAddress(_pickupAddress), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(LucideIcons.messageSquare, size: 14, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_pickupNote.isEmpty ? "Catatan alamat pengiriman" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400]))),
+                    _pillButton("Catat", () => _showNoteDialog()),
+                  ],
+                ),
+              ],
             ],
           ),
+        ),
+        const SizedBox(height: 24),
+
+        // 3. REKOMENDASI MITRA (Sekarang di bawah)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+            GestureDetector(
+              onTap: () => _showSearchMitra(),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -1204,8 +1232,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   totalItems: _totalItems, 
                   address: addr, 
                   isPickup: widget.orderType == 'pickup',
-                  mitraId: _selectedMitra?['id'] ?? 0,
-                  mitraName: _selectedMitra?['name'] ?? 'Mitra Laundry',
+                  mitraId: _selectedMitra!['id'],
+                  mitraName: _selectedMitra!['name'],
+                  orderType: widget.orderType,
                   speed: _serviceSpeed,
                   distance: (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
                   dropMethod: _returnMethod,

@@ -17,9 +17,10 @@ class CustomerPaymentScreen extends StatefulWidget {
   final bool isPickup;
   final dynamic mitraId;
   final String mitraName;
+  final String orderType; // 'pickup' or 'drop'
   final String speed;
   final double distance;
-  final String dropMethod;
+  final String dropMethod; // 'courier' or 'self' (return method)
   final List<Map<String, dynamic>> selectedItemsList;
   final String districtName;
   final String districtCode;
@@ -40,6 +41,7 @@ class CustomerPaymentScreen extends StatefulWidget {
     required this.isPickup,
     required this.mitraId,
     required this.mitraName,
+    required this.orderType,
     required this.speed,
     required this.distance,
     required this.dropMethod,
@@ -192,23 +194,36 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   }
 
   Future<void> _handleConfirmOrder(int grandTotal) async {
-    // 1. Tampilkan Nota Estimasi terlebih dahulu
     _showEstimationInvoice(grandTotal);
   }
 
   void _showEstimationInvoice(int grandTotal) {
     final auth = context.read<AuthProvider>();
     final now = DateTime.now();
+
+    // JENIS NOTA & JUDUL
+    String notaTitle = "Nota Estimasi Transaksi";
+    String notaSubtitle = "Jemput & Antar Kurir";
+    
+    if (widget.orderType == 'drop') {
+      notaTitle = "Nota Transaksi";
+      if (widget.dropMethod == 'self') {
+        notaSubtitle = "Drop & Ambil Mandiri";
+      } else {
+        notaSubtitle = "Drop Mandiri & Antar Kurir";
+      }
+    }
+    
     // FORMAT JENDERAL: KODE_KECAMATAN-YYYYMMDD-counting
     final stringkatBtn = widget.districtCode.toUpperCase();
     final dateStr = DateFormat('yyyyMMdd').format(now);
     final counting = now.millisecondsSinceEpoch.toString().substring(9); // 4 digit terakhir timestamp
     final orderNo = "$stringkatBtn-$dateStr-$counting";
-
+    
     final finishDate = widget.speed == 'fast' 
         ? now.add(const Duration(days: 1)) 
         : now.add(const Duration(days: 3));
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -233,7 +248,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                     children: [
                       const Icon(LucideIcons.fileText, color: Colors.white, size: 30),
                       const SizedBox(height: 8),
-                      Text("Nota Estimasi Transaksi", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(notaTitle, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(notaSubtitle, style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -246,8 +262,21 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                   children: [
                     _notaRow("No Order", "$orderNo / ${widget.speed.toUpperCase()}"),
                     _notaRow("Nama PL", auth.user?['name'] ?? 'Pelanggan Nyutji'),
-                    _notaRow("Alamat PL", widget.address, isAddress: true),
-                    _notaRow("Mitra ML", widget.mitraName),
+                    
+                    // SMART SUMMARY LOGIC
+                    if (widget.orderType == 'pickup') ...[
+                      _notaRow("Alamat Pickup", widget.address, isAddress: true),
+                      _notaRow("Mitra ML", widget.mitraName),
+                      _notaRow("Pengantaran", "Kurir Antar ke Alamat PL"),
+                    ] else ...[
+                      _notaRow("Lokasi Laundry", widget.mitraName),
+                      _notaRow("Metode Antar", "Mandiri oleh Pelanggan"),
+                      if (widget.dropMethod == 'courier')
+                        _notaRow("Alamat Pengiriman", widget.address, isAddress: true)
+                      else
+                        _notaRow("Pengambilan", "Diambil Sendiri oleh Pelanggan"),
+                    ],
+
                     _notaRow("Tgl Pesan", DateFormat('dd MMM yyyy, HH:mm').format(now)),
                     _notaRow("Est. Selesai", DateFormat('dd MMM yyyy').format(finishDate)),
                     const Divider(height: 24),
