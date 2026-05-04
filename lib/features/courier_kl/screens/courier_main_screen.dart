@@ -1025,7 +1025,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: filtered.length,
                 itemBuilder: (context, index) {
-                  return _buildDenseTaskCard(filtered[index], currentT, isPickup: isPickupTab);
+                  return _buildDenseTaskCard(filtered[index], currentT);
                 },
               );
             },
@@ -1035,25 +1035,18 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     );
   }
 
-  Widget _buildDenseTaskCard(dynamic task, Map<String, dynamic> currentT, {bool isPickup = true}) {
+  Widget _buildDenseTaskCard(dynamic task, Map<String, dynamic> currentT) {
     // Sinkronisasi Super-Smart: Mendukung SnakeCase & CamelCase dari Database
     final String orderId = (task['order_number'] ?? task['orderNumber'] ?? task['identifier'] ?? task['id'] ?? '-').toString();
     final String customerName = task['customer']?['name']?.toString() ?? task['customer_name']?.toString() ?? 'Pelanggan';
     final String status = (task['status'] ?? task['order_status'] ?? 'UNKNOWN').toString().toUpperCase();
-    final String mitraName = (task['mitra']?['name'] ?? task['mitra_name'] ?? 'Mitra').toString();
     
     // KL HANYA BOLEH LIHAT DELIVERY FEE
     final double price = double.tryParse((task['delivery_fee'] ?? task['deliveryFee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
     final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
     
-    // Alamat Dinamis (Pickup vs Delivery)
-    final String customerAddr = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "-";
-    final String mitraAddr = task['mitra']?['address']?.toString() ?? task['mitra_address'] ?? "-";
-    
-    final String startAddr = isPickup ? customerAddr : mitraAddr;
-    final String endAddr = isPickup ? mitraAddr : customerAddr;
-    final String endName = isPickup ? mitraName : customerName;
-
+    // Alamat (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
+    final String address = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "Alamat Pelanggan"; 
     final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
     final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
 
@@ -1122,17 +1115,15 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Dari: $startAddr", style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text(address, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 2),
-                              Text("Ke: $endName ($endAddr)", style: GoogleFonts.montserrat(fontSize: 11, color: darkText, fontWeight: FontWeight.w800), maxLines: 1, overflow: TextOverflow.ellipsis),
-                              const SizedBox(height: 4),
                               Text("${distance.toStringAsFixed(1)} Km \u2022 $serviceType", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
                         const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: () => _openMap(endAddr),
+                          onTap: () => _openMap(address),
                           child: Container(
                             width: 40,
                             height: 40,
