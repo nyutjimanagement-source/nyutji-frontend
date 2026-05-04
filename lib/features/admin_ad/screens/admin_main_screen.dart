@@ -375,8 +375,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
   void _showOrderListModal(BuildContext context, OrderProvider orderProv) {
     final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
     allOrders.sort((a, b) {
-      double totalA = double.tryParse((a['grand_total'] ?? a['total_price'] ?? a['total'] ?? '0').toString()) ?? 0.0;
-      double totalB = double.tryParse((b['grand_total'] ?? b['total_price'] ?? b['total'] ?? '0').toString()) ?? 0.0;
+      double totalA = double.tryParse((a['total_price'] ?? '0').toString()) ?? 0.0;
+      double totalB = double.tryParse((b['total_price'] ?? '0').toString()) ?? 0.0;
       return totalB.compareTo(totalA); // Highest first
     });
 
@@ -452,11 +452,11 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final o = allOrders[index];
-                          // SMART MAPPING UNTUK ADMIN
-                          final id = o['order_number']?.toString() ?? o['identifier']?.toString() ?? o['id']?.toString() ?? 'N/A';
-                          final total = double.tryParse((o['grand_total'] ?? o['total_price'] ?? o['total'] ?? '0').toString()) ?? 0.0;
-                          final mitraId = o['mitra_identifier']?.toString() ?? o['mitra_id']?.toString() ?? '-';
-                          final customerId = o['customer_identifier']?.toString() ?? o['customer_id']?.toString() ?? '-';
+                          // STRICT MAPPING SESUAI INSTRUKSI JENDERAL
+                          final orderNo = o['order_number']?.toString() ?? '-';
+                          final customerId = o['customer_id']?.toString() ?? '-';
+                          final mitraId = o['mitra_id']?.toString() ?? '-';
+                          final totalPrice = double.tryParse(o['total_price']?.toString() ?? '0') ?? 0.0;
                           final status = o['order_status']?.toString() ?? o['status']?.toString() ?? 'Pending';
 
                           // Tentukan warna status
@@ -483,9 +483,9 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(id, style: GoogleFonts.montserrat(fontSize: 12, color: accentGold, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                                      Text(orderNo, style: GoogleFonts.montserrat(fontSize: 12, color: accentGold, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
                                       const SizedBox(height: 4),
-                                      Text(Formatters.currencyIdr(total), style: GoogleFonts.montserrat(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+                                      Text(Formatters.currencyIdr(totalPrice), style: GoogleFonts.montserrat(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
@@ -493,12 +493,19 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Row(
-                                      children: [
                                         Icon(LucideIcons.user, size: 10, color: Colors.grey[500]),
                                         const SizedBox(width: 4),
                                         Text("PL: $customerId", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
                                       ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        Icon(LucideIcons.store, size: 10, color: Colors.grey[500]),
+                                        const SizedBox(width: 4),
+                                        Text("ML: $mitraId", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600)),
+                                      ],
+                                    ),
                                     ),
                                     const SizedBox(height: 2),
                                     Row(
