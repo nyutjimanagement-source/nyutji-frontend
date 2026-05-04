@@ -62,15 +62,13 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       final List<dynamic> rawData = data;
       List<Map<String, dynamic>> mapped = rawData.map((m) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
-        // FIX MAPPING: Cek User atau user (case-insensitive)
-        final uInfo = item['User'] ?? item['user'] ?? {};
         return {
           'id': item['identifier'] ?? '-',
           'name': item['name'] ?? item['brand_name'] ?? item['full_name'] ?? item['mitra_name'] ?? 'Mitra Nyutji',
           'rating': (item['rating'] ?? 5.0).toDouble(),
           'distance': (item['distance'] ?? 0.1).toDouble(),
           'address': item['address'] ?? 'Alamat tidak tersedia',
-          'district': uInfo['district_name'] ?? uInfo['owner_district_name'] ?? item['district'] ?? '',
+          'district': item['district_name'] ?? item['owner_district_name'] ?? item['district'] ?? '-',
           'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
           'lat': NyutjiParser.toDouble(item['lat']),
           'lng': NyutjiParser.toDouble(item['lng']),
