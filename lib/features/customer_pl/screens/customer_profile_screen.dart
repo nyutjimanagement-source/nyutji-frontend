@@ -188,7 +188,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             ),
             const SizedBox(height: 12),
             _buildSettingsGroup([
-              _buildExpandableAddressRow(currentT, auth),
+              Consumer<AuthProvider>(
+                builder: (context, auth, _) => _buildExpandableAddressRow(currentT, auth),
+              ),
               _settingRow(LucideIcons.heart, currentT['favorit']),
             ]),
             const SizedBox(height: 12),
@@ -260,7 +262,6 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                         else
                           GestureDetector(
                             onTap: () async {
-                              // LOGIKA SAVE GENIUS
                               final success = await auth.updateLocation({
                                 'address': user?['address'],
                                 'address_detail': _addressDetailController.text,

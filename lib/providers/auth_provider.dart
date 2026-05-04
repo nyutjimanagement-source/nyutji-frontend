@@ -474,14 +474,18 @@ class AuthProvider with ChangeNotifier {
 
         final prefs = await SharedPreferences.getInstance();
         
+        // Simpan data user paling segar ke storage
+        await prefs.setString('user_data', jsonEncode(_user));
+
+        // Sinkronkan ke home_address key untuk persistence cepat
+        final key = _user!['identifier'] ?? _user!['email'];
+        await prefs.setString('home_address_$key', jsonEncode(_homeAddress));
+
         // Jika ada token baru (karena identifier berubah)
         if (res['new_token'] != null) {
           _token = res['new_token'];
           await prefs.setString('token', _token!);
         }
-
-        // Selalu simpan perubahan data user ke storage
-        await prefs.setString('user_data', jsonEncode(_user));
 
         notifyListeners();
         return true;
