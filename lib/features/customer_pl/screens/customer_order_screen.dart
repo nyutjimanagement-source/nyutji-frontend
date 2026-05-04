@@ -1188,6 +1188,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   dropMethod: _returnMethod,
                   selectedItemsList: selectedItems,
                   districtName: districtName,
+                  districtCode: districtCode,
                   cityName: cityName,
                   lat: _selectedLat ?? double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0,
                   lng: _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0,
