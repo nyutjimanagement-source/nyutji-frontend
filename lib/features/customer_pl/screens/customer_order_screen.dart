@@ -365,6 +365,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                         ),
                       ),
                     ],
+                  ),
                   const SizedBox(height: 4),
                 ],
               ),
