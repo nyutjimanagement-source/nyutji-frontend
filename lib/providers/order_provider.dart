@@ -101,18 +101,9 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final List<dynamic> orders = await _api.getAdminOrders();
-      // Bagi ke active dan history untuk dashboard admin
-      _activeOrders = orders.where((o) {
-        if (o is! Map) return false;
-        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-        return status != 'selesai' && status != 'completed' && status != 'done';
-      }).toList();
-      
-      _historyOrders = orders.where((o) {
-        if (o is! Map) return false;
-        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-        return status == 'selesai' || status == 'completed' || status == 'done';
-      }).toList();
+      // TANPA FILTER SESUAI INSTRUKSI JENDERAL: Tarik Semua order_number
+      _activeOrders = orders;
+      _historyOrders = []; // Kosongkan history agar tidak terjadi duplikasi saat penjumlahan
     } catch (e) {
       _errorMessage = 'Gagal memuat data admin pesanan';
       debugPrint("Nyutji Admin Data Error: $e");
