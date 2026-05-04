@@ -148,9 +148,13 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                             ),
                             ...entry.value.map((m) {
                                   final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-                                  final isOut = amt < 0;
+                                  final type = (m['transaction_type'] ?? '').toString().toUpperCase();
+                                  
+                                  // LOGIC MEWAH: Tentukan Keluar/Masuk berdasarkan Tipe Transaksi
+                                  final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
+                                  
                                   return _buildHistoryRow(
-                                    m['description'] ?? m['title'] ?? (m['transaction_type'] ?? 'Transaksi'),
+                                    m['description'] ?? m['title'] ?? type,
                                     "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}",
                                     isOut ? Colors.red : Colors.green,
                                     m['createdAt'] ?? m['date'] ?? '-',
@@ -175,7 +179,10 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     double totalOut = 0;
     for (var m in wallet.mutasiList) {
       double amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-      if (amt < 0) {
+      final type = (m['transaction_type'] ?? '').toString().toUpperCase();
+      final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
+      
+      if (isOut) {
         totalOut += amt.abs();
       } else {
         totalIn += amt;
