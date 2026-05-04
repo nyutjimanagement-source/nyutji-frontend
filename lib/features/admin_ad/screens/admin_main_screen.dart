@@ -375,8 +375,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
   void _showOrderListModal(BuildContext context, OrderProvider orderProv) {
     final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
     allOrders.sort((a, b) {
-      double totalA = double.tryParse((a['total_price'] ?? '0').toString()) ?? 0.0;
-      double totalB = double.tryParse((b['total_price'] ?? '0').toString()) ?? 0.0;
+      final priceA = (a['total_price'] ?? a['totalPrice'] ?? '0').toString();
+      final priceB = (b['total_price'] ?? b['totalPrice'] ?? '0').toString();
+      double totalA = double.tryParse(priceA) ?? 0.0;
+      double totalB = double.tryParse(priceB) ?? 0.0;
       return totalB.compareTo(totalA); // Highest first
     });
 
@@ -452,12 +454,12 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final o = allOrders[index];
-                          // STRICT MAPPING SESUAI INSTRUKSI JENDERAL
-                          final orderNo = o['order_number']?.toString() ?? '-';
-                          final customerId = o['customer_id']?.toString() ?? '-';
-                          final mitraId = o['mitra_id']?.toString() ?? '-';
-                          final totalPrice = double.tryParse(o['total_price']?.toString() ?? '0') ?? 0.0;
-                          final status = o['order_status']?.toString() ?? o['status']?.toString() ?? 'Pending';
+                          // SUPER-SMART MAPPING: Mendukung CamelCase & SnakeCase
+                          final orderNo = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
+                          final customerId = (o['customer_id'] ?? o['customerId'] ?? o['customer_identifier'] ?? '-').toString();
+                          final mitraId = (o['mitra_id'] ?? o['mitraId'] ?? o['mitra_identifier'] ?? '-').toString();
+                          final totalPrice = double.tryParse((o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
+                          final status = (o['order_status'] ?? o['status'] ?? 'Pending').toString();
 
                           // Tentukan warna status
                           Color statusColor = Colors.grey;
