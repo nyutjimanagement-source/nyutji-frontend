@@ -24,6 +24,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   bool _isAddressExpanded = false;
   bool _isEditingAddress = false;
   late TextEditingController _addressDetailController;
+  
+  // FIX FLICKER: Gunakan timestamp tetap yang hanya berubah saat upload
+  String _imageVersion = DateTime.now().millisecondsSinceEpoch.toString();
 
   @override
   void initState() {
@@ -57,6 +60,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 if (photo != null) {
                   final success = await auth.updateProfilePhoto(photo);
                   if (success && context.mounted) {
+                    setState(() => _imageVersion = DateTime.now().millisecondsSinceEpoch.toString());
                     NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
                 }
@@ -71,6 +75,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 if (image != null) {
                   final success = await auth.updateProfilePhoto(image);
                   if (success && context.mounted) {
+                    setState(() => _imageVersion = DateTime.now().millisecondsSinceEpoch.toString());
                     NyutjiNotif.showSuccess(context, "Foto Profile Berhasil Diganti");
                   }
                 }
@@ -131,29 +136,36 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       builder: (context) {
                         final photoUrl = auth.user?['profile_photo'];
                         final localPhoto = auth.temporaryLocalPhoto;
+                        
+                        // FIX URL & 404: Pastikan path lengkap dan versi stabil (anti-flicker)
+                        String? finalUrl;
+                        if (photoUrl != null && photoUrl.toString().isNotEmpty) {
+                          String path = photoUrl.toString();
+                          // Jika path tidak mengandung folder upload, tambahkan (untuk fix 404)
+                          if (!path.startsWith('http') && !path.contains('uploads/')) {
+                            path = "uploads/profiles/$path";
+                          }
+                          
+                          finalUrl = path.startsWith('http') 
+                            ? "$path?v=$_imageVersion"
+                            : "${ApiConstants.rootUrl}/$path?v=$_imageVersion";
+                        }
+
                         return CircleAvatar(
                           radius: 28, 
                           backgroundColor: Colors.amber[100], 
                           backgroundImage: kIsWeb 
                               ? (auth.temporaryWebBytes != null 
                                   ? MemoryImage(auth.temporaryWebBytes) as ImageProvider
-                                  : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                      ? NetworkImage(
-                                          photoUrl.toString().startsWith('http') 
-                                            ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                            : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                        )
+                                  : (finalUrl != null)
+                                      ? NetworkImage(finalUrl)
                                       : null)
                               : (localPhoto != null
                                   ? FileImage(File(localPhoto)) as ImageProvider
-                                  : (photoUrl != null && photoUrl.toString().isNotEmpty) 
-                                      ? NetworkImage(
-                                          photoUrl.toString().startsWith('http') 
-                                            ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                            : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                        ) 
+                                  : (finalUrl != null) 
+                                      ? NetworkImage(finalUrl) 
                                       : null),
-                          child: (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) 
+                          child: (localPhoto == null && auth.temporaryWebBytes == null && finalUrl == null) 
                               ? const Icon(LucideIcons.user, size: 28, color: Colors.amber) 
                               : null
                         );
@@ -199,12 +211,14 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   }
 
   Widget _buildExpandableAddressRow(Map<String, dynamic> currentT, AuthProvider auth) {
+    // FIX DISPLAY: Ambil data paling seger dari Provider
     final user = auth.user;
-    final addressDetail = user?['address_detail'] ?? '';
-    final district = user?['district_name'] ?? user?['owner_district_name'] ?? '-';
-    final city = user?['city_name'] ?? user?['owner_city_name'] ?? '-';
+    final addressDetail = user?['address_detail']?.toString() ?? '';
+    final district = user?['district_name']?.toString() ?? user?['owner_district_name']?.toString() ?? '-';
+    final city = user?['city_name']?.toString() ?? user?['owner_city_name']?.toString() ?? '-';
     
-    if (!_isEditingAddress) {
+    // Sinkronkan controller hanya jika TIDAK sedang mengetik
+    if (!_isEditingAddress && _addressDetailController.text != addressDetail) {
       _addressDetailController.text = addressDetail;
     }
 
