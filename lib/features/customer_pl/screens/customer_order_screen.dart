@@ -368,26 +368,33 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           _buildCompactAppbar(cT),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildAddressSection(cT, auth),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
-                      GestureDetector(
-                        onTap: () => _showSearchMitra(),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
-                          child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
+                  // JIKA DROP: Rekomendasi Paling Atas + Opsi Pengembalian
+                  if (widget.orderType == 'drop') ...[
+                    _buildEliteDropHeader(cT),
+                    const SizedBox(height: 24),
+                  ] else ...[
+                    // JIKA PICKUP: Alamat Penjemputan di Atas
+                    _buildAddressSection(cT, auth),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                        GestureDetector(
+                          onTap: () => _showSearchMitra(),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+                            child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 4),
                 ],
               ),
@@ -495,6 +502,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   }
 
   Widget _buildAddressSection(Map<String, dynamic> cT, AuthProvider auth) {
+    // HANYA UNTUK PICKUP — Mode Drop ditangani oleh _buildEliteDropHeader
+    if (widget.orderType == 'drop') return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)]),
@@ -505,7 +515,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             children: [
               Icon(_locationIcon, size: 16, color: primaryTeal),
               const SizedBox(width: 8),
-              Text(widget.orderType == 'pickup' ? cT['loc_pickup'] : cT['loc_drop'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+              Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
               const Spacer(),
               _pillButton("Ubah", () => _showPickupPicker()),
             ],
@@ -525,36 +535,49 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               _pillButton("Catat", () => _showNoteDialog()),
             ],
           ),
-          
-          // LOGIKA ANTAR SENDIRI: Pilihan Pengembalian (Hanya jika orderType == drop)
-          if (widget.orderType == 'drop') ...[
-            const Divider(height: 32),
-            Text("Setelah Selesai, Cucian:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _returnOption(
-                    "Diambil Sendiri", 
-                    "self", 
-                    LucideIcons.user,
-                    _returnMethod == 'self'
-                  )
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _returnOption(
-                    "Diantar Kurir", 
-                    "courier", 
-                    LucideIcons.truck,
-                    _returnMethod == 'courier'
-                  )
-                ),
-              ],
-            ),
-          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildEliteDropHeader(Map<String, dynamic> cT) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+            GestureDetector(
+              onTap: () => _showSearchMitra(),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Setelah Selesai, Cucian:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(child: _returnOption("Diambil Sendiri", "self", LucideIcons.user, _returnMethod == 'self')),
+                  const SizedBox(width: 12),
+                  Expanded(child: _returnOption("Diantar Kurir", "courier", LucideIcons.truck, _returnMethod == 'courier')),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
