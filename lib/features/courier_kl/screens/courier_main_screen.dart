@@ -1036,18 +1036,20 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   }
 
   Widget _buildDenseTaskCard(dynamic task, Map<String, dynamic> currentT) {
-    // Sinkronisasi dengan Kolom Database Terbaru
-    final String orderId = (task['order_number'] ?? task['id'] ?? '-').toString();
+    // Sinkronisasi Super-Smart: Mendukung SnakeCase & CamelCase dari Database
+    final String orderId = (task['order_number'] ?? task['orderNumber'] ?? task['identifier'] ?? task['id'] ?? '-').toString();
     final String customerName = task['customer']?['name']?.toString() ?? task['customer_name']?.toString() ?? 'Pelanggan';
     final String status = (task['status'] ?? task['order_status'] ?? 'UNKNOWN').toString().toUpperCase();
     
-    // KL HANYA BOLEH LIHAT DELIVERY FEE (Sesuai kolom 'delivery_fee' di database)
-    final double price = double.tryParse((task['delivery_fee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
+    // KL HANYA BOLEH LIHAT DELIVERY FEE
+    final double price = double.tryParse((task['delivery_fee'] ?? task['deliveryFee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
     
-    final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1;
+    final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
     
-    // Alamat (Mengambil dari relasi customer atau fallback ke kolom address)
+    // Alamat & Jarak
     final String address = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "Alamat Pelanggan"; 
+    final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
+    final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1076,7 +1078,13 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: textGrey)),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: textGrey)),
+                            Text(serviceType, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: primaryTeal.withValues(alpha: 0.7))),
+                          ],
+                        ),
                         if (isFast)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1104,7 +1112,16 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       children: [
                         Icon(LucideIcons.mapPin, size: 14, color: primaryTeal),
                         const SizedBox(width: 6),
-                        Expanded(child: Text(address, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(address, style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 2),
+                              Text("${distance.toStringAsFixed(1)} Km dari lokasi Anda", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _openMap(address),
