@@ -41,10 +41,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       appBar: _buildCompactAppbar(),
       body: Consumer<OrderProvider>(
         builder: (context, orderProv, _) {
-          // Gabungkan Aktif & Riwayat jika filter "Semua" agar data status DONE muncul
-          final List<dynamic> baseOrders = currentFilter == "Semua" 
-              ? [...orderProv.activeOrders, ...orderProv.historyOrders]
-              : orderProv.activeOrders;
+          // Gabungkan Aktif & Riwayat untuk filter Semua, Reguler, dan Same Day
+          // Hanya filter "Baru" yang murni dari pesanan aktif
+          final List<dynamic> baseOrders = (currentFilter == "Baru") 
+              ? orderProv.activeOrders 
+              : [...orderProv.activeOrders, ...orderProv.historyOrders];
           
           // Cek apakah ada order baru untuk DOT MERAH
           final bool hasNewOrders = orderProv.activeOrders.any((o) {
