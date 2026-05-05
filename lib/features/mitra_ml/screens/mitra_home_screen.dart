@@ -55,6 +55,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
       context.read<WalletProvider>().fetchWallet();
+      context.read<OrderProvider>().fetchOrders();
       auth.fetchCouriers();
       auth.fetchPendingApprovals();
 
@@ -399,15 +400,15 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]),
-        child: Consumer<WalletProvider>(
-          builder: (context, wallet, _) => Row(
+        child: Consumer2<WalletProvider, OrderProvider>(
+          builder: (context, wallet, orderProv, _) => Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildMetricItem("HARI INI", Formatters.currencyIdr(wallet.balance), LucideIcons.trendingUp, Colors.greenAccent),
               Container(width: 1, height: 35, color: Colors.white24),
-              _buildMetricItem("ANTREAN", "18", LucideIcons.layers, Colors.orangeAccent),
+              _buildMetricItem("ANTREAN", orderProv.activeOrders.length.toString(), LucideIcons.layers, Colors.orangeAccent),
               Container(width: 1, height: 35, color: Colors.white24),
-              _buildMetricItem("SELESAI", "45", LucideIcons.checkSquare, Colors.blueAccent),
+              _buildMetricItem("SELESAI", orderProv.historyOrders.length.toString(), LucideIcons.checkSquare, Colors.blueAccent),
               Container(width: 1, height: 35, color: Colors.white24),
               _buildMetricItem("KENDALA", "0", LucideIcons.alertTriangle, Colors.white70),
             ],
