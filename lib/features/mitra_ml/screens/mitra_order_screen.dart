@@ -60,8 +60,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
             final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase().replaceAll(' ', '_');
             
-            // DEBUG LOG: Cek data mentah untuk diagnosa filter
-            if (kDebugMode) print("Nyutji Filter Debug: $status | Type: $serviceType | Fast: $isFast");
+            // DEBUG LOG: Cek data mentah untuk diagnosa filter & Alamat
+            if (kDebugMode) print("Nyutji Filter Debug: $status | Type: $serviceType | Fast: $isFast | Addr: ${o['address']}");
 
             if (currentFilter == "Semua") return true;
             if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
