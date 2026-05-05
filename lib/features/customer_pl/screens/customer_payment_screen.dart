@@ -160,6 +160,39 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     {'name': 'Others', 'logo': ''},
   ];
 
+  void _showBeautifulNotif(String message, bool success) {
+    late OverlayEntry overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: success ? primaryTeal : primaryRed,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
+            ),
+            child: Row(
+              children: [
+                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context).insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) overlayEntry.remove();
+    });
+  }
+
   Future<void> _handleConfirmOrder(int grandTotal) async {
     _showEstimationInvoice(grandTotal);
   }
@@ -331,37 +364,41 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
     try {
       // Bangun payload item sesuai format backend
-      final items = widget.selectedItemsList.map((item) {
-        return {
-          'itemName': item['name'],
-          'qty': item['count'],
-          'pricePerUnit': item['price'],
-          'unit': item['unit'] ?? 'Pcs',
-          'category': item['category'] ?? 'Umum',
-        };
+      final items = widget.selectedItemsList.map((item) => {
+        'category': item['category'] ?? 'Umum',
+        'item_name': item['name'] ?? '',
+        'qty': item['count'] ?? 1,
+        'unit': item['unit'] ?? 'pcs',
+        'price_per_unit': item['price'] ?? 0,
+        'notes': '',
       }).toList();
 
       final isFastTrack = widget.speed == 'fast';
-      int deliveryFee = 0;
-      if (widget.isPickup) deliveryFee += _dynamicCourierFee;
-      if (widget.dropMethod == 'courier') deliveryFee += _dynamicCourierFee;
+      final deliveryFee = (widget.isPickup || widget.dropMethod == 'courier') ? _dynamicCourierFee : 0;
       final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
 
       final payload = {
         'address': widget.address,
-        'districtCode': widget.districtCode,
+        'districtName': widget.districtName,
+        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
         'items': items,
-        'pickupLat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
-        'pickupLng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
+        'lat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
+        'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
+        'is_fast_track': isFastTrack,
         'isFastTrack': isFastTrack,
-        'servicePrice': widget.totalPrice,
-        'deliveryFee': deliveryFee,
-        'totalPrice': grandTotal,
+        'service_type': isFastTrack ? 'SAME_DAY' : 'REGULER',
         'serviceType': isFastTrack ? 'SAME_DAY' : 'REGULER',
+        'service_price': widget.totalPrice,
+        'servicePrice': widget.totalPrice,
+        'delivery_fee': deliveryFee,
+        'deliveryFee': deliveryFee,
+        'delivery_type': deliveryType,
         'deliveryType': deliveryType,
-        'customerId': auth.user?['identifier'],
+        'customer_id': auth.user?['identifier'],
+        'mitra_id': widget.mitraId,
         'mitraId': widget.mitraId,
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
+        'pickup_note': widget.pickupNote,
         'pickupNote': widget.pickupNote,
       };
 
@@ -372,12 +409,10 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       if (success) {
         _showMerpatiSuccess();
       } else {
-        // Tambahkan print untuk melihat detail error di debug console
-        debugPrint("❌ [createOrder] Gagal: ${orderProv.errorMessage}");
-        NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.");
+        _showBeautifulNotif(orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.", false);
       }
     } catch (e) {
-      if (mounted) NyutjiNotif.showError(context, "Terjadi kesalahan: ${e.toString()}");
+      if (mounted) _showBeautifulNotif("Terjadi kesalahan: ${e.toString()}", false);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -431,9 +466,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int courierFee = 0;
-    if (widget.isPickup) courierFee += _dynamicCourierFee;
-    if (widget.dropMethod == 'courier') courierFee += _dynamicCourierFee;
+    bool needsCourier = widget.isPickup || widget.dropMethod == 'courier';
+    int courierFee = needsCourier ? _dynamicCourierFee : 0;
     int grandTotal = widget.totalPrice + courierFee;
     
     final walletProv = context.watch<WalletProvider>();
