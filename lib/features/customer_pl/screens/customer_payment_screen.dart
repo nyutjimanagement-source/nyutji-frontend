@@ -160,39 +160,6 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     {'name': 'Others', 'logo': ''},
   ];
 
-  void _showBeautifulNotif(String message, bool success) {
-    late OverlayEntry overlayEntry;
-    overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 10,
-        left: 20,
-        right: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: success ? primaryTeal : primaryRed,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
-            ),
-            child: Row(
-              children: [
-                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(context).insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) overlayEntry.remove();
-    });
-  }
-
   Future<void> _handleConfirmOrder(int grandTotal) async {
     _showEstimationInvoice(grandTotal);
   }
@@ -379,7 +346,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
       final payload = {
         'address': widget.address,
-        'district_code': widget.districtCode,
+        'districtCode': widget.districtCode,
         'items': items,
         'pickupLat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
         'pickupLng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),

@@ -78,7 +78,7 @@ class _BeautyPopupWidgetState extends State<_BeautyPopupWidget> with SingleTicke
     );
 
     _slideAnimation = Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.backOut));
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
         
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
