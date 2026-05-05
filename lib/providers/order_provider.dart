@@ -196,15 +196,21 @@ class OrderProvider extends ChangeNotifier {
       addNotif('ML'); // Notif buat Mitra ada order baru
       return true;
     } on DioException catch (e) {
-      final data = e.response?.data;
-      debugPrint('[createOrder] DioException: status=${e.response?.statusCode} data=$data');
-      final msg = data?['message']?.toString();
-      final detail = data?['error']?.toString();
-      if (msg != null && detail != null && msg != detail) {
-        _errorMessage = '$msg\n↳ $detail';
-      } else {
-        _errorMessage = msg ?? detail ?? 'Gagal menghubungi server (${e.response?.statusCode}).';
+      final responseData = e.response?.data;
+      debugPrint('[createOrder] DioException: status=${e.response?.statusCode} data=$responseData');
+      
+      String msg = responseData?['message']?.toString() ?? 'Gagal membuat pesanan';
+      
+      // Jika ada detail errors dari Sequelize (Array)
+      if (responseData?['errors'] is List) {
+        final List<dynamic> errors = responseData['errors'];
+        final List<String> details = errors.map((err) => "${err['path']}: ${err['message']}").toList();
+        msg = "$msg\n↳ ${details.join('\n↳ ')}";
+      } else if (responseData?['error'] != null) {
+        msg = "$msg\n↳ ${responseData['error']}";
       }
+
+      _errorMessage = msg;
       _isLoading = false;
       notifyListeners();
       return false;
