@@ -175,7 +175,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(price),
+              NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
               style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText),
             ),
           ),
@@ -236,7 +236,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(price),
+                      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
                       style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal),
                     ),
                   ],
