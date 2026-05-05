@@ -400,6 +400,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
       };
 
+      if (kDebugMode) print("Nyutji Payload: $payload");
       final success = await orderProv.createOrder(payload);
 
       if (!mounted) return;
