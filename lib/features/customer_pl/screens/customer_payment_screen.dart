@@ -379,26 +379,19 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
       final payload = {
         'address': widget.address,
-        'districtName': widget.districtName,
-        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
+        'district_code': widget.districtCode,
         'items': items,
-        'lat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
-        'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
-        'is_fast_track': isFastTrack,
+        'pickupLat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
+        'pickupLng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
         'isFastTrack': isFastTrack,
-        'service_type': isFastTrack ? 'SAME_DAY' : 'REGULER',
-        'serviceType': isFastTrack ? 'SAME_DAY' : 'REGULER',
-        'service_price': widget.totalPrice,
         'servicePrice': widget.totalPrice,
-        'delivery_fee': deliveryFee,
         'deliveryFee': deliveryFee,
-        'delivery_type': deliveryType,
+        'totalPrice': grandTotal,
+        'serviceType': isFastTrack ? 'SAME_DAY' : 'REGULER',
         'deliveryType': deliveryType,
-        'customer_id': auth.user?['identifier'],
-        'mitra_id': widget.mitraId,
+        'customerId': auth.user?['identifier'],
         'mitraId': widget.mitraId,
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
-        'pickup_note': widget.pickupNote,
         'pickupNote': widget.pickupNote,
       };
 
@@ -409,10 +402,10 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       if (success) {
         _showMerpatiSuccess();
       } else {
-        _showBeautifulNotif(orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.", false);
+        NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.");
       }
     } catch (e) {
-      if (mounted) _showBeautifulNotif("Terjadi kesalahan: ${e.toString()}", false);
+      if (mounted) NyutjiNotif.showError(context, "Terjadi kesalahan: ${e.toString()}");
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
