@@ -31,11 +31,15 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         builder: (context, orderProv, _) {
           final liveOrders = orderProv.activeOrders;
           
-          // Filter logic
+          // Filter logic: Mendukung skema database baru & lama
           final filtered = liveOrders.where((o) {
+            final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+            final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
+            final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
+
             if (currentFilter == "Semua") return true;
-            if (currentFilter == "Baru") return o['status'] == 'SEARCHING' || o['status'] == 'WAITING_DROPOFF';
-            if (currentFilter == "Same Day") return o['is_fast_track'] == true || o['serviceType'] == 'SAME_DAY';
+            if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
+            if (currentFilter == "Same Day") return isFast || serviceType == 'SAME_DAY' || serviceType == 'EXPRESS';
             return true;
           }).toList();
 
@@ -71,14 +75,17 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   }
 
   Widget _buildPremiumOrderCard(dynamic o) {
-    final status = o['status']?.toString() ?? 'UNKNOWN';
-    final price = double.tryParse(o['total']?.toString() ?? '0') ?? 0.0;
-    // Prioritaskan order_number agar konsisten dengan database baru
-    final orderId = (o['order_number'] ?? o['id'] ?? '-').toString();
-    final customerName = o['customer_name']?.toString() ?? 'Pelanggan';
-    final courierName = o['courier_name']?.toString() ?? 'Belum Ada';
-    final isFast = o['is_fast_track'] == true || o['service_type'] == 'SAME_DAY';
-    final createdAt = o['created_at'] != null ? DateTime.parse(o['created_at']) : DateTime.now();
+    // Sinkronisasi Database (SnakeCase & CamelCase Support)
+    final status = (o['status'] ?? o['order_status'] ?? 'UNKNOWN').toString();
+    final price = double.tryParse((o['total_price'] ?? o['totalPrice'] ?? o['total'] ?? '0').toString()) ?? 0.0;
+    final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
+    
+    // Support nested relationship objects
+    final customerName = o['customer']?['name']?.toString() ?? o['customer_name']?.toString() ?? 'Pelanggan';
+    final courierName = o['courier']?['name']?.toString() ?? o['courier_name']?.toString() ?? 'Belum Ada';
+    
+    final bool isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true || o['service_type'] == 'SAME_DAY';
+    final createdAt = o['created_at'] != null ? DateTime.parse(o['created_at'].toString()) : DateTime.now();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
