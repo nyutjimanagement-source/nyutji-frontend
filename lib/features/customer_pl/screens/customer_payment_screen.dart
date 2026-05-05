@@ -331,13 +331,14 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
     try {
       // Bangun payload item sesuai format backend
-      final items = widget.selectedItemsList.map((item) => {
-        'category': item['category'] ?? 'Umum',
-        'item_name': item['name'] ?? '',
-        'qty': item['count'] ?? 1,
-        'unit': item['unit'] ?? 'pcs',
-        'price_per_unit': item['price'] ?? 0,
-        'notes': '',
+      final items = widget.selectedItemsList.map((item) {
+        return {
+          'itemName': item['name'],
+          'qty': item['count'],
+          'pricePerUnit': item['price'],
+          'unit': item['unit'] ?? 'Pcs',
+          'category': item['category'],
+        };
       }).toList();
 
       final isFastTrack = widget.speed == 'fast';

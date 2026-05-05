@@ -170,7 +170,7 @@ class _BeautyPopupWidgetState extends State<_BeautyPopupWidget> with SingleTicke
                           Flexible(
                             child: Text(
                               widget.message,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.montserrat(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
