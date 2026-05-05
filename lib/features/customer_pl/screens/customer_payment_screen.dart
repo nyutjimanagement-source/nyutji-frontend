@@ -372,6 +372,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       if (success) {
         _showMerpatiSuccess();
       } else {
+        // Tambahkan print untuk melihat detail error di debug console
+        debugPrint("❌ [createOrder] Gagal: ${orderProv.errorMessage}");
         NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.");
       }
     } catch (e) {
