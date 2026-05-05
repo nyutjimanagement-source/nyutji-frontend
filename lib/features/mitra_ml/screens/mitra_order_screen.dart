@@ -147,8 +147,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () => setState(() {
-              if (isExpanded) _expandedIds.remove(orderId);
-              else _expandedIds.add(orderId);
+              if (isExpanded) {
+                _expandedIds.remove(orderId);
+              } else {
+                _expandedIds.add(orderId);
+              }
             }),
             child: isExpanded 
               ? _buildExpandedContent(o, orderId, status, price, customerName, courierName, isFast, createdAt)
