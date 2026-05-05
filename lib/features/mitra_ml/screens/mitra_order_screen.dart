@@ -57,12 +57,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           final filtered = baseOrders.where((o) {
             final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
             final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
-            final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
+            final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase().replaceAll(' ', '_');
 
             if (currentFilter == "Semua") return true;
             if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
-            if (currentFilter == "Same Day") return isFast || serviceType == 'SAME_DAY' || serviceType == 'EXPRESS';
-            if (currentFilter == "Reguler") return serviceType == 'REGULER' || serviceType == 'BIASA';
+            if (currentFilter == "Same Day") return isFast || serviceType.contains('SAME') || serviceType.contains('EXPRESS') || serviceType.contains('FAST');
+            if (currentFilter == "Reguler") return serviceType.contains('REGULER') || serviceType.contains('BIASA');
             return true;
           }).toList();
 
