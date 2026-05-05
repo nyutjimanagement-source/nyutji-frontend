@@ -116,7 +116,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       
       if (quote['status'] == 'success') {
         setState(() {
-          _dynamicCourierFee = (quote['data']['delivery_fee'] as num).toInt();
+          _dynamicCourierFee = (quote['data']?['delivery_fee'] as num? ?? 0).toInt();
           _isLoadingPrice = false;
         });
       } else {
