@@ -342,7 +342,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       }).toList();
 
       final isFastTrack = widget.speed == 'fast';
-      final deliveryFee = (widget.isPickup || widget.dropMethod == 'courier') ? _dynamicCourierFee : 0;
+      int deliveryFee = 0;
+      if (widget.isPickup) deliveryFee += _dynamicCourierFee;
+      if (widget.dropMethod == 'courier') deliveryFee += _dynamicCourierFee;
       final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
 
       final payload = {
@@ -427,8 +429,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool needsCourier = widget.isPickup || widget.dropMethod == 'courier';
-    int courierFee = needsCourier ? _dynamicCourierFee : 0;
+    int courierFee = 0;
+    if (widget.isPickup) courierFee += _dynamicCourierFee;
+    if (widget.dropMethod == 'courier') courierFee += _dynamicCourierFee;
     int grandTotal = widget.totalPrice + courierFee;
     
     final walletProv = context.watch<WalletProvider>();
