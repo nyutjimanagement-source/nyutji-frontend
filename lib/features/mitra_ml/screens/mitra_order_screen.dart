@@ -43,10 +43,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         color: primaryTeal,
         child: Consumer<OrderProvider>(
           builder: (context, orderProv, _) {
-            final liveOrders = orderProv.activeOrders;
+            // Gabungkan Aktif & Riwayat jika filter "Semua" agar data status DONE muncul
+            final List<dynamic> baseOrders = currentFilter == "Semua" 
+                ? [...orderProv.activeOrders, ...orderProv.historyOrders]
+                : orderProv.activeOrders;
             
             // Filter logic: Mendukung skema database baru & lama
-            final filtered = liveOrders.where((o) {
+            final filtered = baseOrders.where((o) {
               final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
               final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
               final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
