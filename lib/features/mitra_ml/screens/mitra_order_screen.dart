@@ -38,49 +38,58 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: _buildCompactAppbar(),
-      body: Consumer<OrderProvider>(
-        builder: (context, orderProv, _) {
-          final liveOrders = orderProv.activeOrders;
-          
-          // Filter logic: Mendukung skema database baru & lama
-          final filtered = liveOrders.where((o) {
-            final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
-            final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
-            final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
+      body: RefreshIndicator(
+        onRefresh: () => orderProv.fetchOrders(),
+        color: primaryTeal,
+        child: Consumer<OrderProvider>(
+          builder: (context, orderProv, _) {
+            final liveOrders = orderProv.activeOrders;
+            
+            // Filter logic: Mendukung skema database baru & lama
+            final filtered = liveOrders.where((o) {
+              final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+              final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
+              final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
 
-            if (currentFilter == "Semua") return true;
-            if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
-            if (currentFilter == "Same Day") return isFast || serviceType == 'SAME_DAY' || serviceType == 'EXPRESS';
-            return true;
-          }).toList();
+              if (currentFilter == "Semua") return true;
+              if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
+              if (currentFilter == "Same Day") return isFast || serviceType == 'SAME_DAY' || serviceType == 'EXPRESS';
+              return true;
+            }).toList();
 
-          if (orderProv.isLoading && filtered.isEmpty) {
-            return const Center(child: CircularProgressIndicator(color: primaryTeal));
-          }
+            if (orderProv.isLoading && filtered.isEmpty) {
+              return const Center(child: CircularProgressIndicator(color: primaryTeal));
+            }
 
-          if (filtered.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            if (filtered.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  Icon(LucideIcons.clipboardList, size: 48, color: Colors.grey[300]),
-                  const SizedBox(height: 16),
-                  Text("Tidak ada pesanan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600)),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.clipboardList, size: 48, color: Colors.grey[300]),
+                        const SizedBox(height: 16),
+                        Text("Tidak ada pesanan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        Text("Tarik ke bawah untuk memuat ulang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-            );
-          }
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () => orderProv.fetchOrders(),
-            child: ListView.builder(
+            return ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
               itemCount: filtered.length,
-              physics: const BouncingScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               itemBuilder: (context, idx) => _buildPremiumOrderCard(filtered[idx]),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -88,7 +97,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   Widget _buildPremiumOrderCard(dynamic o) {
     // Sinkronisasi Database (SnakeCase & CamelCase Support)
     final status = (o['status'] ?? o['order_status'] ?? 'UNKNOWN').toString();
-    final price = double.tryParse((o['total_price'] ?? o['totalPrice'] ?? o['total'] ?? '0').toString()) ?? 0.0;
+    final price = double.tryParse((o['total_price'] ?? o['totalPrice'] ?? o['grand_total'] ?? o['total'] ?? '0').toString()) ?? 0.0;
     final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
     
     // Support nested relationship objects
@@ -397,10 +406,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       backgroundColor: Colors.white, elevation: 0,
       automaticallyImplyLeading: false,
       title: Text("Manajemen Pesanan", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)),
-      actions: [
-        IconButton(onPressed: () => context.read<OrderProvider>().fetchOrders(), icon: const Icon(LucideIcons.refreshCw, size: 18, color: primaryTeal)),
-        const SizedBox(width: 8),
-      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(50),
         child: Container(
