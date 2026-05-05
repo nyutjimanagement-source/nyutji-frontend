@@ -420,9 +420,10 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
 
   Widget _buildMetricItem(String label, String value, IconData icon, Color color) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 10, color: color),
             const SizedBox(width: 4),
