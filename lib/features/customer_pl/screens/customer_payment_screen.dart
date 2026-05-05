@@ -337,7 +337,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
           'qty': item['count'],
           'pricePerUnit': item['price'],
           'unit': item['unit'] ?? 'Pcs',
-          'category': item['category'],
+          'category': item['category'] ?? 'Umum',
         };
       }).toList();
 
