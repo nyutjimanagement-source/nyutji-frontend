@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
@@ -58,6 +59,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
             final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
             final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase().replaceAll(' ', '_');
+            
+            // DEBUG LOG: Cek data mentah untuk diagnosa filter
+            if (kDebugMode) print("Nyutji Filter Debug: $status | Type: $serviceType | Fast: $isFast");
 
             if (currentFilter == "Semua") return true;
             if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
