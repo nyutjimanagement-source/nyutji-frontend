@@ -355,7 +355,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         }
         
         final latestOrder = orderProv.activeOrders.first;
-        String statusMsg = "Pesanan ${latestOrder['id']} : ${latestOrder['status']}";
+        String statusMsg = (latestOrder['status'] ?? latestOrder['order_status'] ?? 'PROSES').toString().toUpperCase();
         
         return GestureDetector(
           onTap: () {
