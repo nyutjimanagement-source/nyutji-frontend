@@ -21,6 +21,17 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   static const Color textGrey = Color(0xFF6B7280);
   
   String currentFilter = "Semua";
+  
+  @override
+  void initState() {
+    super.initState();
+    // Tarik data otomatis saat layar dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<OrderProvider>().fetchOrders();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +96,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final courierName = o['courier']?['name']?.toString() ?? o['courier_name']?.toString() ?? 'Belum Ada';
     
     final bool isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true || o['service_type'] == 'SAME_DAY';
-    final createdAt = o['created_at'] != null ? DateTime.parse(o['created_at'].toString()) : DateTime.now();
+    
+    DateTime createdAt;
+    try {
+      createdAt = o['created_at'] != null ? DateTime.parse(o['created_at'].toString()) : DateTime.now();
+    } catch (e) {
+      createdAt = DateTime.now();
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
