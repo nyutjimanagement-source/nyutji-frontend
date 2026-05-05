@@ -385,7 +385,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("LACAK PROGRES LIVE", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.blue[700], letterSpacing: 0.5)),
-                      Text(statusMsg, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.blue[900]), overflow: TextOverflow.ellipsis),
+                      Text("Pesanan Kamu : $statusMsg", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.blue[900]), overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
