@@ -39,7 +39,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       backgroundColor: bgColor,
       appBar: _buildCompactAppbar(),
       body: RefreshIndicator(
-        onRefresh: () => orderProv.fetchOrders(),
+        onRefresh: () => context.read<OrderProvider>().fetchOrders(),
         color: primaryTeal,
         child: Consumer<OrderProvider>(
           builder: (context, orderProv, _) {
