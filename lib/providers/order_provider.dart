@@ -68,6 +68,9 @@ class OrderProvider extends ChangeNotifier {
 
     try {
       final List<dynamic> orders = await _api.getOrders();
+      debugPrint("Nyutji API Data: Diterima ${orders.length} pesanan");
+      if (orders.isNotEmpty) debugPrint("Nyutji API Sample: ${orders.first}");
+
       // SMART FILTER: Mendukung berbagai nama kolom dan case-insensitive
       _activeOrders = orders.where((o) {
         if (o is! Map) return false;
@@ -80,6 +83,8 @@ class OrderProvider extends ChangeNotifier {
         final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
         return status == 'selesai' || status == 'completed' || status == 'done';
       }).toList();
+      
+      debugPrint("Nyutji State: ${_activeOrders.length} aktif, ${_historyOrders.length} riwayat");
     } catch (e) {
       _errorMessage = 'Gagal memuat data pesanan';
       debugPrint("Nyutji Data Error: $e");
