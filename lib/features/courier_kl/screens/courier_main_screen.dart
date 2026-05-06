@@ -1070,9 +1070,18 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
     
     // Alamat & Pickup Note (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
-    final String addressRaw = task['address']?.toString() ?? task['customer']?['address']?.toString() ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
+    String addressRaw = task['address']?.toString() ?? task['customer']?['address']?.toString() ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
+    if (addressRaw != "-" && addressRaw.isNotEmpty && addressRaw != "Alamat Pelanggan") {
+      final parts = addressRaw.split(',');
+      if (parts.length > 2) {
+        addressRaw = "${parts[0].trim()}, ${parts[1].trim()}, ${parts[2].trim()}";
+      } else if (parts.length > 1) {
+        addressRaw = "${parts[0].trim()}, ${parts[1].trim()}";
+      }
+    }
+    
     final String pickupNote = task['pickup_note']?.toString() ?? task['pickupNote']?.toString() ?? "";
-    final String address = pickupNote.isNotEmpty ? "$addressRaw - Catatan: $pickupNote" : addressRaw;
+    final String address = pickupNote.isNotEmpty ? "$addressRaw\nCatatan: $pickupNote" : addressRaw;
     final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
     final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
 
@@ -1136,13 +1145,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                () {
-                                  if (address == "-" || address.isEmpty || address == "Alamat Pelanggan") return address;
-                                  final parts = address.split(',');
-                                  if (parts.length > 2) return "${parts[0].trim()}, ${parts[1].trim()}, ${parts[2].trim()}";
-                                  if (parts.length > 1) return "${parts[0].trim()}, ${parts[1].trim()}";
-                                  return address;
-                                }(),
+                                address,
                                 style: GoogleFonts.montserrat(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w700),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
