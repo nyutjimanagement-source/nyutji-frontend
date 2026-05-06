@@ -379,6 +379,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
       final payload = {
         'address': widget.address,
+        'pickupNote': widget.pickupNote,
         'districtName': widget.districtName,
         'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
         'items': items,
@@ -559,12 +560,21 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             ),
             child: Column(
               children: [
-                _locationRow(LucideIcons.mapPin, "Lokasi Penjemputan", pickupLabel),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Divider(height: 1, color: Color(0xFFDDEEEE)),
-                ),
-                _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
+                if (!widget.isPickup && widget.dropMethod == 'courier') ...[
+                  _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1, color: Color(0xFFDDEEEE)),
+                  ),
+                  _locationRow(LucideIcons.mapPin, "Lokasi Pengantaran", pickupLabel),
+                ] else ...[
+                  _locationRow(LucideIcons.mapPin, "Lokasi Penjemputan", pickupLabel),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1, color: Color(0xFFDDEEEE)),
+                  ),
+                  _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
+                ],
               ],
             ),
           ),
