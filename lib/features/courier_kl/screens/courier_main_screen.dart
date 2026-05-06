@@ -729,8 +729,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       // KL HANYA BOLEH LIHAT DELIVERY FEE (Sesuai instruksi Jenderal)
                       final price = double.tryParse((order['delivery_fee'] ?? order['deliveryFee'] ?? '0').toString()) ?? 0.0;
                       
-                      // Alamat Jemput (Prioritas: customer address)
-                      final pickup = order['customer']?['address']?.toString() ?? order['address']?.toString() ?? '-';
+                      // Alamat Jemput (Prioritas: address dari database)
+                      final pickup = order['address']?.toString() ?? order['customer']?['address']?.toString() ?? '-';
                       
                       final mitraName = (order['mitra']?['name'] ?? order['mitra_name'] ?? 'Mitra').toString();
                       final mitraAddr = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
@@ -862,6 +862,16 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
 
 
   Widget _buildDenseTaskSection(Map<String, dynamic> currentT) {
+    final activeOrders = context.watch<OrderProvider>().activeOrders;
+    final pickupCount = activeOrders.where((o) {
+      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      return s == 'SEARCHING' || s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
+    }).length;
+    final deliveryCount = activeOrders.where((o) {
+      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      return s == 'PACKING' || s == 'DELIVERING';
+    }).length;
+
     return Container(
       key: _taskSectionKey,
       child: Column(
@@ -932,6 +942,12 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                   color: _tabController.index == 0 ? primaryTeal : textGrey,
                                 ),
                               ),
+                              if (pickupCount > 0)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 4, bottom: 8),
+                                  width: 6, height: 6,
+                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                ),
                             ],
                           ),
                         ),
@@ -969,6 +985,12 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                   color: _tabController.index == 1 ? primaryTeal : textGrey,
                                 ),
                               ),
+                              if (deliveryCount > 0)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 4, bottom: 8),
+                                  width: 6, height: 6,
+                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                ),
                             ],
                           ),
                         ),
@@ -1046,7 +1068,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
     
     // Alamat (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
-    final String address = task['customer']?['address']?.toString() ?? task['customer_address'] ?? task['address'] ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
+    final String address = task['address']?.toString() ?? task['customer']?['address']?.toString() ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
     final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
     final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
 
