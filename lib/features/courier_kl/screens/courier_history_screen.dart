@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/wallet_provider.dart';
+import '../../../providers/order_provider.dart';
+import 'package:intl/intl.dart';
 
 class CourierHistoryScreen extends StatefulWidget {
   const CourierHistoryScreen({super.key});
@@ -20,6 +23,9 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+    final walletProv = Provider.of<WalletProvider>(context);
+    final orderProv = Provider.of<OrderProvider>(context);
+    final historyOrders = orderProv.historyOrders;
     
     final Map<String, dynamic> t = {
       'id': {
@@ -60,15 +66,15 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHistorySummaryCard(currentT),
+                _buildHistorySummaryCard(currentT, walletProv.balance, historyOrders.length),
                 const SizedBox(height: 16),
                 _buildWeeklyProgressCard(currentT),
                 const SizedBox(height: 24),
                 _buildHistoryActionButtons(currentT),
                 const SizedBox(height: 24),
-                _buildTodaySummaryCard(currentT),
+                _buildTodaySummaryCard(currentT, historyOrders),
                 const SizedBox(height: 24),
-                _buildRecentTasksSection(currentT),
+                _buildRecentTasksSection(currentT, historyOrders),
                 const SizedBox(height: 40),
               ],
             ),
@@ -78,7 +84,7 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
     );
   }
 
-  Widget _buildHistorySummaryCard(Map<String, dynamic> currentT) {
+  Widget _buildHistorySummaryCard(Map<String, dynamic> currentT, double balance, int totalOrders) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -93,15 +99,15 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(currentT['income'], style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
-              Text("Rp 8.200.000", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+              Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(balance), style: GoogleFonts.montserrat(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
             ],
           ),
           Container(width: 1, height: 24, color: Colors.white24),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(currentT['rating'], style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
-              Text("4.9 / 5.0", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+              Text(currentT['orders'], style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+              Text("$totalOrders", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
             ],
           ),
         ],
@@ -139,7 +145,20 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
     );
   }
 
-  Widget _buildTodaySummaryCard(Map<String, dynamic> currentT) {
+  Widget _buildTodaySummaryCard(Map<String, dynamic> currentT, List<dynamic> history) {
+    final today = DateTime.now();
+    final todayOrders = history.where((o) {
+      if (o['updatedAt'] == null && o['updated_at'] == null) return false;
+      final dt = DateTime.tryParse(o['updatedAt']?.toString() ?? o['updated_at']?.toString() ?? '');
+      if (dt == null) return false;
+      final localDt = dt.toLocal();
+      return localDt.year == today.year && localDt.month == today.month && localDt.day == today.day;
+    }).toList();
+
+    int reguler = todayOrders.where((o) => (o['serviceType'] ?? o['service_type']) == 'REGULER').length;
+    int sameDay = todayOrders.where((o) => (o['serviceType'] ?? o['service_type']) == 'SAME_DAY').length;
+    int total = todayOrders.length;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -155,9 +174,9 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _todayStatItem("12", "Regular", Colors.blue),
-              _todayStatItem("5", "Flash", const Color(0xFFC3312E)),
-              _todayStatItem("3", "VIP", Colors.amber),
+              _todayStatItem("$reguler", "Reguler", Colors.blue),
+              _todayStatItem("$sameDay", "Same Day", const Color(0xFFC3312E)),
+              _todayStatItem("$total", "Total", Colors.amber),
             ],
           ),
         ],
@@ -199,7 +218,7 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
     );
   }
 
-  Widget _buildRecentTasksSection(Map<String, dynamic> currentT) {
+  Widget _buildRecentTasksSection(Map<String, dynamic> currentT, List<dynamic> history) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -211,21 +230,36 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        ListView.builder(
-          padding: EdgeInsets.zero,
-          itemCount: 8,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            return _buildHistoryCard(index, index % 2 == 0 ? 'pickup' : 'delivery', currentT);
-          },
-        ),
+        if (history.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: Center(
+              child: Text("Belum ada riwayat tugas", style: GoogleFonts.montserrat(color: textGrey, fontWeight: FontWeight.w600)),
+            ),
+          )
+        else
+          ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: history.length > 10 ? 10 : history.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              return _buildHistoryCard(history[index], currentT);
+            },
+          ),
       ],
     );
   }
 
-  Widget _buildHistoryCard(int index, String type, Map<String, dynamic> currentT) {
-    bool isPickup = type == 'pickup';
+  Widget _buildHistoryCard(dynamic order, Map<String, dynamic> currentT) {
+    final bool isPickup = (order['deliveryType'] ?? order['delivery_type']) == 'PICKUP';
+    final String orderId = (order['orderNumber'] ?? order['order_number'] ?? '-').toString();
+    final String customerName = (order['customer']?['name'] ?? order['customer_name'] ?? 'Pelanggan').toString();
+    final double price = double.tryParse((order['deliveryFee'] ?? order['delivery_fee'] ?? '0').toString()) ?? 0.0;
+    
+    DateTime? dt = DateTime.tryParse(order['updatedAt']?.toString() ?? order['updated_at']?.toString() ?? '');
+    String dateStr = dt != null ? DateFormat('dd MMM yyyy • HH:mm', 'id_ID').format(dt.toLocal()) : '-';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -257,22 +291,22 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(color: const Color(0xFFFF8C42).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                   child: Text(
-                    "${index % 3 == 0 ? 'KBY' : index % 3 == 1 ? 'PLM' : 'JKT'}-09042026-00${index + 1}", 
+                    orderId, 
                     style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFFD35400))
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "Customer Name ${index + 1}",
+                  customerName,
                   style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 15, color: textDark),
                 ),
                 Text(
-                  "09 April 2026 • 08:30",
+                  dateStr,
                   style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "Rp 25.000",
+                  NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
                   style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 13, color: const Color(0xFFD35400)),
                 ),
               ],
