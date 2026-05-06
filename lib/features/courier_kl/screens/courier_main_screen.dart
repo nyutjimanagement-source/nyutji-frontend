@@ -729,8 +729,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                       // KL HANYA BOLEH LIHAT DELIVERY FEE (Sesuai instruksi Jenderal)
                       final price = double.tryParse((order['delivery_fee'] ?? order['deliveryFee'] ?? '0').toString()) ?? 0.0;
                       
-                      // Alamat Jemput (Prioritas: address dari database)
-                      final pickup = order['address']?.toString() ?? order['customer']?['address']?.toString() ?? '-';
+                      // Alamat Jemput (Prioritas: address dari database + pickup note)
+                      final pickupRaw = order['address']?.toString() ?? order['customer']?['address']?.toString() ?? '-';
+                      final note = order['pickup_note']?.toString() ?? order['pickupNote']?.toString() ?? '';
+                      final pickup = note.isNotEmpty ? "$pickupRaw - Catatan: $note" : pickupRaw;
                       
                       final mitraName = (order['mitra']?['name'] ?? order['mitra_name'] ?? 'Mitra').toString();
                       final mitraAddr = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
@@ -1067,8 +1069,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     final double price = double.tryParse((task['delivery_fee'] ?? task['deliveryFee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
     final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
     
-    // Alamat (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
-    final String address = task['address']?.toString() ?? task['customer']?['address']?.toString() ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
+    // Alamat & Pickup Note (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
+    final String addressRaw = task['address']?.toString() ?? task['customer']?['address']?.toString() ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
+    final String pickupNote = task['pickup_note']?.toString() ?? task['pickupNote']?.toString() ?? "";
+    final String address = pickupNote.isNotEmpty ? "$addressRaw - Catatan: $pickupNote" : addressRaw;
     final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
     final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
 
