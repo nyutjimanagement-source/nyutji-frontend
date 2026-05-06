@@ -43,6 +43,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   Map<String, dynamic>? _selectedMitra;
   List<Map<String, dynamic>> _mitras = [];
   bool _isLoadingMitras = true;
+  bool _isConnectionError = false;
 
   int _kiloanPage = 0;
   int _satuanPage = 0;
@@ -53,14 +54,17 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     _loadLiveMitras();
   }
 
-  Future<void> _loadLiveMitras({String? forcedDistrict}) async {
-    setState(() => _isLoadingMitras = true);
+  Future<void> _loadLiveMitras({String? forcedCity}) async {
+    setState(() {
+      _isLoadingMitras = true;
+      _isConnectionError = false;
+    });
     try {
       final api = ApiService();
-      final targetDistrict = forcedDistrict ?? _selectedDistrict;
+      final targetCity = forcedCity ?? _selectedCity;
       
-      // 1. Ambil data dari server (MODE PROFESSIONAL: Dengan Filter Kecamatan)
-      final data = await api.getRecommendedMitras(districtName: targetDistrict); 
+      // 1. Ambil data dari server (MODE PROFESSIONAL: Filter berdasarkan Kota/Kabupaten PL)
+      final data = await api.getRecommendedMitras(cityName: targetCity); 
       
       final List<dynamic> rawData = data;
       
@@ -75,9 +79,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           'address': item['address'] ?? '-',
           'district': item['district_name'] ?? item['owner_district_name'] ?? item['district'] ?? '-',
           'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
-          'lat': NyutjiParser.toDouble(item['lat']),
           'lng': NyutjiParser.toDouble(item['lng']),
           'items': item['items'] ?? [],
+          'items_loaded': false,
         };
       }).toList();
 
@@ -92,8 +96,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoadingMitras = false);
-        NyutjiNotif.showError(context, "Gagal memuat Mitra: $e");
+        setState(() {
+          _isLoadingMitras = false;
+          _isConnectionError = true;
+        });
+        NyutjiNotif.showError(context, "Koneksi terkendala. Cek internet Anda.");
       }
       debugPrint("Nyutji Error: $e");
     } finally {
@@ -213,31 +220,43 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       });
       if (mounted) NyutjiNotif.showSuccess(context, "Mitra '${_mitras[found]['name']}' dipilih!");
     } else {
-      // Jika tidak ketemu di list lokal, coba panggil API untuk kecamatan tersebut secara paksa
-      _loadLiveMitras(forcedDistrict: query);
+      // Jika tidak ketemu di list lokal, coba panggil API untuk kota tersebut secara paksa
+      _loadLiveMitras(forcedCity: query);
     }
   }
 
   Future<void> _fetchMitraItems(dynamic mitraId) async {
     try {
       final api = ApiService();
-      // Set timeout manual untuk simulasi kilat
-      final items = await api.getMitraItems(mitraId).timeout(const Duration(seconds: 3)); 
+      // Set timeout 10 detik sesuai instruksi
+      final items = await api.getMitraItems(mitraId).timeout(const Duration(seconds: 10)); 
       
       if (mounted) {
         setState(() {
           int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
           if (idx != -1) {
-            // JANGAN PAKAI DUMMY! Jika kosong, biarkan kosong agar user tahu Mitra belum set harga.
             _mitras[idx]['items'] = items;
+            _mitras[idx]['items_loaded'] = true;
             if (_selectedMitra != null && _selectedMitra!['id'] == mitraId) {
               _selectedMitra!['items'] = items;
+              _selectedMitra!['items_loaded'] = true;
             }
           }
         });
       }
     } catch (e) {
       debugPrint("Error fetching items for mitra $mitraId: $e");
+      if (mounted) {
+        setState(() {
+          int idx = _mitras.indexWhere((m) => m['id'] == mitraId);
+          if (idx != -1) {
+            _mitras[idx]['items_loaded'] = true; // Tetap tandai selesai meski gagal agar UI terganti
+            if (_selectedMitra != null && _selectedMitra!['id'] == mitraId) {
+              _selectedMitra!['items_loaded'] = true;
+            }
+          }
+        });
+      }
     }
   }
 
@@ -364,8 +383,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: CustomScrollView(
-        slivers: [
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
           _buildCompactAppbar(cT),
           SliverToBoxAdapter(
             child: Padding(
@@ -455,6 +476,48 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             ),
           )
         ],
+      ),
+      if (_isConnectionError)
+        Positioned.fill(
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.6),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(LucideIcons.wifiOff, size: 48, color: primaryRed),
+                        const SizedBox(height: 16),
+                        Text("Koneksi Bermasalah", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 16)),
+                        const SizedBox(height: 8),
+                        Text("Paket data atau internet Anda\nsedang tidak stabil.", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600])),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () => _loadLiveMitras(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryTeal,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12)
+                          ),
+                          child: Text("Coba Lagi", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
       ),
       bottomSheet: _buildCompactFooter(cT, auth),
     );
@@ -905,6 +968,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     }
 
     final allItems = (_selectedMitra?['items'] as List<dynamic>?) ?? [];
+    final bool isLoaded = _selectedMitra?['items_loaded'] == true;
+
     if (allItems.isEmpty) {
       return Container(
         width: double.infinity,
@@ -912,9 +977,15 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
         child: Column(
           children: [
-            SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: primaryTeal.withValues(alpha: 0.5))),
-            const SizedBox(height: 16),
-            Text("Sedang mengambil daftar harga...", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+            if (!isLoaded) ...[
+              SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: primaryTeal.withValues(alpha: 0.5))),
+              const SizedBox(height: 16),
+              Text("Sedang mengambil daftar harga...", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+            ] else ...[
+              Icon(LucideIcons.fileX, size: 30, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              Text("Daftar Harga Masih Kosong", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+            ]
           ],
         ),
       );
