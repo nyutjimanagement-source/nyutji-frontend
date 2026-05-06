@@ -399,8 +399,6 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         'mitra_id': widget.mitraId,
         'mitraId': widget.mitraId,
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
-        'pickup_note': widget.pickupNote,
-        'pickupNote': widget.pickupNote,
       };
 
       final success = await orderProv.createOrder(payload);
