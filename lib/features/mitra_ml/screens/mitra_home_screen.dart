@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/widgets/nyutji_location_picker.dart';
+import '../../../core/widgets/forecast_weather.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
@@ -178,7 +179,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildDenseHeader(),
-          _buildLiveStatusStrip(),
+          const ForecastWeather(),
           const SizedBox(height: 12),
           _buildCommandMetrics(),
           const SizedBox(height: 16),
@@ -343,32 +344,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  Widget _buildLiveStatusStrip() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(color: isShopOpen ? Colors.green[50] : Colors.red[50], border: Border(bottom: BorderSide(color: isShopOpen ? Colors.green[200]! : Colors.red[200]!))),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 8, height: 8,
-                decoration: BoxDecoration(color: isShopOpen ? Colors.green : Colors.red, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 8),
-              Text(isShopOpen ? "Toko Buka - Menerima Order Penuh" : "Toko Tutup", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: isShopOpen ? Colors.green[700] : Colors.red[700])),
-            ],
-          ),
-          Switch(
-            value: isShopOpen, 
-            onChanged: (val) => setState(() => isShopOpen = val), 
-            activeThumbColor: Colors.green, materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          )
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildCommandMetrics() {
     return Padding(
