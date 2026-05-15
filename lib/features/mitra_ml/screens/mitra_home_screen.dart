@@ -221,7 +221,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
 
   Widget _buildDenseHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
       color: Colors.white,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -236,69 +236,44 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                     return GestureDetector(
                       onTap: () => _pickImage(auth),
                       child: Container(
-                        width: 44, height: 44,
-                        decoration: BoxDecoration(
+                        width: 60, height: 60,
+                        decoration: const BoxDecoration(
                           color: primaryTeal,
-                          borderRadius: BorderRadius.circular(10),
+                          shape: BoxShape.circle,
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
+                        child: ClipOval(
                           child: _buildProfileImage(auth, photoUrl, localPhoto),
                         ),
                       ),
                     );
                   }
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Consumer<AuthProvider>(
-                              builder: (context, auth, _) => Text(
-                                auth.user?['name'] ?? "Mitra Nyutji", 
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.verified, size: 14, color: Colors.blue),
-                        ],
+                      Consumer<AuthProvider>(
+                        builder: (context, auth, _) => Text(
+                          auth.user?['name'] ?? "Berkah Laundry", 
+                          style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: darkText)
+                        ),
                       ),
                       Consumer<AuthProvider>(
+                        builder: (context, auth, _) => Text(
+                          "ID: ${auth.user?['identifier'] ?? '-'}", 
+                          style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Consumer<AuthProvider>(
                         builder: (context, auth, _) {
-                          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "Kecamatan";
-                          final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "Kota";
-                          
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                    decoration: BoxDecoration(color: Colors.amber[100], borderRadius: BorderRadius.circular(4)),
-                                    child: Row(
-                                      children: [
-                                        const Icon(LucideIcons.star, size: 10, color: Colors.amber),
-                                        const SizedBox(width: 2),
-                                        Text("4.9", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber[900])),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text("ID: ${auth.user?['identifier'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700)),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
-                            ],
+                          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "-";
+                          final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "-";
+                          return Text(
+                            "$district - $city", 
+                            style: GoogleFonts.montserrat(fontSize: 12, color: primaryTeal, fontWeight: FontWeight.bold)
                           );
                         }
                       ),
@@ -308,37 +283,6 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Row(
-            children: [
-              IconButton(onPressed: () {}, icon: const Icon(LucideIcons.search, color: darkText, size: 22), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
-              const SizedBox(width: 10),
-              Consumer<OrderProvider>(
-                builder: (context, orderProv, _) => Stack(
-                  children: [
-                    IconButton(
-                      onPressed: () => orderProv.resetNotif('ML'), 
-                      icon: const Icon(LucideIcons.bell, color: darkText, size: 22), 
-                      padding: EdgeInsets.zero, 
-                      constraints: const BoxConstraints()
-                    ),
-                    if (orderProv.notifCountML > 0)
-                      Positioned(
-                        right: 0, top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
-                          child: Text(
-                            orderProv.notifCountML > 9 ? "9+" : orderProv.notifCountML.toString(), 
-                            style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)
-                          ),
-                        ),
-                      )
-                  ],
-                ),
-              )
-            ],
-          )
         ],
       ),
     );
@@ -358,7 +302,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             children: [
               _buildMetricItem("HARI INI", Formatters.currencyIdr(wallet.balance), LucideIcons.trendingUp, Colors.greenAccent),
               Container(width: 1, height: 35, color: Colors.white24),
-              _buildMetricItem("ANTREAN", orderProv.activeOrders.length.toString(), LucideIcons.layers, Colors.orangeAccent),
+              _buildMetricItem("ANTREAN", orderProv.activeOrders.length.toString(), LucideIcons.layers, Colors.orangeAccent, onTap: () {
+                _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+              }),
               Container(width: 1, height: 35, color: Colors.white24),
               _buildMetricItem("SELESAI", orderProv.historyOrders.length.toString(), LucideIcons.checkSquare, Colors.blueAccent),
               Container(width: 1, height: 35, color: Colors.white24),
@@ -370,21 +316,25 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  Widget _buildMetricItem(String label, String value, IconData icon, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 10, color: color),
-            const SizedBox(width: 4),
-            Text(label, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.white70, fontWeight: FontWeight.w700)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(value, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
-      ],
+  Widget _buildMetricItem(String label, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 10, color: color),
+              const SizedBox(width: 4),
+              Text(label, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.white70, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(value, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+        ],
+      ),
     );
   }
 
@@ -402,12 +352,12 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
-            childAspectRatio: 0.85,
+            childAspectRatio: 0.75,
             children: [
               _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
                 _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
               }),
-              _buildGridAction("Kasir / POS", LucideIcons.calculator, Colors.indigo, (){}),
+              _buildGridAction("Kasir/POS", LucideIcons.calculator, Colors.indigo, (){}),
               _buildGridAction("Dompet", LucideIcons.wallet, Colors.green, () {
                 _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
               }),
@@ -449,10 +399,16 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 20),
+              child: Icon(icon, color: color, size: 30),
             ),
             const SizedBox(height: 8),
-            Text(title, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
+            Text(
+              title, 
+              textAlign: TextAlign.center, 
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText, height: 1.1)
+            ),
           ],
         ),
       ),
@@ -488,7 +444,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
       child: Row(
         children: [
-          Icon(LucideIcons.disc, size: 24, color: mColor),
+          Icon(LucideIcons.disc, size: 13, color: mColor),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -497,12 +453,12 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(mName, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: darkText)),
-                    Text(progress > 0 ? "${(progress*100).toInt()}%" : "0%", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: mColor)),
+                    Text(mName, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText)),
+                    Text(progress > 0 ? "${(progress*100).toInt()}%" : "0%", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: mColor)),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(pStatus, style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600)),
+                Text(pStatus, style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
                 LinearProgressIndicator(
                   value: progress, 
@@ -958,6 +914,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         unselectedItemColor: textGrey.withValues(alpha: 0.6),
         showUnselectedLabels: true,
         onTap: (index) {
+          if (index == 0 && _selectedIndex == 0) {
+            setState(() => _homeSubPage = "main");
+          }
           _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
         },
         backgroundColor: Colors.white,

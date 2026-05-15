@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -11,6 +12,8 @@ class MitraInventoryScreen extends StatefulWidget {
 }
 
 class _MitraInventoryScreenState extends State<MitraInventoryScreen> {
+  final Set<int> _expandedIndices = {};
+
   final List<Map<String, dynamic>> _inventoryData = [
     {
       "category": "Bahan Kimia & Kebersihan (Consumables)",
@@ -75,125 +78,154 @@ class _MitraInventoryScreenState extends State<MitraInventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // HEADER SIMPLE (TEXT BASED)
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          color: Colors.white,
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: widget.onBackTap,
-                child: Row(
-                  children: [
-                    const Icon(LucideIcons.chevronLeft, size: 20, color: NyutjiTheme.mlPrimary),
-                    const SizedBox(width: 4),
-                    Text(
-                      "KEMBALI",
-                      style: NyutjiTheme.actionLabel(NyutjiTheme.mlPrimary),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Text(
-                "INVENTORY LAUNDRY",
-                style: NyutjiTheme.h2(NyutjiTheme.darkText).copyWith(fontSize: 13, letterSpacing: 0.5),
-              ),
-              const Spacer(),
-              const SizedBox(width: 60),
-            ],
-          ),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        widget.onBackTap();
+      },
+      child: Column(
+        children: [
+          // HEADER SIMPLE (TEXT BASED)
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            color: Colors.white,
+            child: Row(
               children: [
-                ..._inventoryData.map((cat) => _buildCategorySection(cat)),
-                const SizedBox(height: 80),
+                GestureDetector(
+                  onTap: widget.onBackTap,
+                  child: const Row(
+                    children: [
+                      Icon(LucideIcons.chevronLeft, size: 24, color: NyutjiTheme.mlPrimary),
+                      SizedBox(width: 4),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  "INVENTORY LAUNDRY",
+                  style: NyutjiTheme.h2(NyutjiTheme.darkText).copyWith(fontSize: 13, letterSpacing: 0.5),
+                ),
+                const Spacer(),
+                const SizedBox(width: 40),
               ],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  ..._inventoryData.asMap().entries.map((entry) => _buildCategorySection(entry.value, entry.key)),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildCategorySection(Map<String, dynamic> cat) {
+  Widget _buildCategorySection(Map<String, dynamic> cat, int index) {
+    final bool isExpanded = _expandedIndices.contains(index);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: NyutjiTheme.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: NyutjiTheme.mlPrimary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+          InkWell(
+            onTap: () {
+              setState(() {
+                if (isExpanded) {
+                  _expandedIndices.remove(index);
+                } else {
+                  _expandedIndices.add(index);
+                }
+              });
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: NyutjiTheme.mlPrimary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(cat['icon'], color: NyutjiTheme.mlPrimary, size: 30),
                   ),
-                  child: Icon(cat['icon'], color: NyutjiTheme.mlPrimary, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        cat['category'],
-                        style: NyutjiTheme.h3(NyutjiTheme.darkText),
-                      ),
-                      Text(
-                        cat['desc'],
-                        style: NyutjiTheme.detail(NyutjiTheme.textGrey),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cat['category'],
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13, 
+                            fontWeight: FontWeight.w800, 
+                            color: NyutjiTheme.darkText
+                          ),
+                        ),
+                        Text(
+                          cat['desc'],
+                          style: NyutjiTheme.detail(NyutjiTheme.textGrey),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Icon(
+                    isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, 
+                    size: 18, 
+                    color: NyutjiTheme.mlPrimary
+                  ),
+                ],
+              ),
             ),
           ),
-          const Divider(height: 1),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: cat['items'].length,
-            separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[50], indent: 16, endIndent: 16),
-            itemBuilder: (context, index) {
-              final item = cat['items'][index];
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                title: Text(
-                  item['name'],
-                  style: NyutjiTheme.h3(NyutjiTheme.darkText).copyWith(fontSize: 13),
-                ),
-                subtitle: Text(
-                  item['detail'],
-                  style: NyutjiTheme.body(NyutjiTheme.textGrey).copyWith(fontSize: 11),
-                ),
-                trailing: TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          if (isExpanded) ...[
+            const Divider(height: 1),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: cat['items'].length,
+              separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[50], indent: 16, endIndent: 16),
+              itemBuilder: (context, index) {
+                final item = cat['items'][index];
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  title: Text(
+                    item['name'],
+                    style: NyutjiTheme.h3(NyutjiTheme.darkText).copyWith(fontSize: 13),
                   ),
-                  child: Text(
-                    "UPDATE",
-                    style: NyutjiTheme.actionLabel(NyutjiTheme.mlPrimary),
+                  subtitle: Text(
+                    item['detail'],
+                    style: NyutjiTheme.body(NyutjiTheme.textGrey).copyWith(fontSize: 11),
                   ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 8),
+                  trailing: TextButton(
+                    onPressed: () {},
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      "UPDATE",
+                      style: NyutjiTheme.actionLabel(NyutjiTheme.mlPrimary),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
         ],
       ),
     );
