@@ -389,18 +389,21 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             crossAxisSpacing: 8,
             childAspectRatio: 0.65,
             children: [
+              // Baris 1
               _buildServiceItem("Pick Up\nKurir", "icon_pickup.png", hasPromo: true, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'pickup')))),
               _buildServiceItem("Antar\nSendiri", "icon_dropoff.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'drop')))),
               _buildServiceItem("Nyutji\nCoin", "icon_coin.png"),
-              _buildServiceItem("Setrika\nKhusus", "icon_iron.png"),
-              _buildServiceItem("Dry\nClean", "icon_dryclean.png"),
-              _buildServiceItem("Jadwal", "icon_jadwal.png"),
               _buildServiceItem("Top-Up", "icon_topup.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerWalletScreen()))),
+              // Baris 2
+              _buildServiceItem("Cuci\nKhusus", "baby_stroller.png"),
+              _buildServiceItem("Dry\nClean", "icon_dryclean.png"),
               _buildServiceItem("Cuci\nSepatu", "icon_sepatu.png"),
               _buildServiceItem("Pakaian\nBayi", "icon_bayi.png"),
-              _buildServiceItem("Bantuan", "icon_bantuan.png"),
+              // Baris 3
+              _buildServiceItem("Jadwal", "icon_jadwal.png"),
               _buildServiceItem("Cek Status", "icon_status.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()))),
               _buildServiceItem("Pengaturan", "icon_pengaturan.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerProfileScreen()))),
+              _buildServiceItem("Bantuan", "icon_bantuan.png"),
             ],
           ),
         ],
