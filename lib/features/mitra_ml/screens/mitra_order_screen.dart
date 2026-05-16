@@ -24,8 +24,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   final Set<String> _expandedIds = {};
   late PageController _pageController;
   int _currentPage = 0;
-  final Map<String, List<bool>> _uploadedSteps = {};
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -60,15 +58,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     }
   }
 
-  Future<void> _onUploadStep(String orderId, int stepIndex, int totalSteps) async {
-    final file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
-    if (file == null || !mounted) return;
-    setState(() {
-      _uploadedSteps.putIfAbsent(orderId, () => List.filled(totalSteps, false));
-      _uploadedSteps[orderId]![stepIndex] = true;
-    });
-    _showNotif("Foto progress berhasil diupload", true);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -345,7 +334,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final int step = _getProgressStep(status);
     
     // LOGIKA AKTIVASI STEP (Timbang -> Cuci -> Packing -> Kirim -> Selesai)
-    bool isStep1 = step >= 2; // Timbangan
     bool isStep2 = step >= 3; // Cuci
     bool isStep3 = step >= 4; // Packing
     bool isStep4 = step >= 5; // Kirim

@@ -397,8 +397,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                     builder: (context) {
                       final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
                       
-                      // LOGIKA AKTIVASI STEP (Cascade: jika step 3 aktif, maka 1 & 2 juga aktif)
-                      bool isStep1 = true; // Minimal sudah masuk sistem
+                      // LOGIKA AKTIVASI STEP
                       // LOGIKA AKTIVASI STEP
                       bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep3 = ['WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
