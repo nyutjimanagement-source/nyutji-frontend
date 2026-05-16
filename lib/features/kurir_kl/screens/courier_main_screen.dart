@@ -1134,7 +1134,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             children: [
                               Text(
                                 address,
-                                style: GoogleFonts.montserrat(fontSize: 11, color: accentGreen, fontWeight: FontWeight.w700),
+                                style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
