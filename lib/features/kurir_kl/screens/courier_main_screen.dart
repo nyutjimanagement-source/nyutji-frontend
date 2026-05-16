@@ -1239,16 +1239,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 final provider = context.read<OrderProvider>();
                                 final auth = context.read<AuthProvider>();
                                 
-                                // Step 2: Upload Foto (Sync dengan instruksi Jenderal)
-                                final klIdentifier = auth.user?['identifier'] ?? 'KL';
-                                final fileName = "${orderId}_$klIdentifier.jpg";
-                                
-                                final uploadSuccess = await provider.uploadOrderAttachment(
-                                  orderId, 
-                                  _taskCapturedImages[orderId], 
-                                  'WEIGHING', 
-                                  fileName
-                                );
+                                // Step 2: UPLOAD DUMMY (Rollback sesuai instruksi Jenderal)
+                                // Sementara lompati API upload untuk stabilitas
+                                const uploadSuccess = true; 
 
                                 if (!uploadSuccess) {
                                   if (mounted) setState(() => _isUploading = false);
