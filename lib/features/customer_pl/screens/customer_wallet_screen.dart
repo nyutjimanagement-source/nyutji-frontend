@@ -203,7 +203,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
           children: [
             IconButton(
               icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/customer_main', (route) => false),
             ),
             Expanded(
               child: Text(
