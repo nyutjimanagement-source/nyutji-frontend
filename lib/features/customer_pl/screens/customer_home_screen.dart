@@ -14,6 +14,7 @@ import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'customer_order_screen.dart';
 import 'customer_status_screen.dart';
+import '../../../core/utils/status_helper.dart';
 import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
@@ -273,7 +274,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     return Consumer<OrderProvider>(
       builder: (context, orderProv, _) {
         final latestOrder = orderProv.activeOrders.isNotEmpty ? orderProv.activeOrders.first : null;
-        final status = latestOrder != null ? (latestOrder['status'] ?? latestOrder['order_status'] ?? 'WAITING').toString() : "Order Nyutji Yuks !!";
+        final rawStatus = latestOrder != null ? (latestOrder['status'] ?? latestOrder['order_status'] ?? 'WAITING').toString() : "";
+        final statusLabel = latestOrder != null ? StatusHelper.getLabel(rawStatus, 'PL') : "Order Nyutji Yuks !!";
         final label = latestOrder != null ? "LACAK PROGRES LIVE" : "Ayo Cuci Sekarang";
 
         return GestureDetector(
@@ -312,7 +314,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     children: [
                       Text(label, 
                         style: NyutjiTheme.detail(const Color(0xFF403600)).copyWith(fontWeight: FontWeight.w900, fontSize: 11)),
-                      Text(status, 
+                      Text(statusLabel, 
                         style: NyutjiTheme.h3(const Color(0xFF403600)).copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
                     ],
                   ),
