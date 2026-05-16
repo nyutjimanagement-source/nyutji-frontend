@@ -63,6 +63,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   bool isOnline = true;
   int _selectedNavIndex = 0;
   Timer? _refreshTimer;
+  final Map<String, File?> _taskCapturedImages = {};
+  bool _isUploading = false;
 
   // Enterprise/Super-App Colors for Courier
   final Color primaryTeal = const Color(0xFF286B6A);
@@ -165,6 +167,19 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
         if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
       },
     );
+  }
+
+  Future<void> _captureTaskPhoto(String orderId) async {
+    final ImagePicker picker = ImagePicker();
+    // Kompresi 80% -> imageQuality: 20
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 20);
+    
+    if (photo != null) {
+      setState(() {
+        _taskCapturedImages[orderId] = File(photo.path);
+      });
+      _showBeautifulNotif("Foto berhasil diambil. Jangan lupa tekan Selesai.", true);
+    }
   }
 
   void _showBeautifulNotif(String message, bool success) {
@@ -1134,12 +1149,12 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                             children: [
                               Text(
                                 address,
-                                style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.w700),
+                                style: GoogleFonts.montserrat(fontSize: 13, color: primaryTeal, fontWeight: FontWeight.w700),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 2),
-                              Text("${distance.toStringAsFixed(1)} Km \u2022 $serviceType", style: GoogleFonts.montserrat(fontSize: 9, color: primaryTeal, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text("${distance.toStringAsFixed(1)} Km \u2022 $serviceType", style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -1164,64 +1179,114 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         )
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    // ROW 4: COMPACT ACTIONS
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: darkText,
-                              side: BorderSide(color: Colors.grey[300]!),
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              minimumSize: const Size(0, 32),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(LucideIcons.phone, size: 12, color: darkText),
-                                const SizedBox(width: 4),
-                                Text(currentT['go'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
+                    const SizedBox(height: 16),
+                    // URUTAN TUGAS KURIR (GENIUS FLOW)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: primaryTeal.withValues(alpha: 0.1)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("URUTAN TUGAS", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 1)),
+                          const SizedBox(height: 12),
+                          
+                          // 1. JEMPUT
+                          _buildStepItem(
+                            "1. Jemput Cucian", 
+                            LucideIcons.mapPin, 
+                            true, 
+                            onTap: () => _openMap(address)
                           ),
-                        ),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final provider = context.read<OrderProvider>();
-                              String nextStatus = 'DONE';
-                              if (status == 'COURIER_ACCEPTED' || status == 'SEARCHING') {
-                                nextStatus = 'PICKING_UP';
-                              } else if (status == 'PICKING_UP') {
-                                nextStatus = 'WAITING_DROPOFF';
-                              } else if (status == 'DELIVERING') {
-                                nextStatus = 'DONE';
-                              }
-                              
-                              final success = await provider.updateOrderStatus(orderId, nextStatus);
-                              if (mounted) {
-                                if (success) {
-                                  _showBeautifulNotif("Status diperbarui ke $nextStatus", true);
-                                } else {
-                                  _showBeautifulNotif(provider.errorMessage ?? "Gagal", false);
+                          _buildStepDivider(),
+
+                          // 2. UPLOAD FOTO
+                          _buildStepItem(
+                            "2. Upload Foto Cucian", 
+                            LucideIcons.camera, 
+                            _taskCapturedImages[orderId] != null,
+                            onTap: () => _captureTaskPhoto(orderId)
+                          ),
+                          
+                          if (_taskCapturedImages[orderId] != null) ...[
+                            const SizedBox(height: 12),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                _taskCapturedImages[orderId]!,
+                                width: double.infinity,
+                                height: 180,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ],
+                          _buildStepDivider(),
+
+                          // 3. SELESAI
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _isUploading ? null : () async {
+                                if (_taskCapturedImages[orderId] == null) {
+                                  _showBeautifulNotif("Wajib upload foto sebelum Selesai!", false);
+                                  return;
                                 }
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryTeal,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              minimumSize: const Size(0, 32),
+                                
+                                setState(() => _isUploading = true);
+                                final provider = context.read<OrderProvider>();
+                                final auth = context.read<AuthProvider>();
+                                
+                                // Step 2: Upload Foto (Sync dengan instruksi Jenderal)
+                                final klIdentifier = auth.user?['identifier'] ?? 'KL';
+                                final fileName = "${orderId}_$klIdentifier.jpg";
+                                
+                                final uploadSuccess = await provider.uploadOrderAttachment(
+                                  orderId, 
+                                  _taskCapturedImages[orderId], 
+                                  'PICKUP', 
+                                  fileName
+                                );
+
+                                if (!uploadSuccess) {
+                                  if (mounted) setState(() => _isUploading = false);
+                                  _showBeautifulNotif("Gagal mengunggah foto. Periksa koneksi.", false);
+                                  return;
+                                }
+
+                                // Step 3: Trigger WEIGHING (Sync dengan ML)
+                                const String nextStatus = 'WEIGHING';
+                                final success = await provider.updateOrderStatus(orderId, nextStatus);
+                                
+                                if (mounted) {
+                                  setState(() => _isUploading = false);
+                                  if (success) {
+                                    _taskCapturedImages.remove(orderId);
+                                    _showBeautifulNotif("Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).", true);
+                                    _refreshData();
+                                  } else {
+                                    _showBeautifulNotif(provider.errorMessage ?? "Gagal memperbarui status", false);
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryTeal,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                elevation: 4,
+                                shadowColor: primaryTeal.withValues(alpha: 0.3),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: _isUploading 
+                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                : Text("3. SELESAI JEMPUT", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
                             ),
-                            child: Text(currentT['update'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -1270,4 +1335,40 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     );
   }
 
+
+  Widget _buildStepItem(String title, IconData icon, bool isDone, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: isDone ? accentGreen : primaryTeal),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title, 
+                style: GoogleFonts.montserrat(
+                  fontSize: 14, 
+                  fontWeight: isDone ? FontWeight.w800 : FontWeight.w600, 
+                  color: isDone ? accentGreen : darkText,
+                  decoration: onTap != null ? TextDecoration.underline : null,
+                  decorationColor: isDone ? accentGreen : primaryTeal,
+                )
+              ),
+            ),
+            if (isDone) const Icon(LucideIcons.checkCircle2, size: 16, color: Color(0xFF10B981)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepDivider() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 30),
+      child: Divider(height: 1, color: primaryTeal.withValues(alpha: 0.1)),
+    );
+  }
 }

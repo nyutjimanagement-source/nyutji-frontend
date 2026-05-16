@@ -283,4 +283,28 @@ class ApiService {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>> uploadOrderAttachment(String orderId, dynamic fileSource, String step, String customFileName) async {
+    FormData formData;
+    
+    if (fileSource is File) {
+      formData = FormData.fromMap({
+        "image": await MultipartFile.fromFile(fileSource.path, filename: customFileName),
+        "orderId": orderId,
+        "step": step
+      });
+    } else {
+      // XFile support
+      final xFile = fileSource;
+      final bytes = await xFile.readAsBytes();
+      formData = FormData.fromMap({
+        "image": MultipartFile.fromBytes(bytes, filename: customFileName),
+        "orderId": orderId,
+        "step": step
+      });
+    }
+
+    final response = await _dio.post("/orders/$orderId/proof", data: formData);
+    return response.data;
+  }
 }
