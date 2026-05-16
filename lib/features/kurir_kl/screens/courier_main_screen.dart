@@ -1238,13 +1238,6 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 
                                 // Step 2: DUMMY UPLOAD (Stabil & Ringan)
                                 // Lewati proses upload fisik untuk menjaga stabilitas koneksi
-                                bool uploadSuccess = true; 
-
-                                if (!uploadSuccess) {
-                                  // Blok ini tetap ada sebagai struktur masa depan jika upload diaktifkan kembali
-                                  if (mounted) setState(() => _isUploading = false);
-                                  return;
-                                }
 
                                 // Step 3: Trigger WEIGHING (Sync dengan ML)
                                 const String nextStatus = 'WEIGHING';
