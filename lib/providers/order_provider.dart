@@ -275,6 +275,8 @@ class OrderProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
   Future<bool> uploadOrderAttachment(String orderId, dynamic file, String step, String customFileName) async {
     _isLoading = true;
     notifyListeners();

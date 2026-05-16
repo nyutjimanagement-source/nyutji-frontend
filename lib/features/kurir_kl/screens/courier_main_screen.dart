@@ -1066,7 +1066,6 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     // Sinkronisasi Super-Smart: Mendukung SnakeCase & CamelCase dari Database
     final String orderId = (task['order_number'] ?? task['orderNumber'] ?? task['identifier'] ?? task['id'] ?? '-').toString();
     final String customerName = task['customer']?['name']?.toString() ?? task['customer_name']?.toString() ?? 'Pelanggan';
-    final String status = (task['status'] ?? task['order_status'] ?? 'UNKNOWN').toString().toUpperCase();
     
     // KL HANYA BOLEH LIHAT DELIVERY FEE
     final double price = double.tryParse((task['delivery_fee'] ?? task['deliveryFee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
