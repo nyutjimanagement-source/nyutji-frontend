@@ -275,5 +275,20 @@ class OrderProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  Future<bool> uploadOrderAttachment(String orderId, dynamic file, String step, String customFileName) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _api.uploadOrderAttachment(orderId, file, step, customFileName);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint("Error uploading attachment: $e");
+      _errorMessage = "Gagal upload foto";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 }
