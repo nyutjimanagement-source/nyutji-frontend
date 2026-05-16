@@ -1246,7 +1246,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 final uploadSuccess = await provider.uploadOrderAttachment(
                                   orderId, 
                                   _taskCapturedImages[orderId], 
-                                  'PICKUP', 
+                                  'WEIGHING', 
                                   fileName
                                 );
 
