@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
+import '../../../core/utils/status_helper.dart';
 
 class MitraOrderScreen extends StatefulWidget {
   const MitraOrderScreen({super.key});
@@ -439,20 +440,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
   // ── Chips ─────────────────────────────────────────
   Widget _buildStatusChip(String status) {
-    Color color = Colors.grey;
-    String label = status;
-    switch (status.toUpperCase()) {
-      case 'SEARCHING':       color = Colors.orange;     label = "MENCARI KURIR"; break;
-      case 'WAITING_DROPOFF': color = Colors.blue;       label = "MENUNGGU DROP";  break;
-      case 'COURIER_ACCEPTED':color = Colors.indigo;     label = "KURIR DIAMBIL";  break;
-      case 'PICKING_UP':      color = Colors.teal;       label = "DIJEMPUT";       break;
-      case 'WEIGHING':        color = Colors.amber;      label = "TIMBANGAN";      break;
-      case 'WASH_START':      color = Colors.blue;       label = "DICUCI";         break;
-      case 'IRONING':         color = Colors.deepOrange; label = "SETRIKA";        break;
-      case 'PACKING':         color = Colors.purple;     label = "PACKING";        break;
-      case 'DELIVERING':      color = Colors.teal;       label = "DIANTAR";        break;
-      case 'DONE': case 'PAID': color = Colors.green;   label = "SELESAI";        break;
-    }
+    final Color color = StatusHelper.getColor(status);
+    final String label = StatusHelper.getLabel(status, 'ML');
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

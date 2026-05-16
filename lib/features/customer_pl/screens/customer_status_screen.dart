@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/order_provider.dart';
 import 'customer_order_screen.dart';
+import '../../../core/utils/status_helper.dart';
 
 class CustomerStatusScreen extends StatefulWidget {
   const CustomerStatusScreen({super.key});
@@ -327,7 +328,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        (order['order_status'] ?? order['status'] ?? 'PROSES').toString().toUpperCase(),
+                        StatusHelper.getLabel(order['order_status'] ?? order['status'] ?? 'PROSES', 'PL'),
                         style: GoogleFonts.montserrat(fontSize: 16, color: const Color(0xFF403600), fontWeight: FontWeight.w500, letterSpacing: 1.0)
                       ),
                     ],
