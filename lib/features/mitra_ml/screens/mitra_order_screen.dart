@@ -334,6 +334,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final int step = _getProgressStep(status);
     
     // LOGIKA AKTIVASI STEP (Timbang -> Cuci -> Packing -> Kirim -> Selesai)
+    bool isStep1 = step >= 2; // Timbang
     bool isStep2 = step >= 3; // Cuci
     bool isStep3 = step >= 4; // Packing
     bool isStep4 = step >= 5; // Kirim
