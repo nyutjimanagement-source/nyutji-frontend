@@ -288,8 +288,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                           ? DecorationImage(
                               image: NetworkImage(
                                 photoUrl.toString().startsWith('http') 
-                                  ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                  : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                  ? photoUrl.toString()
+                                  : "${ApiConstants.rootUrl}/$photoUrl"
                               ), 
                               fit: BoxFit.cover
                             ) 
@@ -433,8 +433,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                         image: DecorationImage(
                                             image: NetworkImage(
                                               photoUrl.toString().startsWith('http') 
-                                                ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                                : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                                ? photoUrl.toString()
+                                                : "${ApiConstants.rootUrl}/$photoUrl"
                                             ), 
                                             fit: BoxFit.cover
                                           )
@@ -621,6 +621,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
         // Gunakan data live jika ada, fallback ke dummy jika kosong
         final liveOrders = orderProv.availableOrders;
         final displayOrders = liveOrders;
+
+        if (displayOrders.isEmpty) return const SizedBox.shrink();
 
         final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
@@ -811,6 +813,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                     if (!mounted) return;
                                     if (success) {
                                       _showBeautifulNotif("Order #$orderId berhasil diambil!", true);
+                                      _scrollToTasks(); // Fokus ke Antrean Tugas
                                       _refreshData(); // Langsung hilangkan dari list tersedia
                                     } else {
                                       final error = provider.errorMessage;
