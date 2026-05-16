@@ -42,15 +42,21 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     super.dispose();
   }
 
-  // Progress step: 0=none,1=Timbang,2=Cuci,3=Setrika/Packing,4=Kirim,5=Done
+  // Progress step: 1=PickUp, 2=Timbang, 3=Cuci, 4=Packing, 5=Kirim, 6=Done
   int _getProgressStep(String status) {
     switch (status.toUpperCase()) {
-      case 'WEIGHING': return 1;
-      case 'WASH_START': return 2;
-      case 'IRONING': case 'PACKING': return 3;
-      case 'DELIVERING': return 4;
-      case 'DONE': case 'PAID': return 5;
-      default: return 0;
+      case 'SEARCHING':
+      case 'COURIER_ACCEPTED':
+      case 'WAITING_DROPOFF':
+      case 'PICKING_UP': return 1;
+      case 'WEIGHING': return 2;
+      case 'WASH_START':
+      case 'IRONING': return 3;
+      case 'PACKING': return 4;
+      case 'DELIVERING': return 5;
+      case 'DONE':
+      case 'PAID': return 6;
+      default: return 1;
     }
   }
 
@@ -263,9 +269,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           // Kiri: order number + date + avatar + nama + harga
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(orderId, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: textGrey, letterSpacing: 0.4)),
+              Text(orderId, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textGrey, letterSpacing: 0.4)),
               Text(DateFormat('dd MMM yyyy, HH:mm').format(createdAt),
-                style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[400], fontWeight: FontWeight.w500)),
+                style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.w500)),
               const SizedBox(height: 12),
               Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                 Container(width: 40, height: 40,
@@ -283,15 +289,15 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           ),
           const SizedBox(width: 12),
           // Kanan: Status + Services + Petugas
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Text("Status :", style: GoogleFonts.montserrat(fontSize: 9, color: textGrey, fontWeight: FontWeight.w600)),
+              Text("Status :", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
               const SizedBox(width: 6),
               _buildStatusChip(status),
             ]),
             const SizedBox(height: 8),
             Row(children: [
-              Text("Services :", style: GoogleFonts.montserrat(fontSize: 9, color: textGrey, fontWeight: FontWeight.w600)),
+              Text("Services :", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
               const SizedBox(width: 6),
               _buildServiceChip(isFast, accentColor),
             ]),
@@ -299,10 +305,10 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             Row(children: [
               Icon(LucideIcons.truck, size: 14, color: Colors.grey[400]),
               const SizedBox(width: 6),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text("KURIR", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.grey[400])),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text("KURIR", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[400])),
                 Text(courierName,
-                  style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700,
+                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700,
                     color: courierName == "Belum Ada" ? Colors.orange : darkText)),
               ]),
             ]),
@@ -337,13 +343,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   // SELF_DROP tanpa kurir → 3 steps (no Kirim = Ambil Mandiri)
   Widget _buildProgressCucian(String orderId, String status, Color accentColor, dynamic o) {
     final int step = _getProgressStep(status);
-    final deliveryType = (o['delivery_type'] ?? o['deliveryType'] ?? 'PICKUP').toString().toUpperCase();
-    final hasCourier = o['courier'] != null || (o['courier_id'] ?? o['courierId']) != null;
-    final bool hasKirim = deliveryType.contains('PICKUP') || hasCourier;
-    final steps = hasKirim
-        ? ['Menimbang', 'Cuci & Dry', 'Setrika &\nPacking', 'Kirim']
-        : ['Menimbang', 'Cuci & Dry', 'Setrika &\nPacking'];
-    final uploaded = _uploadedSteps[orderId] ?? List.filled(steps.length, false);
+    
+    // LOGIKA AKTIVASI STEP (Cascade sesuai PL)
+    bool isStep1 = true; // Minimal sudah masuk sistem
+    bool isStep2 = step >= 2;
+    bool isStep3 = step >= 3;
+    bool isStep4 = step >= 4;
+    bool isStep5 = step >= 5;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
@@ -351,92 +357,43 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         const SizedBox(width: 8),
         const Expanded(child: Divider(color: Color(0xFFE5E7EB), thickness: 1)),
       ]),
-      const SizedBox(height: 16),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          for (int i = 0; i < steps.length; i++) ...[
-            Expanded(
-              child: Row(children: [
-                _buildProgressNode(
-                  steps[i], 
-                  (i < step - 1) || (uploaded.length > i && uploaded[i]), // isFinished
-                  (i == step - 1) && !(uploaded.length > i && uploaded[i]), // isActive
-                  accentColor,
-                  onTap: (i == step - 1) && !(uploaded.length > i && uploaded[i]) 
-                      ? () => _onUploadStep(orderId, i, steps.length) 
-                      : null,
-                ),
-                if (i < steps.length)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      child: Container(
-                        height: 3, 
-                        color: (i < step - 1) || (uploaded.length > i && uploaded[i])
-                            ? const Color(0xFF131109) 
-                            : Colors.grey[200]
-                      ),
-                    ),
-                  ),
-              ]),
-            ),
-          ],
-          // Selesai Circle
-          Column(children: [
-            Container(
-              width: 48, height: 48,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: step >= steps.length + 1 ? accentColor : Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: step >= steps.length + 1 ? const Color(0xFF131109) : Colors.grey[200]!, 
-                  width: 2
-                ),
-              ),
-              child: Text("Selesai", style: GoogleFonts.montserrat(
-                fontSize: 9, fontWeight: FontWeight.w900,
-                color: step >= steps.length + 1 ? Colors.white : Colors.grey[400])),
-            ),
-            const SizedBox(height: 24),
-          ]),
-        ]),
+      const SizedBox(height: 20),
+      // PROGRESS ICONS (Sync dengan PL)
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildModernProgress("PickUp", LucideIcons.truck, isStep1),
+          _buildModernProgress("Timbangan", LucideIcons.scale, isStep2),
+          _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
+          _buildModernProgress("Packing", LucideIcons.package, isStep4),
+          _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
+        ],
       ),
     ]);
   }
 
-  // isReached = DB status sudah lewati step ini (bisa upload)
-  // hasUploaded = foto sudah diupload (step selesai)
-  // isFinished = step sudah lewat (warna solid)
-  // isActive = step saat ini (bisa tap upload, warna abu-abu/outline)
-  Widget _buildProgressNode(String label, bool isFinished, bool isActive, Color activeColor, {VoidCallback? onTap}) {
-    final Color nodeColor = isFinished ? activeColor : Colors.white;
-    final Color borderColor = isFinished ? const Color(0xFF131109) : (isActive ? Colors.grey[400]! : Colors.grey[200]!);
-    final Color iconColor = isFinished ? Colors.white : (isActive ? Colors.grey[400]! : Colors.grey[200]!);
+  Widget _buildModernProgress(String label, IconData icon, bool isActive) {
+    const Color activeColor = Color(0xFF1E5655);
+    const Color inactiveColor = Color(0xFFE5E7EB);
 
-    return Column(children: [
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 48, height: 48,
+    return Column(
+      children: [
+        Container(
+          width: 44, height: 44,
           decoration: BoxDecoration(
-            color: nodeColor,
+            color: isActive ? activeColor : Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: borderColor, width: 2),
+            border: Border.all(color: isActive ? activeColor : inactiveColor, width: 1.5),
+            boxShadow: isActive ? [BoxShadow(color: activeColor.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))] : null,
           ),
-          child: Icon(LucideIcons.fileUp, size: 20, color: iconColor),
+          child: Icon(icon, size: 18, color: isActive ? Colors.white : inactiveColor),
         ),
-      ),
-      const SizedBox(height: 6),
-      SizedBox(
-        width: 60,
-        child: Text(label, textAlign: TextAlign.center, maxLines: 2,
-          style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w700,
-            color: isFinished ? darkText : Colors.grey[400])),
-      ),
-    ]);
+        const SizedBox(height: 8),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+      ],
+    );
   }
+
 
   // ── Chips ─────────────────────────────────────────
   Widget _buildStatusChip(String status) {
@@ -450,7 +407,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.6), width: 1.2),
       ),
-      child: Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: color)),
+      child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
     );
   }
 
@@ -459,7 +416,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(20)),
       child: Text(isFast ? "SAME DAY" : "REGULAIR",
-        style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white)),
+        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
     );
   }
 
