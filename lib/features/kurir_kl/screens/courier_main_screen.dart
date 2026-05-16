@@ -1193,18 +1193,18 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                           Text("URUTAN TUGAS", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 1)),
                           const SizedBox(height: 12),
                           
-                          // 1. JEMPUT
+                          // JEMPUT
                           _buildStepItem(
-                            "1. Jemput Cucian", 
+                            "Jemput Cucian", 
                             LucideIcons.mapPin, 
                             true, 
                             onTap: () => _openMap(address)
                           ),
                           _buildStepDivider(),
 
-                          // 2. UPLOAD FOTO
+                          // UPLOAD FOTO
                           _buildStepItem(
-                            "2. Upload Foto Cucian", 
+                            "Upload Foto Cucian", 
                             LucideIcons.camera, 
                             _taskCapturedImages[orderId] != null,
                             onTap: () => _captureTaskPhoto(orderId)
@@ -1281,7 +1281,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                               ),
                               child: _isUploading 
                                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : Text("3. SELESAI JEMPUT", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                                : Text("SELESAI JEMPUT", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
                             ),
                           ),
                         ],
