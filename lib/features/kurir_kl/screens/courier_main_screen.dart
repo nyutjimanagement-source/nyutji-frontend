@@ -121,12 +121,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     context.read<WalletProvider>().fetchWallet();
     context.read<OrderProvider>().fetchOrders();
     
-    // Fetch order tersedia di kecamatan KL
+    // Fetch order tersedia di KL (Marketplace)
     final auth = context.read<AuthProvider>();
     final district = auth.user?['district_name']?.toString() ?? '';
-    if (district.isNotEmpty) {
-      context.read<OrderProvider>().fetchAvailableOrders(district);
-    }
+    context.read<OrderProvider>().fetchAvailableOrders(district);
   }
 
   @override
@@ -1018,8 +1016,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                 // Sesuai Tabel Database: menggunakan kolom 'status'
                 final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
                 if (isPickupTab) {
-                    // Pickup tasks are biasanya SEARCHING, WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
-                  return s == 'SEARCHING' || s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
+                    // Pickup tasks are: WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
+                  return s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
                 } else {
                   // Delivery tasks are biasanya PACKING, DELIVERING
                   return s == 'PACKING' || s == 'DELIVERING';
