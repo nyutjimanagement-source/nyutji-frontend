@@ -1235,15 +1235,14 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 
                                 setState(() => _isUploading = true);
                                 final provider = context.read<OrderProvider>();
-                                final auth = context.read<AuthProvider>();
                                 
-                                // Step 2: UPLOAD DUMMY (Rollback sesuai instruksi Jenderal)
-                                // Sementara lompati API upload untuk stabilitas
-                                const uploadSuccess = true; 
+                                // Step 2: DUMMY UPLOAD (Stabil & Ringan)
+                                // Lewati proses upload fisik untuk menjaga stabilitas koneksi
+                                bool uploadSuccess = true; 
 
                                 if (!uploadSuccess) {
+                                  // Blok ini tetap ada sebagai struktur masa depan jika upload diaktifkan kembali
                                   if (mounted) setState(() => _isUploading = false);
-                                  _showBeautifulNotif("Gagal mengunggah foto. Periksa koneksi.", false);
                                   return;
                                 }
 
