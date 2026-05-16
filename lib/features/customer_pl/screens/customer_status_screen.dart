@@ -399,19 +399,21 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       
                       // LOGIKA AKTIVASI STEP (Cascade: jika step 3 aktif, maka 1 & 2 juga aktif)
                       bool isStep1 = true; // Minimal sudah masuk sistem
+                      // LOGIKA AKTIVASI STEP
                       bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep3 = ['WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep4 = ['PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
+                      bool isStep6 = ['DONE', 'PAID'].contains(s);
 
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildModernProgress("PickUp", LucideIcons.truck, isStep1),
-                          _buildModernProgress("Timbangan", LucideIcons.scale, isStep2),
+                          _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
                           _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
                           _buildModernProgress("Packing", LucideIcons.package, isStep4),
                           _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
+                          _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
                         ],
                       );
                     },

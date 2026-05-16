@@ -344,12 +344,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   Widget _buildProgressCucian(String orderId, String status, Color accentColor, dynamic o) {
     final int step = _getProgressStep(status);
     
-    // LOGIKA AKTIVASI STEP (Cascade sesuai PL)
-    bool isStep1 = true; // Minimal sudah masuk sistem
-    bool isStep2 = step >= 2;
-    bool isStep3 = step >= 3;
-    bool isStep4 = step >= 4;
-    bool isStep5 = step >= 5;
+    // LOGIKA AKTIVASI STEP (Timbang -> Cuci -> Packing -> Kirim -> Selesai)
+    bool isStep1 = step >= 2; // Timbangan
+    bool isStep2 = step >= 3; // Cuci
+    bool isStep3 = step >= 4; // Packing
+    bool isStep4 = step >= 5; // Kirim
+    bool isStep5 = step >= 6; // Selesai
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
@@ -358,15 +358,15 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         const Expanded(child: Divider(color: Color(0xFFE5E7EB), thickness: 1)),
       ]),
       const SizedBox(height: 20),
-      // PROGRESS ICONS (Sync dengan PL)
+      // PROGRESS ICONS (Timbang -> Cuci -> Packing -> Kirim -> Selesai)
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildModernProgress("PickUp", LucideIcons.truck, isStep1),
-          _buildModernProgress("Timbangan", LucideIcons.scale, isStep2),
-          _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
-          _buildModernProgress("Packing", LucideIcons.package, isStep4),
-          _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
+          _buildModernProgress("Timbang", LucideIcons.scale, isStep1),
+          _buildModernProgress("Cuci", LucideIcons.droplets, isStep2),
+          _buildModernProgress("Packing", LucideIcons.package, isStep3),
+          _buildModernProgress("Kirim", LucideIcons.navigation, isStep4),
+          _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep5),
         ],
       ),
     ]);
