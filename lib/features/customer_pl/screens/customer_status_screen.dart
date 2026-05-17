@@ -17,9 +17,6 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
   final Color primaryTeal = const Color(0xFF403600);
   final Color accentGreen = const Color(0xFF22C55E);
   final Color darkBg = const Color(0xFF131109);
-  
-  final Map<String, int> _ratings = {};
-  final Map<String, bool> _ratingExpanded = {};
 
   @override
   void initState() {
@@ -196,6 +193,8 @@ class PremiumOrderCard extends StatefulWidget {
 
 class _PremiumOrderCardState extends State<PremiumOrderCard> {
   bool isExpanded = false;
+  int _rating = 0;
+  bool _isRatingExpanded = false;
 
 
 
@@ -409,7 +408,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       bool isStep6 = ['DONE', 'PAID'].contains(s);
 
                       final orderId = (order['order_number'] ?? order['id']).toString();
-                      final isExpanded = _ratingExpanded[orderId] ?? false;
+                      final isExpanded = _isRatingExpanded;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -431,7 +430,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                             if (!isExpanded)
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  setState(() => _ratingExpanded[orderId] = true);
+                                  setState(() => _isRatingExpanded = true);
                                 },
                                 icon: const Icon(LucideIcons.checkSquare, size: 18),
                                 label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
@@ -443,7 +442,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                                 ),
                               )
                             else
-                              _buildRatingReviewSection(orderId),
+                              _buildRatingReviewSection(),
                           ]
                         ],
                       );
@@ -479,8 +478,8 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
     );
   }
 
-  Widget _buildRatingReviewSection(String orderId) {
-    final rating = _ratings[orderId] ?? 0;
+  Widget _buildRatingReviewSection() {
+    final rating = _rating;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -497,7 +496,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(5, (index) {
               return GestureDetector(
-                onTap: () => setState(() => _ratings[orderId] = index + 1),
+                onTap: () => setState(() => _rating = index + 1),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Icon(
@@ -528,7 +527,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
             child: ElevatedButton(
               onPressed: () {
                 // Dummy Save Action
-                setState(() => _ratingExpanded[orderId] = false);
+                setState(() => _isRatingExpanded = false);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text("Rating dan Review berhasil disimpan!", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
                   backgroundColor: const Color(0xFF403600),
