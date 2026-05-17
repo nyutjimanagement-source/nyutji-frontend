@@ -1084,6 +1084,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     final String address = pickupNote.isNotEmpty ? "$addressRaw\nCatatan: $pickupNote" : addressRaw;
     final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
     final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
+    
+    // Status Order untuk membedakan Jemput vs Antar
+    final String orderStatus = (task['status'] ?? task['order_status'] ?? '').toString().toUpperCase();
+    final bool isDelivery = orderStatus == 'DELIVERING';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1191,9 +1195,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                           Text("URUTAN TUGAS", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 1)),
                           const SizedBox(height: 12),
                           
-                          // JEMPUT
+                          // JEMPUT / ANTAR
                           _buildStepItem(
-                            "Jemput Cucian", 
+                            isDelivery ? "Antar Cucian" : "Jemput Cucian", 
                             LucideIcons.mapPin, 
                             true, 
                             onTap: () => _openMap(address)
@@ -1239,15 +1243,19 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 // Step 2: DUMMY UPLOAD (Stabil & Ringan)
                                 // Lewati proses upload fisik untuk menjaga stabilitas koneksi
 
-                                // Step 3: Trigger WEIGHING (Sync dengan ML)
-                                const String nextStatus = 'WEIGHING';
+                                // Step 3: Trigger NEXT STATUS (WEIGHING atau DONE)
+                                final String nextStatus = isDelivery ? 'DONE' : 'WEIGHING';
                                 final success = await provider.updateOrderStatus(orderId, nextStatus);
                                 
                                 if (mounted) {
                                   setState(() => _isUploading = false);
                                   if (success) {
                                     _taskCapturedImages.remove(orderId);
-                                    _showBeautifulNotif("Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).", true);
+                                    if (isDelivery) {
+                                        _showBeautifulNotif("Tugas Selesai! Cucian telah diterima pelanggan.", true);
+                                    } else {
+                                        _showBeautifulNotif("Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).", true);
+                                    }
                                     _refreshData();
                                   } else {
                                     _showBeautifulNotif(provider.errorMessage ?? "Gagal memperbarui status", false);
@@ -1264,7 +1272,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                               ),
                               child: _isUploading 
                                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : Text("SELESAI JEMPUT", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                                : Text(isDelivery ? "SELESAI ANTAR" : "SELESAI JEMPUT", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
                             ),
                           ),
                         ],

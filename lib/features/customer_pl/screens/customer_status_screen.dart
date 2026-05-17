@@ -17,6 +17,9 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
   final Color primaryTeal = const Color(0xFF403600);
   final Color accentGreen = const Color(0xFF22C55E);
   final Color darkBg = const Color(0xFF131109);
+  
+  final Map<String, int> _ratings = {};
+  final Map<String, bool> _ratingExpanded = {};
 
   @override
   void initState() {
@@ -405,14 +408,43 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep6 = ['DONE', 'PAID'].contains(s);
 
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      final orderId = (order['order_number'] ?? order['id']).toString();
+                      final isExpanded = _ratingExpanded[orderId] ?? false;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
-                          _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
-                          _buildModernProgress("Packing", LucideIcons.package, isStep4),
-                          _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
-                          _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
+                              _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
+                              _buildModernProgress("Packing", LucideIcons.package, isStep4),
+                              _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
+                              _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                            ],
+                          ),
+                          if (isStep6) ...[
+                            const SizedBox(height: 20),
+                            const Divider(color: Color(0xFFF3F0E9), thickness: 1),
+                            const SizedBox(height: 12),
+                            if (!isExpanded)
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  setState(() => _ratingExpanded[orderId] = true);
+                                },
+                                icon: const Icon(LucideIcons.checkSquare, size: 18),
+                                label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF403600),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              )
+                            else
+                              _buildRatingReviewSection(orderId),
+                          ]
                         ],
                       );
                     },
@@ -444,6 +476,75 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
         const SizedBox(height: 8),
         Text(label, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
       ],
+    );
+  }
+
+  Widget _buildRatingReviewSection(String orderId) {
+    final rating = _ratings[orderId] ?? 0;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F0E9).withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF403600).withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text("Berikan Penilaian Anda", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF403600))),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              return GestureDetector(
+                onTap: () => setState(() => _ratings[orderId] = index + 1),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Icon(
+                    index < rating ? LucideIcons.star : LucideIcons.starHalf,
+                    color: index < rating ? const Color(0xFFEAB308) : Colors.grey[400],
+                    size: 32,
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            maxLines: 2,
+            style: GoogleFonts.montserrat(fontSize: 13),
+            decoration: InputDecoration(
+              hintText: "Tulis ulasan layanan...",
+              hintStyle: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.all(12),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                // Dummy Save Action
+                setState(() => _ratingExpanded[orderId] = false);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("Rating dan Review berhasil disimpan!", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
+                  backgroundColor: const Color(0xFF403600),
+                ));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF403600),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text("Save", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800)),
+            ),
+          )
+        ],
+      ),
     );
   }
 
