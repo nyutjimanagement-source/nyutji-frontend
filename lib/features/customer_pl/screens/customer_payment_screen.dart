@@ -367,10 +367,10 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       // Bangun payload item sesuai format backend
       final items = widget.selectedItemsList.map((item) => {
         'category': item['category'] ?? 'Umum',
-        'itemName': item['name'] ?? '',
+        'item_name': item['name'] ?? '',
         'qty': item['count'] ?? 1,
         'unit': item['unit'] ?? 'pcs',
-        'pricePerUnit': item['price'] ?? 0,
+        'price_per_unit': item['price'] ?? 0,
         'notes': '',
       }).toList();
 
