@@ -407,7 +407,6 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep6 = ['DONE', 'PAID'].contains(s);
 
-                      final orderId = (order['order_number'] ?? order['id']).toString();
                       final isExpanded = _isRatingExpanded;
 
                       return Column(
