@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../data/services/api_service.dart';
 
 class OrderProvider extends ChangeNotifier {
@@ -62,20 +63,40 @@ class OrderProvider extends ChangeNotifier {
       debugPrint("Nyutji API Data: Diterima ${orders.length} pesanan");
       if (orders.isNotEmpty) debugPrint("Nyutji API Sample: ${orders.first}");
 
-      // SMART FILTER: Mendukung berbagai nama kolom dan case-insensitive
-      _activeOrders = orders.where((o) {
-        if (o is! Map) return false;
-        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-        return status != 'selesai' && status != 'completed' && status != 'paid';
-      }).toList();
+      // Ambil role aktif dari lokal storage
+      final prefs = await SharedPreferences.getInstance();
+      final role = (prefs.getString('role') ?? 'PL').toUpperCase();
+
+      // SMART FILTER: Sesuai role user
+      if (role == 'PL') {
+        // Untuk Pelanggan (PL): DONE tetap aktif agar bisa ulasan/review
+        _activeOrders = orders.where((o) {
+          if (o is! Map) return false;
+          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+          return status != 'selesai' && status != 'completed' && status != 'paid';
+        }).toList();
+        
+        _historyOrders = orders.where((o) {
+          if (o is! Map) return false;
+          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+          return status == 'selesai' || status == 'completed' || status == 'paid';
+        }).toList();
+      } else {
+        // Untuk Mitra (ML) & Kurir (KL): DONE sudah masuk riwayat / selesai!
+        _activeOrders = orders.where((o) {
+          if (o is! Map) return false;
+          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+          return status != 'done' && status != 'paid' && status != 'selesai' && status != 'completed';
+        }).toList();
+        
+        _historyOrders = orders.where((o) {
+          if (o is! Map) return false;
+          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+          return status == 'done' || status == 'paid' || status == 'selesai' || status == 'completed';
+        }).toList();
+      }
       
-      _historyOrders = orders.where((o) {
-        if (o is! Map) return false;
-        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-        return status == 'selesai' || status == 'completed' || status == 'paid';
-      }).toList();
-      
-      debugPrint("Nyutji State: ${_activeOrders.length} aktif, ${_historyOrders.length} riwayat");
+      debugPrint("Nyutji State untuk role $role: ${_activeOrders.length} aktif, ${_historyOrders.length} riwayat");
     } catch (e) {
       _errorMessage = 'Gagal memuat data pesanan';
       debugPrint("Nyutji Data Error: $e");
