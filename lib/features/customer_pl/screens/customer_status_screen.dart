@@ -194,8 +194,6 @@ class PremiumOrderCard extends StatefulWidget {
 
 class _PremiumOrderCardState extends State<PremiumOrderCard> {
   bool isExpanded = false;
-  int _rating = 0;
-  bool _isRatingExpanded = false;
 
 
 
@@ -408,7 +406,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep6 = ['DONE', 'PAID'].contains(s);
 
-                      final isExpanded = _isRatingExpanded;
+
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -477,75 +475,6 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
         const SizedBox(height: 8),
         Text(label, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
       ],
-    );
-  }
-
-  Widget _buildRatingReviewSection() {
-    final rating = _rating;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F0E9).withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF403600).withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text("Berikan Penilaian Anda", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF403600))),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) {
-              return GestureDetector(
-                onTap: () => setState(() => _rating = index + 1),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(
-                    index < rating ? LucideIcons.star : LucideIcons.starHalf,
-                    color: index < rating ? const Color(0xFFEAB308) : Colors.grey[400],
-                    size: 32,
-                  ),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            maxLines: 2,
-            style: GoogleFonts.montserrat(fontSize: 13),
-            decoration: InputDecoration(
-              hintText: "Tulis ulasan layanan...",
-              hintStyle: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.all(12),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Dummy Save Action
-                setState(() => _isRatingExpanded = false);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("Rating dan Review berhasil disimpan!", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
-                  backgroundColor: const Color(0xFF403600),
-                ));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF403600),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text("Save", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800)),
-            ),
-          )
-        ],
-      ),
     );
   }
 

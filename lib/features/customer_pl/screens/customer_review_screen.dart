@@ -32,17 +32,22 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
 
   void _submitReview() async {
     final orderId = (widget.order['order_number'] ?? widget.order['id'] ?? '').toString();
+    final orderProvider = context.read<OrderProvider>();
+    final navigator = Navigator.of(context);
+
     if (orderId.isNotEmpty) {
-      await context.read<OrderProvider>().updateOrderStatus(orderId, 'PAID');
+      await orderProvider.updateOrderStatus(orderId, 'PAID');
     }
+
+    if (!mounted) return;
 
     NyutjiNotif.showSuccess(context, "Terima kasih atas ulasan Anda!");
     
     // Bersihkan tracking state
-    context.read<OrderProvider>().clearTracking();
+    orderProvider.clearTracking();
     
     // Kembali ke layar utama (refresh/restart tab)
-    Navigator.pushNamedAndRemoveUntil(context, '/customer_main', (route) => false);
+    navigator.pushNamedAndRemoveUntil('/customer_main', (route) => false);
   }
 
   Widget _buildStarRating(String title, int currentRating, Function(int) onRatingChanged) {
