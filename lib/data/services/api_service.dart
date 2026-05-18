@@ -156,6 +156,15 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> submitReview(String orderId, int ratingMitra, int ratingCourier, String comment) async {
+    final response = await _dio.post("/orders/$orderId/review", data: {
+      'ratingMitra': ratingMitra,
+      'ratingCourier': ratingCourier,
+      'comment': comment
+    });
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
     final response = await _dio.post("/orders", data: orderData);
     return response.data;

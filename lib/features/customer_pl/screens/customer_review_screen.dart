@@ -36,7 +36,12 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
     final navigator = Navigator.of(context);
 
     if (orderId.isNotEmpty) {
-      await orderProvider.updateOrderStatus(orderId, 'PAID');
+      await orderProvider.submitReview(
+        orderId, 
+        _ratingML, 
+        _ratingKL, 
+        _reviewController.text,
+      );
     }
 
     if (!mounted) return;

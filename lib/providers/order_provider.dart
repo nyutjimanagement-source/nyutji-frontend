@@ -277,6 +277,29 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> submitReview(String orderId, int ratingMitra, int ratingCourier, String comment) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _api.submitReview(orderId, ratingMitra, ratingCourier, comment);
+      await fetchOrders();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message'] ?? 'Gagal menyimpan ulasan';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> uploadOrderAttachment(String orderId, dynamic file, String step, String customFileName) async {
     _isLoading = true;
     notifyListeners();
