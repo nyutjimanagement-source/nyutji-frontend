@@ -66,9 +66,9 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
           children: List.generate(5, (index) {
             return IconButton(
               icon: Icon(
-                index < currentRating ? LucideIcons.star : LucideIcons.star,
-                color: index < currentRating ? Colors.orange : Colors.grey[300],
-                size: 32,
+                index < currentRating ? Icons.star : Icons.star_border,
+                color: index < currentRating ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
+                size: 36,
               ),
               onPressed: () => onRatingChanged(index + 1),
             );
@@ -80,8 +80,43 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final mitraName = widget.order['mitra'] ?? 'Mitra Laundry';
-    final courierName = widget.order['courier'] ?? 'Kurir Laundry';
+    // Parser Nama Mitra
+    final rawMitra = widget.order['mitra'];
+    String mitraName = 'Mitra Laundry';
+    if (rawMitra is Map) {
+      mitraName = (rawMitra['name'] ?? rawMitra['nama'] ?? 'Mitra Laundry').toString();
+    } else if (rawMitra != null && rawMitra.toString().isNotEmpty && rawMitra.toString() != "null") {
+      mitraName = rawMitra.toString();
+    } else {
+      mitraName = (widget.order['mitra_name'] ?? 'Mitra Laundry').toString();
+    }
+
+    // Parser Nama Kurir
+    final rawCourier = widget.order['courier'] ?? widget.order['courier_name'] ?? widget.order['petugas_kurir'];
+    String courierName = 'Kurir Laundry';
+    bool hasCourier = false;
+    
+    if (rawCourier is Map) {
+      courierName = (rawCourier['name'] ?? rawCourier['nama'] ?? 'Kurir Laundry').toString();
+      hasCourier = courierName != 'Kurir Laundry';
+    } else if (rawCourier != null && rawCourier.toString().isNotEmpty && rawCourier.toString() != "null" && rawCourier.toString() != "-") {
+      final courierStr = rawCourier.toString();
+      if (courierStr.contains('name:')) {
+        try {
+          final parts = courierStr.split('name:');
+          if (parts.length > 1) {
+            courierName = parts[1].split(',')[0].replaceAll(RegExp(r'[{}]'), '').trim();
+          } else {
+            courierName = courierStr.replaceAll(RegExp(r'[{}]'), '').trim();
+          }
+        } catch (e) {
+          courierName = courierStr.replaceAll(RegExp(r'[{}]'), '').trim();
+        }
+      } else {
+        courierName = courierStr;
+      }
+      hasCourier = courierName.isNotEmpty;
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -130,27 +165,29 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
               ),
               child: Column(
                 children: [
-                  _buildStarRating("Beri Nilai untuk $mitraName", _ratingML, (val) => setState(() => _ratingML = val)),
+                  _buildStarRating("Beri Nilai Mitra Laundry $mitraName", _ratingML, (val) => setState(() => _ratingML = val)),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Rating Kurir
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey[200]!),
+            
+            if (hasCourier) ...[
+              const SizedBox(height: 16),
+              // Rating Kurir
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  children: [
+                    _buildStarRating("Beri Nilai Kurir $courierName", _ratingKL, (val) => setState(() => _ratingKL = val)),
+                  ],
+                ),
               ),
-              child: Column(
-                children: [
-                  _buildStarRating("Beri Nilai untuk $courierName", _ratingKL, (val) => setState(() => _ratingKL = val)),
-                ],
-              ),
-            ),
+            ],
             const SizedBox(height: 24),
 
             // Input Ulasan
