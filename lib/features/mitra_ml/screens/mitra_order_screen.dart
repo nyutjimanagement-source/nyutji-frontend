@@ -169,16 +169,20 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   Widget _buildOrderCard(dynamic o) {
     final status = (o['status'] ?? o['order_status'] ?? 'UNKNOWN').toString();
     final statusUp = status.toUpperCase();
-    final price = double.tryParse((o['total_price'] ?? o['totalPrice'] ?? o['grand_total'] ?? o['total'] ?? '0').toString()) ?? 0.0;
+    final servicePrice = double.tryParse((o['servicePrice'] ?? o['service_price'] ?? o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
     final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
     final customerName = o['customer']?['name']?.toString() ?? o['customer_name']?.toString() ?? 'Pelanggan';
     final courierName = o['courier']?['name']?.toString() ?? o['courier_name']?.toString() ?? 'Belum Ada';
     final bool isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true || o['service_type'] == 'SAME_DAY';
     final Color accentColor = isFast ? Colors.orange : primaryTeal;
 
-    DateTime createdAt;
-    try { createdAt = o['created_at'] != null ? DateTime.parse(o['created_at'].toString()) : DateTime.now(); }
-    catch (e) { createdAt = DateTime.now(); }
+    DateTime doneAt;
+    try {
+      final doneAtRaw = o['doneAt'] ?? o['done_at'] ?? o['createdAt'] ?? o['created_at'];
+      doneAt = doneAtRaw != null ? DateTime.parse(doneAtRaw.toString()) : DateTime.now();
+    } catch (e) {
+      doneAt = DateTime.now();
+    }
 
     final bool isExpanded = _expandedIds.contains(orderId);
 
@@ -210,8 +214,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 child: Padding(
                   padding: EdgeInsets.only(left: isExpanded ? 8 : 0),
                   child: isExpanded
-                      ? _buildExpandedCard(o, orderId, status, statusUp, price, customerName, courierName, isFast, createdAt, accentColor)
-                      : _buildCollapsedCard(status, price, createdAt),
+                      ? _buildExpandedCard(o, orderId, status, statusUp, servicePrice, customerName, courierName, isFast, doneAt, accentColor)
+                      : _buildCollapsedCard(status, servicePrice, doneAt),
                 ),
               ),
             ),
@@ -222,7 +226,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   }
 
   // ── COLLAPSED ──────────────────────────────────────
-  Widget _buildCollapsedCard(String status, double price, DateTime createdAt) {
+  Widget _buildCollapsedCard(String status, double servicePrice, DateTime doneAt) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(children: [
@@ -231,9 +235,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           child: const Icon(LucideIcons.user, color: primaryTeal, size: 16)),
         const SizedBox(width: 12),
         Expanded(child: Text(
-          NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
+          NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(servicePrice),
           style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText))),
-        Text(DateFormat('dd MMM').format(createdAt),
+        Text(DateFormat('dd MMM').format(doneAt),
           style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600)),
         const SizedBox(width: 12),
         _buildStatusChip(status),
@@ -243,8 +247,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
   // ── EXPANDED ──────────────────────────────────────
   Widget _buildExpandedCard(dynamic o, String orderId, String status, String statusUp,
-      double price, String customerName, String courierName, bool isFast,
-      DateTime createdAt, Color accentColor) {
+      double servicePrice, String customerName, String courierName, bool isFast,
+      DateTime doneAt, Color accentColor) {
 
     final bool needsCourier = statusUp == 'SEARCHING' || statusUp == 'WAITING_DROPOFF';
     final bool needsUpdate = !needsCourier && statusUp != 'DONE' && statusUp != 'PAID';
@@ -258,7 +262,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(orderId, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textGrey, letterSpacing: 0.4)),
-              Text(DateFormat('dd MMM yyyy, HH:mm').format(createdAt),
+              Text(DateFormat('dd MMM yyyy, HH:mm').format(doneAt),
                 style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.w500)),
               const SizedBox(height: 12),
               Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -269,7 +273,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(customerName, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
-                  Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
+                  Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(servicePrice),
                     style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: accentColor)),
                 ])),
               ]),
