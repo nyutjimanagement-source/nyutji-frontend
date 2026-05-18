@@ -149,7 +149,7 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
             Text("Cucian Selesai!",
                 style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: primaryTeal)),
             const SizedBox(height: 8),
-            Text("Dana telah otomatis diteruskan ke Mitra dan Kurir. Bagaimana pelayanan mereka?",
+            Text("Bagaimana pelayanan mereka?",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600], height: 1.5)),
             const SizedBox(height: 40),
