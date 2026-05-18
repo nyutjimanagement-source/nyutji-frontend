@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/order_provider.dart';
 import 'customer_order_screen.dart';
+import 'customer_review_screen.dart';
 import '../../../core/utils/status_helper.dart';
 
 class CustomerStatusScreen extends StatefulWidget {
@@ -426,22 +427,24 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                             const SizedBox(height: 20),
                             const Divider(color: Color(0xFFF3F0E9), thickness: 1),
                             const SizedBox(height: 12),
-                            if (!isExpanded)
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  setState(() => _isRatingExpanded = true);
-                                },
-                                icon: const Icon(LucideIcons.checkSquare, size: 18),
-                                label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF403600),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                              )
-                            else
-                              _buildRatingReviewSection(),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CustomerReviewScreen(order: order),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(LucideIcons.checkSquare, size: 18),
+                              label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF403600),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
                           ]
                         ],
                       );

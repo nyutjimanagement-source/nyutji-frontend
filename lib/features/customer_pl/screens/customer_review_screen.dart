@@ -30,8 +30,12 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
     super.dispose();
   }
 
-  void _submitReview() {
-    // Simulasi pengiriman review
+  void _submitReview() async {
+    final orderId = (widget.order['order_number'] ?? widget.order['id'] ?? '').toString();
+    if (orderId.isNotEmpty) {
+      await context.read<OrderProvider>().updateOrderStatus(orderId, 'PAID');
+    }
+
     NyutjiNotif.showSuccess(context, "Terima kasih atas ulasan Anda!");
     
     // Bersihkan tracking state

@@ -66,13 +66,13 @@ class OrderProvider extends ChangeNotifier {
       _activeOrders = orders.where((o) {
         if (o is! Map) return false;
         final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-        return status != 'selesai' && status != 'completed' && status != 'done';
+        return status != 'selesai' && status != 'completed' && status != 'paid';
       }).toList();
       
       _historyOrders = orders.where((o) {
         if (o is! Map) return false;
         final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-        return status == 'selesai' || status == 'completed' || status == 'done';
+        return status == 'selesai' || status == 'completed' || status == 'paid';
       }).toList();
       
       debugPrint("Nyutji State: ${_activeOrders.length} aktif, ${_historyOrders.length} riwayat");
