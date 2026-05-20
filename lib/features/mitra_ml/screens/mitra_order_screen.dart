@@ -295,17 +295,19 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               const SizedBox(width: 6),
               _buildServiceChip(isFast, accentColor),
             ]),
-            const SizedBox(height: 8),
-            Row(children: [
-              Icon(LucideIcons.truck, size: 14, color: Colors.grey[400]),
-              const SizedBox(width: 6),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text("KURIR", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[400])),
-                Text(courierName,
-                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700,
-                    color: courierName == "Belum Ada" ? Colors.orange : darkText)),
+            if (rawDel != 'SELFDROP_SELFDELIVERY') ...[
+              const SizedBox(height: 8),
+              Row(children: [
+                Icon(LucideIcons.truck, size: 14, color: Colors.grey[400]),
+                const SizedBox(width: 6),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text("KURIR", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[400])),
+                  Text(courierName,
+                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700,
+                      color: courierName == "Belum Ada" ? Colors.orange : darkText)),
+                ]),
               ]),
-            ]),
+            ],
           ]),
         ]),
 

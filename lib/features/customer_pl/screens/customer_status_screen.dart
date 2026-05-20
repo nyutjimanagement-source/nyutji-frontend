@@ -250,6 +250,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
+    final String rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
     final isFastTrack = (order['is_fast_track'] ?? false).toString() == 'true' || 
                         order['service_type']?.toString().toLowerCase().contains('fast') == true;
 
@@ -388,7 +389,11 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                     children: [
                       Expanded(child: _detailCol("Tgl Selesai", _formatNyutjiDate(completionDate))),
                       const SizedBox(width: 10),
-                      Expanded(child: _detailCol("Petugas Kurir", _getCourierStatusText(order))),
+                      Expanded(
+                        child: rawDel == 'SELFDROP_SELFDELIVERY' 
+                            ? const SizedBox.shrink() 
+                            : _detailCol("Petugas Kurir", _getCourierStatusText(order)),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
