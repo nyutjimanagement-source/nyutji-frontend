@@ -1031,21 +1031,24 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                 }
               }).toList();
 
-              if (orderProv.isLoading && filtered.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
               if (filtered.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 60),
+                return Container(
+                  height: 220,
+                  alignment: Alignment.center,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Icon(LucideIcons.clipboardCheck, size: 48, color: Colors.grey[300]),
                       const SizedBox(height: 16),
-                      Text("Tidak ada antrean tugas", style: GoogleFonts.montserrat(fontSize: 12, color: textGrey, fontWeight: FontWeight.w600)),
+                      Text(
+                        "Tidak ada antrean tugas",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          color: textGrey,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 );
