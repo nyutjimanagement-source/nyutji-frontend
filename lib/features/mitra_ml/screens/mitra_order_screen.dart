@@ -99,32 +99,220 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     if (isLoading && filtered.isEmpty) {
       return const Center(key: ValueKey('loading'), child: CircularProgressIndicator(color: primaryTeal));
     }
-    if (filtered.isEmpty) {
-      return ListView(
-        key: ValueKey('empty_$currentFilter'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.28),
-          Center(
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(LucideIcons.clipboardList, size: 48, color: Colors.grey[300]),
-              const SizedBox(height: 16),
-              Text("Tidak ada pesanan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Text("Tarik ke bawah untuk memuat ulang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
-            ]),
-          ),
-        ],
-      );
-    }
 
-    final List<List<dynamic>> pages = [];
-    for (var i = 0; i < filtered.length; i += 5) {
-      pages.add(filtered.sublist(i, i + 5 > filtered.length ? filtered.length : i + 5));
-    }
+    final orderProv = context.read<OrderProvider>();
 
     return Column(
       key: ValueKey('list_$currentFilter'),
+      children: [
+        _buildSummaryCards(orderProv),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: filtered.isEmpty
+                ? RefreshIndicator(
+                    onRefresh: () => context.read<OrderProvider>().fetchOrders(),
+                    color: primaryTeal,
+                    child: ListView(
+                      key: ValueKey('empty_$currentFilter'),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.18),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(LucideIcons.clipboardList, size: 48, color: Colors.grey[300]),
+                              const SizedBox(height: 16),
+                              Text("Tidak ada pesanan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 8),
+                              Text("Tarik ke bawah untuk memuat ulang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : _buildPaginatedList(filtered),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryCards(OrderProvider orderProv) {
+    final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
+    
+    double totalSemua = 0;
+    int countSemua = 0;
+    double totalSameDay = 0;
+    int countSameDay = 0;
+    double totalReguler = 0;
+    int countReguler = 0;
+
+    for (var o in allOrders) {
+      final price = double.tryParse((o['servicePrice'] ?? o['service_price'] ?? o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
+      final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
+      final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
+      
+      // Semua
+      totalSemua += price;
+      countSemua++;
+      
+      // Same Day
+      if (isFast || serviceType.contains('SAME')) {
+        totalSameDay += price;
+        countSameDay++;
+      }
+      
+      // Reguler
+      if (serviceType.contains('REGULER') || serviceType.contains('BIASA')) {
+        totalReguler += price;
+        countReguler++;
+      }
+    }
+
+    final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 16, 4, 8),
+      child: Row(
+        children: [
+          _buildSummaryCard(
+            label: "Semua",
+            value: "${currencyFormatter.format(totalSemua)} | $countSemua",
+            isActive: currentFilter == "Semua",
+            activeColor: primaryTeal,
+            icon: LucideIcons.layers,
+            onTap: () {
+              if (currentFilter != "Semua") {
+                setState(() {
+                  currentFilter = "Semua";
+                  _currentPage = 0;
+                });
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              }
+            },
+          ),
+          _buildSummaryCard(
+            label: "Same Day",
+            value: "${currencyFormatter.format(totalSameDay)} | $countSameDay",
+            isActive: currentFilter == "Same Day",
+            activeColor: const Color(0xFFEA580C),
+            icon: LucideIcons.zap,
+            onTap: () {
+              if (currentFilter != "Same Day") {
+                setState(() {
+                  currentFilter = "Same Day";
+                  _currentPage = 0;
+                });
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              }
+            },
+          ),
+          _buildSummaryCard(
+            label: "Reguler",
+            value: "${currencyFormatter.format(totalReguler)} | $countReguler",
+            isActive: currentFilter == "Reguler",
+            activeColor: const Color(0xFF2563EB),
+            icon: LucideIcons.calendar,
+            onTap: () {
+              if (currentFilter != "Reguler") {
+                setState(() {
+                  currentFilter = "Reguler";
+                  _currentPage = 0;
+                });
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required String label,
+    required String value,
+    required bool isActive,
+    required VoidCallback onTap,
+    required Color activeColor,
+    required IconData icon,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: 280,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: isActive ? activeColor : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: isActive
+                  ? activeColor.withValues(alpha: 0.25)
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+          border: Border.all(
+            color: isActive ? activeColor : Colors.grey[200]!,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isActive ? Colors.white.withValues(alpha: 0.85) : textGrey,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Icon(
+                  icon,
+                  size: 16,
+                  color: isActive ? Colors.white.withValues(alpha: 0.85) : activeColor.withValues(alpha: 0.8),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.montserrat(
+                fontSize: 23,
+                fontWeight: FontWeight.w900,
+                color: isActive ? Colors.white : darkText,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaginatedList(List<dynamic> filtered) {
+    final List<List<dynamic>> pages = [];
+    for (var i = 0; i < filtered.length; i += 6) {
+      pages.add(filtered.sublist(i, i + 6 > filtered.length ? filtered.length : i + 6));
+    }
+
+    return Column(
       children: [
         Expanded(
           child: RefreshIndicator(
@@ -146,7 +334,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         ),
         if (pages.length > 1)
           Padding(
-            padding: const EdgeInsets.only(bottom: 100, top: 10),
+            padding: const EdgeInsets.only(bottom: 50, top: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(pages.length, (i) => AnimatedContainer(
@@ -161,7 +349,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             ),
           )
         else
-          const SizedBox(height: 80),
+          const SizedBox(height: 30),
       ],
     );
   }
