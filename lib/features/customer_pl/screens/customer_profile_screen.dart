@@ -155,13 +155,25 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(auth.user?['name'] ?? "Pelanggan", style: NyutjiTheme.h2(Colors.white).copyWith(fontSize: 20)),
+                   Text(
+                    auth.user?['name'] ?? "Pelanggan",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: NyutjiTheme.h2(Colors.white).copyWith(fontSize: 20),
+                  ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(LucideIcons.mapPin, size: 12, color: Colors.white70),
                       const SizedBox(width: 4),
-                      Text("$district, $city", style: NyutjiTheme.detail(Colors.white70).copyWith(fontSize: 13)),
+                      Expanded(
+                        child: Text(
+                          "$district, $city",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: NyutjiTheme.detail(Colors.white70).copyWith(fontSize: 13),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
