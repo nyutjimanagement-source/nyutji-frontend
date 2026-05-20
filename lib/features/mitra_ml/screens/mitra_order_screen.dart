@@ -250,7 +250,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       double servicePrice, String customerName, String courierName, bool isFast,
       DateTime doneAt, Color accentColor) {
 
-    final bool needsCourier = statusUp == 'SEARCHING' || statusUp == 'WAITING_DROPOFF';
+    final bool isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
+    final bool needsCourier = (statusUp == 'SEARCHING' || statusUp == 'WAITING_DROPOFF') && !isSelfDrop;
     final bool needsUpdate = !needsCourier && statusUp != 'DONE' && statusUp != 'PAID';
 
     return Padding(
@@ -335,9 +336,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   // SELF_DROP tanpa kurir → 3 steps (no Kirim = Ambil Mandiri)
   Widget _buildProgressCucian(String orderId, String status, Color accentColor, dynamic o) {
     final int step = _getProgressStep(status);
+    final bool isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
+    final isSelfDropPickup = isSelfDrop && (double.tryParse(o['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0;
     
     // LOGIKA AKTIVASI STEP (Timbang -> Cuci -> Packing -> Kirim -> Selesai)
-    bool isStep1 = step >= 2; // Timbang
+    bool isStep1 = step >= 2 || (isSelfDrop && status.toUpperCase() == 'WAITING_DROPOFF'); // Timbang
     bool isStep2 = step >= 3; // Cuci
     bool isStep3 = step >= 4; // Packing
     bool isStep4 = step >= 5; // Kirim
@@ -351,16 +354,27 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       ]),
       const SizedBox(height: 20),
       // PROGRESS ICONS (Timbang -> Cuci -> Packing -> Kirim -> Selesai)
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildModernProgress("Timbang", LucideIcons.scale, isStep1),
-          _buildModernProgress("Cuci", LucideIcons.droplets, isStep2),
-          _buildModernProgress("Packing", LucideIcons.package, isStep3),
-          _buildModernProgress("Kirim", LucideIcons.navigation, isStep4),
-          _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep5),
-        ],
-      ),
+      if (isSelfDropPickup)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildModernProgress("Timbang", LucideIcons.scale, isStep1),
+            _buildModernProgress("Cuci", LucideIcons.droplets, isStep2),
+            _buildModernProgress("Packing", LucideIcons.package, isStep3),
+            _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep5),
+          ],
+        )
+      else
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildModernProgress("Timbang", LucideIcons.scale, isStep1),
+            _buildModernProgress("Cuci", LucideIcons.droplets, isStep2),
+            _buildModernProgress("Packing", LucideIcons.package, isStep3),
+            _buildModernProgress("Kirim", LucideIcons.navigation, isStep4),
+            _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep5),
+          ],
+        ),
     ]);
   }
 

@@ -328,9 +328,16 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                         style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF131109), letterSpacing: 0.3)
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        StatusHelper.getLabel(order['order_status'] ?? order['status'] ?? 'PROSES', 'PL'),
-                        style: GoogleFonts.montserrat(fontSize: 16, color: const Color(0xFF403600), fontWeight: FontWeight.w500, letterSpacing: 1.0)
+                      Builder(
+                        builder: (context) {
+                          final isSelfDrop = order['deliveryType'] == 'SELF_DROP' || order['delivery_type'] == 'SELF_DROP';
+                          final rawStatus = (order['order_status'] ?? order['status'] ?? 'PROSES').toString().toUpperCase();
+                          final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
+                          return Text(
+                            StatusHelper.getLabel(displayStatus, 'PL'),
+                            style: GoogleFonts.montserrat(fontSize: 16, color: const Color(0xFF403600), fontWeight: FontWeight.w500, letterSpacing: 1.0)
+                          );
+                        }
                       ),
                     ],
                   ),
@@ -397,9 +404,11 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                   Builder(
                     builder: (context) {
                       final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
+                      final isSelfDrop = order['deliveryType'] == 'SELF_DROP' || order['delivery_type'] == 'SELF_DROP';
                       
                       // LOGIKA AKTIVASI STEP
-                      bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
+                      bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s) ||
+                          (isSelfDrop && s == 'WAITING_DROPOFF');
                       bool isStep3 = ['WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep4 = ['PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
