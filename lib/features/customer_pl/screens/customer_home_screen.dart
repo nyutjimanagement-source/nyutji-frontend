@@ -274,8 +274,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     return Consumer<OrderProvider>(
       builder: (context, orderProv, _) {
         final latestOrder = orderProv.activeOrders.isNotEmpty ? orderProv.activeOrders.first : null;
-        final rawStatus = latestOrder != null ? (latestOrder['status'] ?? latestOrder['order_status'] ?? 'WAITING').toString() : "";
-        final statusLabel = latestOrder != null ? StatusHelper.getLabel(rawStatus, 'PL') : "Order Nyutji Yuks !!";
+        final rawStatus = latestOrder != null ? (latestOrder['status'] ?? latestOrder['order_status'] ?? 'WAITING').toString().toUpperCase() : "";
+        final isSelfDrop = latestOrder != null && (latestOrder['deliveryType'] == 'SELF_DROP' || latestOrder['delivery_type'] == 'SELF_DROP');
+        final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
+        final statusLabel = latestOrder != null ? StatusHelper.getLabel(displayStatus, 'PL') : "Order Nyutji Yuks !!";
         final label = latestOrder != null ? "LACAK PROGRES LIVE" : "Ayo Cuci Sekarang";
 
         return GestureDetector(

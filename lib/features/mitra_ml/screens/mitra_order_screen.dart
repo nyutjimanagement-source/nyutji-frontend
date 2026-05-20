@@ -215,7 +215,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                   padding: EdgeInsets.only(left: isExpanded ? 8 : 0),
                   child: isExpanded
                       ? _buildExpandedCard(o, orderId, status, statusUp, servicePrice, customerName, courierName, isFast, doneAt, accentColor)
-                      : _buildCollapsedCard(status, servicePrice, doneAt),
+                      : _buildCollapsedCard(status, servicePrice, doneAt, o),
                 ),
               ),
             ),
@@ -226,7 +226,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   }
 
   // ── COLLAPSED ──────────────────────────────────────
-  Widget _buildCollapsedCard(String status, double servicePrice, DateTime doneAt) {
+  Widget _buildCollapsedCard(String status, double servicePrice, DateTime doneAt, dynamic o) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(children: [
@@ -240,7 +240,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         Text(DateFormat('dd MMM').format(doneAt),
           style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600)),
         const SizedBox(width: 12),
-        _buildStatusChip(status),
+        _buildStatusChip(status, o),
       ]),
     );
   }
@@ -286,7 +286,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             Row(children: [
               Text("Status :", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
               const SizedBox(width: 6),
-              _buildStatusChip(status),
+              _buildStatusChip(status, o),
             ]),
             const SizedBox(height: 8),
             Row(children: [
@@ -402,9 +402,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
 
   // ── Chips ─────────────────────────────────────────
-  Widget _buildStatusChip(String status) {
-    final Color color = StatusHelper.getColor(status);
-    final String label = StatusHelper.getLabel(status, 'ML');
+  Widget _buildStatusChip(String status, dynamic o) {
+    final bool isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
+    final rawStatus = status.toUpperCase();
+    final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
+    
+    final Color color = StatusHelper.getColor(displayStatus);
+    final String label = StatusHelper.getLabel(displayStatus, 'ML');
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
