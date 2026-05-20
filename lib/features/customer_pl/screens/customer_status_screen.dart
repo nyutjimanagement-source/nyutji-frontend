@@ -330,7 +330,8 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       const SizedBox(height: 4),
                       Builder(
                         builder: (context) {
-                          final isSelfDrop = order['deliveryType'] == 'SELF_DROP' || order['delivery_type'] == 'SELF_DROP';
+                          final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
+                          final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
                           final rawStatus = (order['order_status'] ?? order['status'] ?? 'PROSES').toString().toUpperCase();
                           final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
                           return Text(
@@ -404,7 +405,8 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                   Builder(
                     builder: (context) {
                       final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
-                      final isSelfDrop = order['deliveryType'] == 'SELF_DROP' || order['delivery_type'] == 'SELF_DROP';
+                      final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
+                      final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
                       
                       // LOGIKA AKTIVASI STEP
                       bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s) ||
@@ -414,8 +416,8 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep6 = ['DONE', 'PAID'].contains(s);
 
-                      final isSelfDropPickup = (order['deliveryType'] == 'SELF_DROP' || order['delivery_type'] == 'SELF_DROP') &&
-                          (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0;
+                      final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
+                          (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -250,7 +250,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       double servicePrice, String customerName, String courierName, bool isFast,
       DateTime doneAt, Color accentColor) {
 
-    final bool isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
+    final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
+    final bool isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
     final bool needsCourier = (statusUp == 'SEARCHING' || statusUp == 'WAITING_DROPOFF') && !isSelfDrop;
     final bool needsUpdate = !needsCourier && statusUp != 'DONE' && statusUp != 'PAID';
 
@@ -336,8 +337,10 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   // SELF_DROP tanpa kurir → 3 steps (no Kirim = Ambil Mandiri)
   Widget _buildProgressCucian(String orderId, String status, Color accentColor, dynamic o) {
     final int step = _getProgressStep(status);
-    final bool isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
-    final isSelfDropPickup = isSelfDrop && (double.tryParse(o['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0;
+    final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
+    final bool isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+    final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
+        (rawDel == 'SELF_DROP' && (double.tryParse(o['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
     
     // LOGIKA AKTIVASI STEP (Timbang -> Cuci -> Packing -> Kirim -> Selesai)
     bool isStep1 = step >= 2 || (isSelfDrop && status.toUpperCase() == 'WAITING_DROPOFF'); // Timbang
@@ -403,7 +406,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
   // ── Chips ─────────────────────────────────────────
   Widget _buildStatusChip(String status, dynamic o) {
-    final bool isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
+    final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
+    final bool isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
     final rawStatus = status.toUpperCase();
     final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
     

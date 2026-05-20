@@ -275,7 +275,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       builder: (context, orderProv, _) {
         final latestOrder = orderProv.activeOrders.isNotEmpty ? orderProv.activeOrders.first : null;
         final rawStatus = latestOrder != null ? (latestOrder['status'] ?? latestOrder['order_status'] ?? 'WAITING').toString().toUpperCase() : "";
-        final isSelfDrop = latestOrder != null && (latestOrder['deliveryType'] == 'SELF_DROP' || latestOrder['delivery_type'] == 'SELF_DROP');
+        final String rawDel = latestOrder != null ? (latestOrder['deliveryType'] ?? latestOrder['delivery_type'] ?? '').toString().toUpperCase() : "";
+        final isSelfDrop = latestOrder != null && (rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE');
         final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
         final statusLabel = latestOrder != null ? StatusHelper.getLabel(displayStatus, 'PL') : "Order Nyutji Yuks !!";
         final label = latestOrder != null ? "LACAK PROGRES LIVE" : "Ayo Cuci Sekarang";

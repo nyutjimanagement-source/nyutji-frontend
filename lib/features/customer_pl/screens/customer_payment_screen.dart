@@ -376,7 +376,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
 
       final isFastTrack = widget.speed == 'fast';
       final deliveryFee = (widget.isPickup || widget.dropMethod == 'courier') ? _dynamicCourierFee : 0;
-      final deliveryType = widget.isPickup ? 'PICKUP' : 'SELF_DROP';
+      final deliveryType = widget.isPickup 
+          ? 'PICKUP' 
+          : (widget.dropMethod == 'courier' ? 'SELF_DROP' : 'SELFDROP_SELFDELIVERY');
 
       final payload = {
         'address': widget.address,
