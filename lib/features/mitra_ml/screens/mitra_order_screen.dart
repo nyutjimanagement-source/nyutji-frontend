@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
@@ -22,12 +23,14 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   String currentFilter = "Semua";
   final Set<String> _expandedIds = {};
   late PageController _pageController;
+  late ScrollController _summaryScrollController;
   int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _summaryScrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<OrderProvider>().fetchOrders();
     });
@@ -36,6 +39,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _summaryScrollController.dispose();
     super.dispose();
   }
 
@@ -85,10 +89,17 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             return true;
           }).toList();
 
-          return AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-            child: _buildListContent(filtered, orderProv.isLoading, hasNewOrders),
+          return Column(
+            children: [
+              _buildSummaryCards(orderProv),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+                  child: _buildListContent(filtered, orderProv.isLoading, hasNewOrders),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -100,44 +111,65 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       return const Center(key: ValueKey('loading'), child: CircularProgressIndicator(color: primaryTeal));
     }
 
-    final orderProv = context.read<OrderProvider>();
-
-    return Column(
-      key: ValueKey('list_$currentFilter'),
-      children: [
-        _buildSummaryCards(orderProv),
-        Expanded(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: filtered.isEmpty
-                ? RefreshIndicator(
-                    onRefresh: () => context.read<OrderProvider>().fetchOrders(),
-                    color: primaryTeal,
-                    child: ListView(
-                      key: ValueKey('empty_$currentFilter'),
-                      physics: const AlwaysScrollableScrollPhysics(),
+    return AnimatedSwitcher(
+      key: ValueKey('content_$currentFilter'),
+      duration: const Duration(milliseconds: 300),
+      child: filtered.isEmpty
+          ? RefreshIndicator(
+              onRefresh: () => context.read<OrderProvider>().fetchOrders(),
+              color: primaryTeal,
+              child: ListView(
+                key: ValueKey('empty_$currentFilter'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.18),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(height: MediaQuery.of(context).size.height * 0.18),
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(LucideIcons.clipboardList, size: 48, color: Colors.grey[300]),
-                              const SizedBox(height: 16),
-                              Text("Tidak ada pesanan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 8),
-                              Text("Tarik ke bawah untuk memuat ulang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
-                            ],
-                          ),
-                        ),
+                        Icon(LucideIcons.clipboardList, size: 48, color: Colors.grey[300]),
+                        const SizedBox(height: 16),
+                        Text("Tidak ada pesanan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        Text("Tarik ke bawah untuk memuat ulang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
                       ],
                     ),
-                  )
-                : _buildPaginatedList(filtered),
-          ),
-        ),
-      ],
+                  ),
+                ],
+              ),
+            )
+          : _buildPaginatedList(filtered),
     );
+  }
+
+  void _animateSummaryScroll(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_summaryScrollController.hasClients) {
+        double targetOffset = index * 292.0;
+        final maxScroll = _summaryScrollController.position.maxScrollExtent;
+        if (targetOffset > maxScroll) {
+          targetOffset = maxScroll;
+        }
+        if (targetOffset < 0) {
+          targetOffset = 0;
+        }
+        _summaryScrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
+  void _animateSummaryScrollForFilter(String filter) {
+    if (filter == "Semua") {
+      _animateSummaryScroll(0);
+    } else if (filter == "Same Day") {
+      _animateSummaryScroll(1);
+    } else if (filter == "Reguler") {
+      _animateSummaryScroll(2);
+    }
   }
 
   Widget _buildSummaryCards(OrderProvider orderProv) {
@@ -175,6 +207,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return SingleChildScrollView(
+      controller: _summaryScrollController,
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 4, 8),
@@ -187,6 +220,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             activeColor: primaryTeal,
             icon: LucideIcons.layers,
             onTap: () {
+              _animateSummaryScroll(0);
               if (currentFilter != "Semua") {
                 setState(() {
                   currentFilter = "Semua";
@@ -203,6 +237,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             activeColor: const Color(0xFFEA580C),
             icon: LucideIcons.zap,
             onTap: () {
+              _animateSummaryScroll(1);
               if (currentFilter != "Same Day") {
                 setState(() {
                   currentFilter = "Same Day";
@@ -219,6 +254,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             activeColor: const Color(0xFF2563EB),
             icon: LucideIcons.calendar,
             onTap: () {
+              _animateSummaryScroll(2);
               if (currentFilter != "Reguler") {
                 setState(() {
                   currentFilter = "Reguler";
@@ -294,7 +330,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.montserrat(
-                fontSize: 23,
+                fontSize: 20,
                 fontWeight: FontWeight.w900,
                 color: isActive ? Colors.white : darkText,
                 letterSpacing: -0.5,
@@ -396,14 +432,25 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => setState(() {
-                  if (isExpanded) { _expandedIds.remove(orderId); } else { _expandedIds.add(orderId); }
-                }),
+                borderRadius: BorderRadius.circular(16),
+                splashColor: accentColor.withValues(alpha: 0.12),
+                highlightColor: accentColor.withValues(alpha: 0.05),
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  setState(() {
+                    if (isExpanded) { _expandedIds.remove(orderId); } else { _expandedIds.add(orderId); }
+                  });
+                },
                 child: Padding(
                   padding: EdgeInsets.only(left: isExpanded ? 8 : 0),
-                  child: isExpanded
-                      ? _buildExpandedCard(o, orderId, status, statusUp, servicePrice, customerName, courierName, isFast, doneAt, accentColor)
-                      : _buildCollapsedCard(status, servicePrice, doneAt, o),
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topCenter,
+                    child: isExpanded
+                        ? _buildExpandedCard(o, orderId, status, statusUp, servicePrice, customerName, courierName, isFast, doneAt, accentColor)
+                        : _buildCollapsedCard(status, servicePrice, doneAt, o),
+                  ),
                 ),
               ),
             ),
@@ -780,6 +827,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         if (currentFilter != label) {
           setState(() { currentFilter = label; _currentPage = 0; });
           if (_pageController.hasClients) _pageController.jumpToPage(0);
+          _animateSummaryScrollForFilter(label);
         }
       },
       child: Container(

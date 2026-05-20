@@ -705,32 +705,37 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 ),
               ),
             ),
-            if (_isCourierMenuExpanded)
-              Container(
-                color: Colors.grey[50],
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (pendingUsers.isNotEmpty) ...[
-                      Text("Antrean Pendaftaran (${pendingUsers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
-                      const SizedBox(height: 8),
-                      ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)),
-                      const SizedBox(height: 12),
-                    ],
-                    Text("Daftar Anggota Aktif (${activeCouriers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
-                    const SizedBox(height: 8),
-                    if (activeCouriers.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text("Belum ada anggota kurir", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontStyle: FontStyle.italic)),
-                      )
-                    else
-                      ...activeCouriers.map((u) => _buildCompactActiveCard(u)),
-                    const SizedBox(height: 8),
-                  ],
-                ),
-              )
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _isCourierMenuExpanded
+                  ? Container(
+                      color: Colors.grey[50],
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (pendingUsers.isNotEmpty) ...[
+                            Text("Antrean Pendaftaran (${pendingUsers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+                            const SizedBox(height: 8),
+                            ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)),
+                            const SizedBox(height: 12),
+                          ],
+                          Text("Daftar Anggota Aktif (${activeCouriers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
+                          const SizedBox(height: 8),
+                          if (activeCouriers.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text("Belum ada anggota kurir", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontStyle: FontStyle.italic)),
+                            )
+                          else
+                            ...activeCouriers.map((u) => _buildCompactActiveCard(u)),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            )
           ],
         );
       }
