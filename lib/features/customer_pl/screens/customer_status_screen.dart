@@ -399,28 +399,39 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
                       
                       // LOGIKA AKTIVASI STEP
-                      // LOGIKA AKTIVASI STEP
                       bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep3 = ['WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep4 = ['PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
                       bool isStep6 = ['DONE', 'PAID'].contains(s);
 
-
+                      final isSelfDropPickup = (order['deliveryType'] == 'SELF_DROP' || order['delivery_type'] == 'SELF_DROP') &&
+                          (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
-                              _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
-                              _buildModernProgress("Packing", LucideIcons.package, isStep4),
-                              _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
-                              _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
-                            ],
-                          ),
+                          if (isSelfDropPickup)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
+                                _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
+                                _buildModernProgress("Packing", LucideIcons.package, isStep4),
+                                _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                              ],
+                            )
+                          else
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
+                                _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
+                                _buildModernProgress("Packing", LucideIcons.package, isStep4),
+                                _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
+                                _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                              ],
+                            ),
                           if (isStep6) ...[
                             const SizedBox(height: 20),
                             const Divider(color: Color(0xFFF3F0E9), thickness: 1),

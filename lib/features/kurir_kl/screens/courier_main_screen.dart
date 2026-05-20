@@ -867,6 +867,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   Widget _buildDenseTaskSection(Map<String, dynamic> currentT) {
     final activeOrders = context.watch<OrderProvider>().activeOrders;
     final pickupCount = activeOrders.where((o) {
+      final isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
+      if (isSelfDrop) return false;
       final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
       return s == 'SEARCHING' || s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
     }).length;
@@ -1016,7 +1018,11 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                 // Sesuai Tabel Database: menggunakan kolom 'status'
                 final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
                 if (isPickupTab) {
-                    // Pickup tasks are: WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
+                  // Sembunyikan order bertipe SELF_DROP dari tab Jemput (Pickup) karena customer drop sendiri
+                  final isSelfDrop = o['deliveryType'] == 'SELF_DROP' || o['delivery_type'] == 'SELF_DROP';
+                  if (isSelfDrop) return false;
+                  
+                  // Pickup tasks are: WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
                   return s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
                 } else {
                   // Delivery tasks are biasanya PACKING, DELIVERING
