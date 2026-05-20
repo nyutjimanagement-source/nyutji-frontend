@@ -448,7 +448,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                                 _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
                               ],
                             ),
-                          if (isStep6) ...[
+                          if (s == 'DONE') ...[
                             const SizedBox(height: 20),
                             const Divider(color: Color(0xFFF3F0E9), thickness: 1),
                             const SizedBox(height: 12),
