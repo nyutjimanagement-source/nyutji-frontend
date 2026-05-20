@@ -30,10 +30,15 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
     super.dispose();
   }
 
+  bool _isSubmitting = false;
+
   void _submitReview() async {
-    final orderId = (widget.order['order_number'] ?? widget.order['id'] ?? '').toString();
+    if (_isSubmitting) return;
+    final orderId = (widget.order['orderNumber'] ?? widget.order['order_number'] ?? widget.order['id'] ?? '').toString();
     final orderProvider = context.read<OrderProvider>();
     final navigator = Navigator.of(context);
+
+    setState(() => _isSubmitting = true);
 
     if (orderId.isNotEmpty) {
       await orderProvider.submitReview(

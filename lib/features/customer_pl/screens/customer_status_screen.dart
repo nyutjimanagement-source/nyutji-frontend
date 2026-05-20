@@ -194,6 +194,19 @@ class PremiumOrderCard extends StatefulWidget {
 
 class _PremiumOrderCardState extends State<PremiumOrderCard> {
   bool isExpanded = false;
+  bool _isFirstBuild = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isFirstBuild = false;
+        });
+      }
+    });
+  }
 
 
 
@@ -250,6 +263,10 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
+    final String s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
+    final bool isFinished = s == 'DONE' || s == 'PAID';
+    final bool showExpanded = !isFinished || isExpanded;
+
     final String rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
     final isFastTrack = (order['is_fast_track'] ?? false).toString() == 'true' || 
                         order['service_type']?.toString().toLowerCase().contains('fast') == true;
@@ -285,207 +302,228 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       order['courier_name'] ?? 
                       order['petugas_kurir'] ?? "-";
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE3DCCF), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF403600).withValues(alpha: 0.06), 
-            blurRadius: 15, 
-            offset: const Offset(0, 6)
-          )
-        ],
-      ),
-      child: Column(
-        children: [
-          // COLLAPSED
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 52, height: 52,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isFastTrack 
-                        ? [const Color(0xFFEF4444).withValues(alpha: 0.1), const Color(0xFFEF4444).withValues(alpha: 0.05)]
-                        : [const Color(0xFF22C55E).withValues(alpha: 0.1), const Color(0xFF22C55E).withValues(alpha: 0.05)],
+    return AnimatedSize(
+      duration: _isFirstBuild ? Duration.zero : const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFE3DCCF), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF403600).withValues(alpha: 0.06), 
+              blurRadius: 15, 
+              offset: const Offset(0, 6)
+            )
+          ],
+        ),
+        child: Column(
+          children: [
+            // COLLAPSED
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52, height: 52,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isFastTrack 
+                          ? [const Color(0xFFEF4444).withValues(alpha: 0.1), const Color(0xFFEF4444).withValues(alpha: 0.05)]
+                          : [const Color(0xFF22C55E).withValues(alpha: 0.1), const Color(0xFF22C55E).withValues(alpha: 0.05)],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    borderRadius: BorderRadius.circular(18),
+                    child: Image.asset('assets/icons/icon_keranjang.png'),
                   ),
-                  child: Image.asset('assets/icons/icon_keranjang.png'),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "${totalQty.toStringAsFixed(totalQty == totalQty.toInt() ? 0 : 1)} $unit - ${_formatNyutjiDate(orderDate)}",
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF131109), letterSpacing: 0.3)
+                        ),
+                        const SizedBox(height: 4),
+                        Builder(
+                          builder: (context) {
+                            final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
+                            final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+                            final rawStatus = (order['order_status'] ?? order['status'] ?? 'PROSES').toString().toUpperCase();
+                            final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
+                            return Text(
+                              StatusHelper.getLabel(displayStatus, 'PL'),
+                              style: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF403600), fontWeight: FontWeight.w600, letterSpacing: 1.0)
+                            );
+                          }
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        "${totalQty.toStringAsFixed(totalQty == totalQty.toInt() ? 0 : 1)} $unit - ${_formatNyutjiDate(orderDate)}",
-                        style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF131109), letterSpacing: 0.3)
+                        _formatNyutjiDate(completionDate),
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600))
                       ),
-                      const SizedBox(height: 4),
-                      Builder(
-                        builder: (context) {
-                          final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
-                          final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
-                          final rawStatus = (order['order_status'] ?? order['status'] ?? 'PROSES').toString().toUpperCase();
-                          final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
-                          return Text(
-                            StatusHelper.getLabel(displayStatus, 'PL'),
-                            style: GoogleFonts.montserrat(fontSize: 16, color: const Color(0xFF403600), fontWeight: FontWeight.w500, letterSpacing: 1.0)
-                          );
-                        }
-                      ),
+                      Text("EST. SELESAI", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.grey[400], letterSpacing: 0.5)),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      _formatNyutjiDate(completionDate),
-                      style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF403600))
+                  if (isFinished) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 20, color: const Color(0xFF403600).withValues(alpha: 0.5)),
+                      onPressed: () => setState(() => isExpanded = !isExpanded),
                     ),
-                    Text("EST. SELESAI", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.grey[400], letterSpacing: 0.5)),
                   ],
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 20, color: const Color(0xFF403600).withValues(alpha: 0.5)),
-                  onPressed: () => setState(() => isExpanded = !isExpanded),
-                ),
-              ],
-            ),
-          ),
-
-          // EXPANDED
-          if (isExpanded)
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Divider(height: 1, color: Color(0xFFF3F0E9)),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _detailCol("Tgl Masuk", _formatNyutjiDate(orderDate))),
-                      const SizedBox(width: 10),
-                      Expanded(child: _detailCol("Mitra Laundry", mitraName)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _detailCol("Tgl Selesai", _formatNyutjiDate(completionDate))),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: rawDel == 'SELFDROP_SELFDELIVERY' 
-                            ? const SizedBox.shrink() 
-                            : _detailCol("Petugas Kurir", _getCourierStatusText(order)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  // PROGRESS HEADER
-                  Row(
-                    children: [
-                      Text("Progress Layanan", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF403600).withValues(alpha: 0.8))),
-                      const SizedBox(width: 12),
-                      const Expanded(child: Divider(color: Color(0xFFF3F0E9), thickness: 1)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  // PROGRESS ICONS (Mewah & Dinamis)
-                  Builder(
-                    builder: (context) {
-                      final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
-                      final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
-                      final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
-                      
-                      // LOGIKA AKTIVASI STEP
-                      bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s) ||
-                          (isSelfDrop && s == 'WAITING_DROPOFF');
-                      bool isStep3 = ['WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
-                      bool isStep4 = ['PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
-                      bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
-                      bool isStep6 = ['DONE', 'PAID'].contains(s);
-
-                      final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
-                          (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (isSelfDropPickup)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
-                                _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
-                                _buildModernProgress("Packing", LucideIcons.package, isStep4),
-                                _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
-                              ],
-                            )
-                          else
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildModernProgress("Timbang", LucideIcons.scale, isStep2),
-                                _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
-                                _buildModernProgress("Packing", LucideIcons.package, isStep4),
-                                _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
-                                _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
-                              ],
-                            ),
-                          if (s == 'DONE') ...[
-                            const SizedBox(height: 20),
-                            const Divider(color: Color(0xFFF3F0E9), thickness: 1),
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CustomerReviewScreen(order: order),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(LucideIcons.checkSquare, size: 18),
-                              label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF403600),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            ),
-                          ]
-                        ],
-                      );
-                    },
-                  ),
                 ],
               ),
             ),
-        ],
+
+            // EXPANDED
+            if (showExpanded)
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(height: 1, color: Color(0xFFF3F0E9)),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _detailCol("Tgl Masuk", _formatNyutjiDate(orderDate))),
+                        const SizedBox(width: 10),
+                        Expanded(child: _detailCol("Mitra Laundry", mitraName)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _detailCol("Tgl Selesai", _formatNyutjiDate(completionDate))),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: rawDel == 'SELFDROP_SELFDELIVERY' 
+                              ? const SizedBox.shrink() 
+                              : _detailCol("Petugas Kurir", _getCourierStatusText(order)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    // PROGRESS HEADER
+                    Row(
+                      children: [
+                        Text("Progress Layanan", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600).withValues(alpha: 0.8))),
+                        const SizedBox(width: 12),
+                        const Expanded(child: Divider(color: Color(0xFFF3F0E9), thickness: 1)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // PROGRESS ICONS (Mewah & Dinamis)
+                    Builder(
+                      builder: (context) {
+                        final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
+                        final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
+                        final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+                        
+                        // LOGIKA AKTIVASI STEP
+                        bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s) ||
+                            (isSelfDrop && s == 'WAITING_DROPOFF');
+                        bool isStep3 = ['WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
+                        bool isStep4 = ['PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
+                        bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
+                        bool isStep6 = ['DONE', 'PAID'].contains(s);
+
+                        final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
+                            (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (isSelfDropPickup)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2),
+                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
+                                  _buildModernProgress("Packing", LucideIcons.package, isStep4),
+                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                                ],
+                              )
+                            else
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2),
+                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
+                                  _buildModernProgress("Packing", LucideIcons.package, isStep4),
+                                  _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
+                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                                ],
+                              ),
+                            if (s == 'DONE') ...[
+                              const SizedBox(height: 20),
+                              const Divider(color: Color(0xFFF3F0E9), thickness: 1),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CustomerReviewScreen(order: order),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(LucideIcons.checkSquare, size: 18),
+                                label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF403600),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ]
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildModernProgress(String label, IconData icon, bool isActive) {
+  Widget _buildModernProgress(String label, dynamic icon, bool isActive) {
     const Color activeColor = Color(0xFF403600);
     const Color inactiveColor = Color(0xFFE3DCCF);
+    final Color iconColor = isActive ? Colors.white : inactiveColor;
+
+    Widget iconWidget;
+    if (icon is IconData) {
+      iconWidget = Icon(icon, size: 18, color: iconColor);
+    } else if (icon is String) {
+      iconWidget = Image.asset(
+        icon,
+        width: 18,
+        height: 18,
+        color: iconColor,
+      );
+    } else {
+      iconWidget = const SizedBox.shrink();
+    }
 
     return Column(
       children: [
@@ -497,10 +535,10 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
             border: Border.all(color: isActive ? activeColor : inactiveColor, width: 1.5),
             boxShadow: isActive ? [BoxShadow(color: activeColor.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))] : null,
           ),
-          child: Icon(icon, size: 18, color: isActive ? Colors.white : inactiveColor),
+          child: Center(child: iconWidget),
         ),
         const SizedBox(height: 8),
-        Text(label, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
       ],
     );
   }
@@ -511,7 +549,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
       children: [
         Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.grey)),
         const SizedBox(height: 2),
-        Text(value, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF131109)), softWrap: true),
+        Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)), softWrap: true),
       ],
     );
   }
