@@ -559,18 +559,31 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   }
 
   Widget _buildActiveTrackingStrip() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue[100]!)),
-      child: Row(
-        children: [
-          Icon(LucideIcons.mapPin, size: 14, color: Colors.blue[700]),
-          const SizedBox(width: 8),
-          Expanded(child: Text("GPS Lock: Akurasi Tinggi (3m) • Area Kebayoran", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.blue[900]))),
-          Icon(LucideIcons.signal, size: 14, color: Colors.blue[800])
-        ],
-      ),
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        final district = auth.user?['district_name'] ?? auth.user?['owner_district_name'] ?? auth.user?['district_code'] ?? "Kecamatan";
+        final city = auth.user?['city_name'] ?? auth.user?['owner_city_name'] ?? "Kota";
+        
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue[100]!)),
+          child: Row(
+            children: [
+              Icon(LucideIcons.mapPin, size: 14, color: Colors.blue[700]),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Lokasi GPS: $district - $city", 
+                  style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.blue[900]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
     );
   }
 
