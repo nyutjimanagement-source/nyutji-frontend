@@ -18,6 +18,7 @@ import '../../../core/utils/status_helper.dart';
 import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -93,21 +94,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       onImagePicked: (XFile file) async {
         final success = await auth.updateProfilePhoto(file);
         if (mounted) {
-          _showBeautifulNotif(success ? "Foto profil diperbarui" : "Gagal unggah foto", success);
+          if (success) {
+            NyutjiNotif.showSuccess(context, "Foto profil diperbarui");
+          } else {
+            NyutjiNotif.showError(context, "Gagal unggah foto");
+          }
         }
       },
-    );
-  }
-
-  void _showBeautifulNotif(String message, bool success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: success ? Colors.green : Colors.red,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
     );
   }
 
@@ -546,9 +539,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     _filterLocalMitra = !_filterLocalMitra;
                   });
                   if (_filterLocalMitra) {
-                    _showBeautifulNotif("Filter aktif: Menampilkan Mitra 1 lokasi dengan Anda", true);
+                    NyutjiNotif.showSuccess(context, "Filter aktif: Menampilkan Mitra 1 lokasi dengan Anda");
                   } else {
-                    _showBeautifulNotif("Menampilkan semua rekomendasi Mitra", true);
+                    NyutjiNotif.showSuccess(context, "Menampilkan semua rekomendasi Mitra");
                   }
                 },
                 child: Icon(Icons.tune, color: _filterLocalMitra ? const Color(0xFF556B2F) : const Color(0xFF131109)),
