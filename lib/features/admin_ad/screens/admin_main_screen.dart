@@ -15,6 +15,7 @@ import '../../../providers/issue_provider.dart';
 import '../../../providers/sentiment_provider.dart';
 // ignore: unused_import
 import '../../../providers/simulasi_provider.dart';
+import 'admin_revenue_split_screen.dart';
 
 class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({super.key});
@@ -748,6 +749,13 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
               child: Column(
                 children: [
                   _buildMenuItem(LucideIcons.settings, "Konfigurasi Sistem Global", false),
+                  const Divider(height: 1),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminRevenueSplitScreen()));
+                    },
+                    child: _buildMenuItem(LucideIcons.splitSquareHorizontal, "Laporan Pembagian Pendapatan", false),
+                  ),
                   const Divider(height: 1),
                   _buildMenuItem(LucideIcons.server, "Database / AWS Server", false),
                   const Divider(height: 1),

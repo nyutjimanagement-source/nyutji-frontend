@@ -2,12 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/simulasi_provider.dart';
+import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
 
-class CourierWalletScreen extends StatelessWidget {
+class CourierWalletScreen extends StatefulWidget {
   const CourierWalletScreen({super.key});
+
+  @override
+  State<CourierWalletScreen> createState() => _CourierWalletScreenState();
+}
+
+class _CourierWalletScreenState extends State<CourierWalletScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletProvider>().fetchWallet();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,16 +72,7 @@ class CourierWalletScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(LucideIcons.rotateCcw, size: 18, color: Colors.red),
-                      onPressed: () => context.read<SimulasiProvider>().resetSimulasi(),
-                      tooltip: "Reset Simulasi",
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 20),
                 _buildBalanceCard(primaryTeal, currentT),
                 const SizedBox(height: 16),
                 _buildActionButtons(currentT, primaryTeal),
@@ -83,8 +89,8 @@ class CourierWalletScreen extends StatelessWidget {
     }
 
   Widget _buildBalanceCard(Color primaryTeal, Map<String, dynamic> currentT) {
-    return Consumer<SimulasiProvider>(
-      builder: (context, sim, _) => Container(
+    return Consumer<WalletProvider>(
+      builder: (context, wallet, _) => Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -97,7 +103,13 @@ class CourierWalletScreen extends StatelessWidget {
           children: [
             Text(currentT['active_balance'], style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            Text(Formatters.currencyIdr(sim.saldoKL), style: GoogleFonts.montserrat(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+            wallet.isLoading && wallet.balance == 0
+                ? const SizedBox(
+                    height: 32,
+                    width: 32,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                  )
+                : Text(Formatters.currencyIdr(wallet.balance), style: GoogleFonts.montserrat(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
           ],
         ),
       ),
@@ -173,8 +185,8 @@ class CourierWalletScreen extends StatelessWidget {
   }
 
   Widget _buildRecentTransactionsSection(Color textDark, Color textGrey, Color primaryTeal, Map<String, dynamic> currentT) {
-    return Consumer<SimulasiProvider>(
-      builder: (context, sim, _) => Column(
+    return Consumer<WalletProvider>(
+      builder: (context, wallet, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -185,24 +197,40 @@ class CourierWalletScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          if (sim.mutasiKL.isEmpty)
+          if (wallet.isLoading && wallet.mutasiList.isEmpty)
+            const Center(child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: CircularProgressIndicator(),
+            ))
+          else if (wallet.mutasiList.isEmpty)
             Center(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text("Belum ada mutasi simulasi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+              child: Text("Belum ada riwayat transaksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
             ))
           else
             ListView.builder(
               padding: EdgeInsets.zero,
-              itemCount: sim.mutasiKL.length,
+              itemCount: wallet.mutasiList.length,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
-                final m = sim.mutasiKL[index];
+                final m = wallet.mutasiList[index];
+                
+                final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
+                final type = (m['transaction_type'] ?? '').toString().toUpperCase();
+                final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
+                
+                String formattedDate = "-";
+                try {
+                  DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '') ?? DateTime.now();
+                  formattedDate = DateFormat('dd MMM, HH:mm').format(dt);
+                } catch (_) {}
+
                 return _transactionCard(
-                  m['title'],
-                  m['date'],
-                  "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr((m['amount'] as num).abs().toDouble())}",
-                  m['type'] == 'debit',
+                  m['description'] ?? m['title'] ?? type,
+                  formattedDate,
+                  "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}",
+                  isOut,
                   textDark, textGrey, primaryTeal
                 );
               },

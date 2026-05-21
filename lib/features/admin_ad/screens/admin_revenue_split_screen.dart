@@ -1,0 +1,275 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'dart:ui';
+import '../../../providers/revenue_split_provider.dart';
+import '../../../core/utils/formatters.dart';
+
+class AdminRevenueSplitScreen extends StatefulWidget {
+  const AdminRevenueSplitScreen({super.key});
+
+  @override
+  State<AdminRevenueSplitScreen> createState() => _AdminRevenueSplitScreenState();
+}
+
+class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
+  final Color primaryTeal = const Color(0xFF1E5655);
+  final Color darkGray = const Color(0xFF111827);
+  final Color secondaryDark = const Color(0xFF1F2937);
+  final Color accentGold = const Color(0xFFF59E0B);
+  final Color accentBlue = const Color(0xFF3B82F6);
+  final Color accentGreen = const Color(0xFF10B981);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RevenueSplitProvider>().fetchRevenueData();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: darkGray,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          "Revenue Split",
+          style: GoogleFonts.montserrat(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      body: Consumer<RevenueSplitProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFFF59E0B)));
+          }
+
+          final summary = provider.summary;
+          final splits = provider.revenueSplits;
+
+          return RefreshIndicator(
+            color: accentGold,
+            backgroundColor: secondaryDark,
+            onRefresh: () => provider.fetchRevenueData(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSummaryHeader(summary),
+                  const SizedBox(height: 24),
+                  _buildSplitsList(splits),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSummaryHeader(Map<String, dynamic>? summary) {
+    final totalOrders = summary?['totalOrders'] ?? 0;
+    final adminRev = double.tryParse(summary?['totalAdminRevenue']?.toString() ?? '0') ?? 0.0;
+    final mitraRev = double.tryParse(summary?['totalMitraRevenue']?.toString() ?? '0') ?? 0.0;
+    final kurirRev = double.tryParse(summary?['totalKurirRevenue']?.toString() ?? '0') ?? 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Ringkasan Pendapatan",
+            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.5,
+            children: [
+              _buildGlassCard("Total Order", totalOrders.toString(), LucideIcons.shoppingBag, accentBlue),
+              _buildGlassCard("Admin (Nyutji)", Formatters.currencyIdr(adminRev), LucideIcons.building, accentGold),
+              _buildGlassCard("Mitra (ML)", Formatters.currencyIdr(mitraRev), LucideIcons.store, accentGreen),
+              _buildGlassCard("Kurir (KL)", Formatters.currencyIdr(kurirRev), LucideIcons.bike, Colors.orange),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassCard(String title, String val, IconData icon, Color accentColor) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 16, color: accentColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                val,
+                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSplitsList(List<dynamic> splits) {
+    if (splits.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              Icon(LucideIcons.inbox, size: 64, color: Colors.white.withValues(alpha: 0.2)),
+              const SizedBox(height: 16),
+              Text(
+                "Belum ada data revenue split",
+                style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[500]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Riwayat Split (Per Order)",
+            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: splits.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final split = splits[index];
+              final orderNo = split['order_number'] ?? split['orderNumber'] ?? split['orderId'] ?? '-';
+              
+              final adminAmount = double.tryParse(split['splits']?['admin']?.toString() ?? '0') ?? 0.0;
+              final mitraAmount = double.tryParse(split['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
+              final kurirAmount = double.tryParse(split['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
+
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: secondaryDark.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Order: $orderNo",
+                              style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: accentGold),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: primaryTeal.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Split",
+                                style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal),
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(child: _buildSplitRow("Admin", adminAmount, accentGold)),
+                            Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
+                            Expanded(child: _buildSplitRow("Mitra", mitraAmount, accentGreen)),
+                            Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
+                            Expanded(child: _buildSplitRow("Kurir", kurirAmount, Colors.orange)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSplitRow(String label, double amount, Color color) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400]),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          Formatters.currencyIdr(amount),
+          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: color),
+        ),
+      ],
+    );
+  }
+}

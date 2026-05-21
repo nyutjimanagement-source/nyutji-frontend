@@ -12,6 +12,7 @@ import 'providers/order_provider.dart';
 import 'providers/issue_provider.dart';
 import 'providers/sentiment_provider.dart';
 import 'providers/simulasi_provider.dart';
+import 'providers/revenue_split_provider.dart';
 
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/login_screen.dart';
@@ -48,6 +49,7 @@ class NyutjiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => IssueProvider()),
         ChangeNotifierProvider(create: (_) => SentimentProvider()),
         ChangeNotifierProvider(create: (_) => SimulasiProvider()),
+        ChangeNotifierProvider(create: (_) => RevenueSplitProvider()),
       ],
       child: MaterialApp(
         title: 'Nyutji Laundry',

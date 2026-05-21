@@ -2,15 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/simulasi_provider.dart';
+import 'package:intl/intl.dart';
+import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
 
-class MitraWalletScreen extends StatelessWidget {
+class MitraWalletScreen extends StatefulWidget {
   const MitraWalletScreen({super.key});
 
+  @override
+  State<MitraWalletScreen> createState() => _MitraWalletScreenState();
+}
+
+class _MitraWalletScreenState extends State<MitraWalletScreen> {
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color darkText = Color(0xFF111827);
   static const Color bgColor = Color(0xFFF3F4F6);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletProvider>().fetchWallet();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +49,8 @@ class MitraWalletScreen extends StatelessWidget {
   }
 
   Widget _buildDenseHeader(BuildContext context) {
-    return Consumer<SimulasiProvider>(
-      builder: (context, sim, _) => Container(
+    return Consumer<WalletProvider>(
+      builder: (context, wallet, _) => Container(
         padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
         decoration: const BoxDecoration(color: primaryTeal),
         child: Column(
@@ -48,13 +62,6 @@ class MitraWalletScreen extends StatelessWidget {
                 Text("Dompet Utama Mitra", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.bold)),
                 Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(LucideIcons.rotateCcw, size: 16, color: Colors.white70),
-                      onPressed: () => sim.resetSimulasi(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const SizedBox(width: 8),
                     Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)), child: Text("AKTIF", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent))),
                   ],
                 ),
@@ -65,7 +72,16 @@ class MitraWalletScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(Formatters.currencyIdr(sim.saldoML), style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
+                wallet.isLoading && wallet.balance == 0
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        ),
+                      )
+                    : Text(Formatters.currencyIdr(wallet.balance), style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
                 Text("Total Kredit", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54)),
               ],
             )
@@ -182,8 +198,8 @@ class MitraWalletScreen extends StatelessWidget {
   }
 
   Widget _buildTransactionLogs() {
-    return Consumer<SimulasiProvider>(
-      builder: (context, sim, _) => Padding(
+    return Consumer<WalletProvider>(
+      builder: (context, wallet, _) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Container(
           padding: const EdgeInsets.all(12),
@@ -198,20 +214,37 @@ class MitraWalletScreen extends StatelessWidget {
                 ],
               ),
               const Divider(),
-              if (sim.mutasiML.isEmpty)
+              if (wallet.isLoading && wallet.mutasiList.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (wallet.mutasiList.isEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Text("Belum ada mutasi simulasi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                    child: Text("Belum ada mutasi transaksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
                   ),
                 )
               else
-                ...sim.mutasiML.map((m) => _buildLogItem(
-                      m['title'],
-                      m['date'],
-                      "${m['type'] == 'debit' ? '-' : '+'} ${Formatters.currencyIdr((m['amount'] as num).abs().toDouble())}",
-                      m['type'] == 'debit' ? Colors.red : Colors.green,
-                    )),
+                ...wallet.mutasiList.map((m) {
+                  final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
+                  final type = (m['transaction_type'] ?? '').toString().toUpperCase();
+                  final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
+                  
+                  String formattedDate = "-";
+                  try {
+                    DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '') ?? DateTime.now();
+                    formattedDate = DateFormat('dd MMM, HH:mm').format(dt);
+                  } catch (_) {}
+
+                  return _buildLogItem(
+                    m['description'] ?? m['title'] ?? type,
+                    formattedDate,
+                    "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}",
+                    isOut ? Colors.red : Colors.green,
+                  );
+                }),
             ],
           ),
         ),
@@ -219,7 +252,7 @@ class MitraWalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLogItem(String title, String rid, String amt, Color c) {
+  Widget _buildLogItem(String title, String date, String amt, Color c) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -230,7 +263,7 @@ class MitraWalletScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
-                Text("Ref: $rid", style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey[500])),
+                Text(date, style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey[500])),
               ],
             ),
           ),

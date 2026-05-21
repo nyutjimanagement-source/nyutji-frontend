@@ -125,6 +125,20 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  Future<List<dynamic>> getRevenueSplits() async {
+    final response = await _dio.get("/admin/revenue-splits");
+    final data = response.data;
+    if (data is List) return data;
+    if (data is Map && data.containsKey('data')) return data['data'] ?? [];
+    return [];
+  }
+
+  Future<Map<String, dynamic>> getRevenueSplitSummary() async {
+    final response = await _dio.get("/admin/revenue-splits/summary");
+    final data = response.data;
+    return (data is Map && data.containsKey('data')) ? data['data'] : (data ?? {});
+  }
+
   Future<Map<String, dynamic>> getPriceQuote(double distance, bool isFastTrack, double lat, double lng, String orderType) async {
     final response = await _dio.post("/orders/quote", data: {
       'distance': distance,
