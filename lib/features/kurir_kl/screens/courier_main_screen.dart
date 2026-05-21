@@ -526,7 +526,6 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(currentT['welcome'], style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                       Consumer<AuthProvider>(
                         builder: (context, auth, _) {
                           final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? auth.user?['district_code'] ?? "";
@@ -555,65 +554,39 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             ),
           ),
           const SizedBox(width: 12),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("ON-OFF KURIR", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: textGrey)),
-              const SizedBox(height: 2),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                decoration: BoxDecoration(
-                  color: isOnline ? accentGreen.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1), 
-                  borderRadius: BorderRadius.circular(12)
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(LucideIcons.radio, size: 10, color: isOnline ? accentGreen : Colors.red),
-                    Transform.scale(
-                      scale: 0.7,
-                      child: Switch(
-                        value: isOnline,
-                        onChanged: (val) => setState(() => isOnline = val),
-                        activeThumbColor: accentGreen,
-                        activeTrackColor: accentGreen.withValues(alpha: 0.3),
-                        inactiveThumbColor: Colors.red,
-                        inactiveTrackColor: Colors.red.withValues(alpha: 0.3),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
           Consumer<OrderProvider>(
-            builder: (context, orderProv, _) => Stack(
-              children: [
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {
-                    _scrollToTasks();
-                    orderProv.resetNotif('KL');
-                  },
-                  icon: Icon(LucideIcons.bell, color: darkText, size: 22),
-                ),
-                if (orderProv.notifCountKL > 0)
-                  Positioned(
-                    right: 0, top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
-                      child: Text(
-                        orderProv.notifCountKL > 9 ? "9+" : orderProv.notifCountKL.toString(),
-                        style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+            builder: (context, orderProv, _) {
+              final bool hasNewOrder = orderProv.availableOrders.isNotEmpty;
+              final bool hasActiveTask = orderProv.activeOrders.isNotEmpty;
+              final bool showRedDot = hasNewOrder || hasActiveTask;
+              
+              return Stack(
+                children: [
+                  IconButton(
+                    onPressed: () => orderProv.resetNotif('KL'),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(LucideIcons.bell, color: textGrey, size: 22),
+                  ),
+                  if (orderProv.notifCountKL > 0 || showRedDot)
+                    Positioned(
+                      right: 2, top: 2,
+                      child: Container(
+                        width: orderProv.notifCountKL > 0 ? 14 : 10,
+                        height: orderProv.notifCountKL > 0 ? 14 : 10,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
+                        child: orderProv.notifCountKL > 0
+                            ? Text(
+                                orderProv.notifCountKL > 9 ? "9+" : orderProv.notifCountKL.toString(),
+                                style: const TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.bold),
+                              )
+                            : null,
                       ),
                     ),
-                  )
-              ],
-            ),
+                ],
+              );
+            },
           )
         ],
       ),
@@ -632,7 +605,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           Expanded(
             child: Text(
               _gpsLocationText, 
-              style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.blue[900]),
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.blue[900]),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -709,7 +682,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           ],
         ),
         const SizedBox(height: 6),
-        Text(value, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
+        Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkText)),
       ],
     );
   }
@@ -977,7 +950,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(currentT['current_tasks'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 1.0)),
+                Text(currentT['current_tasks'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 1.0)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
