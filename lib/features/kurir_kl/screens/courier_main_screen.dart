@@ -575,29 +575,50 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   }
 
   Widget _buildCompactStatsPanel() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[200]!),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-          Consumer<WalletProvider>(
-              builder: (context, wallet, _) => _buildStatCol("Pendapatan", Formatters.currencyIdr(wallet.balance), LucideIcons.wallet, Colors.green[700]!),
+    return Consumer<OrderProvider>(
+      builder: (context, orderProv, _) {
+        final history = orderProv.historyOrders;
+        final today = DateTime.now();
+        
+        final todayOrders = history.where((o) {
+          if (o['updatedAt'] == null && o['updated_at'] == null) return false;
+          final dt = DateTime.tryParse(o['updatedAt']?.toString() ?? o['updated_at']?.toString() ?? '');
+          if (dt == null) return false;
+          final localDt = dt.toLocal();
+          return localDt.year == today.year && localDt.month == today.month && localDt.day == today.day;
+        }).toList();
+
+        final int completedTasks = todayOrders.length;
+        double totalDistance = 0.0;
+        for (var o in todayOrders) {
+           totalDistance += double.tryParse((o['distance'] ?? o['distance_km'] ?? '0').toString()) ?? 0.0;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[200]!),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
             ),
-            Container(width: 1, height: 30, color: Colors.grey[200]),
-            _buildStatCol("Selesai", "8 Tugas", LucideIcons.checkSquare, primaryTeal),
-            Container(width: 1, height: 30, color: Colors.grey[200]),
-            _buildStatCol("Jarak Tempuh", "24 Km", LucideIcons.navigation, Colors.blue[700]!),
-          ],
-        ),
-      ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Consumer<WalletProvider>(
+                  builder: (context, wallet, _) => _buildStatCol("Pendapatan", Formatters.currencyIdr(wallet.balance), LucideIcons.wallet, Colors.green[700]!),
+                ),
+                Container(width: 1, height: 30, color: Colors.grey[200]),
+                _buildStatCol("Selesai", "$completedTasks Tugas", LucideIcons.checkSquare, primaryTeal),
+                Container(width: 1, height: 30, color: Colors.grey[200]),
+                _buildStatCol("Jarak Tempuh", "${totalDistance.toStringAsFixed(1).replaceAll('.0', '')} Km", LucideIcons.navigation, Colors.blue[700]!),
+              ],
+            ),
+          ),
+        );
+      }
     );
   }
 
