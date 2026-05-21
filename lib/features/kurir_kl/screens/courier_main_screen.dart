@@ -7,6 +7,9 @@ import '../../../providers/auth_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/constants/api_constants.dart';
 import 'courier_history_screen.dart';
@@ -65,6 +68,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   Timer? _refreshTimer;
   final Map<String, File?> _taskCapturedImages = {};
   bool _isUploading = false;
+  String _gpsLocationText = "Mendeteksi GPS...";
 
   // Enterprise/Super-App Colors for Courier
   final Color primaryTeal = const Color(0xFF286B6A);
@@ -110,9 +114,67 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshData();
+      _fetchRealLocation();
     });
     // Aktifkan auto-reload setiap 5 detik (Instruksi Jenderal)
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => _refreshData());
+  }
+
+  Future<void> _fetchRealLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) setState(() => _gpsLocationText = "GPS Tidak Aktif");
+        return;
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) setState(() => _gpsLocationText = "Izin GPS Ditolak");
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) setState(() => _gpsLocationText = "GPS Diblokir");
+        return;
+      }
+      
+      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final url = Uri.parse("https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.latitude}&lon=${pos.longitude}&zoom=18&addressdetails=1");
+      final response = await http.get(url, headers: {'User-Agent': 'NyutjiApp/1.0'});
+      if (response.statusCode == 200 && mounted) {
+        final data = json.decode(response.body);
+        final address = data['address'] ?? {};
+        String kelurahan = address['village'] ?? address['suburb'] ?? address['neighbourhood'] ?? "";
+        String kecamatan = address['subdistrict'] ?? address['city_district'] ?? "";
+        String city = address['city'] ?? address['regency'] ?? address['county'] ?? "";
+        
+        kecamatan = kecamatan.replaceAll(RegExp(r'^kecamatan\s+', caseSensitive: false), '').trim();
+        if (kecamatan.isEmpty && kelurahan.isNotEmpty) kecamatan = kelurahan;
+        
+        if (city.toLowerCase().startsWith('kabupaten ')) {
+          city = city.replaceAll(RegExp(r'^kabupaten\s+', caseSensitive: false), 'Kab. ');
+        } else if (!city.toLowerCase().startsWith('kota ') && !city.toLowerCase().startsWith('kab.')) {
+          city = "Kota $city";
+        }
+        
+        String locStr = "";
+        if (kelurahan.isNotEmpty && kecamatan.isNotEmpty && kelurahan != kecamatan) {
+           locStr = "$kelurahan/$kecamatan - $city";
+        } else if (kecamatan.isNotEmpty) {
+           locStr = "$kecamatan - $city";
+        } else {
+           locStr = city;
+        }
+        
+        setState(() {
+          _gpsLocationText = "Lokasi GPS: $locStr";
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _gpsLocationText = "Gagal memuat GPS");
+    }
   }
 
   void _refreshData() {
@@ -559,31 +621,24 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   }
 
   Widget _buildActiveTrackingStrip() {
-    return Consumer<AuthProvider>(
-      builder: (context, auth, _) {
-        final district = auth.user?['district_name'] ?? auth.user?['owner_district_name'] ?? auth.user?['district_code'] ?? "Kecamatan";
-        final city = auth.user?['city_name'] ?? auth.user?['owner_city_name'] ?? "Kota";
-        
-        return Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue[100]!)),
-          child: Row(
-            children: [
-              Icon(LucideIcons.mapPin, size: 14, color: Colors.blue[700]),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  "Lokasi GPS: $district - $city", 
-                  style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.blue[900]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue[100]!)),
+      child: Row(
+        children: [
+          Icon(LucideIcons.mapPin, size: 14, color: Colors.blue[700]),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _gpsLocationText, 
+              style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.blue[900]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        );
-      }
+        ],
+      ),
     );
   }
 
