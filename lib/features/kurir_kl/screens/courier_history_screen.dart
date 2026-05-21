@@ -74,7 +74,7 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
                 const SizedBox(height: 24),
                 _buildTodaySummaryCard(currentT, historyOrders),
                 const SizedBox(height: 24),
-                _buildRecentTasksSection(currentT, historyOrders),
+                _buildRecentTasksSection(currentT, historyOrders, walletProv.mutasiList),
                 const SizedBox(height: 40),
               ],
             ),
@@ -218,7 +218,7 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
     );
   }
 
-  Widget _buildRecentTasksSection(Map<String, dynamic> currentT, List<dynamic> history) {
+  Widget _buildRecentTasksSection(Map<String, dynamic> currentT, List<dynamic> history, List<dynamic> mutasiList) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,18 +244,37 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              return _buildHistoryCard(history[index], currentT);
+              return _buildHistoryCard(history[index], currentT, mutasiList);
             },
           ),
       ],
     );
   }
 
-  Widget _buildHistoryCard(dynamic order, Map<String, dynamic> currentT) {
+  Widget _buildHistoryCard(dynamic order, Map<String, dynamic> currentT, List<dynamic> mutasiList) {
     final bool isPickup = (order['deliveryType'] ?? order['delivery_type']) == 'PICKUP';
     final String orderId = (order['orderNumber'] ?? order['order_number'] ?? '-').toString();
     final String customerName = (order['customer']?['name'] ?? order['customer_name'] ?? 'Pelanggan').toString();
-    final double price = double.tryParse((order['deliveryFee'] ?? order['delivery_fee'] ?? '0').toString()) ?? 0.0;
+    
+    double price = 0.0;
+    try {
+      final relatedLog = mutasiList.firstWhere(
+        (m) {
+          final ref = (m['referenceId'] ?? m['reference_id'] ?? '').toString();
+          final type = (m['transaction_type'] ?? '').toString();
+          return ref == orderId && type == 'DELIVERY_FEE';
+        },
+        orElse: () => null
+      );
+      
+      if (relatedLog != null) {
+        price = double.tryParse(relatedLog['amount'].toString()) ?? 0.0;
+      } else {
+        price = double.tryParse((order['deliveryFee'] ?? order['delivery_fee'] ?? '0').toString()) ?? 0.0;
+      }
+    } catch (_) {
+      price = double.tryParse((order['deliveryFee'] ?? order['delivery_fee'] ?? '0').toString()) ?? 0.0;
+    }
     
     DateTime? dt = DateTime.tryParse(order['updatedAt']?.toString() ?? order['updated_at']?.toString() ?? '');
     String dateStr = dt != null ? DateFormat('dd MMM yyyy • HH:mm', 'id_ID').format(dt.toLocal()) : '-';
