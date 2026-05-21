@@ -31,6 +31,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final ScrollController _promoController = ScrollController();
   Timer? _promoTimer;
   bool _showBackToTop = false;
+  bool _filterLocalMitra = false;
 
   @override
   void initState() {
@@ -168,7 +169,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             _buildPromoSection(currentT),
             const SizedBox(height: 24),
             _buildMitraSection(currentT, auth),
-            const SizedBox(height: 120),
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -539,7 +540,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 20)),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.tune, color: Color(0xFF131109)),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _filterLocalMitra = !_filterLocalMitra;
+                  });
+                  if (_filterLocalMitra) {
+                    _showBeautifulNotif("Filter aktif: Menampilkan Mitra 1 lokasi dengan Anda", true);
+                  } else {
+                    _showBeautifulNotif("Menampilkan semua rekomendasi Mitra", true);
+                  }
+                },
+                child: Icon(Icons.tune, color: _filterLocalMitra ? const Color(0xFF556B2F) : const Color(0xFF131109)),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -548,9 +561,31 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               if (orderProv.recommendedMitras.isEmpty) {
                 return Center(child: Text("Sedang memuat mitra...", style: NyutjiTheme.detail(Colors.grey)));
               }
+
+              List<Map<String, dynamic>> displayMitras = List<Map<String, dynamic>>.from(orderProv.recommendedMitras);
+
+              if (_filterLocalMitra && auth.user != null) {
+                final userDistrict = (auth.user?['district_name'] ?? auth.user?['owner_district_name'] ?? '').toString().toLowerCase();
+                final userCity = (auth.user?['city_name'] ?? auth.user?['owner_city_name'] ?? '').toString().toLowerCase();
+                
+                displayMitras = displayMitras.where((m) {
+                  final mDistrict = (m['district'] ?? m['district_name'] ?? '').toString().toLowerCase();
+                  final mCity = (m['city'] ?? m['city_name'] ?? '').toString().toLowerCase();
+                  return (mDistrict.isNotEmpty && mDistrict == userDistrict) || (mCity.isNotEmpty && mCity == userCity);
+                }).toList();
+              }
+
+              if (displayMitras.isEmpty) {
+                return Center(child: Text("Tidak ada mitra di sekitar lokasi Anda.", style: NyutjiTheme.detail(Colors.grey)));
+              }
+
+              if (displayMitras.length > 3) {
+                displayMitras = displayMitras.sublist(0, 3);
+              }
+
               return Column(
-                children: List.generate(orderProv.recommendedMitras.length, (index) {
-                  final m = orderProv.recommendedMitras[index];
+                children: List.generate(displayMitras.length, (index) {
+                  final m = displayMitras[index];
                   // NYUTJI DISTANCE LOGIC WITH SMART VARIATION
                   double distance = 0.1;
                   try {
@@ -572,13 +607,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     distance = 0.5 + (index * 0.2);
                   }
 
-                  return _buildMitraRow(
-                    m['name'] ?? 'Mitra Nyutji', 
-                    "${distance.toStringAsFixed(1)} km", 
-                    (m['rating'] ?? '4.5').toString(), 
-                    m['is_top'] ?? true, 
-                    m['is_open'] ?? true,
-                    m['profile_photo']
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerOrderScreen(orderType: 'pickup', preselectedMitra: m)));
+                    },
+                    child: _buildMitraRow(
+                      m['name'] ?? 'Mitra Nyutji', 
+                      "${distance.toStringAsFixed(1)} km", 
+                      (m['rating'] ?? '4.5').toString(), 
+                      m['is_top'] ?? true, 
+                      m['is_open'] ?? true,
+                      m['profile_photo']
+                    ),
                   );
                 }),
               );

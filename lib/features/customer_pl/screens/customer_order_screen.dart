@@ -15,10 +15,12 @@ import '../../../core/utils/nyutji_distance.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
+  final Map<String, dynamic>? preselectedMitra;
 
   const CustomerOrderScreen({
     super.key,
     this.orderType = 'pickup',
+    this.preselectedMitra,
   });
 
   @override
@@ -67,6 +69,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         _selectedDistrict = auth.user!['district_name'] ?? '';
       }
     }
+    
+    if (widget.preselectedMitra != null) {
+      _selectedMitra = widget.preselectedMitra;
+    }
+    
     _loadLiveMitras();
   }
 
