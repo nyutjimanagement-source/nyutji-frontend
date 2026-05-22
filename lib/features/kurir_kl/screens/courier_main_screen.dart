@@ -351,7 +351,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           GestureDetector(
             onTap: () { if (auth != null && !forceIcon) _pickImage(auth); },
             child: Container(
-              width: 42, height: 42,
+              width: 60, height: 60,
               decoration: BoxDecoration(
                 shape: BoxShape.circle, 
                 color: primaryTeal.withValues(alpha: 0.1),
@@ -475,7 +475,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     return GestureDetector(
                       onTap: () => _pickImage(auth),
                       child: Container(
-                        width: 42, height: 42,
+                        width: 60, height: 60,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle, 
                           color: primaryTeal.withValues(alpha: 0.1),
