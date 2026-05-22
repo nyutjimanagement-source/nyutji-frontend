@@ -119,25 +119,29 @@ class _ForecastWeatherState extends State<ForecastWeather> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(LucideIcons.mapPin, color: Colors.white70, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        city.toUpperCase(),
-                        style: GoogleFonts.montserrat(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white70,
-                          letterSpacing: 1,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.mapPin, color: Colors.white70, size: 14),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            city.toUpperCase(),
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white70,
+                              letterSpacing: 1,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
