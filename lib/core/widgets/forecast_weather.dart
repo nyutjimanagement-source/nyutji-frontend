@@ -178,7 +178,8 @@ class _ForecastWeatherState extends State<ForecastWeather> {
                   ),
                 ],
               ),
-              Padding(
+            ),
+            Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: Icon(
                   _getWeatherIcon(weatherCode),
