@@ -193,7 +193,10 @@ class _MitraInventoryScreenState extends State<MitraInventoryScreen> {
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            child: isExpanded ? Column(
+            alignment: Alignment.topCenter,
+            child: isExpanded ? SizedBox(
+              width: double.infinity,
+              child: Column(
               children: [
                 const Divider(height: 1),
                 ListView.separated(
@@ -230,7 +233,7 @@ class _MitraInventoryScreenState extends State<MitraInventoryScreen> {
                 ),
                 const SizedBox(height: 8),
               ],
-            ) : const SizedBox.shrink(),
+            )) : const SizedBox.shrink(),
           ),
         ],
       ),
