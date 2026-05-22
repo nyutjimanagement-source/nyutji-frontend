@@ -174,10 +174,13 @@ class _ForecastWeatherState extends State<ForecastWeather> {
                   ),
                 ],
               ),
-              Icon(
-                _getWeatherIcon(weatherCode),
-                size: 60,
-                color: Colors.white,
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: Icon(
+                  _getWeatherIcon(weatherCode),
+                  size: 60,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
