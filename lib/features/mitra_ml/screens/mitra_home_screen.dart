@@ -288,7 +288,27 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-
+  double _calculateTodayRevenue(List<dynamic> mutasiList) {
+    if (mutasiList.isEmpty) return 0.0;
+    double todayTotal = 0.0;
+    final now = DateTime.now();
+    
+    for (var m in mutasiList) {
+      final amt = double.tryParse(m['amount']?.toString() ?? '0') ?? 0.0;
+      final type = (m['transaction_type'] ?? '').toString().toUpperCase();
+      
+      // Hitung yang masuk saja (revenue)
+      if (amt > 0 && type != 'TOPUP') {
+        try {
+          DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '')?.toLocal() ?? DateTime.now();
+          if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+            todayTotal += amt;
+          }
+        } catch (_) {}
+      }
+    }
+    return todayTotal;
+  }
 
   Widget _buildCommandMetrics() {
     return Padding(
@@ -300,7 +320,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           builder: (context, wallet, orderProv, _) => Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildMetricItem("HARI INI", Formatters.currencyIdr(wallet.balance), LucideIcons.trendingUp, Colors.greenAccent),
+              _buildMetricItem("HARI INI", Formatters.currencyIdr(_calculateTodayRevenue(wallet.mutasiList)), LucideIcons.trendingUp, Colors.greenAccent),
               Container(width: 1, height: 35, color: Colors.white24),
               _buildMetricItem("ANTREAN", orderProv.activeOrders.length.toString(), LucideIcons.layers, Colors.orangeAccent, onTap: () {
                 _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);

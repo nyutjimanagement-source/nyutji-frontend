@@ -234,8 +234,9 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
                   
                   String formattedDate = "-";
                   try {
-                    DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '') ?? DateTime.now();
-                    formattedDate = DateFormat('dd MMM, HH:mm').format(dt);
+                    DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '')?.toLocal() ?? DateTime.now();
+                    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    formattedDate = "${dt.day} ${months[dt.month - 1]}, ${DateFormat('HH:mm').format(dt)}";
                   } catch (_) {}
 
                   return _buildLogItem(
