@@ -190,42 +190,48 @@ class _MitraInventoryScreenState extends State<MitraInventoryScreen> {
               ),
             ),
           ),
-          if (isExpanded) ...[
-            const Divider(height: 1),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: cat['items'].length,
-              separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[50], indent: 16, endIndent: 16),
-              itemBuilder: (context, index) {
-                final item = cat['items'][index];
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  title: Text(
-                    item['name'],
-                    style: NyutjiTheme.h3(NyutjiTheme.darkText).copyWith(fontSize: 13),
-                  ),
-                  subtitle: Text(
-                    item['detail'],
-                    style: NyutjiTheme.body(NyutjiTheme.textGrey).copyWith(fontSize: 11),
-                  ),
-                  trailing: TextButton(
-                    onPressed: () {},
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      "UPDATE",
-                      style: NyutjiTheme.actionLabel(NyutjiTheme.mlPrimary),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: isExpanded ? Column(
+              children: [
+                const Divider(height: 1),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: cat['items'].length,
+                  separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[50], indent: 16, endIndent: 16),
+                  itemBuilder: (context, index) {
+                    final item = cat['items'][index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      title: Text(
+                        item['name'],
+                        style: NyutjiTheme.h3(NyutjiTheme.darkText).copyWith(fontSize: 13),
+                      ),
+                      subtitle: Text(
+                        item['detail'],
+                        style: NyutjiTheme.body(NyutjiTheme.textGrey).copyWith(fontSize: 11),
+                      ),
+                      trailing: TextButton(
+                        onPressed: () {},
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          "UPDATE",
+                          style: NyutjiTheme.actionLabel(NyutjiTheme.mlPrimary),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ) : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
