@@ -199,8 +199,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                           : (photoUrl != null && photoUrl.toString().isNotEmpty)
                               ? DecorationImage(
                                   image: NetworkImage(photoUrl.toString().startsWith('http') 
-                                      ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                      : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                                      ? photoUrl.toString()
+                                      : "${ApiConstants.rootUrl}/$photoUrl"), 
                                   fit: BoxFit.cover)
                               : null)
                       : (localPhoto != null
@@ -208,8 +208,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                           : (photoUrl != null && photoUrl.toString().isNotEmpty)
                               ? DecorationImage(
                                   image: NetworkImage(photoUrl.toString().startsWith('http') 
-                                      ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                      : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"), 
+                                      ? photoUrl.toString()
+                                      : "${ApiConstants.rootUrl}/$photoUrl"), 
                                   fit: BoxFit.cover)
                               : null),
                 ),

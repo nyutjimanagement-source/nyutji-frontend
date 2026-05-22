@@ -375,8 +375,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                         ? DecorationImage(
                             image: NetworkImage(
                               photoUrl.toString().startsWith('http') 
-                                ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                ? photoUrl.toString()
+                                : "${ApiConstants.rootUrl}/$photoUrl"
                             ), 
                             fit: BoxFit.cover
                           ) 
@@ -491,8 +491,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                           image: DecorationImage(
                                               image: NetworkImage(
                                                 photoUrl.toString().startsWith('http') 
-                                                  ? "$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
-                                                  : "${ApiConstants.rootUrl}/$photoUrl?v=${DateTime.now().millisecondsSinceEpoch}"
+                                                  ? photoUrl.toString()
+                                                  : "${ApiConstants.rootUrl}/$photoUrl"
                                               ), 
                                               fit: BoxFit.cover
                                             )
