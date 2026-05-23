@@ -222,6 +222,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
       context,
       title: "Pilih Foto Profil Kurir",
       primaryColor: primaryTeal,
+      currentImageUrl: auth.user?['profile_photo'],
       onImagePicked: (XFile file) async {
         final success = await auth.updateProfilePhoto(file);
         if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'nyutji_loading_overlay.dart';
+import '../constants/api_constants.dart';
 
 class NyutjiImagePicker {
   static Future<void> show(
@@ -10,8 +11,20 @@ class NyutjiImagePicker {
     required String title,
     required Function(XFile) onImagePicked,
     Color primaryColor = const Color(0xFF286B6A),
+    String? currentImageUrl,
   }) async {
     final ImagePicker picker = ImagePicker();
+    
+    String? finalImageUrl;
+    if (currentImageUrl != null && currentImageUrl.isNotEmpty) {
+      if (currentImageUrl.startsWith('http')) {
+        finalImageUrl = currentImageUrl;
+      } else if (!currentImageUrl.contains('uploads/')) {
+        finalImageUrl = "${ApiConstants.rootUrl}/uploads/profiles/$currentImageUrl";
+      } else {
+        finalImageUrl = "${ApiConstants.rootUrl}/$currentImageUrl";
+      }
+    }
 
     return showModalBottomSheet(
       context: context,
@@ -39,6 +52,23 @@ class NyutjiImagePicker {
                 ),
               ),
               const SizedBox(height: 24),
+
+              if (finalImageUrl != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: primaryColor.withValues(alpha: 0.3), width: 2),
+                  ),
+                  child: CircleAvatar(
+                    radius: 46,
+                    backgroundColor: Colors.grey[100],
+                    backgroundImage: NetworkImage(finalImageUrl),
+                    onBackgroundImageError: (_, __) {},
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               
               Text(
                 title,

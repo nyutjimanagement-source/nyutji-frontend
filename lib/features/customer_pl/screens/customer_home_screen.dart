@@ -91,6 +91,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       context,
       title: "Pilih Foto Profil",
       primaryColor: const Color(0xFF403600),
+      currentImageUrl: auth.user?['profile_photo'],
       onImagePicked: (XFile file) async {
         final success = await auth.updateProfilePhoto(file);
         if (mounted) {
