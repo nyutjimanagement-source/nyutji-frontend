@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../../providers/wallet_provider.dart';
+import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
 
 class MitraWalletScreen extends StatefulWidget {
@@ -18,91 +18,238 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   static const Color darkText = Color(0xFF111827);
   static const Color bgColor = Color(0xFFF3F4F6);
 
+  String _selectedFilter = 'Mingguan'; 
+  final List<String> _filters = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan'];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallet();
+      context.read<OrderProvider>().fetchOrders();
     });
+  }
+
+  // --- CALCULATIONS ---
+
+  double _calculateTotalCash(List<dynamic> logs, String type) {
+    double total = 0.0;
+    for (var m in logs) {
+      if ((m['transaction_type'] ?? '').toString().toUpperCase() == type.toUpperCase()) {
+        total += double.tryParse(m['amount']?.toString() ?? '0') ?? 0.0;
+      }
+    }
+    return total;
+  }
+
+  double _calculateWIP(List<dynamic> activeOrders) {
+    double total = 0.0;
+    for (var o in activeOrders) {
+      total += double.tryParse((o['servicePrice'] ?? o['service_price'] ?? o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
+    }
+    return total;
+  }
+
+  double _calculateTotalKg(List<dynamic> allOrders) {
+    double total = 0.0;
+    for (var o in allOrders) {
+      final attachments = o['order_attachments'] ?? o['attachments'] ?? o['order_attachment'] ?? [];
+      if (attachments is List) {
+        for (var att in attachments) {
+          if ((att['unit']?.toString().toUpperCase() ?? '') == 'KG') {
+            total += double.tryParse(att['qty']?.toString() ?? '0') ?? 0.0;
+          }
+        }
+      }
+    }
+    return total;
+  }
+
+  double _calculateAverageRating(List<dynamic> historyOrders) {
+    double totalRating = 0.0;
+    int count = 0;
+    for (var o in historyOrders) {
+      final reviews = o['reviews'] ?? o['review'];
+      if (reviews != null) {
+        if (reviews is List && reviews.isNotEmpty) {
+          final rating = double.tryParse(reviews.first['rating_mitra']?.toString() ?? '0') ?? 0.0;
+          if (rating > 0) {
+            totalRating += rating;
+            count++;
+          }
+        } else if (reviews is Map) {
+          final rating = double.tryParse(reviews['rating_mitra']?.toString() ?? '0') ?? 0.0;
+          if (rating > 0) {
+            totalRating += rating;
+            count++;
+          }
+        }
+      } else {
+        final rating = double.tryParse(o['rating_mitra']?.toString() ?? '0') ?? 0.0;
+        if (rating > 0) {
+          totalRating += rating;
+          count++;
+        }
+      }
+    }
+    return count > 0 ? totalRating / count : 0.0;
+  }
+
+  // --- FILTER LOGIC ---
+  List<Map<String, dynamic>> _generateFilteredData(List<dynamic> logs, List<dynamic> orders) {
+    Map<String, Map<String, dynamic>> grouped = {};
+
+    // Group Orders
+    for (var o in orders) {
+      DateTime dt;
+      try {
+        final raw = o['createdAt'] ?? o['created_at'] ?? o['order_date'] ?? o['orderDate'];
+        dt = raw != null ? DateTime.parse(raw.toString()).toLocal() : DateTime.now();
+      } catch (_) { dt = DateTime.now(); }
+
+      String key = _getGroupKey(dt);
+      if (!grouped.containsKey(key)) grouped[key] = {'orders': 0, 'revenue': 0.0};
+      grouped[key]!['orders'] = (grouped[key]!['orders'] as int) + 1;
+    }
+
+    // Group Revenues
+    for (var m in logs) {
+      if ((m['transaction_type'] ?? '').toString().toUpperCase() != 'REVENUE') continue;
+      
+      DateTime dt;
+      try {
+        final raw = m['createdAt'] ?? m['created_at'] ?? m['date'];
+        dt = raw != null ? DateTime.parse(raw.toString()).toLocal() : DateTime.now();
+      } catch (_) { dt = DateTime.now(); }
+
+      String key = _getGroupKey(dt);
+      if (!grouped.containsKey(key)) grouped[key] = {'orders': 0, 'revenue': 0.0};
+      
+      final amt = double.tryParse(m['amount']?.toString() ?? '0') ?? 0.0;
+      grouped[key]!['revenue'] = (grouped[key]!['revenue'] as double) + amt;
+    }
+
+    List<Map<String, dynamic>> result = [];
+    grouped.forEach((key, data) {
+      result.add({'label': key, 'orders': data['orders'], 'revenue': data['revenue']});
+    });
+
+    return result.reversed.toList();
+  }
+
+  String _getGroupKey(DateTime dt) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    switch (_selectedFilter) {
+      case 'Harian':
+        return "${dt.day} ${months[dt.month - 1]} ${dt.year}";
+      case 'Mingguan':
+        int week = ((dt.day - 1) / 7).floor() + 1;
+        return "W$week ${months[dt.month - 1]} ${dt.year}";
+      case 'Tahunan':
+        return "${months[dt.month - 1]} ${dt.year}";
+      case 'Bulanan':
+      default:
+        return "${months[dt.month - 1]} ${dt.year}";
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            _buildDenseHeader(context),
-            const SizedBox(height: 16),
-            _buildQuickActionAndRankRow(),
-            const SizedBox(height: 16),
-            _buildDenseStatsGrid(),
-            const SizedBox(height: 16),
-            _buildTransactionLogs(),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDenseHeader(BuildContext context) {
-    return Consumer<WalletProvider>(
-      builder: (context, wallet, _) => Container(
-        padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
-        decoration: const BoxDecoration(color: primaryTeal),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Consumer2<WalletProvider, OrderProvider>(
+        builder: (context, wallet, order, _) {
+          final allOrders = [...order.activeOrders, ...order.historyOrders];
+          
+          final double totalCashIn = _calculateTotalCash(wallet.mutasiList, 'REVENUE');
+          final double totalCashOut = _calculateTotalCash(wallet.mutasiList, 'WITHDRAW');
+          final double wip = _calculateWIP(order.activeOrders);
+          final double totalKg = _calculateTotalKg(allOrders);
+          final double avgRating = _calculateAverageRating(order.historyOrders);
+          
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
               children: [
-                Text("Dompet Utama Mitra", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.bold)),
-                Row(
-                  children: [
-                    Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)), child: Text("AKTIF", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent))),
-                  ],
-                ),
+                _buildHeader(context, wallet.balance, wallet.isLoading),
+                const SizedBox(height: 16),
+                _buildRankAndQuickAction(avgRating),
+                const SizedBox(height: 16),
+                _buildCashInOutCard(totalCashIn, totalCashOut),
+                const SizedBox(height: 16),
+                _buildExecutiveReport(wallet.mutasiList.length, totalCashOut, totalCashIn, wip, allOrders.length, totalKg),
+                const SizedBox(height: 16),
+                _buildMutationFilterAndList(wallet.mutasiList, allOrders),
+                const SizedBox(height: 40),
               ],
             ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                wallet.isLoading && wallet.balance == 0
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        ),
-                      )
-                    : Text(Formatters.currencyIdr(wallet.balance), style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1)),
-                Text("Total Kredit", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54)),
-              ],
-            )
-          ],
-        ),
+          );
+        }
       ),
     );
   }
 
-  Widget _buildQuickActionAndRankRow() {
+  Widget _buildHeader(BuildContext context, double balance, bool isLoading) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 30),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF2DD4BF), Color(0xFF134E4A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Dompet Utama Mitra", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.white70, fontWeight: FontWeight.w600)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), 
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), 
+                child: Row(
+                  children: [
+                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle)),
+                    const SizedBox(width: 6),
+                    Text("AKTIF", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text("Total Kredit Tersedia", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white60)),
+          const SizedBox(height: 4),
+          isLoading && balance == 0
+              ? const SizedBox(height: 40, width: 40, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+              : Text(Formatters.currencyIdr(balance), style: GoogleFonts.montserrat(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1.5)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRankAndQuickAction(double avgRating) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 5,
             child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white, 
+                borderRadius: BorderRadius.circular(16), 
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))]
+              ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildMiniAction(LucideIcons.arrowDownToLine, "Tarik", Colors.blue),
                   _buildMiniAction(LucideIcons.plusCircle, "Top-Up", Colors.green),
@@ -111,18 +258,22 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
-            flex: 1,
+            flex: 3,
             child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.amber[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.amber[200]!)),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFD4AF37)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                borderRadius: BorderRadius.circular(16), 
+                boxShadow: [BoxShadow(color: const Color(0xFFD4AF37).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(LucideIcons.trophy, size: 16, color: Colors.amber[700]),
-                  const SizedBox(height: 4),
-                  Text("Rank #4", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber[900])),
+                  const Icon(LucideIcons.trophy, size: 24, color: Colors.white),
+                  const SizedBox(height: 6),
+                  Text(avgRating > 0 ? "Rating ${avgRating.toStringAsFixed(1)}" : "Belum Ada", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
                 ],
               ),
             ),
@@ -136,40 +287,92 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-          child: Icon(icon, size: 14, color: color),
+          child: Icon(icon, size: 20, color: color),
         ),
-        const SizedBox(height: 4),
-        Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: darkText)),
+        const SizedBox(height: 8),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkText)),
       ],
     );
   }
 
-  Widget _buildDenseStatsGrid() {
+  Widget _buildCashInOutCard(double cashIn, double cashOut) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))]
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Ringkasan Arus Kas", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(child: _buildCashItem("Total Cash In", cashIn, Colors.green, LucideIcons.arrowDownLeft)),
+                Container(width: 1, height: 40, color: Colors.grey[200]),
+                Expanded(child: _buildCashItem("Total Cash Out", cashOut, Colors.red, LucideIcons.arrowUpRight)),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCashItem(String label, double amount, Color color, IconData icon) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+          child: Icon(icon, size: 16, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(Formatters.currencyIdr(amount), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildExecutiveReport(int totalMutasi, double totalTarikan, double nominalSelesai, double wip, int totalOrder, double totalKg) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           Text("Laporan Keuangan Eksekutif", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText)),
-           const SizedBox(height: 12),
-           GridView.count(
-             crossAxisCount: 3,
-             shrinkWrap: true,
-             physics: const NeverScrollableScrollPhysics(),
-             mainAxisSpacing: 8,
-             crossAxisSpacing: 8,
-             childAspectRatio: 1.4,
-             children: [
-                _buildStatPill("Total Transaksi", "Rp 12.5M", Colors.blue),
-                _buildStatPill("Total Tarikan", "Rp 2.1M", Colors.red),
-                _buildStatPill("Nominal Selesai", "Rp 10.4M", Colors.green),
-                _buildStatPill("Nilai WIP", "Rp 850Rb", Colors.orange),
-                _buildStatPill("Total Order", "145", primaryTeal),
-                _buildStatPill("Total Kg", "420 Kg", Colors.indigo),
-             ],
-           )
+          Text("Laporan Keuangan Eksekutif", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkText)),
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1.1,
+            children: [
+               _buildStatPill("Total Transaksi", "$totalMutasi", Colors.blue),
+               _buildStatPill("Total Tarikan", Formatters.currencyIdr(totalTarikan), Colors.red),
+               _buildStatPill("Nominal Selesai", Formatters.currencyIdr(nominalSelesai), Colors.green),
+               _buildStatPill("Nilai WIP", "~${Formatters.currencyIdr(wip)}", Colors.orange),
+               _buildStatPill("Total Order", "$totalOrder", primaryTeal),
+               _buildStatPill("Total Kg", "${totalKg.toStringAsFixed(1)} Kg", Colors.indigo),
+            ],
+          )
         ],
       ),
     );
@@ -177,98 +380,127 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
 
   Widget _buildStatPill(String title, String val, Color c) {
     return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(12), 
+        border: Border.all(color: Colors.grey[100]!),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))]
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 4, height: 4, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
-              const SizedBox(width: 4),
-              Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey[600], fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              Container(width: 6, height: 6, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
+              const SizedBox(width: 6),
+              Flexible(child: Text(title, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w700), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis)),
             ],
           ),
           const Spacer(),
-          Text(val, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.5)),
+          Text(val, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.5), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
   }
 
-  Widget _buildTransactionLogs() {
-    return Consumer<WalletProvider>(
-      builder: (context, wallet, _) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Mutasi Log", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
-                  const Icon(LucideIcons.list, size: 14, color: Colors.blue),
-                ],
-              ),
-              const Divider(),
-              if (wallet.isLoading && wallet.mutasiList.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (wallet.mutasiList.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Text("Belum ada mutasi transaksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
-                  ),
-                )
-              else
-                ...wallet.mutasiList.map((m) {
-                  final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-                  final type = (m['transaction_type'] ?? '').toString().toUpperCase();
-                  final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
-                  
-                  String formattedDate = "-";
-                  try {
-                    DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '')?.toLocal() ?? DateTime.now();
-                    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                    formattedDate = "${dt.day} ${months[dt.month - 1]}, ${DateFormat('HH:mm').format(dt)}";
-                  } catch (_) {}
+  Widget _buildMutationFilterAndList(List<dynamic> logs, List<dynamic> orders) {
+    final filteredData = _generateFilteredData(logs, orders);
 
-                  return _buildLogItem(
-                    m['description'] ?? m['title'] ?? type,
-                    formattedDate,
-                    "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}",
-                    isOut ? Colors.red : Colors.green,
-                  );
-                }),
-            ],
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white, 
+          borderRadius: BorderRadius.circular(16), 
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))]
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Mutasi Log", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: darkText)),
+                Container(
+                  height: 32,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(8)
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedFilter,
+                      icon: const Icon(LucideIcons.filter, size: 14, color: primaryTeal),
+                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
+                      onChanged: (String? newValue) {
+                        setState(() { _selectedFilter = newValue!; });
+                      },
+                      items: _filters.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(value: value, child: Text(value));
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            if (filteredData.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                child: Center(child: Text("Belum ada mutasi / order", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey))),
+              )
+            else
+              ...filteredData.map((data) => _buildDynamicRow(data['label'], data['orders'], data['revenue'])),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildLogItem(String title, String date, String amt, Color c) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+  Widget _buildDynamicRow(String label, int orders, double revenue) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey[200]!)
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
-                Text(date, style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey[500])),
-              ],
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(LucideIcons.calendarDays, size: 16, color: primaryTeal),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                  const SizedBox(height: 2),
+                  Text("$orders Total Order", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ],
           ),
-          Text(amt, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: c)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text("Total Revenue", style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500], fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(Formatters.currencyIdr(revenue), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.green)),
+            ],
+          )
         ],
       ),
     );

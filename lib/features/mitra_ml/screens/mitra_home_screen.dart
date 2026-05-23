@@ -102,22 +102,25 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const BouncingScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() => _selectedIndex = index);
-                },
-                children: tabs,
-              ),
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              children: [
+                SafeArea(bottom: false, child: tabs[0]),
+                tabs[1], // MitraOrderScreen
+                tabs[2], // MitraWalletScreen
+                SafeArea(bottom: false, child: tabs[3]),
+              ],
             ),
-            _buildBottomNav(primaryTeal),
-          ],
-        ),
+          ),
+          SafeArea(top: false, child: _buildBottomNav(primaryTeal)),
+        ],
       ),
     );
   }
