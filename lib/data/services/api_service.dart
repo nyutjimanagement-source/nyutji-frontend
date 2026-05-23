@@ -211,6 +211,12 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> updateWalletPin(String pin) async {
+    final response = await _dio.post("/wallet/pin", data: {'pin': pin});
+    return response.data;
+  }
+
+
   Future<Map<String, dynamic>> forceTopup(double amount, {String? targetIdentifier}) async {
     final response = await _dio.post("/wallet/force-topup", data: {
       'amount': amount,

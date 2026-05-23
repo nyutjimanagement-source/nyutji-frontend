@@ -87,4 +87,19 @@ class WalletProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> updatePin(String pin) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _api.updateWalletPin(pin);
+      return true;
+    } catch (e) {
+      _errorMessage = "Gagal memperbarui PIN";
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

@@ -128,7 +128,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
               child: Text(
                 "Manajemen Pesanan",
                 style: GoogleFonts.montserrat(
@@ -140,8 +140,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               ),
             ),
             Container(
-              height: 46,
-              margin: const EdgeInsets.only(bottom: 8),
+              height: 40,
+              margin: const EdgeInsets.only(bottom: 4),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: ListView(
                 scrollDirection: Axis.horizontal,
@@ -156,7 +156,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               ),
             ),
             _buildSummaryCards(orderProv),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -239,7 +239,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   void _animateSummaryScroll(int index) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_summaryScrollController.hasClients) {
-        double targetOffset = index * 292.0;
+        double targetOffset = index * 274.0;
         final maxScroll = _summaryScrollController.position.maxScrollExtent;
         if (targetOffset > maxScroll) {
           targetOffset = maxScroll;
@@ -377,7 +377,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         duration: const Duration(milliseconds: 300),
         width: 260,
         margin: const EdgeInsets.only(right: 14),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
@@ -419,13 +419,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
             Text(
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.montserrat(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.w900,
                 color: isActive ? darkText : Colors.white,
                 letterSpacing: -0.5,
@@ -465,7 +465,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         ),
         if (pages.length > 1)
           Padding(
-            padding: const EdgeInsets.only(bottom: 50, top: 10),
+            padding: const EdgeInsets.only(bottom: 16, top: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(pages.length, (i) => AnimatedContainer(
@@ -480,7 +480,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             ),
           )
         else
-          const SizedBox(height: 30),
+          const SizedBox(height: 16),
       ],
     );
   }

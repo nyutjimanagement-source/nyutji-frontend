@@ -19,6 +19,7 @@ import 'mitra_wallet_screen.dart';
 import 'mitra_order_screen.dart';
 import 'mitra_pricing_screen.dart';
 import 'mitra_inventory_screen.dart';
+import 'mitra_keamanan_pin.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 
 class MitraHomeScreen extends StatefulWidget {
@@ -555,7 +556,24 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               children: [
                 _buildExpandableAddressMenu(auth),
                 const Divider(height: 1),
-                _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => const MitraKeamananPinScreen(),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0); // Dari Kanan
+                          const end = Offset.zero;
+                          const curve = Curves.easeOutCubic;
+                          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                          return SlideTransition(position: animation.drive(tween), child: child);
+                        },
+                      ),
+                    );
+                  },
+                  child: _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false),
+                ),
                 const Divider(height: 1),
                 _buildExpandableCourierMenu(),
                 const Divider(height: 1),
