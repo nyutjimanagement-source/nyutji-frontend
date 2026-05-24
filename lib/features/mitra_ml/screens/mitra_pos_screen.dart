@@ -127,8 +127,11 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             final item = items[index];
+                            final categoryItem = item['category']?.toString() ?? '';
                             final imageUrl = _getImageForService(item['name'] ?? '');
-                            final unit = item['unit'] ?? 'Kg';
+                            final unit = (categoryItem.toLowerCase() == 'satuan') 
+                                ? 'Pcs' 
+                                : (item['unit'] ?? 'Kg');
                             final priceReg = _formatCurrency(item['price_regular'] ?? item['reg'] ?? 0);
                             final priceFast = _formatCurrency(item['price_fast'] ?? item['fast'] ?? 0);
 
