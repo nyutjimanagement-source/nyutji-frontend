@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/api_constants.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -167,6 +168,16 @@ class ApiService {
   Future<Map<String, dynamic>> updateOrderStatus(String orderId, String newStatus) async {
     // Khusus Kurir/Mitra
     final response = await _dio.patch("/orders/$orderId/status", data: {'status': newStatus});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> uploadPOWImage(String orderNumber, XFile image, String step) async {
+    final formData = FormData.fromMap({
+      'step': step,
+      'pow': await MultipartFile.fromFile(image.path, filename: image.name),
+    });
+    
+    final response = await _dio.post("/orders/$orderNumber/pow", data: formData);
     return response.data;
   }
 

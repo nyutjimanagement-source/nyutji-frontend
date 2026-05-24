@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/utils/status_helper.dart';
@@ -706,7 +708,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 if (needsCourier) {
                   _showCourierPicker(orderId);
                 } else if (needsUpdate) {
-                  _showStatusUpdater(orderId, status);
+                  final deliveryType = (o['delivery_type'] ?? o['deliveryType'] ?? '').toString();
+                  _showStatusUpdater(orderId, status, deliveryType);
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -971,38 +974,136 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     );
   }
 
-  void _showStatusUpdater(String orderId, String currentStatus) {
-    final stages = ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE'];
+  void _showStatusUpdater(String orderId, String currentStatus, String deliveryType) {
+    bool isSelfDrop = ['SELF_DROP', 'SELFDROP_SELFDELIVERY', 'SELF_SERVICE'].contains(deliveryType.toUpperCase());
+    final stages = isSelfDrop 
+        ? ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DONE'] 
+        : ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE'];
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        padding: const EdgeInsets.all(24),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text("Update Status Pesanan", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: darkText)),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 10, runSpacing: 10,
-            children: stages.map((s) {
-              bool isCurrent = s == currentStatus;
-              return ActionChip(
-                label: Text(s.replaceAll('_', ' ')),
-                backgroundColor: isCurrent ? primaryTeal : Colors.grey[100],
-                labelStyle: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : textGrey),
-                onPressed: () async {
-                  final provider = context.read<OrderProvider>();
-                  Navigator.pop(context);
-                  final success = await provider.updateOrderStatus(orderId, s);
-                  if (!mounted) return;
-                  if (success) _showNotif("Status diperbarui ke $s", true);
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 20),
-        ]),
-      ),
+      builder: (context) => _buildStatusUpdaterSheet(orderId, currentStatus, stages),
+    );
+  }
+
+  Widget _buildStatusUpdaterSheet(String orderId, String currentStatus, List<String> stages) {
+    XFile? powImage;
+    bool isUploading = false;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Container(
+          decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          padding: const EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text("Update Status Pesanan", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: darkText)),
+            const SizedBox(height: 20),
+            
+            // POW Capture section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(LucideIcons.camera, size: 18, color: primaryTeal),
+                      const SizedBox(width: 8),
+                      Text("Foto Bukti Kerja (POW)", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+                      const Spacer(),
+                      if (powImage != null)
+                        const Icon(LucideIcons.checkCircle2, color: Color(0xFF10B981), size: 18),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (powImage != null) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(powImage!.path),
+                        width: double.infinity,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                        if (image != null) {
+                          setState(() { powImage = image; });
+                        }
+                      },
+                      icon: const Icon(LucideIcons.camera, size: 16),
+                      label: Text(powImage == null ? "Ambil Foto" : "Ganti Foto"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: primaryTeal,
+                        side: const BorderSide(color: primaryTeal),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Stages Chips
+            Text("Pilih Tahapan Baru:", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 13, color: textGrey)),
+            const SizedBox(height: 12),
+            isUploading 
+              ? const Center(child: CircularProgressIndicator())
+              : Wrap(
+                  spacing: 10, runSpacing: 10,
+                  children: stages.map((s) {
+                    bool isCurrent = s == currentStatus;
+                    return ActionChip(
+                      label: Text(s.replaceAll('_', ' ')),
+                      backgroundColor: isCurrent ? primaryTeal : Colors.grey[100],
+                      labelStyle: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : textGrey),
+                      onPressed: () async {
+                        if (powImage == null) {
+                          _showNotif("Wajib ambil foto bukti kerja sebelum update status!", false);
+                          return;
+                        }
+
+                        setState(() { isUploading = true; });
+                        final provider = context.read<OrderProvider>();
+                        
+                        // 1. Upload POW
+                        final uploadSuccess = await provider.uploadPOWImage(orderId, powImage!, s);
+                        
+                        if (!uploadSuccess) {
+                          setState(() { isUploading = false; });
+                          _showNotif(provider.errorMessage ?? "Gagal unggah foto", false);
+                          return;
+                        }
+
+                        // 2. Update Status
+                        final success = await provider.updateOrderStatus(orderId, s);
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        if (success) _showNotif("Status diperbarui ke $s", true);
+                      },
+                    );
+                  }).toList(),
+                ),
+            const SizedBox(height: 20),
+          ]),
+        );
+      }
     );
   }
 

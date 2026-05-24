@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/services/api_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 class OrderProvider extends ChangeNotifier {
   bool _isLoading = false;
@@ -315,6 +316,29 @@ class OrderProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> uploadPOWImage(String orderId, XFile image, String step) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _api.uploadPOWImage(orderId, image, step);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message'] ?? 'Gagal upload foto POW';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      debugPrint("Error uploading POW: $e");
+      _errorMessage = "Terjadi kesalahan saat upload foto";
       _isLoading = false;
       notifyListeners();
       return false;
