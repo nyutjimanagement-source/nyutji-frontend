@@ -268,7 +268,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
 
     dynamic foundProof;
     for (var proof in proofs.reversed) {
-      if (targetStages.contains(proof['stage'])) {
+      if (targetStages.contains(proof['step'])) {
         foundProof = proof;
         break;
       }
@@ -279,7 +279,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
       return;
     }
 
-    final String path = foundProof['file_path'].toString();
+    final String path = foundProof['file_url'].toString();
     final imageUrl = path.startsWith('http') ? path : "https://nyutji.com/$path";
 
     showDialog(
