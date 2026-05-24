@@ -18,7 +18,9 @@ import '../../../core/utils/formatters.dart';
 import 'mitra_wallet_screen.dart';
 import 'mitra_order_screen.dart';
 import 'mitra_pricing_screen.dart';
+import 'mitra_add_proof_screen.dart';
 import 'mitra_inventory_screen.dart';
+import 'mitra_pos_screen.dart';
 import 'mitra_keamanan_pin.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 
@@ -382,7 +384,18 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
                 _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
               }),
-              _buildGridAction("Kasir/POS", LucideIcons.calculator, Colors.indigo, (){}),
+              _buildGridAction("Kasir/POS", LucideIcons.calculator, Colors.indigo, () {
+                Navigator.push(context, PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => const MitraPosScreen(),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOutCubic;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    return SlideTransition(position: animation.drive(tween), child: child);
+                  },
+                ));
+              }),
               _buildGridAction("Dompet", LucideIcons.wallet, Colors.green, () {
                 _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
               }),
