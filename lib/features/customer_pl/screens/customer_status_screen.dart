@@ -260,6 +260,110 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
     return courierStr;
   }
 
+  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title) {
+    if (proofs == null || proofs.isEmpty) {
+      _showNoPowToast();
+      return;
+    }
+
+    dynamic foundProof;
+    for (var proof in proofs.reversed) {
+      if (targetStages.contains(proof['stage'])) {
+        foundProof = proof;
+        break;
+      }
+    }
+
+    if (foundProof == null) {
+      _showNoPowToast();
+      return;
+    }
+
+    final String path = foundProof['file_path'].toString();
+    final imageUrl = path.startsWith('http') ? path : "https://nyutji.com/$path";
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xFFF3F0E9))),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Bukti $title", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF403600))),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(LucideIcons.x, size: 18, color: Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const SizedBox(
+                        height: 250,
+                        child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => const SizedBox(
+                      height: 200,
+                      child: Center(child: Icon(Icons.broken_image, size: 48, color: Colors.grey)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showNoPowToast() {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Foto bukti belum tersedia untuk tahapan ini", style: GoogleFonts.montserrat(fontSize: 12)),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.black87,
+      margin: EdgeInsets.only(
+        bottom: MediaQuery.of(context).size.height - 150,
+        left: 16,
+        right: 16,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      dismissDirection: DismissDirection.up,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
@@ -453,21 +557,21 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
-                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2),
-                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
-                                  _buildModernProgress("Packing", LucideIcons.package, isStep4),
-                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Timbang")),
+                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci")),
+                                  _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing")),
+                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai")),
                                 ],
                               )
                             else
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2),
-                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3),
-                                  _buildModernProgress("Packing", LucideIcons.package, isStep4),
-                                  _buildModernProgress("Kirim", LucideIcons.navigation, isStep5),
-                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
+                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Timbang")),
+                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci")),
+                                  _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing")),
+                                  _buildModernProgress("Kirim", LucideIcons.navigation, isStep5, onTap: () => _showPowDialog(order['proofs'], ['DELIVERING'], "Kirim")),
+                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai")),
                                 ],
                               ),
                             if (s == 'DONE') ...[
@@ -506,7 +610,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
     );
   }
 
-  Widget _buildModernProgress(String label, dynamic icon, bool isActive) {
+  Widget _buildModernProgress(String label, dynamic icon, bool isActive, {VoidCallback? onTap}) {
     const Color activeColor = Color(0xFF403600);
     const Color inactiveColor = Color(0xFFE3DCCF);
     final Color iconColor = isActive ? Colors.white : inactiveColor;
@@ -525,7 +629,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
       iconWidget = const SizedBox.shrink();
     }
 
-    return Column(
+    Widget content = Column(
       children: [
         Container(
           width: 44, height: 44,
@@ -541,6 +645,16 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
         Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
       ],
     );
+
+    if (isActive && onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: content,
+      );
+    }
+
+    return content;
   }
 
   Widget _detailCol(String label, String value) {
