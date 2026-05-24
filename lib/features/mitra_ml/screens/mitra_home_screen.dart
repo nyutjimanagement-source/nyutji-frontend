@@ -18,7 +18,6 @@ import '../../../core/utils/formatters.dart';
 import 'mitra_wallet_screen.dart';
 import 'mitra_order_screen.dart';
 import 'mitra_pricing_screen.dart';
-import 'mitra_add_proof_screen.dart';
 import 'mitra_inventory_screen.dart';
 import 'mitra_pos_screen.dart';
 import 'mitra_keamanan_pin.dart';

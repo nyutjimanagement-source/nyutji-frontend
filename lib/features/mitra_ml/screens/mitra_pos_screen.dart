@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/constants/colors.dart';
-import '../../../data/providers/auth_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../data/services/api_service.dart';
+
+const Color primaryTeal = Color(0xFF1E5655);
 
 class MitraPosScreen extends StatefulWidget {
   const MitraPosScreen({super.key});
@@ -45,6 +46,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     }
