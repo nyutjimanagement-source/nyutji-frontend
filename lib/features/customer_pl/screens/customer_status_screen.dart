@@ -6,6 +6,7 @@ import '../../../providers/order_provider.dart';
 import 'customer_order_screen.dart';
 import 'customer_review_screen.dart';
 import '../../../core/utils/status_helper.dart';
+import '../../../core/constants/api_constants.dart';
 
 class CustomerStatusScreen extends StatefulWidget {
   const CustomerStatusScreen({super.key});
@@ -279,8 +280,8 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
       return;
     }
 
-    final String path = foundProof['file_url'].toString();
-    final imageUrl = path.startsWith('http') ? path : "https://nyutji.com/$path";
+    final String path = foundProof['file_url'].toString().replaceAll(RegExp(r'^/+'), '');
+    final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
 
     showDialog(
       context: context,
@@ -571,7 +572,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                                   _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci")),
                                   _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing")),
                                   _buildModernProgress("Kirim", LucideIcons.navigation, isStep5, onTap: () => _showPowDialog(order['proofs'], ['DELIVERING'], "Kirim")),
-                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai")),
+                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
                                 ],
                               ),
                             if (s == 'DONE') ...[
