@@ -1108,17 +1108,22 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   }
 
   void _showNotif(String msg, bool isSuccess) {
+    final bottomMargin = MediaQuery.of(context).size.height - 150;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Row(children: [
         Icon(isSuccess ? LucideIcons.checkCircle : LucideIcons.alertCircle, color: Colors.white, size: 20),
         const SizedBox(width: 12),
-        Text(msg, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600)),
+        Expanded(child: Text(msg, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600))),
       ]),
       backgroundColor: isSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        bottom: bottomMargin > 0 ? bottomMargin : 16, 
+        left: 16, 
+        right: 16,
+      ),
+      dismissDirection: DismissDirection.up,
     ));
   }
-
 }
