@@ -38,7 +38,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   bool _sortClosest = true;
   double? _currentLat;
   double? _currentLng;
-  String? _detectedCity;
 
   @override
   void initState() {
@@ -104,7 +103,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         if (city != null) {
            city = city.replaceAll('Kota ', '').replaceAll('Kabupaten ', '').trim();
            if (!mounted) return;
-           setState(() => _detectedCity = city);
            context.read<OrderProvider>().fetchRecommendedMitras(cityName: city);
         } else {
            if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
@@ -602,7 +600,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   });
                   NyutjiNotif.showSuccess(context, _sortClosest ? "Urut dari Terdekat" : "Urut dari Terjauh");
                 },
-                child: Icon(LucideIcons.arrowUpDown, color: const Color(0xFF131109), size: 20),
+                child: const Icon(LucideIcons.arrowUpDown, color: Color(0xFF131109), size: 20),
               ),
             ],
           ),
