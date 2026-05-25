@@ -779,8 +779,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               final dist = (m['district_name'] ?? m['district'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
               final servicesText = (m['services_text'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
               
-              const servicesFuzzy = "cucikarpetcucisepatubedcoversetrikakiloansatuanlipat";
-              final hasService = servicesText.contains(queryClean) || servicesFuzzy.contains(queryClean);
+              final hasService = servicesText.contains(queryClean);
               
               return name.contains(queryClean) || city.contains(queryClean) || dist.contains(queryClean) || hasService;
             }).toList();

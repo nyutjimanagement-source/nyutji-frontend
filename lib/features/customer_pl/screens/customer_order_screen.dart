@@ -427,20 +427,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     // JIKA PICKUP: Alamat Penjemputan di Atas
                     _buildAddressSection(cT, auth),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
-                        GestureDetector(
-                          onTap: () => _showSearchMitra(),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
-                            child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
-                          ),
-                        ),
-                      ],
-                    ),
+                    Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
                   ],
                   const SizedBox(height: 4),
                 ],
@@ -684,20 +671,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         const SizedBox(height: 24),
 
         // 3. REKOMENDASI MITRA (Sekarang di bawah)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
-            GestureDetector(
-              onTap: () => _showSearchMitra(),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
-                child: Icon(LucideIcons.search, size: 16, color: primaryTeal),
-              ),
-            ),
-          ],
-        ),
+        Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
       ],
     );
   }
