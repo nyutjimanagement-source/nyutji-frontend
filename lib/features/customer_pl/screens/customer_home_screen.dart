@@ -777,7 +777,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               final name = (m['name'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
               final city = (m['city_name'] ?? m['city'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
               final dist = (m['district_name'] ?? m['district'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-              final servicesFuzzy = "cucikarpetcucisepatubedcoversetrikakiloansatuanlipat";
+              const servicesFuzzy = "cucikarpetcucisepatubedcoversetrikakiloansatuanlipat";
               final hasService = servicesFuzzy.contains(queryClean);
               return name.contains(queryClean) || city.contains(queryClean) || dist.contains(queryClean) || hasService;
             }).toList();
@@ -807,7 +807,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: const Color(0xFF403600).withOpacity(0.1), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: const Color(0xFF403600).withValues(alpha: 0.1), shape: BoxShape.circle),
                         child: const Icon(LucideIcons.search, color: Color(0xFF403600), size: 22),
                       ),
                       const SizedBox(width: 16),
@@ -827,7 +827,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
                     child: TextField(
                       autofocus: true,
                       onChanged: (val) => setModalState(() => searchQuery = val),
@@ -871,13 +871,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                           if (filteredOrders.isNotEmpty) ...[
                             Text("Riwayat Pesanan", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 12),
-                            ...filteredOrders.map((o) => _buildSearchOrderCard(sbContext, o)).toList(),
+                            ...filteredOrders.map((o) => _buildSearchOrderCard(sbContext, o)),
                             const SizedBox(height: 24),
                           ],
                           if (filteredMitras.isNotEmpty) ...[
                             Text("Rekomendasi Mitra", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 12),
-                            ...filteredMitras.map((m) => _buildSearchMitraCard(sbContext, m)).toList(),
+                            ...filteredMitras.map((m) => _buildSearchMitraCard(sbContext, m)),
                           ]
                         ],
                       ),
@@ -897,12 +897,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 5)]),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: const Color(0xFF556B2F).withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: const Color(0xFF556B2F).withValues(alpha: 0.1), shape: BoxShape.circle),
             child: const Icon(LucideIcons.receipt, color: Color(0xFF556B2F), size: 18),
           ),
           const SizedBox(width: 12),
@@ -917,7 +917,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
             child: Text(status, style: NyutjiTheme.detail(Colors.orange).copyWith(fontWeight: FontWeight.bold)),
           ),
         ],
@@ -937,7 +937,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5)]),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 5)]),
         child: Row(
           children: [
             Container(
