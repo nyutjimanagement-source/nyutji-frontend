@@ -91,14 +91,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                         ],
                       ),
                       ElevatedButton.icon(
-                        onPressed: wallet.isLoading ? null : () async {
-                          final ok = await wallet.forceTopup(1000000);
-                          if(ok && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Topup Berhasil (Simulation)'), behavior: SnackBarBehavior.floating)
-                            );
-                          }
-                        },
+                        onPressed: wallet.isLoading ? null : () => _showTopUpSheet(context, wallet),
                         icon: wallet.isLoading 
                           ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF403600)))
                           : const Icon(LucideIcons.plus, size: 14),
@@ -275,6 +268,63 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         const SizedBox(width: 4),
         Text(label, style: GoogleFonts.montserrat(fontSize: 10, color: const Color(0xFF131109), fontWeight: FontWeight.w700)),
       ],
+    );
+  }
+
+  void _showTopUpSheet(BuildContext context, WalletProvider wallet) {
+    final List<int> amounts = [50000, 100000, 200000, 300000, 500000, 1000000];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Pilih Nominal Top Up", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: amounts.map((amount) {
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      final ok = await wallet.forceTopup(amount.toDouble());
+                      if (ok && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Top Up ${Formatters.currencyIdr(amount)} Berhasil!'),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: const Color(0xFF10B981),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF9ED),
+                        border: Border.all(color: const Color(0xFFDAC66F), width: 1.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        Formatters.currencyIdr(amount),
+                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, color: const Color(0xFF403600), fontSize: 13),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 
