@@ -278,6 +278,8 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (ctx) {
+        final itemWidth = (MediaQuery.of(ctx).size.width - 48 - 12) / 2; // 2 columns
+
         return Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -306,7 +308,9 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      width: itemWidth,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF9ED),
                         border: Border.all(color: const Color(0xFFDAC66F), width: 1.5),
