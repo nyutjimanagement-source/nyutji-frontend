@@ -172,36 +172,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     setState(() {}); // Refresh UI
   }
 
-  void _showSearchMitra() {
-    final TextEditingController searchCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text("Cari Nama Mitra Laundry", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: searchCtrl,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: "Masukkan nama ML...",
-            hintStyle: GoogleFonts.montserrat(fontSize: 12),
-            prefixIcon: const Icon(LucideIcons.search, size: 16),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          onSubmitted: (val) => _performSearch(val),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Tutup")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-            onPressed: () => _performSearch(searchCtrl.text),
-            child: const Text("CARI", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   String _getSmartAddress(String fullAddress) {
     if (fullAddress.isEmpty || fullAddress == 'Jl. Kebayoran No 12, Jakarta') return fullAddress;
@@ -227,28 +198,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
     return filtered.join(', ');
   }
 
-  void _performSearch(String query) {
-    if (query.isEmpty) return;
-    Navigator.pop(context);
-    
-    // SMART SEARCH: Cari berdasarkan Nama ATAU Kecamatan
-    final found = _mitras.indexWhere((m) {
-      final nameMatch = m['name'].toString().toLowerCase().contains(query.toLowerCase());
-      final districtMatch = m['district'].toString().toLowerCase().contains(query.toLowerCase());
-      return nameMatch || districtMatch;
-    });
 
-    if (found != -1) {
-      setState(() {
-        _selectedMitra = _mitras[found];
-        _itemCounts.clear();
-      });
-      if (mounted) NyutjiNotif.showSuccess(context, "Mitra '${_mitras[found]['name']}' dipilih!");
-    } else {
-      // Jika tidak ketemu di list lokal, coba panggil API untuk kota tersebut secara paksa
-      _loadLiveMitras(forcedCity: query);
-    }
-  }
 
   Future<void> _fetchMitraItems(dynamic mitraId) async {
     try {
