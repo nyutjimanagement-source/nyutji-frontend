@@ -7,6 +7,9 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -32,7 +35,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final ScrollController _promoController = ScrollController();
   Timer? _promoTimer;
   bool _showBackToTop = false;
-  bool _filterLocalMitra = false;
+  bool _sortClosest = true;
+  double? _currentLat;
+  double? _currentLng;
+  String? _detectedCity;
 
   @override
   void initState() {
@@ -47,7 +53,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallet();
       context.read<OrderProvider>().fetchOrders();
-      context.read<OrderProvider>().fetchRecommendedMitras();
+      context.read<OrderProvider>().fetchOrders();
+      _fetchMitrasByLocation();
       _startPromoMarquee();
     });
   }
@@ -58,6 +65,56 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     var a = 0.5 - c((lat2 - lat1) * p) / 2 +
         c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a));
+  }
+
+  Future<void> _fetchMitrasByLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+        return;
+      }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      if (!mounted) return;
+      setState(() {
+        _currentLat = position.latitude;
+        _currentLng = position.longitude;
+      });
+
+      final url = Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.latitude}&lon=${position.longitude}');
+      final response = await http.get(url, headers: {'User-Agent': 'nyutjimanagement/1.0'});
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final address = data['address'];
+        String? city = address['city'] ?? address['county'] ?? address['town'] ?? address['state'];
+        
+        if (city != null) {
+           city = city.replaceAll('Kota ', '').replaceAll('Kabupaten ', '').trim();
+           if (!mounted) return;
+           setState(() => _detectedCity = city);
+           context.read<OrderProvider>().fetchRecommendedMitras(cityName: city);
+        } else {
+           if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+        }
+      } else {
+        if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+      }
+    } catch (e) {
+      if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+    }
   }
 
   void _startPromoMarquee() {
@@ -536,16 +593,16 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: () {
-                  setState(() {
-                    _filterLocalMitra = !_filterLocalMitra;
-                  });
-                  if (_filterLocalMitra) {
-                    NyutjiNotif.showSuccess(context, "Filter aktif: Menampilkan Mitra 1 lokasi dengan Anda");
-                  } else {
-                    NyutjiNotif.showSuccess(context, "Menampilkan semua rekomendasi Mitra");
+                  if (_currentLat == null || _currentLng == null) {
+                    NyutjiNotif.showError(context, "Lokasi tidak tersedia, pastikan GPS aktif");
+                    return;
                   }
+                  setState(() {
+                    _sortClosest = !_sortClosest;
+                  });
+                  NyutjiNotif.showSuccess(context, _sortClosest ? "Urut dari Terdekat" : "Urut dari Terjauh");
                 },
-                child: Icon(Icons.tune, color: _filterLocalMitra ? const Color(0xFF556B2F) : const Color(0xFF131109)),
+                child: Icon(LucideIcons.arrowUpDown, color: const Color(0xFF131109), size: 20),
               ),
             ],
           ),
@@ -558,48 +615,59 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
               List<Map<String, dynamic>> displayMitras = List<Map<String, dynamic>>.from(orderProv.recommendedMitras);
 
-              if (_filterLocalMitra && auth.user != null) {
-                final userDistrict = (auth.user?['district_name'] ?? auth.user?['owner_district_name'] ?? '').toString().toLowerCase();
-                final userCity = (auth.user?['city_name'] ?? auth.user?['owner_city_name'] ?? '').toString().toLowerCase();
-                
-                displayMitras = displayMitras.where((m) {
-                  final mDistrict = (m['district'] ?? m['district_name'] ?? '').toString().toLowerCase();
-                  final mCity = (m['city'] ?? m['city_name'] ?? '').toString().toLowerCase();
-                  return (mDistrict.isNotEmpty && mDistrict == userDistrict) || (mCity.isNotEmpty && mCity == userCity);
-                }).toList();
-              }
-
               if (displayMitras.isEmpty) {
-                return Center(child: Text("Tidak ada mitra di sekitar lokasi Anda.", style: NyutjiTheme.detail(Colors.grey)));
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      Text("Belum ada Mitra Laundry Nyutji diwilayah Anda saat ini.", style: NyutjiTheme.detail(Colors.grey), textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'pickup'))),
+                        child: Text("Order Sekarang", style: NyutjiTheme.h3(const Color(0xFF556B2F)).copyWith(decoration: TextDecoration.underline, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 4),
+                      Text("sesuai Alamat yang tersimpan", style: NyutjiTheme.detail(Colors.grey), textAlign: TextAlign.center),
+                    ],
+                  ),
+                );
               }
 
-              if (displayMitras.length > 3) {
-                displayMitras = displayMitras.sublist(0, 3);
+              for (var m in displayMitras) {
+                double distance = 0.5;
+                if (_currentLat != null && _currentLng != null) {
+                   final mLat = double.tryParse(m['lat']?.toString() ?? '');
+                   final mLng = double.tryParse(m['lng']?.toString() ?? '');
+                   if (mLat != null && mLng != null) {
+                     distance = _calculateDistance(_currentLat!, _currentLng!, mLat, mLng);
+                   }
+                } else {
+                   final userLat = double.tryParse(auth.user?['lat']?.toString() ?? '');
+                   final userLng = double.tryParse(auth.user?['lng']?.toString() ?? '');
+                   final mLat = double.tryParse(m['lat']?.toString() ?? '');
+                   final mLng = double.tryParse(m['lng']?.toString() ?? '');
+                   if (userLat != null && userLng != null && mLat != null && mLng != null) {
+                     distance = _calculateDistance(userLat, userLng, mLat, mLng);
+                   }
+                }
+                m['_calc_dist'] = distance;
+              }
+
+              displayMitras.sort((a, b) {
+                final dA = a['_calc_dist'] as double;
+                final dB = b['_calc_dist'] as double;
+                return _sortClosest ? dA.compareTo(dB) : dB.compareTo(dA);
+              });
+
+              if (displayMitras.length > 5) {
+                displayMitras = displayMitras.sublist(0, 5);
               }
 
               return Column(
                 children: List.generate(displayMitras.length, (index) {
                   final m = displayMitras[index];
-                  // NYUTJI DISTANCE LOGIC WITH SMART VARIATION
-                  double distance = 0.1;
-                  try {
-                    final userLat = double.tryParse(auth.user?['lat']?.toString() ?? '');
-                    final userLng = double.tryParse(auth.user?['lng']?.toString() ?? '');
-                    final mitraLat = double.tryParse(m['lat']?.toString() ?? '');
-                    final mitraLng = double.tryParse(m['lng']?.toString() ?? '');
-                    
-                    if (userLat != null && userLng != null && mitraLat != null && mitraLng != null) {
-                      distance = _calculateDistance(userLat, userLng, mitraLat, mitraLng);
-                      // Jika jarak sama persis (data dummy), tambahkan sedikit variasi agar tampilan realistik
-                      if (distance < 0.2) {
-                        distance += (index * 0.15); // Tambah 0.15km per urutan jika datanya sangat dekat/identik
-                      }
-                    } else {
-                      distance = (double.tryParse(m['distance']?.toString() ?? '0.5') ?? 0.5) + (index * 0.1);
-                    }
-                  } catch (e) {
-                    distance = 0.5 + (index * 0.2);
-                  }
+                  double distance = m['_calc_dist'] as double;
+                  if (distance < 0.2) distance += (index * 0.15);
 
                   return GestureDetector(
                     onTap: () {
