@@ -593,7 +593,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
 
   Widget _buildTableHeader(List<String> titles, bool editing) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(color: Colors.grey[50], borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
       child: Row(
         children: titles.map((t) {
@@ -606,7 +606,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
               child: Text(
                 t.toUpperCase(), 
                 textAlign: isCheck ? TextAlign.left : TextAlign.center,
-                style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey[700], letterSpacing: 0.8)
+                style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 0.8)
               ),
             )
           );
@@ -654,7 +654,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     bool isBeingEdited = _selectedForEdit.contains(id);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
       child: Row(
         children: [
@@ -682,13 +682,15 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             ),
           Expanded(flex: 2, child: isBeingEdited 
             ? _buildSmallField(_getEditController(id, 1, item['svc']!), "", isAuto: true) 
-            : Text(item['svc']!, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkBg))),
+            : Text(item['svc']!, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: darkBg))),
+          const SizedBox(width: 4),
           Expanded(child: isBeingEdited 
             ? _buildSmallField(_getEditController(id, 2, item['reg']!), "", isCenter: true)
-            : Text("Rp ${Formatters.formatPrice(item['reg']!)}", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal))),
+            : Text("Rp ${Formatters.formatPrice(item['reg']!)}", textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: primaryTeal))),
+          const SizedBox(width: 4),
           Expanded(child: isBeingEdited
             ? _buildSmallField(_getEditController(id, 3, item['fast']!), "", isCenter: true)
-            : Text("Rp ${Formatters.formatPrice(item['fast']!)}", textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: accentGold))),
+            : Text("Rp ${Formatters.formatPrice(item['fast']!)}", textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: accentGold))),
         ],
       ),
     );
@@ -699,7 +701,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     bool isBeingEdited = _selectedForEdit.contains(id);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
       child: Row(
         children: [
@@ -727,7 +729,8 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             ),
           Expanded(flex: 2, child: isBeingEdited
             ? _buildSmallField(_getEditController(id, 1, item['name']!), "", isAuto: true)
-            : Text(item['name']!, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkBg))),
+            : Text(item['name']!, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: darkBg))),
+          const SizedBox(width: 8),
           Expanded(
             child: isBeingEdited
             ? _buildSmallField(_getEditController(id, 2, item['price']!), "", isCenter: true)
@@ -736,7 +739,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                 textAlign: TextAlign.left,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)
               )
           ),
         ],
@@ -747,13 +750,18 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   Widget _buildPageIndicator(int current, int count) {
     if (count <= 1) return const SizedBox(height: 12);
     return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
+      padding: const EdgeInsets.only(top: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(count, (idx) => Container(
-          width: 6, height: 6,
+        children: List.generate(count, (i) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 3),
-          decoration: BoxDecoration(color: current == idx ? primaryTeal : Colors.grey[300], shape: BoxShape.circle),
+          width: current == i ? 12 : 6, 
+          height: 6,
+          decoration: BoxDecoration(
+            color: current == i ? primaryTeal : Colors.grey[300],
+            borderRadius: BorderRadius.circular(10),
+          ),
         )),
       ),
     );
