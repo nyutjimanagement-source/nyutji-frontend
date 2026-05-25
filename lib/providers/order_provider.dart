@@ -118,6 +118,21 @@ class OrderProvider extends ChangeNotifier {
       final List<dynamic> mitras = await _api.getRecommendedMitras(cityName: cityName);
       _recommendedMitras = mitras.take(5).toList();
       notifyListeners();
+
+      // Fetch items proactively to populate services_text for search accuracy
+      for (var m in _recommendedMitras) {
+        if (m['id'] != null) {
+          try {
+            final items = await _api.getMitraItems(m['id']);
+            if (items.isNotEmpty) {
+              m['services_text'] = items.map((i) => i['name'] ?? '').join(' ');
+              notifyListeners();
+            }
+          } catch (e) {
+            debugPrint("Error fetching items for mitra ${m['id']}: $e");
+          }
+        }
+      }
     } catch (e) {
       debugPrint("Error fetching mitras: $e");
       notifyListeners();
