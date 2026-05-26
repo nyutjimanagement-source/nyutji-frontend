@@ -640,7 +640,7 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
                     // Instead of Navigator.pushNamed(context, '/pin') which might not be registered
                     // We directly push using MaterialPageRoute
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => const pin_screen.PinScreen()
+                      builder: (context) => pin_screen.PinScreen(amountToWithdraw: _amount)
                     ));
                   } : null,
                   style: ElevatedButton.styleFrom(

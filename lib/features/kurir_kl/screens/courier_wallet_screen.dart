@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
+import '../../mitra_ml/screens/mitra_wallet_screen.dart';
 
 class CourierWalletScreen extends StatefulWidget {
   const CourierWalletScreen({super.key});
@@ -117,34 +118,114 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
   }
 
   Widget _buildActionButtons(Map<String, dynamic> currentT, Color primaryTeal) {
-    return Row(
-      children: [
-        Expanded(
-          child: _actionBtn(LucideIcons.plusCircle, currentT['topup'], primaryTeal),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _actionBtn(LucideIcons.download, currentT['withdraw_btn'], const Color(0xFF10B981)),
-        ),
-      ],
+    return Consumer<WalletProvider>(
+      builder: (context, wallet, _) => Row(
+        children: [
+          Expanded(
+            child: _actionBtn(LucideIcons.plusCircle, currentT['topup'], primaryTeal, onTap: () => _showTopUpSheet(context, wallet)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _actionBtn(LucideIcons.download, currentT['withdraw_btn'], const Color(0xFF10B981), onTap: () => _showTarikDanaModal(context, wallet)),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _actionBtn(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))],
+  Widget _actionBtn(IconData icon, String label, Color color, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(label, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+          ],
+        ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Text(label, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
-        ],
+    );
+  }
+
+  void _showTopUpSheet(BuildContext context, WalletProvider wallet) {
+    final List<int> amounts = [50000, 100000, 200000, 300000, 500000, 1000000];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+      builder: (ctx) {
+        final itemWidth = (MediaQuery.of(ctx).size.width - 48 - 12) / 2;
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Pilih Nominal Top Up", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: amounts.map((amount) {
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      final ok = await wallet.forceTopup(amount.toDouble());
+                      if (ok && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Top Up ${Formatters.currencyIdr(amount)} Berhasil!'),
+                            backgroundColor: const Color(0xFF10B981),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: itemWidth,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF9ED),
+                        border: Border.all(color: const Color(0xFFDAC66F), width: 1.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        Formatters.currencyIdr(amount),
+                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, color: const Color(0xFF403600), fontSize: 13),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTarikDanaModal(BuildContext context, WalletProvider wallet) {
+    final auth = context.read<AuthProvider>();
+    final userName = auth.user?['name'] ?? "Kurir";
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => TarikDanaModal(
+        laundryName: userName,
+        maxBalance: wallet.balance,
       ),
     );
   }

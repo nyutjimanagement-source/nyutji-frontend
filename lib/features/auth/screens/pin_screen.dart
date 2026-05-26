@@ -11,11 +11,13 @@ enum PinMode { verify, create, confirm }
 class PinScreen extends StatefulWidget {
   final PinMode mode;
   final String? initialPin;
+  final double? amountToWithdraw;
 
   const PinScreen({
     super.key,
     this.mode = PinMode.verify,
     this.initialPin,
+    this.amountToWithdraw,
   });
 
   @override
@@ -78,11 +80,29 @@ class _PinScreenState extends State<PinScreen> {
 
     // Default: PinMode.verify
     setState(() => _isLoading = true);
-    // Simulate API verification for Tarik Dana
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
     
-    _showSuccessDialog("Tarik Dana Berhasil!", "Dana Anda sedang diproses dan akan segera masuk ke rekening tujuan.");
+    if (widget.amountToWithdraw != null) {
+      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+      final success = await walletProvider.requestWithdraw(widget.amountToWithdraw!);
+      
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      
+      if (success) {
+        _showSuccessDialog("Tarik Dana Berhasil!", "Dana Anda sedang diproses dan akan diteruskan ke rekening tujuan.");
+      } else {
+        NyutjiNotif.showError(context, walletProvider.errorMessage ?? "Gagal memproses penarikan.");
+        setState(() {
+          _pin = "";
+        });
+      }
+    } else {
+      // Dummy / Simulated Verify
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      _showSuccessDialog("Verifikasi Berhasil!", "PIN Anda benar.");
+    }
   }
 
   void _showSuccessDialog(String title, String message) {
