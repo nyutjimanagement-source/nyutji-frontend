@@ -159,55 +159,172 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
 
   void _showTopUpSheet(BuildContext context, WalletProvider wallet) {
     final List<int> amounts = [50000, 100000, 200000, 300000, 500000, 1000000];
+    int _selectedAmount = amounts[0];
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (ctx) {
-        final itemWidth = (MediaQuery.of(ctx).size.width - 48 - 12) / 2;
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Pilih Nominal Top Up", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: amounts.map((amount) {
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () async {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            final itemWidth = (MediaQuery.of(ctx).size.width - 48 - 12) / 2;
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Pilih Nominal Top Up", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: amounts.map((amount) {
+                      bool isSelected = _selectedAmount == amount;
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => setState(() => _selectedAmount = amount),
+                        child: Container(
+                          width: itemWidth,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isSelected ? NyutjiTheme.m3Primary : const Color(0xFFFFF9ED),
+                            border: Border.all(color: isSelected ? NyutjiTheme.m3Primary : const Color(0xFFDAC66F), width: 1.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            Formatters.currencyIdr(amount),
+                            style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, color: isSelected ? Colors.white : const Color(0xFF403600), fontSize: 13),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 30),
+                  
+                  // Link Payment Gateway (Midtrans Snap)
+                  InkWell(
+                    onTap: () {
                       Navigator.pop(ctx);
-                      final ok = await wallet.forceTopup(amount.toDouble());
-                      if (ok && context.mounted) {
-                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(amount)} Berhasil!');
-                      }
+                      _showMidtransSnapSimulation(context, _selectedAmount);
                     },
                     child: Container(
-                      width: itemWidth,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      alignment: Alignment.center,
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF9ED),
-                        border: Border.all(color: const Color(0xFFDAC66F), width: 1.5),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: NyutjiTheme.m3Primary, width: 1.5),
                       ),
-                      child: Text(
-                        Formatters.currencyIdr(amount),
-                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, color: const Color(0xFF403600), fontSize: 13),
+                      child: Center(
+                        child: Text("Payment Gateway (Midtrans Snap)", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: NyutjiTheme.m3Primary, fontSize: 12)),
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Link Simulasi Instan
+                  InkWell(
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      final ok = await wallet.forceTopup(_selectedAmount.toDouble());
+                      if (ok && context.mounted) {
+                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(_selectedAmount)} Berhasil!');
+                      }
+                    },
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text("Topup Instant (Simulasi)", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, color: Colors.grey[600], fontSize: 12, decoration: TextDecoration.underline)),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-            ],
-          ),
+            );
+          }
         );
       },
+    );
+  }
+
+  void _showMidtransSnapSimulation(BuildContext context, int amount) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Midtrans",
+      barrierColor: Colors.black.withValues(alpha: 0.8),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.height * 0.7,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF0F2F5),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Midtrans Sandbox", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.black87)),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(LucideIcons.x, size: 20, color: Colors.black87), 
+                          onPressed: () => Navigator.pop(context)
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.smartphone, size: 60, color: NyutjiTheme.m3Primary),
+                          const SizedBox(height: 16),
+                          Text("Pop-up Midtrans Snap", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 8),
+                          Text("Tagihan: ${Formatters.currencyIdr(amount)}", style: GoogleFonts.montserrat(color: Colors.grey[600], fontSize: 14)),
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            margin: const EdgeInsets.symmetric(horizontal: 30),
+                            decoration: BoxDecoration(
+                              color: NyutjiTheme.m3Primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              "Nantinya layar ini akan memuat Webview SDK resmi dari Midtrans untuk memilih metode pembayaran (VA, QRIS, e-Wallet).", 
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.montserrat(fontSize: 11, color: NyutjiTheme.m3Primary, height: 1.5)
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      }
     );
   }
 
