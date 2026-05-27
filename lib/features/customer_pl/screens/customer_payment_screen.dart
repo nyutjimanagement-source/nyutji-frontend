@@ -10,6 +10,7 @@ import '../../../providers/wallet_provider.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import 'customer_wallet_screen.dart';
 
 class CustomerPaymentScreen extends StatefulWidget {
   final int totalPrice;
@@ -494,7 +495,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
               children: [
                 _buildDenseInvoice(courierFee, grandTotal),
                 const SizedBox(height: 16),
-                _buildPaymentMenu(balanceText),
+                _buildPaymentMenu(walletProv.balance, grandTotal),
               ],
             ),
           ),
@@ -700,7 +701,35 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     );
   }
 
-  Widget _buildPaymentMenu(String balanceText) {
+  Widget _buildPaymentMenu(double balance, int grandTotal) {
+    bool isInsufficient = balance < grandTotal;
+    String balanceStr = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(balance);
+
+    Widget dompetDesc = Row(
+      children: [
+        Text(
+          "Saldo: $balanceStr", 
+          style: GoogleFonts.montserrat(
+            fontSize: 10, 
+            fontWeight: isInsufficient ? FontWeight.bold : FontWeight.normal,
+            color: isInsufficient ? primaryRed : Colors.grey[500]
+          )
+        ),
+        if (isInsufficient) ...[
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+               Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerWalletScreen()));
+            },
+            child: Text(
+              "Update Saldo", 
+              style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
+            ),
+          )
+        ]
+      ]
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white, 
@@ -715,7 +744,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             child: Text("Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900)),
           ),
           
-          _paymentParentOption("Dompet Nyutji", balanceText, LucideIcons.wallet, null, isSelected: _selectedPayment == "Dompet Nyutji"),
+          _paymentParentOption("Dompet Nyutji", "", LucideIcons.wallet, null, isSelected: _selectedPayment == "Dompet Nyutji", customDesc: dompetDesc),
           
           _paymentParentOption("Virtual Account", "BCA, Mandiri, BNI, dll", LucideIcons.building, () {
             setState(() => _isVAExpanded = !_isVAExpanded);
@@ -742,7 +771,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     );
   }
 
-  Widget _paymentParentOption(String title, String desc, IconData icon, VoidCallback? onTap, {bool isSelected = false, bool isExpanded = false}) {
+  Widget _paymentParentOption(String title, String desc, IconData icon, VoidCallback? onTap, {bool isSelected = false, bool isExpanded = false, Widget? customDesc}) {
     bool actuallySelected = isSelected || (_selectedPayment.contains(title) && !isExpanded);
     return InkWell(
       onTap: onTap ?? () => setState(() => _selectedPayment = title),
@@ -762,7 +791,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
-                  Text(desc, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
+                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
                 ],
               ),
             ),
