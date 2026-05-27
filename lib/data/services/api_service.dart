@@ -273,6 +273,11 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+    final response = await _dio.put("/users/profile", data: data);
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> uploadProfilePhoto(dynamic fileSource) async {
     // fileSource bisa berupa String (path) atau XFile
     FormData formData;

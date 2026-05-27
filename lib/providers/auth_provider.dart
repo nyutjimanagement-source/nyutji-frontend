@@ -283,7 +283,12 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       if (e is DioException) {
-        _lastErrorMessage = e.response?.data?['message']?.toString() ?? e.message;
+        final data = e.response?.data;
+        if (data is Map) {
+          _lastErrorMessage = data['message']?.toString() ?? e.message;
+        } else {
+          _lastErrorMessage = e.message;
+        }
       } else {
         _lastErrorMessage = e.toString();
       }
@@ -312,17 +317,22 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       
       final data = e.response?.data;
-      String rawError = data?['error']?.toString() ?? data?['message']?.toString() ?? data?['msg']?.toString() ?? 'Gagal menghubungi server';
-      
-      // LOGIKA JENIUS: Jika server mengembalikan "Validation Error", coba cari detail di dalam object 'errors'
-      if (data?['errors'] != null && data?['errors'] is Map) {
-        final errorsMap = data?['errors'] as Map;
-        if (errorsMap.isNotEmpty) {
-          final firstEntry = errorsMap.entries.first;
-          final field = firstEntry.key.toString();
-          final message = firstEntry.value is List ? (firstEntry.value as List).first : firstEntry.value;
-          rawError = "$field: $message";
+      String rawError = 'Gagal menghubungi server';
+      if (data is Map) {
+        rawError = data['error']?.toString() ?? data['message']?.toString() ?? data['msg']?.toString() ?? 'Gagal menghubungi server';
+        
+        // LOGIKA JENIUS: Jika server mengembalikan "Validation Error", coba cari detail di dalam object 'errors'
+        if (data['errors'] != null && data['errors'] is Map) {
+          final errorsMap = data['errors'] as Map;
+          if (errorsMap.isNotEmpty) {
+            final firstEntry = errorsMap.entries.first;
+            final field = firstEntry.key.toString();
+            final message = firstEntry.value is List ? (firstEntry.value as List).first : firstEntry.value;
+            rawError = "$field: $message";
+          }
         }
+      } else if (data is String) {
+        rawError = data;
       }
 
       // Mapping Error Genius ke Bahasa Indonesia yang elegan
@@ -526,6 +536,36 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint("Gagal update lokasi di AuthProvider: $e");
     }
+    return false;
+  }
+
+  Future<bool> updateProfile(Map<String, dynamic> data) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final res = await ApiService().updateProfile(data);
+      if (res['message'] != null) {
+        // Optional: you could update local user data if the backend returns it
+        // _user!['phone_number'] = ...
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map) {
+          _lastErrorMessage = data['message']?.toString() ?? e.message;
+        } else {
+          _lastErrorMessage = e.message;
+        }
+      } else {
+        _lastErrorMessage = e.toString();
+      }
+      debugPrint("Update Profile Error: $e");
+    }
+    _isLoading = false;
+    notifyListeners();
     return false;
   }
   Future<bool> forceTopup(double amount, String targetIdentifier) async {
