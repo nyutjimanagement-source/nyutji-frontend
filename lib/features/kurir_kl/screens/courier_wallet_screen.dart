@@ -300,7 +300,7 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                 String formattedDate = "-";
                 try {
                   DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '') ?? DateTime.now();
-                  formattedDate = DateFormat('dd MMM, HH:mm').format(dt);
+                  formattedDate = DateFormat('dd MMM, HH:mm').format(dt.toLocal());
                 } catch (_) {}
 
                 return _transactionCard(

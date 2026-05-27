@@ -29,7 +29,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     Map<String, List<dynamic>> grouped = {};
     for (var m in mutasi) {
       DateTime date = DateTime.tryParse(m['createdAt']?.toString() ?? '') ?? DateTime.now();
-      String monthKey = DateFormat('MMMM yyyy', 'id_ID').format(date);
+      String monthKey = DateFormat('MMMM yyyy', 'id_ID').format(date.toLocal());
       if (!grouped.containsKey(monthKey)) {
         grouped[monthKey] = [];
       }
@@ -332,7 +332,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     String formattedDate = "-";
     try {
       DateTime dt = DateTime.tryParse(date) ?? DateTime.now();
-      formattedDate = DateFormat('dd MMM, HH:mm').format(dt);
+      formattedDate = DateFormat('dd MMM, HH:mm').format(dt.toLocal());
     } catch (_) {}
 
     return Padding(
