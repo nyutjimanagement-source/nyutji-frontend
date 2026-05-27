@@ -158,13 +158,13 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 child: Text(entry.key, style: GoogleFonts.montserrat(fontSize: 10, color: const Color(0xFF403600), fontWeight: FontWeight.w900)),
                               ),
-                              ...entry.value.map((m) {
+                                  ...entry.value.map((m) {
                                     final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-                                    final type = (m['transaction_type'] ?? '').toString().toUpperCase();
-                                    final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
+                                    final txType = (m['transaction_type'] ?? m['type'] ?? '').toString().toUpperCase();
+                                    final isOut = txType == 'PAYMENT' || txType == 'WITHDRAW' || txType == 'FEE_PLATFORM' || txType == 'DEBIT' || amt < 0;
                                     
                                     return _buildHistoryRow(
-                                      m['description'] ?? m['title'] ?? type,
+                                      m['description'] ?? m['title'] ?? txType,
                                       "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}",
                                       isOut ? const Color(0xFFC3312E) : const Color(0xFF10B981),
                                       m['createdAt'] ?? m['date'] ?? '-',
@@ -217,8 +217,8 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     double totalOut = 0;
     for (var m in wallet.mutasiList) {
       double amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-      final type = (m['transaction_type'] ?? '').toString().toUpperCase();
-      final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
+      final txType = (m['transaction_type'] ?? m['type'] ?? '').toString().toUpperCase();
+      final isOut = txType == 'PAYMENT' || txType == 'WITHDRAW' || txType == 'FEE_PLATFORM' || txType == 'DEBIT' || amt < 0;
       
       if (isOut) {
         totalOut += amt.abs();

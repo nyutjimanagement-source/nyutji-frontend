@@ -294,8 +294,8 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                 final m = wallet.mutasiList[index];
                 
                 final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-                final type = (m['transaction_type'] ?? '').toString().toUpperCase();
-                final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || amt < 0;
+                final type = (m['transaction_type'] ?? m['type'] ?? '').toString().toUpperCase();
+                final isOut = type == 'PAYMENT' || type == 'WITHDRAW' || type == 'FEE_PLATFORM' || type == 'DEBIT' || amt < 0;
                 
                 String formattedDate = "-";
                 try {
