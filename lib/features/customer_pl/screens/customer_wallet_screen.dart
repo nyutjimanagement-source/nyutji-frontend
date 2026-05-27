@@ -290,7 +290,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (ctx) {
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
+          builder: (BuildContext stCtx, StateSetter setState) {
             final itemWidth = (MediaQuery.of(ctx).size.width - 48 - 12) / 2;
 
             return Padding(
