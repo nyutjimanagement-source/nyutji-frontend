@@ -475,7 +475,6 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     int grandTotal = widget.totalPrice + courierFee;
     
     final walletProv = context.watch<WalletProvider>();
-    final balanceText = NumberFormat.currency(locale: 'id_ID', symbol: 'Saldo: Rp ', decimalDigits: 0).format(walletProv.balance);
     
     return Scaffold(
       backgroundColor: bgColor,
