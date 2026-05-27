@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/services/api_service.dart';
+import 'package:dio/dio.dart';
 
 class WalletProvider extends ChangeNotifier {
   bool _isLoading = false;
@@ -67,7 +68,7 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> requestWithdraw(double amount) async {
+  Future<bool> requestWithdraw(double amount, String pin) async {
     if (amount > _balance) {
       _errorMessage = "Saldo tidak mencukupi";
       notifyListeners();
@@ -77,9 +78,14 @@ class WalletProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      await _api.requestWithdraw(amount);
+      await _api.requestWithdraw(amount, pin);
       await fetchWallet();
       return true;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message'] ?? "Gagal memproses Penarikan";
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
       _errorMessage = "Gagal memproses Penarikan";
       _isLoading = false;
