@@ -83,7 +83,7 @@ class _PinScreenState extends State<PinScreen> {
     
     if (widget.amountToWithdraw != null) {
       final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-      final success = await walletProvider.requestWithdraw(widget.amountToWithdraw!);
+      final success = await walletProvider.requestWithdraw(widget.amountToWithdraw!, _pin);
       
       setState(() => _isLoading = false);
       if (!mounted) return;

@@ -236,8 +236,8 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> requestWithdraw(double amount) async {
-    final response = await _dio.post(ApiConstants.withdraw, data: {'amount': amount});
+  Future<Map<String, dynamic>> requestWithdraw(double amount, String pin) async {
+    final response = await _dio.post(ApiConstants.withdraw, data: {'amount': amount, 'pin': pin});
     return response.data;
   }
 
