@@ -36,12 +36,16 @@ class _MitraKeamananPinScreenState extends State<MitraKeamananPinScreen> {
     }
 
     // Validasi input
-    if (_emailController.text.isEmpty || _emailController.text != user['email']) {
+    final inputEmail = _emailController.text.trim().toLowerCase();
+    final userEmail = (user['email']?.toString() ?? '').trim().toLowerCase();
+    if (inputEmail.isEmpty || inputEmail != userEmail) {
       NyutjiNotif.showError(context, "Email tidak sesuai.");
       return;
     }
 
-    if (_phoneController.text.isEmpty || _phoneController.text != user['phone_number']) {
+    final inputPhone = _phoneController.text.trim();
+    final userPhone = (user['phone_number']?.toString() ?? '').trim();
+    if (inputPhone.isEmpty || inputPhone != userPhone) {
       NyutjiNotif.showError(context, "No Handphone tidak sesuai.");
       return;
     }
