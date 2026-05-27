@@ -297,7 +297,7 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.smartphone, size: 60, color: NyutjiTheme.m3Primary),
+                          const Icon(LucideIcons.smartphone, size: 60, color: NyutjiTheme.m3Primary),
                           const SizedBox(height: 16),
                           Text("Pop-up Midtrans Snap", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
                           const SizedBox(height: 8),
