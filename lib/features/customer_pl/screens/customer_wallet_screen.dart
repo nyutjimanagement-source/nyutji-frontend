@@ -7,6 +7,7 @@ import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class CustomerWalletScreen extends StatefulWidget {
   const CustomerWalletScreen({super.key});
@@ -298,13 +299,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                       Navigator.pop(ctx);
                       final ok = await wallet.forceTopup(amount.toDouble());
                       if (ok && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Top Up ${Formatters.currencyIdr(amount)} Berhasil!'),
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor: const Color(0xFF10B981),
-                          ),
-                        );
+                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(amount)} Berhasil!');
                       }
                     },
                     child: Container(

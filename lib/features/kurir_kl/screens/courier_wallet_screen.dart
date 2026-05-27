@@ -7,6 +7,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../mitra_ml/screens/mitra_wallet_screen.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class CourierWalletScreen extends StatefulWidget {
   const CourierWalletScreen({super.key});
@@ -182,12 +183,7 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                       Navigator.pop(ctx);
                       final ok = await wallet.forceTopup(amount.toDouble());
                       if (ok && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Top Up ${Formatters.currencyIdr(amount)} Berhasil!'),
-                            backgroundColor: const Color(0xFF10B981),
-                          ),
-                        );
+                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(amount)} Berhasil!');
                       }
                     },
                     child: Container(
