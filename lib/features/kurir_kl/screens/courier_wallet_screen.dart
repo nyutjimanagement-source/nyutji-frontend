@@ -6,8 +6,9 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
-import '../../mitra_ml/screens/mitra_wallet_screen.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/theme/nyutji_theme.dart';
+import '../../mitra_ml/screens/mitra_wallet_screen.dart';
 
 class CourierWalletScreen extends StatefulWidget {
   const CourierWalletScreen({super.key});
@@ -159,7 +160,7 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
 
   void _showTopUpSheet(BuildContext context, WalletProvider wallet) {
     final List<int> amounts = [50000, 100000, 200000, 300000, 500000, 1000000];
-    int _selectedAmount = amounts[0];
+    int selectedAmount = amounts[0];
 
     showModalBottomSheet(
       context: context,
@@ -183,10 +184,10 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                     spacing: 12,
                     runSpacing: 12,
                     children: amounts.map((amount) {
-                      bool isSelected = _selectedAmount == amount;
+                      bool isSelected = selectedAmount == amount;
                       return InkWell(
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () => setState(() => _selectedAmount = amount),
+                        onTap: () => setState(() => selectedAmount = amount),
                         child: Container(
                           width: itemWidth,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -210,7 +211,7 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                   InkWell(
                     onTap: () {
                       Navigator.pop(ctx);
-                      _showMidtransSnapSimulation(context, _selectedAmount);
+                      _showMidtransSnapSimulation(context, selectedAmount);
                     },
                     child: Container(
                       width: double.infinity,
@@ -231,9 +232,9 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                   InkWell(
                     onTap: () async {
                       Navigator.pop(ctx);
-                      final ok = await wallet.forceTopup(_selectedAmount.toDouble());
+                      final ok = await wallet.forceTopup(selectedAmount.toDouble());
                       if (ok && context.mounted) {
-                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(_selectedAmount)} Berhasil!');
+                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(selectedAmount)} Berhasil!');
                       }
                     },
                     child: Center(

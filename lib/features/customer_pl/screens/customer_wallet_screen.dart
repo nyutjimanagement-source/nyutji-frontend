@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/theme/nyutji_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/widgets/nyutji_notif.dart';
@@ -280,7 +281,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
 
   void _showTopUpSheet(BuildContext context, WalletProvider wallet) {
     final List<int> amounts = [50000, 100000, 200000, 300000, 500000, 1000000];
-    int _selectedAmount = amounts[0];
+    int selectedAmount = amounts[0];
 
     showModalBottomSheet(
       context: context,
@@ -304,10 +305,10 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                     spacing: 12,
                     runSpacing: 12,
                     children: amounts.map((amount) {
-                      bool isSelected = _selectedAmount == amount;
+                      bool isSelected = selectedAmount == amount;
                       return InkWell(
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () => setState(() => _selectedAmount = amount),
+                        onTap: () => setState(() => selectedAmount = amount),
                         child: Container(
                           width: itemWidth,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -331,7 +332,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                   InkWell(
                     onTap: () {
                       Navigator.pop(ctx);
-                      _showMidtransSnapSimulation(context, _selectedAmount);
+                      _showMidtransSnapSimulation(context, selectedAmount);
                     },
                     child: Container(
                       width: double.infinity,
@@ -352,9 +353,9 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                   InkWell(
                     onTap: () async {
                       Navigator.pop(ctx);
-                      final ok = await wallet.forceTopup(_selectedAmount.toDouble());
+                      final ok = await wallet.forceTopup(selectedAmount.toDouble());
                       if (ok && context.mounted) {
-                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(_selectedAmount)} Berhasil!');
+                        NyutjiNotif.showSuccess(context, 'Top Up ${Formatters.currencyIdr(selectedAmount)} Berhasil!');
                       }
                     },
                     child: Center(
