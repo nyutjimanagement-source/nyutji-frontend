@@ -884,16 +884,20 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                                 if (filteredMitras.isNotEmpty) ...[
                                   Text("Hasil Pencarian Mitra", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 12),
-                                  ...filteredMitras.map((m) => _buildSearchMitraCard(
-                                    sbContext, 
-                                    m,
-                                    isExpanded: expandedMitraId == m['identifier'],
-                                    onTap: () {
-                                      setModalState(() {
-                                        expandedMitraId = (expandedMitraId == m['identifier']) ? null : m['identifier'] as String?;
-                                      });
-                                    }
-                                  )),
+                                  ...filteredMitras.map((m) {
+                                    final id = m['identifier']?.toString();
+                                    return _buildSearchMitraCard(
+                                      sbContext, 
+                                      m,
+                                      isExpanded: id != null && expandedMitraId == id,
+                                      onTap: () {
+                                        if (id == null) return;
+                                        setModalState(() {
+                                          expandedMitraId = (expandedMitraId == id) ? null : id;
+                                        });
+                                      }
+                                    );
+                                  }),
                                 ]
                               ],
                             ),
