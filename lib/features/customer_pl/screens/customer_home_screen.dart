@@ -885,7 +885,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                                   Text("Hasil Pencarian Mitra", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 12),
                                   ...filteredMitras.map((m) {
-                                    final id = m['identifier']?.toString();
+                                    final id = (m['id'] ?? m['identifier'])?.toString();
                                     return _buildSearchMitraCard(
                                       sbContext, 
                                       m,
@@ -951,7 +951,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     final name = m['name'] ?? 'Mitra Nyutji';
     final city = m['city'] ?? m['city_name'] ?? m['owner_city_name'] ?? '';
     final isTop = m['is_top'] ?? true;
-    final services = (m['services'] as List<dynamic>?) ?? [];
+    
+    var services = (m['services'] as List<dynamic>?) ?? [];
+    if (services.isEmpty && m['services_text'] != null && m['services_text'].toString().trim().isNotEmpty) {
+      services = m['services_text'].toString().split(',').map((s) => {'name': s.trim()}).toList();
+    }
     
     return GestureDetector(
       onTap: onTap,
@@ -959,14 +963,24 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         duration: const Duration(milliseconds: 300),
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 5)]),
+        decoration: BoxDecoration(
+          color: Colors.white, 
+          borderRadius: BorderRadius.circular(16), 
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 5)]
+        ),
         child: Column(
           children: [
             Row(
               children: [
                 Container(
                   width: 48, height: 48,
-                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12), image: m['profile_photo'] != null ? DecorationImage(image: NetworkImage(m['profile_photo'].toString().startsWith('http') ? m['profile_photo'] : "${ApiConstants.rootUrl}/${m['profile_photo']}"), fit: BoxFit.cover) : null),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200], 
+                    borderRadius: BorderRadius.circular(12), 
+                    image: m['profile_photo'] != null 
+                        ? DecorationImage(image: NetworkImage(m['profile_photo'].toString().startsWith('http') ? m['profile_photo'] : "${ApiConstants.rootUrl}/${m['profile_photo']}"), fit: BoxFit.cover) 
+                        : null
+                  ),
                   child: m['profile_photo'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
                 ),
                 const SizedBox(width: 12),
@@ -991,37 +1005,46 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 Icon(isExpanded ? LucideIcons.chevronDown : LucideIcons.chevronRight, size: 18, color: Colors.grey),
               ],
             ),
-            if (isExpanded) ...[
-              const SizedBox(height: 16),
-              const Divider(height: 1, color: Color(0xFFF0F0F0)),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text("Layanan Tersedia:", style: NyutjiTheme.detail(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(height: 8),
-              if (services.isEmpty)
-                Align(alignment: Alignment.centerLeft, child: Text("Belum ada layanan.", style: NyutjiTheme.detail(Colors.grey)))
-              else
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: services.map((s) {
-                      final svcName = s['name'] ?? '-';
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF556B2F).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: isExpanded
+                  ? Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text("Layanan Tersedia:", style: NyutjiTheme.detail(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
                         ),
-                        child: Text(svcName, style: NyutjiTheme.detail(const Color(0xFF556B2F)).copyWith(fontWeight: FontWeight.bold, fontSize: 10)),
-                      );
-                    }).toList(),
-                  ),
-                ),
-            ]
+                        const SizedBox(height: 8),
+                        if (services.isEmpty)
+                          Align(alignment: Alignment.centerLeft, child: Text("Belum ada layanan.", style: NyutjiTheme.detail(Colors.grey)))
+                        else
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: services.map((s) {
+                                final svcName = s['name'] ?? '-';
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF556B2F).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(svcName, style: NyutjiTheme.detail(const Color(0xFF556B2F)).copyWith(fontWeight: FontWeight.bold, fontSize: 10)),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
