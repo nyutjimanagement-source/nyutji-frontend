@@ -760,6 +760,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   void _showGlobalSearchSheet(BuildContext context) {
     final orderProv = context.read<OrderProvider>();
     String searchQuery = "";
+    Timer? debounceTimer;
+    
+    // Reset search state
+    orderProv.searchGlobal("");
 
     showModalBottomSheet(
       context: context,
@@ -768,22 +772,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       builder: (sheetContext) => StatefulBuilder(
         builder: (sbContext, setModalState) {
           final queryClean = searchQuery.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-          
-          List<dynamic> filteredMitras = [];
           List<dynamic> filteredOrders = [];
 
           if (queryClean.isNotEmpty) {
-            filteredMitras = orderProv.recommendedMitras.where((m) {
-              final name = (m['name'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-              final city = (m['city_name'] ?? m['city'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-              final dist = (m['district_name'] ?? m['district'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-              final servicesText = (m['services_text'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-              
-              final hasService = servicesText.contains(queryClean);
-              
-              return name.contains(queryClean) || city.contains(queryClean) || dist.contains(queryClean) || hasService;
-            }).toList();
-
             final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
             filteredOrders = allOrders.where((o) {
               final orderNum = (o['order_number'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
@@ -793,99 +784,114 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             }).toList();
           }
 
-          return Container(
-            height: MediaQuery.of(sbContext).size.height * 0.85,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFFF9ED),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: const Color(0xFF403600).withValues(alpha: 0.1), shape: BoxShape.circle),
-                        child: const Icon(LucideIcons.search, color: Color(0xFF403600), size: 22),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Pencarian Kilat", style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 18)),
-                            Text("Temukan Mitra, Pesanan, Layanan", style: NyutjiTheme.detail(Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+          return Consumer<OrderProvider>(
+            builder: (context, provider, child) {
+              final filteredMitras = provider.searchedMitras;
+              final isLoading = provider.isLoading;
+
+              return Container(
+                height: MediaQuery.of(sbContext).size.height * 0.85,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF9ED),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
-                    child: TextField(
-                      autofocus: true,
-                      onChanged: (val) => setModalState(() => searchQuery = val),
-                      style: NyutjiTheme.body(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold),
-                      decoration: InputDecoration(
-                        icon: const Icon(LucideIcons.search, size: 20, color: Color(0xFF556B2F)),
-                        hintText: "Ketik apa saja... (mis: Cuci Sepatu)",
-                        hintStyle: NyutjiTheme.detail(Colors.grey),
-                        border: InputBorder.none,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(color: const Color(0xFF403600).withValues(alpha: 0.1), shape: BoxShape.circle),
+                            child: const Icon(LucideIcons.search, color: Color(0xFF403600), size: 22),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Pencarian Nyutji", style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 18)),
+                                Text("Temukan Mitra, Pesanan, Layanan", style: NyutjiTheme.detail(Colors.grey)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: searchQuery.isEmpty 
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(LucideIcons.zap, size: 64, color: Colors.grey[300]),
-                          const SizedBox(height: 16),
-                          Text("Cari secepat kilat!", style: NyutjiTheme.h3(Colors.grey)),
-                        ],
-                      ),
-                    )
-                  : (filteredMitras.isEmpty && filteredOrders.isEmpty)
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(LucideIcons.searchX, size: 64, color: Colors.grey[300]),
-                            const SizedBox(height: 16),
-                            Text("Oops! Tidak menemukan apapun.", style: NyutjiTheme.h3(Colors.grey)),
-                            Text("Coba kata kunci lain atau typo?", style: NyutjiTheme.detail(Colors.grey)),
-                          ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+                        child: TextField(
+                          autofocus: true,
+                          onChanged: (val) {
+                            setModalState(() => searchQuery = val);
+                            if (debounceTimer?.isActive ?? false) debounceTimer!.cancel();
+                            debounceTimer = Timer(const Duration(milliseconds: 500), () {
+                              provider.searchGlobal(val);
+                            });
+                          },
+                          style: NyutjiTheme.body(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            icon: const Icon(LucideIcons.search, size: 20, color: Color(0xFF556B2F)),
+                            hintText: "Ketik apa saja... (mis: Cuci Sepatu)",
+                            hintStyle: NyutjiTheme.detail(Colors.grey),
+                            border: InputBorder.none,
+                          ),
                         ),
-                      )
-                    : ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        children: [
-                          if (filteredOrders.isNotEmpty) ...[
-                            Text("Riwayat Pesanan", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 12),
-                            ...filteredOrders.map((o) => _buildSearchOrderCard(sbContext, o)),
-                            const SizedBox(height: 24),
-                          ],
-                          if (filteredMitras.isNotEmpty) ...[
-                            Text("Rekomendasi Mitra", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 12),
-                            ...filteredMitras.map((m) => _buildSearchMitraCard(sbContext, m)),
-                          ]
-                        ],
                       ),
+                    ),
+                    Expanded(
+                      child: searchQuery.isEmpty 
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(LucideIcons.zap, size: 64, color: Colors.grey[300]),
+                              const SizedBox(height: 16),
+                              Text("Cari secepat kilat!", style: NyutjiTheme.h3(Colors.grey)),
+                            ],
+                          ),
+                        )
+                      : isLoading 
+                        ? const Center(child: CircularProgressIndicator())
+                        : (filteredMitras.isEmpty && filteredOrders.isEmpty)
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(LucideIcons.searchX, size: 64, color: Colors.grey[300]),
+                                  const SizedBox(height: 16),
+                                  Text("Oops! Tidak menemukan apapun.", style: NyutjiTheme.h3(Colors.grey)),
+                                  Text("Coba kata kunci lain atau typo?", style: NyutjiTheme.detail(Colors.grey)),
+                                ],
+                              ),
+                            )
+                          : ListView(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              children: [
+                                if (filteredOrders.isNotEmpty) ...[
+                                  Text("Riwayat Pesanan", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 12),
+                                  ...filteredOrders.map((o) => _buildSearchOrderCard(sbContext, o)),
+                                  const SizedBox(height: 24),
+                                ],
+                                if (filteredMitras.isNotEmpty) ...[
+                                  Text("Hasil Pencarian Mitra", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 12),
+                                  ...filteredMitras.map((m) => _buildSearchMitraCard(sbContext, m)),
+                                ]
+                              ],
+                            ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            }
           );
         }
       ),

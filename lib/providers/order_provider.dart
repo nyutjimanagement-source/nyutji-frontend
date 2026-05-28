@@ -18,6 +18,9 @@ class OrderProvider extends ChangeNotifier {
   List<dynamic> _recommendedMitras = [];
   List<dynamic> get recommendedMitras => _recommendedMitras;
 
+  List<dynamic> _searchedMitras = [];
+  List<dynamic> get searchedMitras => _searchedMitras;
+
   // Order tersedia untuk Kurir (marketplace KL)
   List<dynamic> _availableOrders = [];
   List<dynamic> get availableOrders => _availableOrders;
@@ -135,6 +138,28 @@ class OrderProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint("Error fetching mitras: $e");
+      notifyListeners();
+    }
+  }
+
+  Future<void> searchGlobal(String query) async {
+    if (query.trim().isEmpty) {
+      _searchedMitras = [];
+      notifyListeners();
+      return;
+    }
+    
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final List<dynamic> results = await _api.searchMitras(query);
+      _searchedMitras = results;
+    } catch (e) {
+      debugPrint("Error searching mitras: $e");
+      _searchedMitras = [];
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }

@@ -310,6 +310,13 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  Future<List<dynamic>> searchMitras(String query) async {
+    final response = await _dio.get("/mitras/search", queryParameters: {
+      'q': query
+    });
+    return response.data['data'] ?? [];
+  }
+
   Future<List<dynamic>> getMitraItems(dynamic mitraId) async {
     // Menarik daftar harga asli mitra tertentu dari DB
     final response = await _dio.get("/mitras/$mitraId/items");
