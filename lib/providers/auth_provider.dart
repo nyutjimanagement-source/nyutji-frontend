@@ -545,8 +545,11 @@ class AuthProvider with ChangeNotifier {
     try {
       final res = await ApiService().updateProfile(data);
       if (res['message'] != null) {
-        // Optional: you could update local user data if the backend returns it
-        // _user!['phone_number'] = ...
+        if (res['user'] != null) {
+          _user = Map<String, dynamic>.from(res['user']);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_data', jsonEncode(_user));
+        }
         _isLoading = false;
         notifyListeners();
         return true;

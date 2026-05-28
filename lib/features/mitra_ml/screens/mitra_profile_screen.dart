@@ -41,6 +41,7 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _bankAccountController = TextEditingController();
+  final TextEditingController _accountNameController = TextEditingController();
   final TextEditingController _fbController = TextEditingController();
   final TextEditingController _igController = TextEditingController();
   
@@ -72,6 +73,7 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
     _emailController.dispose();
     _bankNameController.dispose();
     _bankAccountController.dispose();
+    _accountNameController.dispose();
     _fbController.dispose();
     _igController.dispose();
     super.dispose();
@@ -438,6 +440,13 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
   }
 
   Widget _buildExpandableAccountMenu(AuthProvider auth) {
+    final hasBank = (auth.user?['bank_name'] != null && auth.user!['bank_name'].toString().isNotEmpty) && 
+                    (auth.user?['bank_account'] != null && auth.user!['bank_account'].toString().isNotEmpty) && 
+                    (auth.user?['account_name'] != null && auth.user!['account_name'].toString().isNotEmpty);
+    
+    final hasSocial = (auth.user?['facebook'] != null && auth.user!['facebook'].toString().isNotEmpty) && 
+                      (auth.user?['instagram'] != null && auth.user!['instagram'].toString().isNotEmpty);
+
     return Column(
       children: [
         InkWell(
@@ -476,6 +485,18 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                       _buildReadOnlyField("Kata Sandi Lama", "********"),
                       const SizedBox(height: 12),
                       _buildReadOnlyField("Email", auth.user?['email'] ?? '-'),
+                      
+                      if (hasBank) ...[
+                        const SizedBox(height: 12),
+                        _buildReadOnlyField("Informasi Bank", "${auth.user!['bank_name']} - ${auth.user!['bank_account']}\na.n ${auth.user!['account_name']}"),
+                      ],
+                      if (hasSocial) ...[
+                        const SizedBox(height: 12),
+                        _buildReadOnlyField("Facebook", auth.user!['facebook']),
+                        const SizedBox(height: 12),
+                        _buildReadOnlyField("Instagram", auth.user!['instagram']),
+                      ],
+                      
                       const SizedBox(height: 24),
 
                       // UPDATE AKUN
@@ -492,21 +513,27 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                       _buildInputField("Email Baru", _emailController, hint: "contoh: nama@email.com"),
                       const SizedBox(height: 24),
 
-                      // INFORMASI BANK
-                      Text("Informasi Bank", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
-                      const SizedBox(height: 12),
-                      _buildInputField("Nama Bank", _bankNameController, hint: "contoh: BCA / BNI / MANDIRI"),
-                      const SizedBox(height: 12),
-                      _buildInputField("Nomor Rekening", _bankAccountController, hint: "contoh: 1234567890", isNumber: true),
-                      const SizedBox(height: 24),
+                      if (!hasBank) ...[
+                        // INFORMASI BANK
+                        Text("Informasi Bank", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
+                        const SizedBox(height: 12),
+                        _buildInputField("Nama Bank", _bankNameController, hint: "contoh: BCA / BNI / MANDIRI"),
+                        const SizedBox(height: 12),
+                        _buildInputField("Nomor Rekening", _bankAccountController, hint: "contoh: 1234567890", isNumber: true),
+                        const SizedBox(height: 12),
+                        _buildInputField("Nama Pemilik (Sesuai Rekening)", _accountNameController, hint: "contoh: Budi Santoso"),
+                        const SizedBox(height: 24),
+                      ],
 
-                      // SOCIAL MEDIA
-                      Text("Social Media Account", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
-                      const SizedBox(height: 12),
-                      _buildInputField("Facebook", _fbController, hint: "URL profil Facebook"),
-                      const SizedBox(height: 12),
-                      _buildInputField("Instagram", _igController, hint: "@username"),
-                      const SizedBox(height: 24),
+                      if (!hasSocial) ...[
+                        // SOCIAL MEDIA
+                        Text("Social Media Account", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
+                        const SizedBox(height: 12),
+                        _buildInputField("Facebook", _fbController, hint: "URL profil Facebook"),
+                        const SizedBox(height: 12),
+                        _buildInputField("Instagram", _igController, hint: "@username"),
+                        const SizedBox(height: 24),
+                      ],
 
                       // CATATAN
                       Container(
@@ -648,8 +675,11 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
     final email = _emailController.text.trim();
     final bankName = _bankNameController.text.trim();
     final bankAcc = _bankAccountController.text.trim();
+    final accountName = _accountNameController.text.trim();
+    final fb = _fbController.text.trim();
+    final ig = _igController.text.trim();
 
-    if (phone.isEmpty && newPass.isEmpty && email.isEmpty && bankName.isEmpty && bankAcc.isEmpty) {
+    if (phone.isEmpty && newPass.isEmpty && email.isEmpty && bankName.isEmpty && bankAcc.isEmpty && accountName.isEmpty && fb.isEmpty && ig.isEmpty) {
       _showBeautifulNotif("Tidak ada perubahan yang dilakukan", false);
       return;
     }
@@ -680,6 +710,9 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
     }
     if (bankName.isNotEmpty) payload['bank_name'] = bankName;
     if (bankAcc.isNotEmpty) payload['bank_account'] = bankAcc;
+    if (accountName.isNotEmpty) payload['account_name'] = accountName;
+    if (fb.isNotEmpty) payload['facebook'] = fb;
+    if (ig.isNotEmpty) payload['instagram'] = ig;
 
     final success = await auth.updateProfile(payload);
     
@@ -694,6 +727,7 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
         _emailController.clear();
         _bankNameController.clear();
         _bankAccountController.clear();
+        _accountNameController.clear();
         _fbController.clear();
         _igController.clear();
         setState(() => _isAccountExpanded = false);
