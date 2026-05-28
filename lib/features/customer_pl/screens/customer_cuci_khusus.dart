@@ -158,7 +158,11 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
       _selectedDistrict = auth.user!['district_name'] ?? '';
       _pickupAddress = auth.user!['address'] ?? auth.user!['address_detail'] ?? "$_selectedDistrict, $_selectedCity";
     }
-    Provider.of<WalletProvider>(context, listen: false).fetchWallet();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<WalletProvider>(context, listen: false).fetchWallet();
+      }
+    });
   }
 
   Future<void> _loadMitrasForSpecialItem(String keyword) async {
