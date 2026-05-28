@@ -554,8 +554,15 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       if (e is DioException) {
         final data = e.response?.data;
+        debugPrint("====== ISI ERROR BACKEND ======");
+        debugPrint(data?.toString() ?? "KOSONG");
+        debugPrint("===============================");
+        
         if (data is Map) {
           _lastErrorMessage = data['message']?.toString() ?? e.message;
+          if (data['error'] != null) {
+            _lastErrorMessage = "$_lastErrorMessage\nDetail: ${data['error']}";
+          }
         } else {
           _lastErrorMessage = e.message;
         }
