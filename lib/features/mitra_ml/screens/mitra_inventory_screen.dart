@@ -68,6 +68,7 @@ class _MitraInventoryScreenState extends State<MitraInventoryScreen> {
       "desc": "Suplai pendukung operasional harian",
       "icon": LucideIcons.wrench,
       "items": [
+        {"name": "Kelistrikan Ruangan Operasional", "detail": "Stabilitas daya listrik untuk Kebutuhan Mesin dan Keamanan sirkuit Power"},
         {"name": "Tabung Gas", "detail": "Untuk dryer/boiler gas"},
         {"name": "Tandon & Pompa", "detail": "Stabilitas suplai air"},
         {"name": "Filter Air", "detail": "Mencegah air kuning/berkerak"},
