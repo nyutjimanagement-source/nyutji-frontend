@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
-import '../../../core/theme/nyutji_theme.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/utils/nyutji_parser.dart';
@@ -213,7 +212,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
     } catch (e) {
       debugPrint("Error finding mitras for special item: $e");
       setState(() => _isLoadingMitras = false);
-      NyutjiNotif.showError(context, "Gagal memuat daftar Mitra. Coba lagi.");
+      if (mounted) NyutjiNotif.showError(context, "Gagal memuat daftar Mitra. Coba lagi.");
     }
   }
 
@@ -412,10 +411,10 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         // 3. Animasi Merpati
         _showMerpatiSuccess();
       } else {
-        NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal membuat pesanan.");
+        if (mounted) NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal membuat pesanan.");
       }
     } catch (e) {
-      NyutjiNotif.showError(context, "Terjadi kesalahan sistem: ${e.toString()}");
+      if (mounted) NyutjiNotif.showError(context, "Terjadi kesalahan sistem: ${e.toString()}");
     } finally {
       setState(() => _isSubmitting = false);
     }
@@ -472,7 +471,6 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF9ED),
       appBar: AppBar(
-        pinned: true,
         backgroundColor: primaryTeal,
         elevation: 0,
         leading: IconButton(
