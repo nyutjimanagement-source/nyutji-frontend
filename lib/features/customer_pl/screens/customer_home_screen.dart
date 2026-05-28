@@ -17,6 +17,7 @@ import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
 import 'customer_order_screen.dart';
 import 'customer_status_screen.dart';
+import 'customer_cuci_khusus.dart';
 import '../../../core/utils/status_helper.dart';
 import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
@@ -459,7 +460,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               _buildServiceItem("Nyutji\nCoin", "icon_coin.png"),
               _buildServiceItem("Top-Up", "icon_topup.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerWalletScreen()))),
               // Baris 2
-              _buildServiceItem("Cuci\nKhusus", "baby_stroller.png"),
+              _buildServiceItem("Cuci\nKhusus", "baby_stroller.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerCuciKhususScreen()))),
               _buildServiceItem("Dry\nClean", "icon_dryclean.png"),
               _buildServiceItem("Cuci\nSepatu", "icon_sepatu.png"),
               _buildServiceItem("Pakaian\nBayi", "icon_bayi.png"),
