@@ -43,6 +43,82 @@ class OrderProvider extends ChangeNotifier {
   int get notifCountML => _notifCountML;
   int get notifCountKL => _notifCountKL;
 
+  static const String _seenOrdersKey = 'nyutji_seen_orders';
+
+  Future<void> checkPLNotifications() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String> seenData = prefs.getStringList(_seenOrdersKey) ?? [];
+      
+      final Map<String, Map<String, dynamic>> seenMap = {};
+      for (var item in seenData) {
+        try {
+          final parts = item.split('|');
+          if (parts.length >= 3) {
+            seenMap[parts[0]] = {
+              'status': parts[1],
+              'proofsCount': int.tryParse(parts[2]) ?? 0,
+            };
+          }
+        } catch (e) {
+          debugPrint("Error parsing seen order item: $e");
+        }
+      }
+
+      int unseenCount = 0;
+
+      for (var order in _activeOrders) {
+        final orderNum = (order['order_number'] ?? order['id'] ?? '').toString();
+        if (orderNum.isEmpty) continue;
+
+        final currentStatus = (order['order_status'] ?? order['status'] ?? '').toString().toUpperCase();
+        final currentProofs = (order['proofs'] as List?)?.length ?? 0;
+
+        if (seenMap.containsKey(orderNum)) {
+          final lastSeen = seenMap[orderNum]!;
+          final lastSeenStatus = lastSeen['status'].toString().toUpperCase();
+          final lastSeenProofs = lastSeen['proofsCount'] as int;
+
+          // Dot merah active if status changed OR if there are new proofs
+          if (currentStatus != lastSeenStatus || currentProofs > lastSeenProofs) {
+            unseenCount++;
+          }
+        } else {
+          // If never seen at all (e.g. newly created order), trigger the dot merah
+          unseenCount++;
+        }
+      }
+
+      _notifCountPL = unseenCount;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error checking PL notifications: $e");
+    }
+  }
+
+  Future<void> markAllPLOrdersAsSeen() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String> newSeenData = [];
+
+      for (var order in _activeOrders) {
+        final orderNum = (order['order_number'] ?? order['id'] ?? '').toString();
+        if (orderNum.isEmpty) continue;
+
+        final currentStatus = (order['order_status'] ?? order['status'] ?? '').toString().toUpperCase();
+        final currentProofs = (order['proofs'] as List?)?.length ?? 0;
+
+        newSeenData.add("$orderNum|$currentStatus|$currentProofs");
+      }
+
+      await prefs.setStringList(_seenOrdersKey, newSeenData);
+      _notifCountPL = 0;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error marking PL orders as seen: $e");
+    }
+  }
+
   void addNotif(String role) {
     if (role == 'PL') _notifCountPL++;
     if (role == 'ML') _notifCountML++;
@@ -85,6 +161,8 @@ class OrderProvider extends ChangeNotifier {
           final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
           return status == 'selesai' || status == 'completed' || status == 'paid';
         }).toList();
+
+        await checkPLNotifications();
       } else {
         // Untuk Mitra (ML) & Kurir (KL): DONE sudah masuk riwayat / selesai!
         _activeOrders = orders.where((o) {

@@ -297,20 +297,29 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(LucideIcons.bell, color: Colors.white, size: 24),
-                    onPressed: () => orderProv.resetNotif('PL'),
+                    onPressed: () {
+                      orderProv.resetNotif('PL');
+                      orderProv.markAllPLOrdersAsSeen();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CustomerStatusScreen()),
+                      );
+                    },
                   ),
                   if (orderProv.notifCountPL > 0)
                     Positioned(
-                      top: 10, right: 10,
+                      top: 12,
+                      right: 12,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                        child: Text("${orderProv.notifCountPL}", 
-                          style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center),
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF403600), width: 1.5),
+                        ),
                       ),
-                    )
+                    ),
                 ],
               ),
             ),

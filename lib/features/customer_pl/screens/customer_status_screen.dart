@@ -23,8 +23,12 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<OrderProvider>().fetchOrders();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted) {
+        final provider = context.read<OrderProvider>();
+        await provider.fetchOrders();
+        await provider.markAllPLOrdersAsSeen();
+      }
     });
   }
 
