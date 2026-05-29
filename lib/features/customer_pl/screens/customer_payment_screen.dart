@@ -743,7 +743,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             child: Text("Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900)),
           ),
           
-          _paymentParentOption("Dompet Nyutji", "", LucideIcons.wallet, null, isSelected: _selectedPayment == "Dompet Nyutji", customDesc: dompetDesc),
+          _paymentParentOption("Dompet Nyutji", "", LucideIcons.wallet, null, isSelected: _selectedPayment == "Dompet Nyutji", customDesc: dompetDesc, isWarning: isInsufficient),
           
           _paymentParentOption("Virtual Account", "BCA, Mandiri, BNI, dll", LucideIcons.building, () {
             setState(() => _isVAExpanded = !_isVAExpanded);
@@ -770,7 +770,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     );
   }
 
-  Widget _paymentParentOption(String title, String desc, IconData icon, VoidCallback? onTap, {bool isSelected = false, bool isExpanded = false, Widget? customDesc}) {
+  Widget _paymentParentOption(String title, String desc, IconData icon, VoidCallback? onTap, {bool isSelected = false, bool isExpanded = false, Widget? customDesc, bool isWarning = false}) {
     bool actuallySelected = isSelected || (_selectedPayment.contains(title) && !isExpanded);
     return InkWell(
       onTap: onTap ?? () => setState(() => _selectedPayment = title),
@@ -781,8 +781,19 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: actuallySelected ? primaryTeal : bgColor, borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, size: 18, color: actuallySelected ? Colors.white : Colors.grey[600]),
+              decoration: BoxDecoration(
+                color: isWarning 
+                    ? Colors.red.withValues(alpha: 0.1) 
+                    : (actuallySelected ? primaryTeal : bgColor), 
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: Icon(
+                icon, 
+                size: 18, 
+                color: isWarning 
+                    ? Colors.red 
+                    : (actuallySelected ? Colors.white : Colors.grey[600])
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(

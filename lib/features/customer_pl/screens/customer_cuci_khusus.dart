@@ -26,7 +26,28 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
   final Color primaryTeal = const Color(0xFF403600);
   final Color accentGold = const Color(0xFFDAC66F);
   final Color darkBg = const Color(0xFF131109);
-  
+
+  String _selectedPayment = "Dompet Nyutji";
+  bool _isVAExpanded = false;
+  bool _isEWalletExpanded = false;
+
+  final List<Map<String, String>> _vaBanks = [
+    {'name': 'Bank BCA', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/512px-Bank_Central_Asia.svg.png'},
+    {'name': 'Bank Mandiri', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/512px-Bank_Mandiri_logo_2016.svg.png'},
+    {'name': 'Bank BNI', 'logo': 'https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/512px-BNI_logo.svg.png'},
+    {'name': 'Bank BRI', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/BRI_Logo.svg/512px-BRI_Logo.svg.png'},
+    {'name': 'CIMB NIAGA', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/CIMB_Niaga_logo.svg/512px-CIMB_Niaga_logo.svg.png'},
+    {'name': 'Others', 'logo': ''},
+  ];
+
+  final List<Map<String, String>> _eWallets = [
+    {'name': 'Gopay', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/512px-Gopay_logo.svg.png'},
+    {'name': 'OVO', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/512px-Logo_ovo_purple.svg.png'},
+    {'name': 'DANA', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/512px-Logo_dana_blue.svg.png'},
+    {'name': 'LinkAja', 'logo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/LinkAja.svg/512px-LinkAja.svg.png'},
+    {'name': 'Others', 'logo': ''},
+  ];
+
   int _currentStep = 1; // 1: Choose Item, 2: Choose Mitra & Configure, 3: Order Details & Payment
   Map<String, dynamic>? _selectedSpecialItem;
   
@@ -347,6 +368,11 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
     bool needsCourier = _deliveryType == 'pickup' || _returnMethod == 'courier';
     int courierFee = needsCourier ? _dynamicCourierFee : 0;
     int grandTotal = _specialItemPrice.toInt() + courierFee;
+
+    if (_selectedPayment != "Dompet Nyutji") {
+      if (mounted) NyutjiNotif.showError(context, "Saat ini hanya Dompet Nyutji yang tersedia.");
+      return;
+    }
 
     if (walletProv.balance < grandTotal) {
       NyutjiNotif.showError(context, "Saldo Anda Kurang, Silakan Lakukan Top Up");
@@ -1013,37 +1039,70 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         ),
 
         const SizedBox(height: 24),
-        // 4. WALLET DETAILS
+        // 4. Metode Pembayaran
         Text("4. Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white, 
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isInsufficient ? Colors.red.withValues(alpha: 0.3) : const Color(0xFFE3DCCF)),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20)],
+            border: Border.all(color: const Color(0xFFE3DCCF)),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(LucideIcons.wallet, color: isInsufficient ? Colors.red : primaryTeal, size: 22),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              _paymentParentOption(
+                "Dompet Nyutji", 
+                "", 
+                LucideIcons.wallet, 
+                null, 
+                isSelected: _selectedPayment == "Dompet Nyutji", 
+                customDesc: Row(
                   children: [
-                    Text("Dompet Nyutji", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg)),
                     Text(
                       "Saldo Anda: Rp ${NumberFormat.decimalPattern('id_ID').format(walletProv.balance)}", 
-                      style: GoogleFonts.montserrat(fontSize: 10.5, color: isInsufficient ? Colors.red : Colors.grey[600], fontWeight: isInsufficient ? FontWeight.bold : FontWeight.normal)
+                      style: GoogleFonts.montserrat(
+                        fontSize: 10, 
+                        fontWeight: isInsufficient ? FontWeight.bold : FontWeight.normal,
+                        color: isInsufficient ? Colors.red : Colors.grey[500]
+                      )
                     ),
-                  ],
+                    if (isInsufficient) ...[
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/customer_wallet'),
+                        child: Text(
+                          "Top-Up", 
+                          style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
+                        ),
+                      )
+                    ]
+                  ]
                 ),
+                isWarning: isInsufficient,
               ),
-              if (isInsufficient)
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/customer_wallet'),
-                  child: Text("Top-Up", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)),
+              
+              _paymentParentOption("Virtual Account", "BCA, Mandiri, BNI, dll", LucideIcons.building, () {
+                setState(() => _isVAExpanded = !_isVAExpanded);
+              }, isExpanded: _isVAExpanded),
+              if (_isVAExpanded) 
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(children: _vaBanks.map((bank) => _paymentSubOption(bank['name']!, bank['logo']!)).toList()),
                 ),
+                
+              _paymentParentOption("e-Wallet", "Gopay, OVO, DANA, dll", LucideIcons.smartphone, () {
+                setState(() => _isEWalletExpanded = !_isEWalletExpanded);
+              }, isExpanded: _isEWalletExpanded),
+              if (_isEWalletExpanded)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(children: _eWallets.map((wallet) => _paymentSubOption(wallet['name']!, wallet['logo']!)).toList()),
+                ),
+              
+              _paymentParentOption("QRIS", "Scan dari aplikasi apa saja", LucideIcons.qrCode, null, isSelected: _selectedPayment == "QRIS"),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -1051,13 +1110,15 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         const SizedBox(height: 32),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: isInsufficient ? Colors.grey : primaryTeal,
+            backgroundColor: (_selectedPayment == "Dompet Nyutji" && isInsufficient) ? Colors.grey : primaryTeal,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          onPressed: isInsufficient ? null : _submitOrderAndPay,
+          onPressed: (_selectedPayment == "Dompet Nyutji" && isInsufficient) ? null : _submitOrderAndPay,
           child: Text(
-            isInsufficient ? "SALDO TIDAK CUKUP" : "BAYAR & DITERBANGKAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
+            (_selectedPayment == "Dompet Nyutji" && isInsufficient) 
+                ? "SALDO TIDAK CUKUP" 
+                : "BAYAR & DITERBANGKAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
             style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
@@ -1083,6 +1144,78 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _paymentParentOption(String title, String desc, IconData icon, VoidCallback? onTap, {bool isSelected = false, bool isExpanded = false, Widget? customDesc, bool isWarning = false}) {
+    bool actuallySelected = isSelected || (_selectedPayment.contains(title) && !isExpanded);
+    return InkWell(
+      onTap: onTap ?? () => setState(() => _selectedPayment = title),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!, width: 0.5))),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isWarning 
+                    ? Colors.red.withValues(alpha: 0.1) 
+                    : (actuallySelected ? primaryTeal : const Color(0xFFF7F5F0)), 
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: Icon(
+                icon, 
+                size: 18, 
+                color: isWarning 
+                    ? Colors.red 
+                    : (actuallySelected ? Colors.white : Colors.grey[600])
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
+                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
+                ],
+              ),
+            ),
+            if (onTap != null)
+              Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey)
+            else if (actuallySelected)
+              Icon(LucideIcons.checkCircle, size: 18, color: primaryTeal)
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _paymentSubOption(String name, String logoUrl) {
+    bool isSel = _selectedPayment == name;
+    return InkWell(
+      onTap: () => setState(() => _selectedPayment = name),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSel ? primaryTeal.withValues(alpha: 0.05) : const Color(0xFFF7F5F0).withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSel ? primaryTeal : Colors.transparent),
+        ),
+        child: Row(
+          children: [
+            if (logoUrl.isNotEmpty) 
+              Image.network(logoUrl, width: 30, height: 20, fit: BoxFit.contain, errorBuilder: (c, e, s) => const Icon(LucideIcons.image, size: 14))
+            else
+              const Icon(LucideIcons.moreHorizontal, size: 14),
+            const SizedBox(width: 12),
+            Expanded(child: Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600))),
+            if (isSel) Icon(LucideIcons.checkCircle, size: 16, color: primaryTeal),
+          ],
+        ),
       ),
     );
   }
