@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   // Header: ID & Bantuan
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -218,27 +218,27 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
                   // Logo & Title
                   Column(
                     children: [
                       SizedBox(
-                        width: 140, height: 140,
+                        width: 100, height: 100,
                         child: Image.asset('assets/images/logo_nyutji.png', fit: BoxFit.contain),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       Text(
                         'Ny Utji Laundry',
-                        style: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w900, color: const Color(0xFF286B6A), letterSpacing: -0.5),
+                        style: GoogleFonts.montserrat(fontSize: 26, fontWeight: FontWeight.w900, color: const Color(0xFF286B6A), letterSpacing: -0.5),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
                         currentT['welcome'],
-                        style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w500, color: const Color(0xFF4B4B4B)),
+                        style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w500, color: const Color(0xFF4B4B4B)),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
                   // Masuk Card (Glassmorphism)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -254,29 +254,29 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 30, offset: const Offset(0, 10))],
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(32),
+                            padding: const EdgeInsets.all(28),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Masuk", style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF286B6A))),
-                                const SizedBox(height: 6),
+                                Text("Masuk", style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF286B6A))),
+                                const SizedBox(height: 4),
                                 Wrap(
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    Text(currentT['subtitle'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.black54)),
+                                    Text(currentT['subtitle'], style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black54)),
                                     GestureDetector(
                                       onTap: _showRegisterOptions,
-                                      child: Text(currentT['register'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFC3312E))),
+                                      child: Text(currentT['register'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFFC3312E))),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 32),
+                                const SizedBox(height: 24),
                                 _inputLabel(currentT['phone']),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 8),
                                 _textField(controller: phoneController, hint: "0812 3456 7890", keyboardType: TextInputType.phone, icon: LucideIcons.phone),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 16),
                                 _inputLabel(auth.lang == 'id' ? "Kata Sandi" : "Password"),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 8),
                                 _textField(
                                   controller: passwordController,
                                   hint: "••••••••",
@@ -287,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                   ),
                                 ),
-                                const SizedBox(height: 40),
+                                const SizedBox(height: 28),
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
@@ -296,10 +296,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       backgroundColor: const Color(0xFF286B6A),
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                      padding: const EdgeInsets.symmetric(vertical: 20),
+                                      padding: const EdgeInsets.symmetric(vertical: 18),
                                       elevation: 0,
                                     ),
-                                    child: Text(currentT['login'], style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    child: Text(currentT['login'], style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 15)),
                                   ),
                                 ),
                               ],
@@ -309,7 +309,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 28),
                   // Promo Section
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
