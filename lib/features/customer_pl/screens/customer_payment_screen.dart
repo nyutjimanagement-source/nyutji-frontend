@@ -182,7 +182,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
               children: [
                 Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
                 const SizedBox(width: 12),
-                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
               ],
             ),
           ),
@@ -250,8 +250,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                     children: [
                       const Icon(LucideIcons.fileText, color: Colors.white, size: 30),
                       const SizedBox(height: 8),
-                      Text(notaTitle, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text(notaSubtitle, style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w500)),
+                      Text(notaTitle, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(notaSubtitle, style: GoogleFonts.montserrat(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -301,7 +301,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         ),
-                        child: Text("BATAL", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.grey)),
+                        child: Text("BATAL", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -316,7 +316,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         ),
-                        child: Text("BAYAR", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
+                        child: Text("BAYAR", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
                       ),
                     ),
                   ],
@@ -335,9 +335,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 90, child: Text(label, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600]))),
-          const Text(" :  ", style: TextStyle(fontSize: 10, color: Colors.grey)),
-          Expanded(child: Text(value, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.black87), maxLines: isAddress ? 3 : 1, overflow: TextOverflow.ellipsis)),
+          SizedBox(width: 105, child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]))),
+          const Text(" :  ", style: TextStyle(fontSize: 13, color: Colors.grey)),
+          Expanded(child: Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.black87), maxLines: isAddress ? 3 : 1, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -451,10 +451,10 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text("Cucian Anda Sedang Diterbangkan!", 
-                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
                 const SizedBox(height: 8),
                 Text("Merpati Nyutji sedang menuju lokasi Anda...", 
-                  style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 12)),
+                  style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
@@ -479,7 +479,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: Text("Pembayaran", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+        title: Text("Pembayaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
         backgroundColor: Colors.white,
         elevation: 0.5,
         iconTheme: const IconThemeData(color: Colors.black87),
@@ -548,7 +548,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(invoiceTitle, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.black87)),
+          Text(invoiceTitle, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.black87)),
           const SizedBox(height: 12),
 
           // --- BLOK LOKASI ELEGAN ---
@@ -591,15 +591,18 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: widget.selectedItemsList.isEmpty 
-              ? Text("Item tidak terbaca, silakan kembali.", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.red))
+              ? Text("Item tidak terbaca, silakan kembali.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.red))
               : Column(
                   children: widget.selectedItemsList.map((item) => Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("• ${item['name'] ?? item['item_name'] ?? 'Item'}", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700])),
-                        Text("${item['count'] ?? item['qty'] ?? 0} ${item['unit'] ?? ''}", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        Expanded(
+                          child: Text("• ${item['name'] ?? item['item_name'] ?? 'Item'}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[700]), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        ),
+                        const SizedBox(width: 12),
+                        Text("${item['count'] ?? item['qty'] ?? 0} ${item['unit'] ?? ''}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
                       ],
                     ),
                   )).toList(),
@@ -613,9 +616,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Catatan Pelanggan", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                Text("Catatan Pelanggan", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                 const SizedBox(height: 4),
-                Text(widget.pickupNote, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(widget.pickupNote, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
             ),
           ],
@@ -655,7 +658,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       children: [
         Icon(icon, size: 14, color: primaryTeal),
         const SizedBox(width: 8),
-        Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal, letterSpacing: 0.5), overflow: TextOverflow.ellipsis)),
+        Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal, letterSpacing: 0.5), overflow: TextOverflow.ellipsis)),
       ],
     );
   }
@@ -677,9 +680,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w700, color: primaryTeal, letterSpacing: 0.5)),
+              Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: primaryTeal, letterSpacing: 0.5)),
               const SizedBox(height: 2),
-              Text(value.isNotEmpty ? value : '-', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 1),
+              Text(value.isNotEmpty ? value : '-', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 2),
             ],
           ),
         ),
@@ -693,8 +696,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
-          Text(value, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: isBold ? FontWeight.bold : FontWeight.w500, color: Colors.black87)),
+          Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+          Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w500, color: Colors.black87)),
         ],
       ),
     );
@@ -704,28 +707,29 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     bool isInsufficient = balance < grandTotal;
     String balanceStr = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(balance);
 
-    Widget dompetDesc = Row(
+    Widget dompetDesc = Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      runSpacing: 4,
       children: [
         Text(
           "Saldo: $balanceStr", 
           style: GoogleFonts.montserrat(
-            fontSize: 10, 
+            fontSize: 13, 
             fontWeight: isInsufficient ? FontWeight.bold : FontWeight.normal,
             color: isInsufficient ? primaryRed : Colors.grey[500]
           )
         ),
-        if (isInsufficient) ...[
-          const SizedBox(width: 8),
+        if (isInsufficient)
           InkWell(
             onTap: () {
                Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerWalletScreen()));
             },
             child: Text(
               "Update Saldo", 
-              style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
             ),
           )
-        ]
       ]
     );
 
@@ -740,7 +744,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Text("Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900)),
+            child: Text("Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900)),
           ),
           
           _paymentParentOption("Dompet Nyutji", "", LucideIcons.wallet, null, isSelected: _selectedPayment == "Dompet Nyutji", customDesc: dompetDesc, isWarning: isInsufficient),
@@ -800,8 +804,8 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
-                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
+                  Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
+                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
                 ],
               ),
             ),
@@ -834,7 +838,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             else
               const Icon(LucideIcons.moreHorizontal, size: 14),
             const SizedBox(width: 12),
-            Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: isSel ? FontWeight.bold : FontWeight.w500)),
+            Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isSel ? FontWeight.bold : FontWeight.w500)),
             const Spacer(),
             if (isSel) Icon(LucideIcons.checkCircle, size: 14, color: primaryTeal),
           ],
@@ -867,7 +871,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
                   height: 20, width: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                 )
-              : Text("KONFIRMASI PESANAN", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              : Text("KONFIRMASI PESANAN", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 1)),
         ),
       ),
     );
