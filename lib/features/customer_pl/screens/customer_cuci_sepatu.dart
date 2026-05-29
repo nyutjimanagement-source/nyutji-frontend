@@ -907,7 +907,7 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
                                     ),
                                     Text(
                                       "$_quantity Pasang",
-                                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w950, color: primaryTeal),
+                                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal),
                                     ),
                                   ],
                                 ),
