@@ -1061,9 +1061,17 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600])),
-          Text(value, style: GoogleFonts.montserrat(fontSize: 10.5, fontWeight: FontWeight.bold, color: darkBg)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.montserrat(fontSize: 10.5, fontWeight: FontWeight.bold, color: darkBg),
+              textAlign: TextAlign.right,
+            ),
+          ),
         ],
       ),
     );
