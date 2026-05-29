@@ -180,6 +180,16 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
       List<Map<String, dynamic>> mapped = [];
       for (var m in mitras) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(m);
+        
+        // FILTER: Tampilkan list ML satu Kab/Kota saja
+        if (_selectedCity.isNotEmpty) {
+          final String mAddr = (item['address'] ?? '').toString().toLowerCase();
+          final String userCity = _selectedCity.toLowerCase();
+          if (!mAddr.contains(userCity)) {
+            continue; // Lewati jika tidak satu Kab/Kota
+          }
+        }
+
         double dist = 0.5;
         
         if (_selectedLat != null && _selectedLng != null) {
@@ -490,7 +500,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         title: Text(
           _currentStep == 1 
               ? "Cuci Khusus" 
-              : (_currentStep == 2 ? "Pilih Mitra & Opsi" : "Konfirmasi Pembayaran"),
+              : (_currentStep == 2 ? "List Mitra dan Opsional Pengantaran" : "Konfirmasi Pembayaran"),
           style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)
         ),
         centerTitle: true,
