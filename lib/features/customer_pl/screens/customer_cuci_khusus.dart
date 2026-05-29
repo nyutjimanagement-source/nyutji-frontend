@@ -491,8 +491,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                 Text("Cucian Khusus Anda Diterbangkan!", 
                   style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
                 const SizedBox(height: 8),
-                Text("Merpati Nyutji sedang menuju lokasi Anda...", 
-                  style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 12)),
+                Text("Merpati Nyutji sedang menuju lokasi Anda...", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
@@ -560,7 +559,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
             children: [
               Text("Refreshing Kesayangan Anda", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: primaryTeal)),
               const SizedBox(height: 4),
-              Text("Pilih kategori barang cuci khusus premium di bawah ini:", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+              Text("Pilih kategori barang cuci khusus premium di bawah ini:", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
             ],
           ),
         ),
@@ -608,14 +607,14 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                       const SizedBox(height: 12),
                       Text(
                         item['name'], 
-                        style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: darkBg),
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item['desc'], 
-                        style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.grey[500]),
+                        style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -643,14 +642,14 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
               Icon(_selectedSpecialItem!['icon'], color: primaryTeal, size: 18),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(_selectedSpecialItem!['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)),
+                child: Text(_selectedSpecialItem!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
               ),
               GestureDetector(
                 onTap: () => setState(() => _currentStep = 1),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                  child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: primaryTeal)),
+                  child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
                 ),
               ),
             ],
@@ -667,15 +666,15 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                         children: [
                           Icon(LucideIcons.store, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text("Belum ada Mitra laundry yang melayani", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
-                          Text("item ini di sekitar kota Anda.", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                          Text("Belum ada Mitra laundry yang melayani", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
+                          Text("item ini di sekitar kota Anda.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
                         ],
                       ),
                     )
                   : ListView(
                       padding: const EdgeInsets.all(20),
                       children: [
-                        Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                        Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                         const SizedBox(height: 12),
                         ..._matchingMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
@@ -725,17 +724,17 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg)),
+                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
                                         const SizedBox(height: 2),
                                         Row(
                                           children: [
                                             const Icon(LucideIcons.star, color: Colors.amber, size: 10),
                                             const SizedBox(width: 4),
-                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                                             const SizedBox(width: 8),
                                             const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
                                             const SizedBox(width: 4),
-                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600])),
+                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                                           ],
                                         ),
                                       ],
@@ -755,7 +754,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                           const SizedBox(height: 24),
                           
                           // DELIVERY CHOICE
-                          Text("Metode Layanan:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                          Text("Metode Layanan:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                           const SizedBox(height: 10),
                           Row(
                             children: [
@@ -789,7 +788,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                           
                           if (_deliveryType == 'drop') ...[
                             const SizedBox(height: 16),
-                            Text("Metode Pengembalian:", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[500])),
+                            Text("Metode Pengembalian:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                             const SizedBox(height: 8),
                             Row(
                               children: [
@@ -802,7 +801,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
 
                           const SizedBox(height: 24),
                           // SPEED CHOICE
-                          Text("Kecepatan Layanan:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                          Text("Kecepatan Layanan:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                           const SizedBox(height: 10),
                           Container(
                             padding: const EdgeInsets.all(4),
@@ -829,7 +828,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             onPressed: () => setState(() => _currentStep = 3),
-                            child: Text("LANJUTKAN KE DETAIL", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+                            child: Text("LANJUTKAN KE DETAIL", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
                           ),
                           const SizedBox(height: 40),
                         ]
@@ -855,8 +854,8 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
           children: [
             Icon(icon, size: 20, color: isSel ? Colors.white : primaryTeal),
             const SizedBox(height: 8),
-            Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: isSel ? Colors.white : darkBg)),
-            Text(desc, style: GoogleFonts.montserrat(fontSize: 8.5, color: isSel ? Colors.white70 : Colors.grey[500])),
+            Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: isSel ? Colors.white : darkBg)),
+            Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: isSel ? Colors.white70 : Colors.grey[500])),
           ],
         ),
       ),
@@ -881,7 +880,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
           children: [
             Icon(icon, size: 14, color: isSel ? Colors.white : Colors.grey),
             const SizedBox(width: 8),
-            Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[600])),
+            Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[600])),
           ],
         ),
       ),
@@ -896,8 +895,8 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         decoration: BoxDecoration(color: isSel ? primaryTeal.withValues(alpha: 0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
         child: Column(
           children: [
-            Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? primaryTeal : Colors.grey[400])),
-            Text(desc, style: GoogleFonts.montserrat(fontSize: 9, color: isSel ? primaryTeal.withValues(alpha: 0.8) : Colors.grey[400])),
+            Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isSel ? primaryTeal : Colors.grey[400])),
+            Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: isSel ? primaryTeal.withValues(alpha: 0.8) : Colors.grey[400])),
           ],
         ),
       ),
@@ -916,7 +915,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         // 1. UPLOAD PHOTO CARD (COMPULSORY POW LOGIC)
-        Text("1. Foto Bukti Barang (Wajib)", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("1. Foto Bukti Barang (Wajib)", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         GestureDetector(
           onTap: _pickPOWImage,
@@ -935,8 +934,8 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                     children: [
                       Icon(LucideIcons.camera, size: 36, color: primaryTeal.withValues(alpha: 0.5)),
                       const SizedBox(height: 8),
-                      Text("Pencet untuk Ambil/Unggah Foto", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
-                      Text("Sebagai lampiran Proof of Work (POW) Pelanggan", style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.grey)),
+                      Text("Pencet untuk Ambil/Unggah Foto", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
+                      Text("Sebagai lampiran Proof of Work (POW) Pelanggan", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
                     ],
                   )
                 : Stack(
@@ -962,7 +961,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
 
         const SizedBox(height: 24),
         // 2. ADDRESS INFO CARD (IF COURIER OR DROPOFF)
-        Text(needsCourier ? "2. Alamat Penjemputan / Pengantaran" : "2. Lokasi Informasi", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text(needsCourier ? "2. Alamat Penjemputan / Pengiriman" : "2. Informasi Pengantaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(16),
@@ -975,28 +974,28 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                   children: [
                     Icon(_locationIcon, size: 16, color: primaryTeal),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(_pickupAddress, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkBg), maxLines: 2, overflow: TextOverflow.ellipsis)),
+                    Expanded(child: Text(_pickupAddress, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkBg), maxLines: 2, overflow: TextOverflow.ellipsis)),
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () => _showPickupPicker(title: "Pilih Lokasi Alamat"),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                        child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: primaryTeal)),
+                        child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
                       ),
                     ),
                   ],
                 ),
                 if (_pickupNote.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600])),
+                  Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                 ],
               ] else ...[
                 Row(
                   children: [
                     Icon(LucideIcons.store, size: 16, color: primaryTeal),
                     const SizedBox(width: 8),
-                    Expanded(child: Text("Anda memilih drop-off dan ambil secara mandiri ke Lokasi Laundry Mitra terpilih.", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600]))),
+                    Expanded(child: Text("Anda memilih drop-off dan ambil secara mandiri ke Lokasi Laundry Mitra terpilih.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]))),
                   ],
                 ),
               ],
@@ -1006,7 +1005,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
 
         const SizedBox(height: 24),
         // 3. DETAILED INVOICE BILLING
-        Text("3. Nota Estimasi Transaksi", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("3. Nota Estimasi Transaksi", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(20),
@@ -1018,8 +1017,8 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_selectedSpecialItem!['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg)),
-              Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[500])),
+              Text(_selectedSpecialItem!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
+              Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
               const SizedBox(height: 12),
               _invoiceRow("Layanan Kecepatan", _serviceSpeed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)"),
               _invoiceRow("Biaya Cuci Satuan", "Rp ${NumberFormat.decimalPattern('id_ID').format(_specialItemPrice)}"),
@@ -1031,7 +1030,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Total Pembayaran", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkBg)),
+                  Text("Total Pembayaran", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkBg)),
                   Text("Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)}", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal)),
                 ],
               ),
@@ -1041,7 +1040,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
 
         const SizedBox(height: 24),
         // 4. Metode Pembayaran
-        Text("4. Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("4. Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
@@ -1064,7 +1063,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                     Text(
                       "Saldo Anda: Rp ${NumberFormat.decimalPattern('id_ID').format(walletProv.balance)}", 
                       style: GoogleFonts.montserrat(
-                        fontSize: 10, 
+                        fontSize: 13, 
                         fontWeight: isInsufficient ? FontWeight.bold : FontWeight.normal,
                         color: isInsufficient ? Colors.red : Colors.grey[500]
                       )
@@ -1080,7 +1079,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                         },
                         child: Text(
                           "Top-Up", 
-                          style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
                         ),
                       )
                     ]
@@ -1125,7 +1124,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
             (_selectedPayment == "Dompet Nyutji" && isInsufficient) 
                 ? "SALDO TIDAK CUKUP" 
                 : "BAYAR & DITERBANGKAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
-            style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
         const SizedBox(height: 40),
@@ -1140,12 +1139,12 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600])),
+          Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.montserrat(fontSize: 10.5, fontWeight: FontWeight.bold, color: darkBg),
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkBg),
               textAlign: TextAlign.right,
             ),
           ),
@@ -1184,8 +1183,8 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
-                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
+                  Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
+                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
                 ],
               ),
             ),
@@ -1218,7 +1217,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
             else
               const Icon(LucideIcons.moreHorizontal, size: 14),
             const SizedBox(width: 12),
-            Expanded(child: Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600))),
             if (isSel) Icon(LucideIcons.checkCircle, size: 16, color: primaryTeal),
           ],
         ),

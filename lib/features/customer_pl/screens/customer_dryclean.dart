@@ -505,11 +505,9 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                Text("Pakaian Anda Sedang Diterbangkan!",
-                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+                Text("Pakaian Anda Sedang Diterbangkan!", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
                 const SizedBox(height: 8),
-                Text("Merpati Nyutji sedang menuju lokasi Anda...",
-                  style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 12)),
+                Text("Merpati Nyutji sedang menuju lokasi Anda...", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
@@ -580,15 +578,15 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Premium Dry Cleaning & Care", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: primaryTeal)),
+              Text("Premium Dry Cleaning & Care", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: primaryTeal)),
               const SizedBox(height: 4),
-              Text("Pencucian khusus tanpa air menggunakan cairan pelarut (solvent) organik. Sangat direkomendasikan untuk wol, sutra, kebaya, jas tegap, dan bahan kulit asli agar tidak menyusut atau berubah bentuk.", style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600])),
+              Text("Pencucian khusus tanpa air menggunakan cairan pelarut (solvent) organik. Sangat direkomendasikan untuk wol, sutra, kebaya, jas tegap, dan bahan kulit asli agar tidak menyusut atau berubah bentuk.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
             ],
           ),
         ),
 
         const SizedBox(height: 24),
-        Text("1. Pilih Jenis Pakaian / Bahan Dry Clean:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("1. Pilih Jenis Pakaian / Bahan Dry Clean:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
         ..._dryCleanPackages.map((pkg) {
@@ -624,11 +622,11 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(pkg['name'], style: GoogleFonts.montserrat(fontSize: 11.5, fontWeight: FontWeight.w900, color: darkBg)),
+                        Text(pkg['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
                         const SizedBox(height: 2),
-                        Text(pkg['desc'], style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        Text(pkg['desc'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 4),
-                        Text("Contoh: ${pkg['example']}", style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.grey[400], fontWeight: FontWeight.bold)),
+                        Text("Contoh: ${pkg['example']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -636,8 +634,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(pkg['base_price'])}", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)),
-                      Text("Harga Dasar", style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey)),
+                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(pkg['base_price'])}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
+                      Text("Harga Dasar", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
                     ],
                   ),
                 ],
@@ -647,7 +645,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         }),
 
         const SizedBox(height: 24),
-        Text("2. Tambahan Layanan Perawatan Khusus:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("2. Tambahan Layanan Perawatan Khusus:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
         _treatmentCheckbox("Pelarut Organik", "Cairan solvent organik ramah lingkungan & hypoallergenic bagi kulit sensitif.", 10000),
@@ -655,7 +653,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         _treatmentCheckbox("Anti Jamur", "Semprotan anti jamur & pelembap furing khusus untuk wol, cashmere, & kulit.", 5000),
 
         const SizedBox(height: 28),
-        Text("3. Alur Proses Dry Cleaning (SOP Kami):", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("3. Alur Proses Dry Cleaning (SOP Kami):", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
         // HORIZONTAL SCROLL OF SOP FOR LUXURY FEELING
@@ -687,9 +685,9 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(step['title'], style: GoogleFonts.montserrat(fontSize: 9.5, fontWeight: FontWeight.w900, color: darkBg), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(step['title'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg), maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
-                    Text(step['desc'], style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey[500]), maxLines: 3, overflow: TextOverflow.ellipsis),
+                    Text(step['desc'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]), maxLines: 3, overflow: TextOverflow.ellipsis),
                   ],
                 ),
               );
@@ -712,7 +710,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                 },
           child: Text(
             _selectedPackage == null ? "PILIH LAYANAN DRY CLEAN" : "PILIH MITRA LAUNDRY (Rp ${NumberFormat.decimalPattern('id_ID').format(_totalDryCleanPrice)})",
-            style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
         const SizedBox(height: 40),
@@ -744,13 +742,13 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkBg)),
-                  Text(desc, style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.grey[500])),
+                  Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkBg)),
+                  Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            Text("+Rp ${NumberFormat.decimalPattern('id_ID').format(price)}", style: GoogleFonts.montserrat(fontSize: 10.5, fontWeight: FontWeight.bold, color: primaryTeal)),
+            Text("+Rp ${NumberFormat.decimalPattern('id_ID').format(price)}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
           ],
         ),
       ),
@@ -773,8 +771,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)),
-                    Text("Total Estimasi: Rp ${NumberFormat.decimalPattern('id_ID').format(_totalDryCleanPrice)}", style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[600])),
+                    Text(_selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
+                    Text("Total Estimasi: Rp ${NumberFormat.decimalPattern('id_ID').format(_totalDryCleanPrice)}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                   ],
                 ),
               ),
@@ -783,7 +781,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                  child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: primaryTeal)),
+                  child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
                 ),
               ),
             ],
@@ -800,15 +798,15 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                         children: [
                           Icon(LucideIcons.store, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text("Belum ada Mitra laundry yang melayani", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
-                          Text("layanan dry cleaning di sekitar Anda.", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                          Text("Belum ada Mitra laundry yang melayani", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
+                          Text("layanan dry cleaning di sekitar Anda.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
                         ],
                       ),
                     )
                   : ListView(
                       padding: const EdgeInsets.all(20),
                       children: [
-                        Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                        Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                         const SizedBox(height: 12),
                         ..._matchingMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
@@ -842,17 +840,17 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg)),
+                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
                                         const SizedBox(height: 2),
                                         Row(
                                           children: [
                                             const Icon(LucideIcons.star, color: Colors.amber, size: 10),
                                             const SizedBox(width: 4),
-                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                                             const SizedBox(width: 8),
                                             const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
                                             const SizedBox(width: 4),
-                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600])),
+                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                                           ],
                                         ),
                                       ],
@@ -872,7 +870,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                           const SizedBox(height: 24),
 
                           // DELIVERY OPTION Choice
-                          Text("Metode Pengantaran:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                          Text("Metode Pengantaran:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                           const SizedBox(height: 10),
                           Row(
                             children: [
@@ -906,7 +904,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
 
                           if (_deliveryType == 'drop') ...[
                             const SizedBox(height: 16),
-                            Text("Metode Pengembalian:", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[500])),
+                            Text("Metode Pengembalian:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                             const SizedBox(height: 8),
                             Row(
                               children: [
@@ -919,7 +917,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
 
                           const SizedBox(height: 24),
                           // SPEED choice
-                          Text("Kecepatan Layanan:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                          Text("Kecepatan Layanan:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                           const SizedBox(height: 10),
                           Container(
                             padding: const EdgeInsets.all(4),
@@ -946,7 +944,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             onPressed: () => setState(() => _currentStep = 3),
-                            child: Text("LANJUTKAN KE DETAIL", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+                            child: Text("LANJUTKAN KE DETAIL", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
                           ),
                           const SizedBox(height: 40),
                         ]
@@ -972,8 +970,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
           children: [
             Icon(icon, size: 20, color: isSel ? Colors.white : primaryTeal),
             const SizedBox(height: 8),
-            Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: isSel ? Colors.white : darkBg)),
-            Text(desc, style: GoogleFonts.montserrat(fontSize: 8.5, color: isSel ? Colors.white70 : Colors.grey[500])),
+            Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: isSel ? Colors.white : darkBg)),
+            Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: isSel ? Colors.white70 : Colors.grey[500])),
           ],
         ),
       ),
@@ -998,7 +996,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
           children: [
             Icon(icon, size: 14, color: isSel ? Colors.white : Colors.grey),
             const SizedBox(width: 8),
-            Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[600])),
+            Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[600])),
           ],
         ),
       ),
@@ -1013,8 +1011,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         decoration: BoxDecoration(color: isSel ? primaryTeal.withValues(alpha: 0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
         child: Column(
           children: [
-            Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? primaryTeal : Colors.grey[400])),
-            Text(desc, style: GoogleFonts.montserrat(fontSize: 9, color: isSel ? primaryTeal.withValues(alpha: 0.8) : Colors.grey[400])),
+            Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isSel ? primaryTeal : Colors.grey[400])),
+            Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: isSel ? primaryTeal.withValues(alpha: 0.8) : Colors.grey[400])),
           ],
         ),
       ),
@@ -1038,7 +1036,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         // 1. DOKUMENTASI AWAL PAKAIAN (CHECK-IN)
-        Text("1. Foto Pakaian Anda (Wajib)", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("1. Foto Pakaian Anda (Wajib)", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         GestureDetector(
           onTap: _pickPOWImage,
@@ -1057,8 +1055,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                     children: [
                       Icon(LucideIcons.camera, size: 36, color: primaryTeal.withValues(alpha: 0.5)),
                       const SizedBox(height: 8),
-                      Text("Pencet untuk Ambil/Unggah Foto", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
-                      Text("Sebagai check-in awal kondisi fisik pakaian dry clean", style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.grey)),
+                      Text("Pencet untuk Ambil/Unggah Foto", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
+                      Text("Sebagai check-in awal kondisi fisik pakaian dry clean", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
                     ],
                   )
                 : Stack(
@@ -1084,7 +1082,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
 
         const SizedBox(height: 24),
         // 2. ALAMAT PENJEMPUTAN
-        Text(needsCourier ? "2. Alamat Penjemputan / Pengiriman" : "2. Informasi Pengantaran", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text(needsCourier ? "2. Alamat Penjemputan / Pengiriman" : "2. Informasi Pengantaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(16),
@@ -1097,28 +1095,28 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                   children: [
                     Icon(_locationIcon, size: 16, color: primaryTeal),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(_pickupAddress, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkBg), maxLines: 2, overflow: TextOverflow.ellipsis)),
+                    Expanded(child: Text(_pickupAddress, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkBg), maxLines: 2, overflow: TextOverflow.ellipsis)),
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () => _showPickupPicker(title: "Pilih Alamat"),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                        child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: primaryTeal)),
+                        child: Text("Ubah", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
                       ),
                     ),
                   ],
                 ),
                 if (_pickupNote.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600])),
+                  Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                 ],
               ] else ...[
                 Row(
                   children: [
                     Icon(LucideIcons.store, size: 16, color: primaryTeal),
                     const SizedBox(width: 8),
-                    Expanded(child: Text("Anda mengantar & mengambil pakaian secara mandiri ke Lokasi Laundry Mitra terpilih.", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600]))),
+                    Expanded(child: Text("Anda mengantar & mengambil pakaian secara mandiri ke Lokasi Laundry Mitra terpilih.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]))),
                   ],
                 ),
               ],
@@ -1128,7 +1126,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
 
         const SizedBox(height: 24),
         // 3. NOTA ESTIMASI INVOICE
-        Text("3. Nota Estimasi Dry Clean", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("3. Nota Estimasi Dry Clean", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(20),
@@ -1140,8 +1138,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg)),
-              Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[500])),
+              Text(_selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
+              Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
               const SizedBox(height: 12),
               _invoiceRow("Kecepatan Layanan", _serviceSpeed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)"),
               _invoiceRow("Biaya Dry Clean Utama", "Rp ${NumberFormat.decimalPattern('id_ID').format(_basePrice)}"),
@@ -1155,7 +1153,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Total Pembayaran", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkBg)),
+                  Text("Total Pembayaran", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkBg)),
                   Text("Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)}", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal)),
                 ],
               ),
@@ -1165,7 +1163,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
 
         const SizedBox(height: 24),
         // 4. Metode Pembayaran
-        Text("4. Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("4. Metode Pembayaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
@@ -1188,7 +1186,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                     Text(
                       "Saldo Anda: Rp ${NumberFormat.decimalPattern('id_ID').format(walletProv.balance)}", 
                       style: GoogleFonts.montserrat(
-                        fontSize: 10, 
+                        fontSize: 13, 
                         fontWeight: isInsufficient ? FontWeight.bold : FontWeight.normal,
                         color: isInsufficient ? Colors.red : Colors.grey[500]
                       )
@@ -1204,7 +1202,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                         },
                         child: Text(
                           "Top-Up", 
-                          style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
                         ),
                       )
                     ]
@@ -1249,7 +1247,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
             (_selectedPayment == "Dompet Nyutji" && isInsufficient) 
                 ? "SALDO TIDAK CUKUP" 
                 : "BAYAR & DITERBANGKAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
-            style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
         const SizedBox(height: 40),
@@ -1264,12 +1262,12 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600])),
+          Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.montserrat(fontSize: 10.5, fontWeight: FontWeight.bold, color: darkBg),
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkBg),
               textAlign: TextAlign.right,
             ),
           ),
@@ -1308,8 +1306,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold)),
-                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500])),
+                  Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold)),
+                  if (customDesc != null) customDesc else Text(desc, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
                 ],
               ),
             ),
@@ -1342,7 +1340,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
             else
               const Icon(LucideIcons.moreHorizontal, size: 14),
             const SizedBox(width: 12),
-            Expanded(child: Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600))),
             if (isSel) Icon(LucideIcons.checkCircle, size: 16, color: primaryTeal),
           ],
         ),
