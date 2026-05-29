@@ -466,6 +466,7 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
         'lng': _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0,
         'is_fast_track': isFastTrack,
         'service_price': _totalShoePrice.toInt(),
+        'servicePrice': _totalShoePrice.toInt(),
         'delivery_fee': courierFee,
         'delivery_type': deliveryType,
         'customer_id': auth.user?['identifier'],
@@ -1284,6 +1285,21 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
               const SizedBox(height: 12),
               _invoiceRow("Jumlah Pesanan", "$_quantity Pasang"),
               _invoiceRow("Kecepatan Layanan", _serviceSpeed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)"),
+              _invoiceRow("Nomor Resi", () {
+                String districtCode = 'NYJ';
+                if (_selectedMitra != null && _selectedMitra!['id'] != null) {
+                  final mId = _selectedMitra!['id'].toString();
+                  final parts = mId.split('-');
+                  if (parts.length >= 2) {
+                    districtCode = parts[1].toUpperCase();
+                  }
+                }
+                final todayStr = DateFormat('yyyyMMdd').format(DateTime.now());
+                return "$districtCode-$todayStr-XXXX";
+              }()),
+              _invoiceRow("Est. Tanggal Selesai", _serviceSpeed == 'fast'
+                  ? "${DateFormat('dd MMM yyyy').format(DateTime.now())} (Same Day)"
+                  : "${DateFormat('dd MMM yyyy').format(DateTime.now().add(const Duration(days: 3)))} (3 Hari)"),
               _invoiceRow("Biaya Cuci Utama", "Rp ${NumberFormat.decimalPattern('id_ID').format(_basePrice)}"),
               if (selectedTreatmentsList.isNotEmpty)
                 _invoiceRow("Treatment Tambahan", selectedTreatmentsList.join(', ')),
@@ -1388,7 +1404,7 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
           child: Text(
             (_selectedPayment == "Dompet Nyutji" && isInsufficient) 
                 ? "SALDO TIDAK CUKUP" 
-                : "BAYAR & DITERBANGKAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
+                : "BAYAR PESANAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
             style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),

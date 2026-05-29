@@ -424,6 +424,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         'lng': _selectedLng ?? double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0,
         'is_fast_track': isFastTrack,
         'service_price': _specialItemPrice.toInt(),
+        'servicePrice': _specialItemPrice.toInt(),
         'delivery_fee': courierFee,
         'delivery_type': deliveryType,
         'customer_id': auth.user?['identifier'],
@@ -1026,6 +1027,21 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
               Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
               const SizedBox(height: 12),
               _invoiceRow("Layanan Kecepatan", _serviceSpeed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)"),
+              _invoiceRow("Nomor Resi", () {
+                String districtCode = 'NYJ';
+                if (_selectedMitra != null && _selectedMitra!['id'] != null) {
+                  final mId = _selectedMitra!['id'].toString();
+                  final parts = mId.split('-');
+                  if (parts.length >= 2) {
+                    districtCode = parts[1].toUpperCase();
+                  }
+                }
+                final todayStr = DateFormat('yyyyMMdd').format(DateTime.now());
+                return "$districtCode-$todayStr-XXXX";
+              }()),
+              _invoiceRow("Est. Tanggal Selesai", _serviceSpeed == 'fast'
+                  ? "${DateFormat('dd MMM yyyy').format(DateTime.now())} (Same Day)"
+                  : "${DateFormat('dd MMM yyyy').format(DateTime.now().add(const Duration(days: 3)))} (3 Hari)"),
               _invoiceRow("Biaya Cuci Satuan", "Rp ${NumberFormat.decimalPattern('id_ID').format(_specialItemPrice)}"),
               if (needsCourier) ...[
                 _invoiceRow("Biaya Kurir Nyutji", _isLoadingPrice ? "Menghitung..." : "Rp ${NumberFormat.decimalPattern('id_ID').format(courierFee)}"),
@@ -1128,7 +1144,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
           child: Text(
             (_selectedPayment == "Dompet Nyutji" && isInsufficient) 
                 ? "SALDO TIDAK CUKUP" 
-                : "BAYAR & DITERBANGKAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
+                : "BAYAR PESANAN (Rp ${NumberFormat.decimalPattern('id_ID').format(grandTotal)})",
             style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
