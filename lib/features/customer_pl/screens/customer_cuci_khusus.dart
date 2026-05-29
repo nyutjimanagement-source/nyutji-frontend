@@ -13,6 +13,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
+import 'customer_wallet_screen.dart';
 import '../../../data/services/api_service.dart';
 
 class CustomerCuciKhususScreen extends StatefulWidget {
@@ -1071,7 +1072,12 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
                     if (isInsufficient) ...[
                       const SizedBox(width: 8),
                       InkWell(
-                        onTap: () => Navigator.pushNamed(context, '/customer_wallet'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CustomerWalletScreen()),
+                          );
+                        },
                         child: Text(
                           "Top-Up", 
                           style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal, decoration: TextDecoration.underline)
