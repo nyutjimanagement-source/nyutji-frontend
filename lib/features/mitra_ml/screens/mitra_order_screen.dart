@@ -991,7 +991,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   Widget _buildCustomerAvatar(String? photoUrl, double size) {
     if (photoUrl != null && photoUrl.isNotEmpty) {
       final String cleanPath = photoUrl.replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
-      final String fullUrl = cleanPath.startsWith('http') ? cleanPath : "${ApiConstants.rootUrl}/$cleanPath";
+      // Jika hanya nama file (tidak ada '/'), tambahkan folder uploads/profiles/
+      final String resolvedPath = (!cleanPath.startsWith('http') && !cleanPath.contains('/'))
+          ? 'uploads/profiles/$cleanPath'
+          : cleanPath;
+      final String fullUrl = resolvedPath.startsWith('http') ? resolvedPath : "${ApiConstants.rootUrl}/$resolvedPath";
       return Container(
         width: size, height: size,
         decoration: BoxDecoration(
