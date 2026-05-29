@@ -467,13 +467,9 @@ class _CustomerPakaianBayiScreenState extends State<CustomerPakaianBayiScreen> {
 
       if (success) {
         await orderProv.fetchOrders();
-        final newOrder = orderProv.activeOrders.firstWhere(
-          (o) => o['mitraId'] == _selectedMitra!['id'] && o['servicePrice'].toString() == _totalBabyPrice.toInt().toString(),
-          orElse: () => null
-        );
-
-        if (newOrder != null && newOrder['order_number'] != null) {
-          final orderNo = newOrder['order_number'].toString();
+        final newOrder = orderProv.activeOrders.isNotEmpty ? orderProv.activeOrders.first : null;
+        final orderNo = newOrder?['order_number']?.toString() ?? newOrder?['orderNumber']?.toString();
+        if (orderNo != null) {
           // Upload foto pakaian fisik pelanggan
           await orderProv.uploadPOWImage(orderNo, _selectedPhoto!, 'WEIGHING');
         }

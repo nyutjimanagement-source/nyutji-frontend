@@ -483,15 +483,11 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
       final success = await orderProv.createOrder(payload);
 
       if (success) {
+        // Ambil order terbaru (index 0) karena backend sort DESC createdAt
         await orderProv.fetchOrders();
-        final newOrder = orderProv.activeOrders.firstWhere(
-          (o) => o['mitraId'] == _selectedMitra!['id'] && o['servicePrice'].toString() == _totalShoePrice.toInt().toString(),
-          orElse: () => null
-        );
-
-        if (newOrder != null && newOrder['order_number'] != null) {
-          final orderNo = newOrder['order_number'].toString();
-          // Upload foto sepatu fisik pelanggan
+        final newOrder = orderProv.activeOrders.isNotEmpty ? orderProv.activeOrders.first : null;
+        final orderNo = newOrder?['order_number']?.toString() ?? newOrder?['orderNumber']?.toString();
+        if (orderNo != null) {
           await orderProv.uploadPOWImage(orderNo, _selectedPhoto!, 'WEIGHING');
         }
 

@@ -443,15 +443,11 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
 
       if (success) {
         // Cari order_number teratas (karena kita baru saja memesan, item teratas di active orders adalah pesanan baru)
+        // Ambil order terbaru (index 0) karena backend sort DESC createdAt
         await orderProv.fetchOrders();
-        final newOrder = orderProv.activeOrders.firstWhere(
-          (o) => o['mitraId'] == _selectedMitra!['id'] && o['servicePrice'].toString() == _specialItemPrice.toInt().toString(),
-          orElse: () => null
-        );
-
-        if (newOrder != null && newOrder['order_number'] != null) {
-          final orderNo = newOrder['order_number'].toString();
-          // 2. Upload POW fisik server menggunakan endpoint khusus
+        final newOrder = orderProv.activeOrders.isNotEmpty ? orderProv.activeOrders.first : null;
+        final orderNo = newOrder?['order_number']?.toString() ?? newOrder?['orderNumber']?.toString();
+        if (orderNo != null) {
           await orderProv.uploadPOWImage(orderNo, _selectedPhoto!, 'WEIGHING');
         }
         
