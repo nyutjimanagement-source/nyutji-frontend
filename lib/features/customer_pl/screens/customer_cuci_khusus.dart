@@ -960,8 +960,13 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         ),
 
         const SizedBox(height: 24),
-        // 2. ADDRESS INFO CARD (IF COURIER OR DROPOFF)
-        Text(needsCourier ? "2. Alamat Penjemputan / Pengiriman" : "2. Informasi Pengantaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        // 2. ALAMAT PENJEMPUTAN / LOKASI PENGIRIMAN
+        Text(
+          _deliveryType == 'pickup'
+              ? "2. Lokasi Penjemputan"
+              : (_returnMethod == 'courier' ? "2. Lokasi Pengiriman" : "2. Informasi Pengantaran"),
+          style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+        ),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(16),
