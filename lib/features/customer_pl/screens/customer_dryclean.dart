@@ -434,6 +434,9 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         }
       }
 
+      final now = DateTime.now();
+      final finishDate = isFastTrack ? now.add(const Duration(days: 1)) : now.add(const Duration(days: 3));
+
       final payload = {
         'address': _pickupAddress,
         'pickupNote': _pickupNote,
@@ -451,6 +454,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         'mitra_id': _selectedMitra!['id'],
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
         'district_code': districtCode,
+        'done_at': finishDate.toIso8601String(),
+        'doneAt': finishDate.toIso8601String(),
       };
 
       final success = await orderProv.createOrder(payload);

@@ -414,6 +414,9 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         }
       }
 
+      final now = DateTime.now();
+      final finishDate = isFastTrack ? now.add(const Duration(days: 1)) : now.add(const Duration(days: 3));
+
       final payload = {
         'address': _pickupAddress,
         'pickupNote': _pickupNote,
@@ -431,6 +434,8 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
         'mitra_id': _selectedMitra!['id'],
         'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
         'district_code': districtCode,
+        'done_at': finishDate.toIso8601String(),
+        'doneAt': finishDate.toIso8601String(),
       };
 
       // 1. Dapatkan antrean pesanan dari server
