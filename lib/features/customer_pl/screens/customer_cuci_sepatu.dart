@@ -28,15 +28,23 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
   final Color darkBg = const Color(0xFF131109);
 
   int _currentStep = 1; // 1: Select Shoe Type & Treatments, 2: Select Mitra & Details, 3: Confirm & Pay
-  Map<String, dynamic>? _selectedShoeType;
+  final List<Map<String, dynamic>> _selectedShoeTypes = [];
+  int _quantity = 1;
   
+  double get _basePrice {
+    double sum = 0.0;
+    for (var type in _selectedShoeTypes) {
+      sum += NyutjiParser.toDouble(type['base_price'] ?? 0);
+    }
+    return sum;
+  }
+
   // LIVE DATABASE MITRA MATCHING
   List<dynamic> _matchingMitras = [];
   bool _isLoadingMitras = false;
   Map<String, dynamic>? _selectedMitra;
 
   // CONFIGURATION STATES
-  double _basePrice = 45000.0;
   final Map<String, bool> _selectedTreatments = {
     'Unyellowing': false,
     'Repaint': false,
@@ -162,6 +170,9 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
   @override
   void initState() {
     super.initState();
+    if (_shoeTypes.isNotEmpty) {
+      _selectedShoeTypes.add(_shoeTypes.first);
+    }
     final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.user != null) {
       _selectedLat = double.tryParse(auth.user!['lat']?.toString() ?? '');
@@ -184,7 +195,7 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
         total += (_treatmentPrices[key] ?? 0);
       }
     });
-    return total;
+    return total * _quantity;
   }
 
   Future<void> _loadMitrasForShoecare() async {
@@ -394,13 +405,16 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
           ? " (Treatment: ${selectedTreatmentsList.join(', ')})"
           : "";
 
+      final selectedNames = _selectedShoeTypes.map((t) => t['name'].toString().split(' (')[0]).join(' + ');
+      final String itemName = "$selectedNames$noteTreatment";
+
       final items = [
         {
           'category': 'Satuan',
-          'item_name': "${_selectedShoeType!['name']}$noteTreatment",
-          'qty': 1,
-          'unit': 'Pcs',
-          'price_per_unit': _totalShoePrice.toInt(),
+          'item_name': itemName,
+          'qty': _quantity,
+          'unit': 'Pasang',
+          'price_per_unit': (_totalShoePrice / _quantity).toInt(),
           'notes': 'Shoecare Premium Professional',
         }
       ];
@@ -573,12 +587,19 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
         const SizedBox(height: 12),
 
         ..._shoeTypes.map((type) {
-          bool isSel = _selectedShoeType?['id'] == type['id'];
+          bool isSel = _selectedShoeTypes.any((t) => t['id'] == type['id']);
           return GestureDetector(
             onTap: () {
               setState(() {
-                _selectedShoeType = type;
-                _basePrice = type['base_price'].toDouble();
+                if (isSel) {
+                  if (_selectedShoeTypes.length > 1) {
+                    _selectedShoeTypes.removeWhere((t) => t['id'] == type['id']);
+                  } else {
+                    NyutjiNotif.showError(context, "Minimal harus memilih satu jenis bahan sepatu.");
+                  }
+                } else {
+                  _selectedShoeTypes.add(type);
+                }
               });
             },
             child: Container(
@@ -681,18 +702,18 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
         const SizedBox(height: 36),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: _selectedShoeType == null ? Colors.grey : primaryTeal,
+            backgroundColor: _selectedShoeTypes.isEmpty ? Colors.grey : primaryTeal,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          onPressed: _selectedShoeType == null
+          onPressed: _selectedShoeTypes.isEmpty
               ? null
               : () {
                   setState(() => _currentStep = 2);
                   _loadMitrasForShoecare();
                 },
           child: Text(
-            _selectedShoeType == null ? "PILIH JENIS SEPATU" : "PILIH MITRA LAUNDRY (Rp ${NumberFormat.decimalPattern('id_ID').format(_totalShoePrice)})",
+            _selectedShoeTypes.isEmpty ? "PILIH MINIMAL 1 BAHAN SEPATU" : "PILIH MITRA LAUNDRY (Rp ${NumberFormat.decimalPattern('id_ID').format(_totalShoePrice)})",
             style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
@@ -748,13 +769,18 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
           color: primaryTeal.withValues(alpha: 0.03),
           child: Row(
             children: [
-              Icon(_selectedShoeType!['icon'], color: primaryTeal, size: 18),
+              Icon(LucideIcons.footprints, color: primaryTeal, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_selectedShoeType!['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)),
+                    Text(
+                      _selectedShoeTypes.map((t) => t['name'].toString().split(' (')[0]).join(', '),
+                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     Text("Total Estimasi: Rp ${NumberFormat.decimalPattern('id_ID').format(_totalShoePrice)}", style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[600])),
                   ],
                 ),
@@ -852,6 +878,67 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
                           const Divider(height: 1, color: Color(0xFFE3DCCF)),
                           const SizedBox(height: 24),
 
+                          // SLIDER COUNTER: Jumlah Pasang Sepatu
+                          Text("Jumlah Pasang Sepatu:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xFFE3DCCF)),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(LucideIcons.footprints, color: primaryTeal, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          "Jumlah Sepatu",
+                                          style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkBg),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      "$_quantity Pasang",
+                                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w950, color: primaryTeal),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                SliderTheme(
+                                  data: SliderTheme.of(context).copyWith(
+                                    activeTrackColor: primaryTeal,
+                                    inactiveTrackColor: primaryTeal.withValues(alpha: 0.1),
+                                    thumbColor: primaryTeal,
+                                    overlayColor: primaryTeal.withValues(alpha: 0.2),
+                                    valueIndicatorColor: primaryTeal,
+                                    valueIndicatorTextStyle: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                                  ),
+                                  child: Slider(
+                                    value: _quantity.toDouble(),
+                                    min: 1,
+                                    max: 10,
+                                    divisions: 9,
+                                    label: "$_quantity Pasang",
+                                    onChanged: (double val) {
+                                      setState(() {
+                                        _quantity = val.toInt();
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
                           // DELIVERY OPTION Choice
                           Text("Metode Pengantaran:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                           const SizedBox(height: 10),
@@ -1122,9 +1209,13 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_selectedShoeType!['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg)),
+              Text(
+                _selectedShoeTypes.map((t) => t['name'].toString().split(' (')[0]).join(' + '),
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
+              ),
               Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[500])),
               const SizedBox(height: 12),
+              _invoiceRow("Jumlah Pesanan", "$_quantity Pasang"),
               _invoiceRow("Kecepatan Layanan", _serviceSpeed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)"),
               _invoiceRow("Biaya Cuci Utama", "Rp ${NumberFormat.decimalPattern('id_ID').format(_basePrice)}"),
               if (selectedTreatmentsList.isNotEmpty)
