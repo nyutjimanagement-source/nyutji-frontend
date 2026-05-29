@@ -690,7 +690,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       (m['rating'] ?? '4.5').toString(), 
                       m['is_top'] ?? true, 
                       m['is_open'] ?? true,
-                      m['profile_photo']
+                      m['image'] ?? m['profile_photo']
                     ),
                   );
                 }),
