@@ -152,64 +152,127 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final String path = foundProof['file_url'].toString().replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
     final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
 
+    // Info overlay
+    final String orderId = (foundProof['orderId'] ?? foundProof['order_id'] ?? '-').toString();
+    final String uploaderRole = (foundProof['uploader_role'] ?? 'PL').toString();
+    final String uploaderLabel = uploaderRole == 'ML' ? 'Mitra Laundry'
+        : uploaderRole == 'KL' ? 'Kurir'
+        : 'Pelanggan';
+    String uploadedAt = '-';
+    try {
+      final dt = DateTime.tryParse(foundProof['createdAt']?.toString() ?? '');
+      if (dt != null) {
+        final local = dt.toLocal();
+        final months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        uploadedAt = '${local.day} ${months[local.month - 1]}, '
+            '${local.hour.toString().padLeft(2,'0')}:${local.minute.toString().padLeft(2,'0')} WIB';
+      }
+    } catch (_) {}
+
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(20),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
-                ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Bukti $title", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: primaryTeal)),
+                    Expanded(
+                      child: Text(
+                        "Bukti $title",
+                        style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: primaryTeal),
+                      ),
+                    ),
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => Navigator.pop(ctx),
                       child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          shape: BoxShape.circle,
-                        ),
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
                         child: const Icon(Icons.close, size: 18, color: Colors.black54),
                       ),
                     ),
                   ],
                 ),
               ),
-              Flexible(
-                child: InteractiveViewer(
-                  panEnabled: true,
-                  minScale: 0.5,
-                  maxScale: 4.0,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.contain,
-                    width: double.infinity,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const SizedBox(
-                        height: 250,
-                        child: Center(child: CircularProgressIndicator(color: primaryTeal)),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) => const SizedBox(
-                      height: 200,
-                      child: Center(child: Icon(Icons.broken_image, size: 48, color: Colors.grey)),
+              // Foto + Watermark + Info
+              InteractiveViewer(
+                panEnabled: true,
+                minScale: 0.8,
+                maxScale: 5.0,
+                child: Stack(
+                  children: [
+                    // Gambar
+                    Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const SizedBox(
+                          height: 260,
+                          child: Center(child: CircularProgressIndicator(color: primaryTeal)),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => const SizedBox(
+                        height: 220,
+                        child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
+                      ),
                     ),
-                  ),
+                    // Watermark diagonal
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Center(
+                          child: Transform.rotate(
+                            angle: -0.5,
+                            child: Text(
+                              'Properti Nyutji Management',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white.withValues(alpha: 0.45),
+                                letterSpacing: 1.2,
+                                shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Gradient + Info overlay bawah kanan
+                    Positioned(
+                      bottom: 0, left: 0, right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [Colors.black54, Colors.transparent],
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                            Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                            Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
