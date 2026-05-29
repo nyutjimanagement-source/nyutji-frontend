@@ -656,43 +656,75 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         Text("3. Alur Proses Dry Cleaning:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
-        // HORIZONTAL SCROLL OF SOP FOR LUXURY FEELING
-        SizedBox(
-          height: 160,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: _sopSteps.length,
-            itemBuilder: (context, index) {
-              final step = _sopSteps[index];
-              return Container(
-                width: 160,
-                margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE3DCCF)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // VERTICAL SOP STEP LIST - NO TRUNCATION & FULL PARAGRAPHS
+        Column(
+          children: _sopSteps.map((step) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE3DCCF)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Step badge
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: primaryTeal.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      step['step'],
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: primaryTeal,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  // Step Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(step['step'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal.withValues(alpha: 0.3))),
-                        Icon(LucideIcons.checkCircle, color: primaryTeal.withValues(alpha: 0.2), size: 12),
+                        Text(
+                          step['title'],
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: darkBg,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          step['desc'],
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            height: 1.4,
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(step['title'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 2),
-                    Text(step['desc'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]), maxLines: 3, overflow: TextOverflow.ellipsis),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ),
 
         const SizedBox(height: 36),
