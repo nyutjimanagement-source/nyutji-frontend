@@ -377,7 +377,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     // JIKA PICKUP: Alamat Penjemputan di Atas
                     _buildAddressSection(cT, auth),
                     const SizedBox(height: 24),
-                    Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                    Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
                   ],
                   const SizedBox(height: 4),
                 ],
@@ -397,11 +397,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                           Icon(LucideIcons.ghost, size: 40, color: Colors.grey[200]),
                           const SizedBox(height: 12),
                           Text("Belum ada Mitra APPROVED di radar.", 
-                            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.bold)),
+                            style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
                           Text("Pastikan status Mitra sudah 'APPROVED' di Dashboard Admin", 
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400])),
+                            style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400])),
                         ],
                       ),
                     ),
@@ -423,7 +423,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cT['speed_label'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                  Text(cT['speed_label'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
                   const SizedBox(height: 12),
                   _buildDenseSpeedSelector(cT),
                   const SizedBox(height: 24),
@@ -541,7 +541,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             children: [
               Icon(_locationIcon, size: 16, color: primaryTeal),
               const SizedBox(width: 8),
-              Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+              Text(cT['loc_pickup'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500], fontWeight: FontWeight.bold)),
               const Spacer(),
               _pillButton("Ubah", () => _showPickupPicker(title: "Pilih Lokasi Penjemputan")),
             ],
@@ -550,14 +550,14 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           Text(_getSmartAddress(_pickupAddress), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
           if (_pickupNote.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+            Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
           ],
           const Divider(height: 24),
           Row(
             children: [
               const Icon(LucideIcons.messageSquare, size: 14, color: Colors.grey),
               const SizedBox(width: 8),
-              Expanded(child: Text(_pickupNote.isEmpty ? "Tambahkan catatan penjemputan" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400]))),
+              Expanded(child: Text(_pickupNote.isEmpty ? "Tambahkan catatan penjemputan" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400]))),
               _pillButton("Tambahan Info", () => _showNoteDialog()),
             ],
           ),
@@ -577,7 +577,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Setelah Selesai, Cucian:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Text("Setelah Selesai, Cucian:", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -594,7 +594,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   children: [
                     Icon(LucideIcons.mapPin, size: 16, color: primaryRed),
                     const SizedBox(width: 8),
-                    Text("Lokasi Pengiriman", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+                    Text("Lokasi Pengiriman", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500], fontWeight: FontWeight.bold)),
                     const Spacer(),
                     _pillButton("Ubah", () => _showPickupPicker(title: "Pilih Lokasi Pengiriman")),
                   ],
@@ -611,7 +611,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 children: [
                   const Icon(LucideIcons.messageSquare, size: 14, color: Colors.grey),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(_pickupNote.isEmpty ? "Tambahan info untuk Mitra" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400]))),
+                  Expanded(child: Text(_pickupNote.isEmpty ? "Tambahan info untuk Mitra" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400]))),
                   _pillButton("Tambahan Info", () => _showNoteDialog()),
                 ],
               ),
@@ -621,7 +621,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         const SizedBox(height: 24),
 
         // 3. REKOMENDASI MITRA (Sekarang di bawah)
-        Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+        Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
       ],
     );
   }
@@ -646,7 +646,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           children: [
             Icon(icon, size: 14, color: isSel ? Colors.white : Colors.grey),
             const SizedBox(width: 8),
-            Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[600])),
+            Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isSel ? Colors.white : Colors.grey[600])),
           ],
         ),
       ),
@@ -659,7 +659,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-        child: Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+        child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
       ),
     );
   }
@@ -760,7 +760,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                         const Icon(LucideIcons.mapPin, size: 10, color: Colors.white70),
                         const SizedBox(width: 4),
                         Text(NyutjiDistance.formatDistance(mitra['distance'] ?? 0.1), 
-                          style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+                          style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -779,7 +779,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text("${mitra['rating'] ?? '5.0'}", style: GoogleFonts.montserrat(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w900)),
+                      Text("${mitra['rating'] ?? '5.0'}", style: GoogleFonts.montserrat(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900)),
                       const SizedBox(width: 4),
                       const Icon(LucideIcons.star, size: 12, color: Colors.red),
                     ],
@@ -899,8 +899,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         decoration: BoxDecoration(color: isSel ? activeC.withValues(alpha: 0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
         child: Column(
           children: [
-            Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isSel ? activeC : Colors.grey[400])),
-            Text(desc, style: GoogleFonts.montserrat(fontSize: 9, color: isSel ? activeC.withValues(alpha: 0.8) : Colors.grey[400])),
+            Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isSel ? activeC : Colors.grey[400])),
+            Text(desc, style: GoogleFonts.montserrat(fontSize: 11, color: isSel ? activeC.withValues(alpha: 0.8) : Colors.grey[400])),
           ],
         ),
       ),
@@ -918,7 +918,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             children: [
               Icon(LucideIcons.store, size: 40, color: Colors.grey[300]),
               const SizedBox(height: 12),
-              Text("Silakan Pilih Mitra Laundry Terlebih Dahulu", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+              Text("Silakan Pilih Mitra Laundry Terlebih Dahulu", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500], fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -938,11 +938,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
             if (!isLoaded) ...[
               SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: primaryTeal.withValues(alpha: 0.5))),
               const SizedBox(height: 16),
-              Text("Sedang mengambil daftar harga...", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+              Text("Sedang mengambil daftar harga...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
             ] else ...[
               Icon(LucideIcons.fileX, size: 30, color: Colors.grey[400]),
               const SizedBox(height: 12),
-              Text("Daftar Harga Masih Kosong", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+              Text("Daftar Harga Masih Kosong", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
             ]
           ],
         ),
@@ -999,7 +999,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
                     const Spacer(),
                     if (chunks.length > 1)
-                      Text("Slide untuk lainnya", style: GoogleFonts.montserrat(fontSize: 8, color: Colors.grey, fontWeight: FontWeight.bold)),
+                      Text("Slide untuk lainnya", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -1008,11 +1008,11 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 color: const Color(0xFFF9FAFB),
                 child: Row(
                   children: isKiloan ? [
-                    Expanded(flex: 3, child: Text("SERVICE", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                    Expanded(flex: 4, child: Center(child: Text("REGULAR / FAST", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+                    Expanded(flex: 3, child: Text("SERVICE", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
+                    Expanded(flex: 4, child: Center(child: Text("REGULAR / FAST", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
                   ] : [
-                    Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                    Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
+                    Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
+                    Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
                   ],
                 ),
               ),
@@ -1070,7 +1070,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         children: [
           Expanded(
             flex: 3, 
-            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87))
+            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis)
           ),
           Expanded(
             flex: 5, // Perbesar flex agar muat harga jutaan + counter
@@ -1082,8 +1082,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: primaryTeal)),
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFFD97706))),
+                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFFD97706)), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -1095,7 +1095,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
-                      SizedBox(width: 22, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)))),
+                      SizedBox(width: 28, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)))),
                       _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
                     ],
                   ),
@@ -1120,7 +1120,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
         children: [
           Expanded(
             flex: 3, 
-            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black87))
+            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis)
           ),
           Expanded(
             flex: 4, 
@@ -1129,8 +1129,9 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               children: [
                 Flexible(
                   child: Text("Rp ${NumberFormat.decimalPattern('id_ID').format(price)} /Pcs", 
-                    style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: primaryTeal),
+                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1141,7 +1142,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
-                      SizedBox(width: 22, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)))),
+                      SizedBox(width: 28, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)))),
                       _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
                     ],
                   ),
@@ -1176,7 +1177,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(cT['total'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                  Text(cT['total'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
                   Text(NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(_totalPrice), style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal)),
                 ],
               ),
@@ -1290,7 +1291,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: primaryTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-              child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+              child: Text(cT['btn_confirm'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
           ],
         ),
