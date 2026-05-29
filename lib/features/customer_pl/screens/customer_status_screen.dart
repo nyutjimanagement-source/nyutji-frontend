@@ -233,8 +233,9 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
         }
       }
       if (dt == null) return dateStr;
+      final dtLocal = dt.toLocal(); // konversi UTC → WIB
       final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-      return "${dt.day} ${months[dt.month - 1]}";
+      return "${dtLocal.day} ${months[dtLocal.month - 1]}";
     } catch (e) {
       return dateStr;
     }

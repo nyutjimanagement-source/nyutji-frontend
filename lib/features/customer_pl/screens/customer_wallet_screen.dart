@@ -455,7 +455,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     String formattedDate = "-";
     try {
       DateTime dt = DateTime.tryParse(date) ?? DateTime.now();
-      formattedDate = DateFormat('dd MMM, HH:mm').format(dt.toLocal());
+      formattedDate = DateFormat('dd MMM, HH:mm', 'id_ID').format(dt.toLocal());
     } catch (_) {}
 
     return Padding(
