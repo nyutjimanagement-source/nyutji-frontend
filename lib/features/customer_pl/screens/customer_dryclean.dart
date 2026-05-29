@@ -653,12 +653,12 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
         _treatmentCheckbox("Anti Jamur", "Semprotan anti jamur & pelembap furing khusus untuk wol, cashmere, & kulit.", 5000),
 
         const SizedBox(height: 28),
-        Text("3. Alur Proses Dry Cleaning (SOP Kami):", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("3. Alur Proses Dry Cleaning:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
         // HORIZONTAL SCROLL OF SOP FOR LUXURY FEELING
         SizedBox(
-          height: 120,
+          height: 160,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),

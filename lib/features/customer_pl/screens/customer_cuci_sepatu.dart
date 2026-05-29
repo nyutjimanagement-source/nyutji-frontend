@@ -682,12 +682,12 @@ class _CustomerCuciSepatuScreenState extends State<CustomerCuciSepatuScreen> {
         _treatmentCheckbox("Waterproof Spray Coating", "Semprotan efek daun talas anti noda air.", 15000),
 
         const SizedBox(height: 28),
-        Text("3. Alur Proses Shoecare Profesional (SOP):", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+        Text("3. Alur Proses Shoecare Profesional:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
         
         // HORIZONTAL SCROLL OF SOP FOR LUXURY FEELING
         SizedBox(
-          height: 120,
+          height: 160,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
