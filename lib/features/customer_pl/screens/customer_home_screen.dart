@@ -342,7 +342,64 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         final isSelfDrop = latestOrder != null && (rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE');
         final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
         final statusLabel = latestOrder != null ? StatusHelper.getLabel(displayStatus, 'PL') : "Order Nyutji Yuks !!";
-        final label = latestOrder != null ? "LACAK PROGRES LIVE" : "Ayo Cuci Sekarang";
+        final label = latestOrder != null ? "LACAK PROGRESS" : "Ayo Cuci Sekarang";
+
+        // Deteksi jika pesanan premium untuk menampilkan nama layanan & status dinamis
+        String customStatusLabel = statusLabel;
+        if (latestOrder != null) {
+          final items = latestOrder['orderItems'] as List? ?? latestOrder['order_items'] as List? ?? latestOrder['items'] as List?;
+          String textToScan = "";
+          if (items != null && items.isNotEmpty) {
+            for (var it in items) {
+              if (it is Map) {
+                textToScan += " ${(it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase()}";
+                textToScan += " ${(it['notes'] ?? '').toString().toLowerCase()}";
+              }
+            }
+          }
+          textToScan += " ${(latestOrder['notes'] ?? '').toString().toLowerCase()}";
+          textToScan += " ${(latestOrder['pickupNote'] ?? '').toString().toLowerCase()}";
+          
+          bool isPremium = textToScan.contains('sepatu') || 
+                           textToScan.contains('shoecare') || 
+                           textToScan.contains('dryclean') || 
+                           textToScan.contains('dry clean') || 
+                           textToScan.contains('jas') || 
+                           textToScan.contains('kebaya') || 
+                           textToScan.contains('gaun') ||
+                           textToScan.contains('bayi') || 
+                           textToScan.contains('baby') || 
+                           textToScan.contains('pakaian bayi') ||
+                           textToScan.contains('khusus') || 
+                           textToScan.contains('stroller') || 
+                           textToScan.contains('cuci khusus');
+
+          if (isPremium) {
+            String pName = "";
+            if (textToScan.contains('sepatu') || textToScan.contains('shoecare') || textToScan.contains('pasang')) {
+              pName = 'Shoecare';
+            } else if (textToScan.contains('dryclean') || textToScan.contains('dry clean') || textToScan.contains('jas') || textToScan.contains('kebaya') || textToScan.contains('gaun')) {
+              pName = 'Dry Clean';
+            } else if (textToScan.contains('bayi') || textToScan.contains('baby') || textToScan.contains('pakaian bayi')) {
+              pName = 'Baby Care';
+            } else if (textToScan.contains('khusus') || textToScan.contains('stroller') || textToScan.contains('cuci khusus')) {
+              pName = 'Special Care';
+            }
+
+            if (pName.isNotEmpty) {
+              final sUpper = rawStatus.toUpperCase();
+              String pStatus = "Diterima";
+              if (sUpper == 'DONE' || sUpper == 'PAID') {
+                pStatus = "Selesai";
+              } else if (sUpper == 'PACKING' || sUpper == 'DELIVERING') {
+                pStatus = "Packing";
+              } else if (sUpper == 'WASH_START' || sUpper == 'IN_PROGRESS' || sUpper == 'IRONING') {
+                pStatus = "Cuci";
+              }
+              customStatusLabel = "$pName - $pStatus";
+            }
+          }
+        }
 
         return GestureDetector(
           onTap: () {
@@ -380,7 +437,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     children: [
                       Text(label, 
                         style: NyutjiTheme.detail(const Color(0xFF403600)).copyWith(fontWeight: FontWeight.w900, fontSize: 11)),
-                      Text(statusLabel, 
+                      Text(customStatusLabel, 
                         style: NyutjiTheme.h3(const Color(0xFF403600)).copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
                     ],
                   ),

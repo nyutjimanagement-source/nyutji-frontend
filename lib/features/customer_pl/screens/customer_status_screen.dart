@@ -233,11 +233,76 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
         }
       }
       if (dt == null) return dateStr;
-      final months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
-      return "${dt.day.toString().padLeft(2, '0')}-${months[dt.month - 1]}";
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return "${dt.day} ${months[dt.month - 1]}";
     } catch (e) {
       return dateStr;
     }
+  }
+
+  String _resolveOrderIconPath(Map<String, dynamic> order, List? items) {
+    String textToScan = "";
+    if (items != null && items.isNotEmpty) {
+      for (var it in items) {
+        if (it is Map) {
+          textToScan += " ${(it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase()}";
+          textToScan += " ${(it['notes'] ?? '').toString().toLowerCase()}";
+        }
+      }
+    }
+    textToScan += " ${(order['notes'] ?? '').toString().toLowerCase()}";
+    textToScan += " ${(order['pickupNote'] ?? '').toString().toLowerCase()}";
+    
+    if (textToScan.contains('sepatu') || textToScan.contains('shoecare') || textToScan.contains('pasang')) {
+      return 'assets/icons/icon_sepatu.png';
+    }
+    if (textToScan.contains('dryclean') || textToScan.contains('dry clean') || textToScan.contains('jas') || textToScan.contains('kebaya') || textToScan.contains('gaun')) {
+      return 'assets/icons/icon_dryclean.png';
+    }
+    if (textToScan.contains('bayi') || textToScan.contains('baby') || textToScan.contains('pakaian bayi')) {
+      return 'assets/icons/icon_bayi.png';
+    }
+    if (textToScan.contains('khusus') || textToScan.contains('stroller') || textToScan.contains('cuci khusus')) {
+      return 'assets/icons/baby_stroller.png';
+    }
+    
+    return 'assets/icons/icon_keranjang.png';
+  }
+
+  String _getPremiumServiceName(Map<String, dynamic> order, List? items) {
+    String textToScan = "";
+    if (items != null && items.isNotEmpty) {
+      for (var it in items) {
+        if (it is Map) {
+          textToScan += " ${(it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase()}";
+          textToScan += " ${(it['notes'] ?? '').toString().toLowerCase()}";
+        }
+      }
+    }
+    textToScan += " ${(order['notes'] ?? '').toString().toLowerCase()}";
+    textToScan += " ${(order['pickupNote'] ?? '').toString().toLowerCase()}";
+    
+    if (textToScan.contains('sepatu') || textToScan.contains('shoecare') || textToScan.contains('pasang')) {
+      return 'Shoecare';
+    }
+    if (textToScan.contains('dryclean') || textToScan.contains('dry clean') || textToScan.contains('jas') || textToScan.contains('kebaya') || textToScan.contains('gaun')) {
+      return 'Dry Clean';
+    }
+    if (textToScan.contains('bayi') || textToScan.contains('baby') || textToScan.contains('pakaian bayi')) {
+      return 'Baby Care';
+    }
+    if (textToScan.contains('khusus') || textToScan.contains('stroller') || textToScan.contains('cuci khusus')) {
+      return 'Special Care';
+    }
+    return '';
+  }
+
+  String _getPremiumProgressLabel(String status) {
+    final s = status.toUpperCase();
+    if (s == 'DONE' || s == 'PAID') return "Selesai";
+    if (s == 'PACKING' || s == 'DELIVERING') return "Packing";
+    if (s == 'WASH_START' || s == 'IN_PROGRESS' || s == 'IRONING') return "Cuci";
+    return "Diterima";
   }
 
   String _getCourierStatusText(Map<String, dynamic> order) {
@@ -378,7 +443,11 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
 
     final String rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
     final isFastTrack = (order['is_fast_track'] ?? false).toString() == 'true' || 
-                        order['service_type']?.toString().toLowerCase().contains('fast') == true;
+                        (order['isFastTrack'] ?? false).toString() == 'true' ||
+                        order['service_type']?.toString().toLowerCase().contains('fast') == true ||
+                        order['serviceType']?.toString().toLowerCase().contains('fast') == true ||
+                        order['service_type']?.toString().toLowerCase().contains('same') == true ||
+                        order['serviceType']?.toString().toLowerCase().contains('same') == true;
 
     // 1. Logic totalQty & Unit (Genius Mapping)
     double totalQty = 0;
@@ -401,8 +470,22 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
     final rawDate = order['createdAt'] ?? order['created_at'] ?? (items != null && items.isNotEmpty ? items.first['created_at'] : null);
     final String orderDate = rawDate?.toString() ?? "-";
 
-    // 3. Logic Tgl Selesai (done_at)
-    final completionDate = order['done_at']?.toString() ?? order['doneAt']?.toString() ?? order['tgl_selesai']?.toString() ?? "-";
+    // 3. Logic Tgl Selesai (done_at) dengan Fallback Estimasi Dinamis (Genius & Robust)
+    String completionDate = order['done_at']?.toString() ?? order['doneAt']?.toString() ?? order['tgl_selesai']?.toString() ?? "-";
+    if (completionDate == "-" || completionDate == "null" || completionDate.trim().isEmpty) {
+      final sUpper = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
+      if (sUpper == 'DONE' || sUpper == 'PAID') {
+        completionDate = order['updatedAt']?.toString() ?? order['updated_at']?.toString() ?? "-";
+      } else {
+        if (rawDate != null && rawDate.toString() != "-") {
+          final parsedDate = DateTime.tryParse(rawDate.toString());
+          if (parsedDate != null) {
+            final estDate = isFastTrack ? parsedDate.add(const Duration(days: 1)) : parsedDate.add(const Duration(days: 3));
+            completionDate = estDate.toIso8601String();
+          }
+        }
+      }
+    }
 
     // 4. Logic mitraName (Relasi Mitra)
     // Backend baru mengirimkan objek mitra: { name: "..." }
@@ -446,7 +529,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       ),
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: Image.asset('assets/icons/icon_keranjang.png'),
+                    child: Image.asset(_resolveOrderIconPath(order, items)),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -464,6 +547,17 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                             final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
                             final rawStatus = (order['order_status'] ?? order['status'] ?? 'PROSES').toString().toUpperCase();
                             final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
+                            
+                            // Deteksi jika pesanan premium untuk menampilkan nama layanan & tahap progress dinamis
+                            final pName = _getPremiumServiceName(order, items);
+                            if (pName.isNotEmpty) {
+                              final pStatus = _getPremiumProgressLabel(rawStatus);
+                              return Text(
+                                "$pName - $pStatus",
+                                style: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF403600), fontWeight: FontWeight.w700, letterSpacing: 0.5)
+                              );
+                            }
+
                             return Text(
                               StatusHelper.getLabel(displayStatus, 'PL'),
                               style: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF403600), fontWeight: FontWeight.w600, letterSpacing: 1.0)
@@ -527,6 +621,71 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    // Detail Pesanan Section (Mewah & Elegance)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Detail Pesanan", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.grey)),
+                        const SizedBox(height: 6),
+                        if (items != null && items.isNotEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFFDF9),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFF3F0E9), width: 1),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: items.map<Widget>((it) {
+                                final name = (it['itemName'] ?? it['item_name'] ?? it['name'] ?? 'Layanan Laundry').toString();
+                                final qty = double.tryParse(it['qty']?.toString() ?? '1') ?? 1.0;
+                                final unitText = (it['unit'] ?? 'Pcs').toString();
+                                final notes = (it['notes'] ?? '').toString();
+                                
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              name,
+                                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)),
+                                            ),
+                                          ),
+                                          Text(
+                                            "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
+                                            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600)),
+                                          ),
+                                        ],
+                                      ),
+                                      if (notes.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2.0),
+                                          child: Text(
+                                            notes,
+                                            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey[600]),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          )
+                        else
+                          Text(
+                            "-",
+                            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 24),
                     // PROGRESS HEADER
                     Row(
@@ -554,6 +713,74 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
 
                         final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
                             (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
+
+                        // Deteksi apakah pesanan premium (Cuci Sepatu, Dry Clean, Pakaian Bayi, Cuci Khusus)
+                        bool isPremium = false;
+                        String textToScan = "";
+                        if (items != null && items.isNotEmpty) {
+                          for (var it in items) {
+                            if (it is Map) {
+                              textToScan += " ${(it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase()}";
+                              textToScan += " ${(it['notes'] ?? '').toString().toLowerCase()}";
+                            }
+                          }
+                        }
+                        textToScan += " ${(order['notes'] ?? '').toString().toLowerCase()}";
+                        textToScan += " ${(order['pickupNote'] ?? '').toString().toLowerCase()}";
+                        
+                        isPremium = textToScan.contains('sepatu') || 
+                                    textToScan.contains('shoecare') || 
+                                    textToScan.contains('dryclean') || 
+                                    textToScan.contains('dry clean') || 
+                                    textToScan.contains('jas') || 
+                                    textToScan.contains('kebaya') || 
+                                    textToScan.contains('gaun') ||
+                                    textToScan.contains('bayi') || 
+                                    textToScan.contains('baby') || 
+                                    textToScan.contains('pakaian bayi') ||
+                                    textToScan.contains('khusus') || 
+                                    textToScan.contains('stroller') || 
+                                    textToScan.contains('cuci khusus');
+
+                        if (isPremium) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildModernProgress("Diterima", LucideIcons.packageCheck, true, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Diterima")),
+                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci")),
+                                  _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing")),
+                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai")),
+                                ],
+                              ),
+                              if (s == 'DONE') ...[
+                                const SizedBox(height: 20),
+                                const Divider(color: Color(0xFFF3F0E9), thickness: 1),
+                                const SizedBox(height: 12),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CustomerReviewScreen(order: order),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(LucideIcons.checkSquare, size: 18),
+                                  label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF403600),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                ),
+                              ]
+                            ],
+                          );
+                        }
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,

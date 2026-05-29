@@ -64,6 +64,175 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     }
   }
 
+  bool _isPremiumOrder(dynamic o) {
+    final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List?;
+    String textToScan = "";
+    if (items != null && items.isNotEmpty) {
+      for (var it in items) {
+        if (it is Map) {
+          textToScan += " ${(it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase()}";
+          textToScan += " ${(it['notes'] ?? '').toString().toLowerCase()}";
+        }
+      }
+    }
+    textToScan += " ${(o['notes'] ?? '').toString().toLowerCase()}";
+    textToScan += " ${(o['pickupNote'] ?? '').toString().toLowerCase()}";
+    
+    return textToScan.contains('sepatu') || 
+           textToScan.contains('shoecare') || 
+           textToScan.contains('dryclean') || 
+           textToScan.contains('dry clean') || 
+           textToScan.contains('jas') || 
+           textToScan.contains('kebaya') || 
+           textToScan.contains('gaun') ||
+           textToScan.contains('bayi') || 
+           textToScan.contains('baby') || 
+           textToScan.contains('pakaian bayi') ||
+           textToScan.contains('khusus') || 
+           textToScan.contains('stroller') || 
+           textToScan.contains('cuci khusus');
+  }
+
+  String _getPremiumServiceName(dynamic order) {
+    final items = order['orderItems'] as List? ?? order['order_items'] as List? ?? order['items'] as List?;
+    String textToScan = "";
+    if (items != null && items.isNotEmpty) {
+      for (var it in items) {
+        if (it is Map) {
+          textToScan += " ${(it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase()}";
+          textToScan += " ${(it['notes'] ?? '').toString().toLowerCase()}";
+        }
+      }
+    }
+    textToScan += " ${(order['notes'] ?? '').toString().toLowerCase()}";
+    textToScan += " ${(order['pickupNote'] ?? '').toString().toLowerCase()}";
+    
+    if (textToScan.contains('sepatu') || textToScan.contains('shoecare') || textToScan.contains('pasang')) {
+      return 'Shoecare';
+    }
+    if (textToScan.contains('dryclean') || textToScan.contains('dry clean') || textToScan.contains('jas') || textToScan.contains('kebaya') || textToScan.contains('gaun')) {
+      return 'Dry Clean';
+    }
+    if (textToScan.contains('bayi') || textToScan.contains('baby') || textToScan.contains('pakaian bayi')) {
+      return 'Baby Care';
+    }
+    if (textToScan.contains('khusus') || textToScan.contains('stroller') || textToScan.contains('cuci khusus')) {
+      return 'Special Care';
+    }
+    return '';
+  }
+
+  String _getPremiumProgressLabel(String status) {
+    final s = status.toUpperCase();
+    if (s == 'DONE' || s == 'PAID') return "Selesai";
+    if (s == 'PACKING' || s == 'DELIVERING') return "Packing";
+    if (s == 'WASH_START' || s == 'IN_PROGRESS' || s == 'IRONING') return "Cuci";
+    return "Diterima";
+  }
+
+  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title) {
+    if (proofs == null || proofs.isEmpty) {
+      _showNoPowToast();
+      return;
+    }
+
+    dynamic foundProof;
+    for (var proof in proofs.reversed) {
+      if (targetStages.contains(proof['step'])) {
+        foundProof = proof;
+        break;
+      }
+    }
+
+    if (foundProof == null) {
+      _showNoPowToast();
+      return;
+    }
+
+    final String path = foundProof['file_url'].toString().replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
+    final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Bukti $title", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: primaryTeal)),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const SizedBox(
+                        height: 250,
+                        child: Center(child: CircularProgressIndicator(color: primaryTeal)),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => const SizedBox(
+                      height: 200,
+                      child: Center(child: Icon(Icons.broken_image, size: 48, color: Colors.grey)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showNoPowToast() {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Foto bukti belum tersedia untuk tahapan ini", style: GoogleFonts.montserrat(fontSize: 12)),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.black87,
+      margin: EdgeInsets.only(
+        bottom: MediaQuery.of(context).size.height - 150,
+        left: 16,
+        right: 16,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      dismissDirection: DismissDirection.up,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -493,7 +662,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final servicePrice = double.tryParse((o['servicePrice'] ?? o['service_price'] ?? o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
     final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
     final customerName = o['customer']?['name']?.toString() ?? o['customer_name']?.toString() ?? 'Pelanggan';
-    final customerPhoto = o['customer']?['profile_photo']?.toString() ?? o['customer_photo']?.toString();
+    final customerPhoto = o['customer']?['profile_photo']?.toString() ?? 
+                          o['customer']?['photo_url']?.toString() ?? 
+                          o['customer']?['photo']?.toString() ?? 
+                          o['customer_photo']?.toString() ??
+                          o['customerPhoto']?.toString();
     final courierName = o['courier']?['name']?.toString() ?? o['courier_name']?.toString() ?? 'Belum Ada';
     final bool isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true || o['service_type'] == 'SAME_DAY';
     final Color accentColor = isFast ? Colors.orange : primaryTeal;
@@ -570,11 +743,32 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                customerName,
-                maxLines: 1, 
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      customerName,
+                      maxLines: 1, 
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+                    ),
+                  ),
+                  if (_isPremiumOrder(o))
+                    Container(
+                      margin: const EdgeInsets.only(left: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        "PREMIUM",
+                        style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.5),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 6),
               Wrap(
@@ -630,11 +824,32 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    customerName,
-                    maxLines: 1, 
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          customerName,
+                          maxLines: 1, 
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+                        ),
+                      ),
+                      if (_isPremiumOrder(o))
+                        Container(
+                          margin: const EdgeInsets.only(left: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            "PREMIUM",
+                            style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.5),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Container(
@@ -692,6 +907,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             ],
           ),
         ),
+
+        const SizedBox(height: 24),
+
+        // ── Detail Pesanan ──
+        _buildDetailPesanan(o),
 
         const SizedBox(height: 24),
 
@@ -770,7 +990,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
   Widget _buildCustomerAvatar(String? photoUrl, double size) {
     if (photoUrl != null && photoUrl.isNotEmpty) {
-      final String fullUrl = photoUrl.startsWith('http') ? photoUrl : "${ApiConstants.rootUrl}/$photoUrl";
+      final String cleanPath = photoUrl.replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
+      final String fullUrl = cleanPath.startsWith('http') ? cleanPath : "${ApiConstants.rootUrl}/$cleanPath";
       return Container(
         width: size, height: size,
         decoration: BoxDecoration(
@@ -797,6 +1018,82 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     );
   }
 
+  Widget _buildDetailPesanan(dynamic o) {
+    final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List?;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text("Detail Pesanan", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: darkText)),
+            const SizedBox(width: 12),
+            const Expanded(child: Divider(color: Color(0xFFF3F4F6), thickness: 1.5)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (items != null && items.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[200]!, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: items.map<Widget>((it) {
+                final name = (it['itemName'] ?? it['item_name'] ?? it['name'] ?? 'Layanan Laundry').toString();
+                final qty = double.tryParse(it['qty']?.toString() ?? '1') ?? 1.0;
+                final unitText = (it['unit'] ?? 'Pcs').toString();
+                final notes = (it['notes'] ?? '').toString();
+                
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+                            ),
+                          ),
+                          Text(
+                            "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
+                            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal),
+                          ),
+                        ],
+                      ),
+                      if (notes.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 3.0),
+                          child: Text(
+                            notes,
+                            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              "-",
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText),
+            ),
+          ),
+      ],
+    );
+  }
+
   // ── Progress Bar ──────────────────────────────────
   // Steps disesuaikan 3 jenis layanan:
   // PICKUP → 4 steps (ada Kirim)
@@ -815,15 +1112,27 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     bool isStep4 = step >= 5;
     bool isStep5 = step >= 6;
 
+    final bool isPremium = _isPremiumOrder(o);
+
     List<Map<String, dynamic>> steps = isSelfDropPickup 
         ? [
-            {"label": "Timbang", "icon": 'assets/icons/scale.png', "active": isStep1},
+            {
+              "label": isPremium ? "Diterima" : "Timbang", 
+              "icon": isPremium ? LucideIcons.packageCheck : 'assets/icons/scale.png', 
+              "active": isStep1,
+              "onTap": isPremium ? () => _showPowDialog(o['proofs'], ['WEIGHING'], "Diterima") : null
+            },
             {"label": "Cuci", "icon": LucideIcons.droplets, "active": isStep2},
             {"label": "Packing", "icon": LucideIcons.package, "active": isStep3},
             {"label": "Selesai", "icon": LucideIcons.checkCircle, "active": isStep5},
           ]
         : [
-            {"label": "Timbang", "icon": 'assets/icons/scale.png', "active": isStep1},
+            {
+              "label": isPremium ? "Diterima" : "Timbang", 
+              "icon": isPremium ? LucideIcons.packageCheck : 'assets/icons/scale.png', 
+              "active": isStep1,
+              "onTap": isPremium ? () => _showPowDialog(o['proofs'], ['WEIGHING'], "Diterima") : null
+            },
             {"label": "Cuci", "icon": LucideIcons.droplets, "active": isStep2},
             {"label": "Packing", "icon": LucideIcons.package, "active": isStep3},
             {"label": "Kirim", "icon": LucideIcons.navigation, "active": isStep4},
@@ -844,7 +1153,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             return _buildModernProgress(
               steps[stepIndex]["label"], 
               steps[stepIndex]["icon"], 
-              steps[stepIndex]["active"]
+              steps[stepIndex]["active"],
+              onTap: steps[stepIndex]["onTap"],
             );
           } else {
             int prevStepIndex = (index - 1) ~/ 2;
@@ -864,30 +1174,34 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     ]);
   }
 
-  Widget _buildModernProgress(String label, dynamic iconOrPath, bool isActive) {
+  Widget _buildModernProgress(String label, dynamic iconOrPath, bool isActive, {VoidCallback? onTap}) {
     const Color activeColor = Color(0xFF1E5655);
     const Color inactiveColor = Color(0xFFE5E7EB);
 
-    return Column(
-      children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            color: isActive ? activeColor : Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: isActive ? activeColor : inactiveColor, width: 2),
-            boxShadow: isActive ? [BoxShadow(color: activeColor.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))] : null,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: isActive ? activeColor : Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: isActive ? activeColor : inactiveColor, width: 2),
+              boxShadow: isActive ? [BoxShadow(color: activeColor.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))] : null,
+            ),
+            child: Center(
+              child: iconOrPath is String 
+                  ? Image.asset(iconOrPath, width: 20, height: 20, color: isActive ? Colors.white : Colors.grey[400])
+                  : Icon(iconOrPath as IconData, size: 18, color: isActive ? Colors.white : Colors.grey[400]),
+            ),
           ),
-          child: Center(
-            child: iconOrPath is String 
-                ? Image.asset(iconOrPath, width: 20, height: 20, color: isActive ? Colors.white : Colors.grey[400])
-                : Icon(iconOrPath as IconData, size: 18, color: isActive ? Colors.white : Colors.grey[400]),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
-      ],
+          const SizedBox(height: 8),
+          Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+        ],
+      ),
     );
   }
 
@@ -899,8 +1213,16 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final rawStatus = status.toUpperCase();
     final displayStatus = (isSelfDrop && (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING')) ? 'WEIGHING' : rawStatus;
     
-    final Color color = StatusHelper.getColor(displayStatus);
-    final String label = StatusHelper.getLabel(displayStatus, 'ML');
+    final pName = _getPremiumServiceName(o);
+    final bool isPremium = pName.isNotEmpty;
+    final Color color = isPremium ? const Color(0xFFBE123C) : StatusHelper.getColor(displayStatus);
+    
+    String labelText;
+    if (isPremium) {
+      labelText = _getPremiumProgressLabel(rawStatus);
+    } else {
+      labelText = StatusHelper.getLabel(displayStatus, 'ML');
+    }
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -909,7 +1231,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
-      child: Text(label, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+      child: Text(labelText, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
     );
   }
 
