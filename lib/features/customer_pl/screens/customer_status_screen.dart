@@ -444,7 +444,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white.withValues(alpha: 0.45),
                                 letterSpacing: 1.2,
-                                shadows: [Shadow(color: Colors.black38, blurRadius: 4)],
+                                shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                               ),
                             ),
                           ),
