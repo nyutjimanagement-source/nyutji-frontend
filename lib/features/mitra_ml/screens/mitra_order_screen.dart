@@ -152,92 +152,68 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final String path = foundProof['file_url'].toString().replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
     final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
 
-    showGeneralDialog(
+    showDialog(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: 'POW',
-      barrierColor: Colors.black.withValues(alpha: 0.92),
-      transitionDuration: const Duration(milliseconds: 250),
-      transitionBuilder: (ctx, anim, _, child) => FadeTransition(
-        opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-        child: ScaleTransition(
-          scale: Tween(begin: 0.90, end: 1.0).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
-          child: child,
-        ),
-      ),
-      pageBuilder: (ctx, _, __) => Scaffold(
+      builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            // Foto terpusat, pinch-to-zoom
-            Center(
-              child: InteractiveViewer(
-                panEnabled: true,
-                minScale: 0.8,
-                maxScale: 5.0,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6))),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Bukti $title", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: primaryTeal)),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: InteractiveViewer(
+                  panEnabled: true,
+                  minScale: 0.5,
+                  maxScale: 4.0,
                   child: Image.network(
                     imageUrl,
                     fit: BoxFit.contain,
-                    width: MediaQuery.of(ctx).size.width * 0.88,
+                    width: double.infinity,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
-                      return SizedBox(
-                        width: MediaQuery.of(ctx).size.width * 0.88,
-                        height: MediaQuery.of(ctx).size.height * 0.55,
-                        child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+                      return const SizedBox(
+                        height: 250,
+                        child: Center(child: CircularProgressIndicator(color: primaryTeal)),
                       );
                     },
-                    errorBuilder: (context, error, stackTrace) => SizedBox(
-                      width: MediaQuery.of(ctx).size.width * 0.88,
-                      height: 260,
-                      child: const Center(child: Icon(Icons.broken_image_outlined, size: 60, color: Colors.white38)),
+                    errorBuilder: (context, error, stackTrace) => const SizedBox(
+                      height: 200,
+                      child: Center(child: Icon(Icons.broken_image, size: 48, color: Colors.grey)),
                     ),
                   ),
                 ),
               ),
-            ),
-
-            // Label judul bawah
-            Positioned(
-              bottom: 48,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: Text(
-                    "Bukti $title",
-                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-
-            // Tombol close mengambang
-            Positioned(
-              top: 52,
-              right: 20,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(ctx),
-                child: Container(
-                  width: 40, height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white30),
-                  ),
-                  child: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
