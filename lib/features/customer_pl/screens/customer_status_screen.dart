@@ -373,42 +373,46 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
     showDialog(
       context: context,
       barrierColor: Colors.black54,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "Bukti $title",
-                        style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF403600)),
+      builder: (ctx) {
+        final screenH = MediaQuery.of(ctx).size.height;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Bukti $title",
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF403600)),
+                        ),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(ctx),
-                      child: Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
-                        child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
+                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              // Foto + Watermark + Info
-              InteractiveViewer(
+                // Foto + Watermark + Info
+                SizedBox(
+                  height: screenH * 0.55,
+                  child: InteractiveViewer(
                 panEnabled: true,
                 minScale: 0.8,
                 maxScale: 5.0,
@@ -475,11 +479,13 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                     ),
                   ],
                 ),
-              ),
+              ),        // tutup InteractiveViewer
+            ),          // tutup SizedBox
             ],
           ),
         ),
-      ),
+      );
+      },
     );
   }
 
