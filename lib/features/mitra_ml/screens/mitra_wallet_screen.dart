@@ -609,7 +609,14 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
                                   onTap: () {
                                     final nav = Navigator.of(context);
                                     nav.pop();
-                                    nav.push(MaterialPageRoute(builder: (_) => const MitraProfileScreen()));
+                                    nav.push(MaterialPageRoute(builder: (_) => Scaffold(
+                                      appBar: AppBar(
+                                        title: Text("Pengaturan Akun", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                        backgroundColor: const Color(0xFF1E5655),
+                                        iconTheme: const IconThemeData(color: Colors.white),
+                                      ),
+                                      body: const MitraProfileScreen(),
+                                    )));
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -688,7 +695,14 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
                       ? () {
                           final nav = Navigator.of(context);
                           nav.pop();
-                          nav.push(MaterialPageRoute(builder: (_) => const MitraProfileScreen()));
+                          nav.push(MaterialPageRoute(builder: (_) => Scaffold(
+                            appBar: AppBar(
+                              title: Text("Pengaturan Akun", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              backgroundColor: const Color(0xFF1E5655),
+                              iconTheme: const IconThemeData(color: Colors.white),
+                            ),
+                            body: const MitraProfileScreen(),
+                          )));
                         }
                       : (_amount > 0 ? () {
                           final nav = Navigator.of(context);
