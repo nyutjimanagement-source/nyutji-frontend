@@ -280,7 +280,9 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                           (context, index) {
                             final item = items[index];
                             final categoryItem = item['category']?.toString() ?? '';
-                            final imageUrl = _getImageForService(item['name'] ?? '');
+                            final imageUrl = (item['url_photo'] != null)
+                                ? "${ApiConstants.baseUrl}${item['url_photo']}"
+                                : _getImageForService(item['name'] ?? '');
                             final unit = (categoryItem.toLowerCase() == 'satuan') 
                                 ? 'Pcs' 
                                 : (item['unit'] ?? 'Kg');
