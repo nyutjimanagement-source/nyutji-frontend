@@ -1707,6 +1707,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   void _showOrderDetailSearch(BuildContext context, dynamic o) {
     final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
     final customerName = o['customer']?['name']?.toString() ?? o['customer_name']?.toString() ?? 'Pelanggan';
+    final customerAddress = o['address']?.toString() ?? o['customer_address']?.toString() ?? o['customer']?['address']?.toString() ?? '-';
     final courierName = o['courier']?['name']?.toString() ?? o['courier_name']?.toString() ?? 'Belum Ada';
     final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString();
     
@@ -1781,7 +1782,32 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                       children: [
                         _buildDetailSearchRow("Nomor Order", orderId),
                         const Divider(height: 20),
-                        _buildDetailSearchRow("Pelanggan", customerName),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Pelanggan", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: textGrey)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    customerName, 
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    customerAddress,
+                                    textAlign: TextAlign.right,
+                                    style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: textGrey),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                         const Divider(height: 20),
                         _buildDetailSearchRow("Kurir", courierName),
                         const Divider(height: 20),
