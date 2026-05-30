@@ -146,7 +146,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                       child: selectedImage != null 
                         ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(selectedImage!, fit: BoxFit.cover))
                         : (item['url_photo'] != null)
-                          ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network("${ApiConstants.baseUrl}${item['url_photo']}", fit: BoxFit.cover, errorBuilder: (_,__,___) => Icon(Icons.broken_image, color: Colors.grey[400], size: 40)))
+                          ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network("${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}", fit: BoxFit.cover, errorBuilder: (_,__,___) => Icon(Icons.broken_image, color: Colors.grey[400], size: 40)))
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -183,7 +183,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                           final oldFileName = item['url_photo'];
                           if (oldFileName != null) {
                             final oldVer = _photoVersions[item['id']] ?? 0;
-                            final oldFullUrl = "${ApiConstants.baseUrl}/nyutji-storage/uploads/inventory/$oldFileName?v=$oldVer";
+                            final oldFullUrl = "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/$oldFileName?v=$oldVer";
                             await NetworkImage(oldFullUrl).evict();
                           }
                           // Update versi item ini → trigger rebuild dengan URL baru
@@ -327,7 +327,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                 if (hasPhoto)
                                                   Image.network(
                                                     key: ValueKey('${item['url_photo']}_${_photoVersions[item['id']] ?? 0}'),
-                                                    "${ApiConstants.baseUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}?v=${_photoVersions[item['id']] ?? 0}",
+                                                    "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}?v=${_photoVersions[item['id']] ?? 0}",
                                                     fit: BoxFit.cover,
                                                     errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 40),
                                                   )
