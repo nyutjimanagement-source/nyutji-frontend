@@ -353,9 +353,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       child: Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [Color(0xFFC3312E), Color(0xFFE74C3C)]),
+                          gradient: const LinearGradient(colors: [Color(0xFFD35400), Color(0xFFE67E22)]),
                           borderRadius: BorderRadius.circular(32),
-                          boxShadow: [BoxShadow(color: const Color(0xFFC3312E).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                          boxShadow: [BoxShadow(color: const Color(0xFFD35400).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
                         ),
                         child: Row(
                           children: [
