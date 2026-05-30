@@ -277,8 +277,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),        // tutup SizedBox
+                ), // end Stack
+              ),   // end InteractiveViewer
+              ),   // end SizedBox
             ],
           ),
         ),
