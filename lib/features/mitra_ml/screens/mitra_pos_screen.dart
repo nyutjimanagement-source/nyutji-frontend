@@ -353,44 +353,49 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                         colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
                                                       ),
                                                     ),
-                                                    child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                      children: [
-                                                        Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors.white.withValues(alpha: hasPhoto ? 0.85 : 0.15),
-                                                            borderRadius: BorderRadius.circular(8),
-                                                            border: Border.all(color: Colors.white30, width: 1),
-                                                          ),
-                                                          child: Text(
-                                                            "$priceReg / $unit",
-                                                            textAlign: TextAlign.right,
-                                                            style: GoogleFonts.montserrat(
-                                                              color: hasPhoto ? primaryTeal : Colors.white,
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 12,
+                                                    child: Align(
+                                                      alignment: Alignment.centerRight,
+                                                      child: IntrinsicWidth(
+                                                        child: Column(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                          children: [
+                                                            Container(
+                                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white.withValues(alpha: hasPhoto ? 0.85 : 0.15),
+                                                                borderRadius: BorderRadius.circular(8),
+                                                                border: Border.all(color: Colors.white30, width: 1),
+                                                              ),
+                                                              child: Text(
+                                                                "$priceReg / $unit",
+                                                                textAlign: TextAlign.right,
+                                                                style: GoogleFonts.montserrat(
+                                                                  color: hasPhoto ? primaryTeal : Colors.white,
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 12,
+                                                                ),
+                                                              ),
                                                             ),
-                                                          ),
+                                                            if ((item['price_fast'] ?? 0) > 0) ...[
+                                                              const SizedBox(height: 4),
+                                                              Container(
+                                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.orange.withValues(alpha: 0.9),
+                                                                  borderRadius: BorderRadius.circular(8),
+                                                                  border: Border.all(color: Colors.white30, width: 1),
+                                                                ),
+                                                                child: Text(
+                                                                  "$priceFast / $unit",
+                                                                  textAlign: TextAlign.right,
+                                                                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                                                ),
+                                                              ),
+                                                            ]
+                                                          ],
                                                         ),
-                                                        if ((item['price_fast'] ?? 0) > 0) ...[
-                                                          const SizedBox(height: 4),
-                                                          Container(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.orange.withValues(alpha: 0.9),
-                                                              borderRadius: BorderRadius.circular(8),
-                                                              border: Border.all(color: Colors.white30, width: 1),
-                                                            ),
-                                                            child: Text(
-                                                              "$priceFast / $unit",
-                                                              textAlign: TextAlign.right,
-                                                              style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                                                            ),
-                                                          ),
-                                                        ]
-                                                      ],
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
