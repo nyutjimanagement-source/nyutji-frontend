@@ -305,7 +305,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: [
-                                        // Area Ikon bagian atas
+                                        // Area atas: foto atau ikon
                                         Expanded(
                                           flex: 3,
                                           child: ClipRRect(
@@ -313,58 +313,84 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                             child: Stack(
                                               fit: StackFit.expand,
                                               children: [
-                                                // Background gradient teal
+                                                // Background gradient teal (selalu ada)
                                                 Container(
                                                   decoration: const BoxDecoration(
                                                     gradient: LinearGradient(
                                                       begin: Alignment.topLeft,
                                                       end: Alignment.bottomRight,
-                                                      colors: [
-                                                        primaryTeal,
-                                                        Color(0xFF2D7A78),
-                                                      ],
+                                                      colors: [primaryTeal, Color(0xFF2D7A78)],
                                                     ),
                                                   ),
                                                 ),
-                                                // Ikon cloth di tengah
-                                                Center(
-                                                  child: Column(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        hasPhoto ? Icons.check_circle_outline : Icons.dry_cleaning,
-                                                        color: Colors.white.withValues(alpha: 0.25),
-                                                        size: 56,
+                                                // Foto jika ada, ikon jika tidak
+                                                if (hasPhoto)
+                                                  Image.network(
+                                                    key: ValueKey('${item['url_photo']}_${_photoVersions[item['id']] ?? 0}'),
+                                                    "${ApiConstants.baseUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}?v=${_photoVersions[item['id']] ?? 0}",
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 40),
+                                                  )
+                                                else
+                                                  Center(
+                                                    child: Icon(
+                                                      Icons.dry_cleaning,
+                                                      color: Colors.white.withValues(alpha: 0.25),
+                                                      size: 56,
+                                                    ),
+                                                  ),
+                                                // Overlay harga (selalu di atas)
+                                                Positioned(
+                                                  bottom: 0,
+                                                  left: 0,
+                                                  right: 0,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        begin: Alignment.topCenter,
+                                                        end: Alignment.bottomCenter,
+                                                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
                                                       ),
-                                                      const SizedBox(height: 12),
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white.withValues(alpha: 0.15),
-                                                          borderRadius: BorderRadius.circular(8),
-                                                          border: Border.all(color: Colors.white30, width: 1),
-                                                        ),
-                                                        child: Text(
-                                                          "$priceReg / $unit",
-                                                          style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                                        ),
-                                                      ),
-                                                      if ((item['price_fast'] ?? 0) > 0) ...[
-                                                        const SizedBox(height: 6),
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
                                                         Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                                           decoration: BoxDecoration(
-                                                            color: Colors.orange.withValues(alpha: 0.85),
+                                                            color: Colors.white.withValues(alpha: hasPhoto ? 0.85 : 0.15),
                                                             borderRadius: BorderRadius.circular(8),
                                                             border: Border.all(color: Colors.white30, width: 1),
                                                           ),
                                                           child: Text(
-                                                            "Ekspres: $priceFast / $unit",
-                                                            style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                                            "$priceReg / $unit",
+                                                            style: GoogleFonts.montserrat(
+                                                              color: hasPhoto ? primaryTeal : Colors.white,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 12,
+                                                            ),
                                                           ),
                                                         ),
-                                                      ]
-                                                    ],
+                                                        if ((item['price_fast'] ?? 0) > 0) ...[
+                                                          const SizedBox(height: 4),
+                                                          Container(
+                                                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.orange.withValues(alpha: 0.9),
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              border: Border.all(color: Colors.white30, width: 1),
+                                                            ),
+                                                            child: Text(
+                                                              "Ekspres: $priceFast / $unit",
+                                                              style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                                            ),
+                                                          ),
+                                                        ]
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ],
