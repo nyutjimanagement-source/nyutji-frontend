@@ -607,8 +607,9 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
                                 Text("Rekening Penerima", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600])),
                                 InkWell(
                                   onTap: () {
-                                    Navigator.pop(context);
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MitraProfileScreen()));
+                                    final nav = Navigator.of(context);
+                                    nav.pop();
+                                    nav.push(MaterialPageRoute(builder: (_) => const MitraProfileScreen()));
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -683,26 +684,33 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: (_amount > 0 && hasBank) ? () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => pin_screen.PinScreen(amountToWithdraw: _amount)
-                    ));
-                  } : null,
+                  onPressed: !hasBank 
+                      ? () {
+                          final nav = Navigator.of(context);
+                          nav.pop();
+                          nav.push(MaterialPageRoute(builder: (_) => const MitraProfileScreen()));
+                        }
+                      : (_amount > 0 ? () {
+                          final nav = Navigator.of(context);
+                          nav.pop();
+                          nav.push(MaterialPageRoute(
+                            builder: (context) => pin_screen.PinScreen(amountToWithdraw: _amount)
+                          ));
+                        } : null),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E5655),
+                    backgroundColor: !hasBank ? Colors.red : const Color(0xFF1E5655),
                     disabledBackgroundColor: Colors.grey[300],
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: (_amount > 0 && hasBank) ? 8 : 0,
-                    shadowColor: const Color(0xFF1E5655).withValues(alpha: 0.4),
+                    elevation: (!hasBank || _amount > 0) ? 8 : 0,
+                    shadowColor: (!hasBank ? Colors.red : const Color(0xFF1E5655)).withValues(alpha: 0.4),
                   ),
                   child: Text(
                     !hasBank ? "Setup Rekening Dulu" : (_amount > 0 ? "Tarik Dana  >  ${Formatters.currencyIdr(_amount)}" : "Tentukan Nominal"),
                     style: GoogleFonts.montserrat(
                       fontSize: 14, 
                       fontWeight: FontWeight.bold, 
-                      color: (_amount > 0 && hasBank) ? Colors.white : Colors.grey[600]
+                      color: (!hasBank || _amount > 0) ? Colors.white : Colors.grey[600]
                     )
                   ),
                 ),
