@@ -222,9 +222,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   // Logo & Title
                   Column(
                     children: [
-                      SizedBox(
-                        width: 100, height: 100,
-                        child: Image.asset('assets/images/logo_nyutji.png', fit: BoxFit.contain),
+                      Hero(
+                        tag: 'hero_logo_nyutji',
+                        child: SizedBox(
+                          width: 100, height: 100,
+                          child: Image.asset('assets/images/logo_nyutji.png', fit: BoxFit.contain),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(

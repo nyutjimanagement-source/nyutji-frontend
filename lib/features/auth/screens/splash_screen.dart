@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/auth_provider.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,9 +50,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         case 'AD': targetRoute = '/admin_main'; break;
         default: targetRoute = '/login';
       }
-      Navigator.pushReplacementNamed(context, targetRoute);
+      
+      if (targetRoute == '/login') {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 1200),
+            pageBuilder: (_, __, ___) => const LoginScreen(),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, targetRoute);
+      }
     } else {
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 1200),
+          pageBuilder: (_, __, ___) => const LoginScreen(),
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      );
     }
   }
 
@@ -67,22 +91,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/images/logo_nyutji.png',
-                height: 140,
-                errorBuilder: (context, error, stackTrace) => Column(
-                  children: [
-                    const Icon(Icons.local_laundry_service, size: 64, color: Color(0xFF1E5655)),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Ny Utji',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 56,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1E5655),
+              Hero(
+                tag: 'hero_logo_nyutji',
+                child: Image.asset(
+                  'assets/images/logo_nyutji.png',
+                  height: 140,
+                  errorBuilder: (context, error, stackTrace) => Column(
+                    children: [
+                      const Icon(Icons.local_laundry_service, size: 64, color: Color(0xFF1E5655)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Ny Utji',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 56,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1E5655),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
