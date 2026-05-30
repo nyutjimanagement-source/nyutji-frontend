@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'nyutji_loading_overlay.dart';
 import '../constants/api_constants.dart';
 
@@ -96,9 +99,10 @@ class NyutjiImagePicker {
                           imageQuality: 50,
                         );
                         if (photo != null) {
-                          if (context.mounted) NyutjiLoadingOverlay.show(context, message: "Mengunggah Foto...");
+                          if (context.mounted) NyutjiLoadingOverlay.show(context, message: "Mengompresi & Mengunggah...");
                           try {
-                            await onImagePicked(photo);
+                            final compressedPhoto = await _compressToWebP(photo);
+                            await onImagePicked(compressedPhoto ?? photo);
                           } finally {
                             if (context.mounted) NyutjiLoadingOverlay.hide(context);
                           }
@@ -120,9 +124,10 @@ class NyutjiImagePicker {
                           imageQuality: 50,
                         );
                         if (image != null) {
-                          if (context.mounted) NyutjiLoadingOverlay.show(context, message: "Mengunggah Gambar...");
+                          if (context.mounted) NyutjiLoadingOverlay.show(context, message: "Mengompresi & Mengunggah...");
                           try {
-                            await onImagePicked(image);
+                            final compressedImage = await _compressToWebP(image);
+                            await onImagePicked(compressedImage ?? image);
                           } finally {
                             if (context.mounted) NyutjiLoadingOverlay.hide(context);
                           }
@@ -171,5 +176,24 @@ class NyutjiImagePicker {
         ),
       ),
     );
+  }
+  static Future<XFile?> _compressToWebP(XFile file) async {
+    try {
+      final dir = await getTemporaryDirectory();
+      final targetPath = '${dir.absolute.path}/${DateTime.now().millisecondsSinceEpoch}.webp';
+      
+      final result = await FlutterImageCompress.compressAndGetFile(
+        file.path,
+        targetPath,
+        format: CompressFormat.webp,
+        quality: 80,
+        minWidth: 1080,
+        minHeight: 1080,
+      );
+      return result;
+    } catch (e) {
+      debugPrint("Gagal mengompresi ke WebP: $e");
+      return null;
+    }
   }
 }
