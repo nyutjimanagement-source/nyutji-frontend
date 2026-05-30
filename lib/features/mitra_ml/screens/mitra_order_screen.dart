@@ -1722,7 +1722,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       if (finishDateRaw != null) {
         finishDate = DateTime.parse(finishDateRaw.toString()).toLocal();
       }
-    } catch (e) {}
+    } catch (e) {
+      // Ignore parse error
+    }
 
     final List<dynamic> proofs = o['proofs'] ?? [];
     final Map<String, dynamic> proofMap = {};
