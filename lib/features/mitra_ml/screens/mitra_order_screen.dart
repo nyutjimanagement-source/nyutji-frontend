@@ -172,9 +172,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     showDialog(
       context: context,
       barrierColor: Colors.black54,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+      builder: (ctx) {
+        final screenH = MediaQuery.of(ctx).size.height;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -207,8 +209,10 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 ),
               ),
               // Foto + Watermark + Info
-              InteractiveViewer(
-                panEnabled: true,
+              SizedBox(
+                height: screenH * 0.55,
+                child: InteractiveViewer(
+                  panEnabled: true,
                 minScale: 0.8,
                 maxScale: 5.0,
                 child: Stack(
@@ -274,11 +278,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                     ),
                   ],
                 ),
-              ),
+              ),        // tutup SizedBox
             ],
           ),
         ),
-      ),
+      );
+      },
     );
   }
 
