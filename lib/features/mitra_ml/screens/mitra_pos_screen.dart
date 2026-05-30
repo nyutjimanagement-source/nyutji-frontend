@@ -3,6 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/services/api_service.dart';
 
@@ -77,6 +82,153 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
     if (amount == null) return "Rp 0";
     final num = int.tryParse(amount.toString()) ?? 0;
     return NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(num);
+  }
+
+  Future<void> _showEditBottomSheet(BuildContext context, dynamic item) async {
+    File? selectedImage;
+    bool isUploading = false;
+    
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+                left: 24, right: 24, top: 24
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40, height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  Text("Update Foto Layanan", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87), textAlign: TextAlign.center),
+                  const SizedBox(height: 8),
+                  Text(item['name'] ?? 'Layanan', style: GoogleFonts.montserrat(fontSize: 14, color: primaryTeal, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  
+                  // Textbox ReadOnly Harga
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Harga Reguler", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                            Text(_formatCurrency(item['price_regular'] ?? item['reg'] ?? 0), style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Harga Ekspres", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                            Text(_formatCurrency(item['price_fast'] ?? item['fast'] ?? 0), style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.orange)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Image Preview
+                  GestureDetector(
+                    onTap: () async {
+                      final picker = ImagePicker();
+                      final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+                      if (picked != null) {
+                        setModalState(() => selectedImage = File(picked.path));
+                      }
+                    },
+                    child: Container(
+                      height: 180,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: primaryTeal.withValues(alpha: 0.3), width: 1.5, style: BorderStyle.solid),
+                      ),
+                      child: selectedImage != null 
+                        ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(selectedImage!, fit: BoxFit.cover))
+                        : (item['url_photo'] != null)
+                          ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network("${ApiConstants.baseUrl}${item['url_photo']}", fit: BoxFit.cover, errorBuilder: (_,__,___) => Icon(Icons.broken_image, color: Colors.grey[400], size: 40)))
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.camera_alt_outlined, size: 40, color: primaryTeal.withValues(alpha: 0.6)),
+                                const SizedBox(height: 8),
+                                Text("Ketuk untuk Ambil Foto", style: GoogleFonts.montserrat(color: primaryTeal, fontWeight: FontWeight.w600, fontSize: 13)),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Save Button
+                  ElevatedButton(
+                    onPressed: isUploading ? null : () async {
+                      if (selectedImage == null) {
+                        NyutjiNotif.showError(context, "Pilih foto terlebih dahulu");
+                        return;
+                      }
+                      
+                      setModalState(() => isUploading = true);
+                      try {
+                        final auth = Provider.of<AuthProvider>(context, listen: false);
+                        final token = auth.token;
+                        if (token == null) throw Exception("Sesi telah habis");
+                        
+                        var request = http.MultipartRequest('POST', Uri.parse('${ApiConstants.baseUrl}/mitras/items/${item['id']}/photo'));
+                        request.headers.addAll({ 'Authorization': 'Bearer $token' });
+                        request.files.add(await http.MultipartFile.fromPath('image', selectedImage!.path));
+                        
+                        final streamedResponse = await request.send();
+                        if (streamedResponse.statusCode == 200) {
+                          if (ctx.mounted) {
+                            Navigator.pop(ctx);
+                            NyutjiNotif.showSuccess(ctx, "Foto layanan berhasil diperbarui!");
+                            _fetchItems();
+                          }
+                        } else {
+                          throw Exception("Gagal mengunggah foto. Code: ${streamedResponse.statusCode}");
+                        }
+                      } catch (e) {
+                        if (ctx.mounted) NyutjiNotif.showError(ctx, e.toString());
+                      } finally {
+                        if (mounted) setModalState(() => isUploading = false);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryTeal,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: isUploading 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text("Simpan Foto", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      }
+    );
   }
 
   @override
@@ -265,10 +417,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                         color: Colors.transparent,
                                         child: InkWell(
                                           onTap: () {
-                                            // Aksi Edit bisa ditambahkan nanti
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Edit ${item['name']} ditekan', style: GoogleFonts.montserrat())),
-                                            );
+                                            _showEditBottomSheet(context, item);
                                           },
                                           borderRadius: BorderRadius.circular(20),
                                           child: Container(
