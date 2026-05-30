@@ -198,10 +198,15 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                         
                         final streamedResponse = await request.send();
                         if (streamedResponse.statusCode == 200) {
+                          // Evict cache lama agar gambar baru langsung tampil
+                          final oldUrl = item['url_photo'];
+                          if (oldUrl != null) {
+                            await NetworkImage("${ApiConstants.baseUrl}$oldUrl").evict();
+                          }
+                          await _fetchItems();
                           if (ctx.mounted) {
                             Navigator.pop(ctx);
                             NyutjiNotif.showSuccess(ctx, "Foto layanan berhasil diperbarui!");
-                            _fetchItems();
                           }
                         } else {
                           throw Exception("Gagal mengunggah foto. Code: ${streamedResponse.statusCode}");
@@ -323,6 +328,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                               children: [
                                                 Image.network(
                                                   imageUrl,
+                                                  key: ValueKey(imageUrl),
                                                   fit: BoxFit.cover,
                                                   loadingBuilder: (context, child, loadingProgress) {
                                                     if (loadingProgress == null) return child;
