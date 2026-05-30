@@ -315,13 +315,13 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                               children: [
                                                 // Background gradient teal
                                                 Container(
-                                                  decoration: BoxDecoration(
+                                                  decoration: const BoxDecoration(
                                                     gradient: LinearGradient(
                                                       begin: Alignment.topLeft,
                                                       end: Alignment.bottomRight,
                                                       colors: [
                                                         primaryTeal,
-                                                        const Color(0xFF2D7A78),
+                                                        Color(0xFF2D7A78),
                                                       ],
                                                     ),
                                                   ),
