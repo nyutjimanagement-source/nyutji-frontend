@@ -345,7 +345,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                   left: 0,
                                                   right: 0,
                                                   child: Container(
-                                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                                    padding: const EdgeInsets.fromLTRB(8, 8, 14, 14),
                                                     decoration: BoxDecoration(
                                                       gradient: LinearGradient(
                                                         begin: Alignment.topCenter,
