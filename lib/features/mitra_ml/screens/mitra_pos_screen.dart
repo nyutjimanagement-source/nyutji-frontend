@@ -355,9 +355,10 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                     ),
                                                     child: Column(
                                                       mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment: CrossAxisAlignment.end,
                                                       children: [
                                                         Container(
-                                                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                                                          margin: const EdgeInsets.only(right: 8, left: 8),
                                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                                           decoration: BoxDecoration(
                                                             color: Colors.white.withValues(alpha: hasPhoto ? 0.85 : 0.15),
@@ -366,6 +367,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                           ),
                                                           child: Text(
                                                             "$priceReg / $unit",
+                                                            textAlign: TextAlign.right,
                                                             style: GoogleFonts.montserrat(
                                                               color: hasPhoto ? primaryTeal : Colors.white,
                                                               fontWeight: FontWeight.bold,
@@ -376,7 +378,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                         if ((item['price_fast'] ?? 0) > 0) ...[
                                                           const SizedBox(height: 4),
                                                           Container(
-                                                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                                                            margin: const EdgeInsets.only(right: 8, left: 8),
                                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                                             decoration: BoxDecoration(
                                                               color: Colors.orange.withValues(alpha: 0.9),
@@ -384,7 +386,8 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                               border: Border.all(color: Colors.white30, width: 1),
                                                             ),
                                                             child: Text(
-                                                              "Ekspres: $priceFast / $unit",
+                                                              "$priceFast / $unit",
+                                                              textAlign: TextAlign.right,
                                                               style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
                                                             ),
                                                           ),
