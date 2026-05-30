@@ -116,13 +116,13 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                       ),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
                       sliver: SliverGrid(
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          mainAxisSpacing: 16,
+                          mainAxisSpacing: 0,
                           crossAxisSpacing: 16,
-                          childAspectRatio: 0.75, // Proporsi mirip card marketplace
+                          childAspectRatio: 0.65, // Taller cells to accommodate staggered padding
                         ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
@@ -134,119 +134,170 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                 : (item['unit'] ?? 'Kg');
                             final priceReg = _formatCurrency(item['price_regular'] ?? item['reg'] ?? 0);
                             final priceFast = _formatCurrency(item['price_fast'] ?? item['fast'] ?? 0);
+                            
+                            final isOdd = index % 2 != 0;
 
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  )
-                                ],
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                top: isOdd ? 32.0 : 0.0,
+                                bottom: isOdd ? 0.0 : 32.0,
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Gambar bagian atas
-                                  Expanded(
-                                    flex: 3,
-                                    child: ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                      child: Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.cover,
-                                            loadingBuilder: (context, child, loadingProgress) {
-                                              if (loadingProgress == null) return child;
-                                              return Container(
-                                                color: Colors.grey[200],
-                                                child: const Center(child: CircularProgressIndicator(color: primaryTeal, strokeWidth: 2)),
-                                              );
-                                            },
-                                            errorBuilder: (context, error, stackTrace) => Container(
-                                              color: Colors.grey[200], 
-                                              child: const Icon(Icons.broken_image, color: Colors.grey)
-                                            ),
-                                          ),
-                                          // Overlay gelap untuk menonjolkan teks harga
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.topCenter,
-                                                end: Alignment.bottomCenter,
-                                                colors: [
-                                                  Colors.black.withValues(alpha: 0.2),
-                                                  Colors.black.withValues(alpha: 0.6),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          // Harga di tengah gambar
-                                          Center(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    )
+                                  ],
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        // Gambar bagian atas
+                                        Expanded(
+                                          flex: 3,
+                                          child: ClipRRect(
+                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                            child: Stack(
+                                              fit: StackFit.expand,
                                               children: [
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                  decoration: BoxDecoration(
-                                                    color: primaryTeal.withValues(alpha: 0.95),
-                                                    borderRadius: BorderRadius.circular(6),
-                                                    border: Border.all(color: Colors.white24, width: 1),
-                                                  ),
-                                                  child: Text(
-                                                    "$priceReg / $unit",
-                                                    style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                                Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover,
+                                                  loadingBuilder: (context, child, loadingProgress) {
+                                                    if (loadingProgress == null) return child;
+                                                    return Container(
+                                                      color: Colors.grey[200],
+                                                      child: const Center(child: CircularProgressIndicator(color: primaryTeal, strokeWidth: 2)),
+                                                    );
+                                                  },
+                                                  errorBuilder: (context, error, stackTrace) => Container(
+                                                    color: Colors.grey[200], 
+                                                    child: const Icon(Icons.broken_image, color: Colors.grey)
                                                   ),
                                                 ),
-                                                if ((item['price_fast'] ?? 0) > 0) ...[
-                                                  const SizedBox(height: 6),
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.orange.withValues(alpha: 0.95),
-                                                      borderRadius: BorderRadius.circular(6),
-                                                      border: Border.all(color: Colors.white24, width: 1),
-                                                    ),
-                                                    child: Text(
-                                                      "Ekspres: $priceFast / $unit",
-                                                      style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                                // Overlay gelap untuk menonjolkan teks harga
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment.topCenter,
+                                                      end: Alignment.bottomCenter,
+                                                      colors: [
+                                                        Colors.transparent,
+                                                        Colors.black.withValues(alpha: 0.7),
+                                                      ],
                                                     ),
                                                   ),
-                                                ]
+                                                ),
+                                                // Harga di tengah gambar
+                                                Center(
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                        decoration: BoxDecoration(
+                                                          color: primaryTeal.withValues(alpha: 0.95),
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          border: Border.all(color: Colors.white30, width: 1),
+                                                        ),
+                                                        child: Text(
+                                                          "$priceReg / $unit",
+                                                          style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                                        ),
+                                                      ),
+                                                      if ((item['price_fast'] ?? 0) > 0) ...[
+                                                        const SizedBox(height: 6),
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.orange.withValues(alpha: 0.95),
+                                                            borderRadius: BorderRadius.circular(8),
+                                                            border: Border.all(color: Colors.white30, width: 1),
+                                                          ),
+                                                          child: Text(
+                                                            "Ekspres: $priceFast / $unit",
+                                                            style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                                          ),
+                                                        ),
+                                                      ]
+                                                    ],
+                                                  ),
+                                                ),
                                               ],
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        // Nama Layanan di bagian bawah
+                                        Expanded(
+                                          flex: 1,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            child: Center(
+                                              child: Text(
+                                                item['name'] ?? 'Layanan',
+                                                textAlign: TextAlign.center,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.black87,
+                                                  height: 1.3,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  // Nama Layanan di bagian bawah
-                                  Expanded(
-                                    flex: 1,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      child: Center(
-                                        child: Text(
-                                          item['name'] ?? 'Layanan',
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                            height: 1.2,
+                                    // Tombol Edit
+                                    Positioned(
+                                      top: 10,
+                                      right: 10,
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            // Aksi Edit bisa ditambahkan nanti
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Edit ${item['name']} ditekan', style: GoogleFonts.montserrat())),
+                                            );
+                                          },
+                                          borderRadius: BorderRadius.circular(20),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(20),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withValues(alpha: 0.1),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 3),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              "Edit",
+                                              style: GoogleFonts.montserrat(
+                                                color: primaryTeal,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 11,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           },
