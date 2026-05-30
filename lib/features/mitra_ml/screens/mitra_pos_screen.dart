@@ -394,37 +394,32 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                         ),
                                       ],
                                     ),
-                                    // Tombol Edit
+                                    // Chip Add / Edit
                                     Positioned(
                                       top: 10,
                                       right: 10,
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: () {
-                                            _showEditBottomSheet(context, item);
-                                          },
-                                          borderRadius: BorderRadius.circular(20),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.circular(20),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black.withValues(alpha: 0.1),
-                                                  blurRadius: 6,
-                                                  offset: const Offset(0, 3),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Text(
-                                              "Edit",
-                                              style: GoogleFonts.montserrat(
-                                                color: primaryTeal,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 11,
+                                      child: GestureDetector(
+                                        onTap: () => _showEditBottomSheet(context, item),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: hasPhoto ? Colors.white : primaryTeal,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: hasPhoto ? Border.all(color: primaryTeal, width: 1.2) : null,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.12),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 3),
                                               ),
+                                            ],
+                                          ),
+                                          child: Text(
+                                            hasPhoto ? "Edit" : "Add",
+                                            style: GoogleFonts.montserrat(
+                                              color: hasPhoto ? primaryTeal : Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11,
                                             ),
                                           ),
                                         ),
