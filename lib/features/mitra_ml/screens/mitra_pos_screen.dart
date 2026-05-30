@@ -59,27 +59,6 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
     }
   }
 
-  String _getImageForService(String name) {
-    final lowerName = name.toLowerCase();
-    if (lowerName.contains('karpet')) {
-      return 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Carpet
-    } else if (lowerName.contains('jas') || lowerName.contains('formal')) {
-      return 'https://images.unsplash.com/photo-1594938298596-70f56f031e4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Suit
-    } else if (lowerName.contains('sepatu')) {
-      return 'https://images.unsplash.com/photo-1549298916-b41d501d3772?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Shoes
-    } else if (lowerName.contains('selimut') || lowerName.contains('bedcover')) {
-      return 'https://images.unsplash.com/photo-1581451551609-cb29a43586b6?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Bed
-    } else if (lowerName.contains('setrika')) {
-      return 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Iron
-    } else if (lowerName.contains('boneka')) {
-      return 'https://images.unsplash.com/photo-1558237951-e37130df1b8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Doll
-    } else if (lowerName.contains('helm')) {
-      return 'https://images.unsplash.com/photo-1557973711-2098d7fa2bb8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Helmet
-    } else {
-      return 'https://images.unsplash.com/photo-1582735689146-8772a80f0896?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'; // Folded clothes (default laundry)
-    }
-  }
-
   String _formatCurrency(dynamic amount) {
     if (amount == null) return "Rp 0";
     final num = int.tryParse(amount.toString()) ?? 0;
@@ -295,13 +274,10 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                           (context, index) {
                             final item = items[index];
                             final categoryItem = item['category']?.toString() ?? '';
-                            final version = _photoVersions[item['id']] ?? 0;
-                            final imageUrl = (item['url_photo'] != null)
-                                ? "${ApiConstants.baseUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}?v=$version"
-                                : _getImageForService(item['name'] ?? '');
                             final unit = (categoryItem.toLowerCase() == 'satuan') 
                                 ? 'Pcs' 
                                 : (item['unit'] ?? 'Kg');
+                            final hasPhoto = item['url_photo'] != null;
                             final priceReg = _formatCurrency(item['price_regular'] ?? item['reg'] ?? 0);
                             final priceFast = _formatCurrency(item['price_fast'] ?? item['fast'] ?? 0);
                             
@@ -329,7 +305,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: [
-                                        // Gambar bagian atas
+                                        // Area Ikon bagian atas
                                         Expanded(
                                           flex: 3,
                                           child: ClipRRect(
@@ -337,44 +313,34 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                             child: Stack(
                                               fit: StackFit.expand,
                                               children: [
-                                                Image.network(
-                                                  imageUrl,
-                                                  key: ValueKey(imageUrl),
-                                                  fit: BoxFit.cover,
-                                                  loadingBuilder: (context, child, loadingProgress) {
-                                                    if (loadingProgress == null) return child;
-                                                    return Container(
-                                                      color: Colors.grey[200],
-                                                      child: const Center(child: CircularProgressIndicator(color: primaryTeal, strokeWidth: 2)),
-                                                    );
-                                                  },
-                                                  errorBuilder: (context, error, stackTrace) => Container(
-                                                    color: Colors.grey[200], 
-                                                    child: const Icon(Icons.broken_image, color: Colors.grey)
-                                                  ),
-                                                ),
-                                                // Overlay gelap untuk menonjolkan teks harga
+                                                // Background gradient teal
                                                 Container(
                                                   decoration: BoxDecoration(
                                                     gradient: LinearGradient(
-                                                      begin: Alignment.topCenter,
-                                                      end: Alignment.bottomCenter,
+                                                      begin: Alignment.topLeft,
+                                                      end: Alignment.bottomRight,
                                                       colors: [
-                                                        Colors.transparent,
-                                                        Colors.black.withValues(alpha: 0.7),
+                                                        primaryTeal,
+                                                        const Color(0xFF2D7A78),
                                                       ],
                                                     ),
                                                   ),
                                                 ),
-                                                // Harga di tengah gambar
+                                                // Ikon cloth di tengah
                                                 Center(
                                                   child: Column(
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: [
+                                                      Icon(
+                                                        hasPhoto ? Icons.check_circle_outline : Icons.dry_cleaning,
+                                                        color: Colors.white.withValues(alpha: 0.25),
+                                                        size: 56,
+                                                      ),
+                                                      const SizedBox(height: 12),
                                                       Container(
                                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                                         decoration: BoxDecoration(
-                                                          color: primaryTeal.withValues(alpha: 0.95),
+                                                          color: Colors.white.withValues(alpha: 0.15),
                                                           borderRadius: BorderRadius.circular(8),
                                                           border: Border.all(color: Colors.white30, width: 1),
                                                         ),
@@ -388,7 +354,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                         Container(
                                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                                           decoration: BoxDecoration(
-                                                            color: Colors.orange.withValues(alpha: 0.95),
+                                                            color: Colors.orange.withValues(alpha: 0.85),
                                                             borderRadius: BorderRadius.circular(8),
                                                             border: Border.all(color: Colors.white30, width: 1),
                                                           ),
