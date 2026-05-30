@@ -388,13 +388,16 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                children: ["Semua", "Baru", "Same Day", "Reguler"].map((f) {
-                  final bool hasNew = orderProv.activeOrders.any((o) {
-                    final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
-                    return s == 'SEARCHING' || s == 'WAITING_DROPOFF';
-                  });
-                  return _buildFilterPill(f, hasNew);
-                }).toList(),
+                children: [
+                  ...["Semua", "Baru", "Same Day", "Reguler"].map((f) {
+                    final bool hasNew = orderProv.activeOrders.any((o) {
+                      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+                      return s == 'SEARCHING' || s == 'WAITING_DROPOFF';
+                    });
+                    return _buildFilterPill(f, hasNew);
+                  }),
+                  _buildSearchButton(orderProv),
+                ],
               ),
             ),
             _buildSummaryCards(orderProv),
@@ -1529,5 +1532,352 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       ),
       dismissDirection: DismissDirection.up,
     ));
+  }
+
+  // ── Search & Detail Feature ───────────────────────
+  Widget _buildSearchButton(OrderProvider orderProv) {
+    return GestureDetector(
+      onTap: () => _showSearchModal(context, orderProv),
+      child: Container(
+        margin: const EdgeInsets.only(left: 4, right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        ),
+        child: const Icon(LucideIcons.search, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
+  void _showSearchModal(BuildContext context, OrderProvider orderProv) {
+    final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
+    String searchQuery = "";
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          final filtered = searchQuery.isEmpty 
+              ? [] 
+              : allOrders.where((o) {
+                  final q = searchQuery.toLowerCase();
+                  final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '').toString().toLowerCase();
+                  final customerName = (o['customer']?['name'] ?? o['customer_name'] ?? '').toString().toLowerCase();
+                  final address = (o['address'] ?? o['customer_address'] ?? '').toString().toLowerCase();
+                  final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List? ?? [];
+                  bool itemMatch = items.any((it) => (it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase().contains(q));
+                  
+                  return orderId.contains(q) || customerName.contains(q) || address.contains(q) || itemMatch;
+                }).toList();
+
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.9,
+            decoration: const BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          autofocus: true,
+                          style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: darkText),
+                          decoration: InputDecoration(
+                            hintText: "Cari nomor order, nama, resi...",
+                            hintStyle: GoogleFonts.montserrat(fontSize: 13, color: textGrey),
+                            prefixIcon: const Icon(LucideIcons.search, color: primaryTeal, size: 20),
+                            suffixIcon: searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(LucideIcons.x, size: 18, color: textGrey),
+                                    onPressed: () => setState(() => searchQuery = ""),
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: bgColor,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                          onChanged: (val) => setState(() => searchQuery = val),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Text("Batal", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.red)),
+                      )
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: filtered.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(searchQuery.isEmpty ? LucideIcons.search : LucideIcons.fileQuestion, size: 64, color: Colors.grey[300]),
+                              const SizedBox(height: 16),
+                              Text(
+                                searchQuery.isEmpty ? "Mulai pencarian" : "Tidak ada hasil ditemukan",
+                                style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final o = filtered[index];
+                            final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
+                            final customerName = o['customer']?['name']?.toString() ?? o['customer_name']?.toString() ?? 'Pelanggan';
+                            final status = (o['status'] ?? o['order_status'] ?? 'UNKNOWN').toString();
+                            
+                            DateTime doneAt;
+                            try {
+                              final doneAtRaw = o['doneAt'] ?? o['done_at'] ?? o['createdAt'] ?? o['created_at'];
+                              doneAt = doneAtRaw != null ? DateTime.parse(doneAtRaw.toString()).toLocal() : DateTime.now();
+                            } catch (e) {
+                              doneAt = DateTime.now();
+                            }
+
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                _showOrderDetailSearch(context, o);
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.grey[100]!),
+                                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2))],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
+                                      child: const Icon(LucideIcons.package, color: primaryTeal, size: 20),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(orderId, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal)),
+                                          const SizedBox(height: 4),
+                                          Text(customerName, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+                                          const SizedBox(height: 4),
+                                          Text(DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(doneAt), style: GoogleFonts.montserrat(fontSize: 11, color: textGrey)),
+                                        ],
+                                      ),
+                                    ),
+                                    _buildStatusChip(status, o),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showOrderDetailSearch(BuildContext context, dynamic o) {
+    final orderId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? '-').toString();
+    final customerName = o['customer']?['name']?.toString() ?? o['customer_name']?.toString() ?? 'Pelanggan';
+    final courierName = o['courier']?['name']?.toString() ?? o['courier_name']?.toString() ?? 'Belum Ada';
+    final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString();
+    
+    DateTime orderDate;
+    try {
+      final orderDateRaw = o['createdAt'] ?? o['created_at'];
+      orderDate = orderDateRaw != null ? DateTime.parse(orderDateRaw.toString()).toLocal() : DateTime.now();
+    } catch (e) { orderDate = DateTime.now(); }
+
+    DateTime? finishDate;
+    try {
+      final finishDateRaw = o['doneAt'] ?? o['done_at'] ?? o['completedAt'] ?? o['completed_at'];
+      if (finishDateRaw != null) {
+        finishDate = DateTime.parse(finishDateRaw.toString()).toLocal();
+      }
+    } catch (e) {}
+
+    final List<dynamic> proofs = o['proofs'] ?? [];
+    final Map<String, dynamic> proofMap = {};
+    for (var p in proofs) {
+      final s = p['step']?.toString() ?? '';
+      if (s.isNotEmpty) proofMap[s] = p;
+    }
+
+    final proofSteps = [
+      {'step': 'WEIGHING', 'title': 'Timbang'},
+      {'step': 'WASH_START', 'title': 'Cuci'},
+      {'step': 'IRONING', 'title': 'Setrika'},
+      {'step': 'PACKING', 'title': 'Packing'},
+      {'step': 'DONE', 'title': 'Selesai'},
+    ];
+    final existingProofs = proofSteps.where((p) => proofMap.containsKey(p['step'])).toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
+              child: Row(
+                children: [
+                  Expanded(child: Text("Detail Pesanan", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText))),
+                  IconButton(icon: const Icon(LucideIcons.x, size: 20), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: Color(0xFFF3F4F6)),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildDetailSearchRow("Nomor Order", orderId),
+                        const Divider(height: 20),
+                        _buildDetailSearchRow("Pelanggan", customerName),
+                        const Divider(height: 20),
+                        _buildDetailSearchRow("Kurir", courierName),
+                        const Divider(height: 20),
+                        _buildDetailSearchRow("Layanan", serviceType.isNotEmpty ? serviceType : 'Reguler'),
+                        const Divider(height: 20),
+                        _buildDetailSearchRow("Tgl Order", DateFormat('dd MMM yyyy, HH:mm').format(orderDate)),
+                        if (finishDate != null) ...[
+                          const Divider(height: 20),
+                          _buildDetailSearchRow("Tgl Selesai", DateFormat('dd MMM yyyy, HH:mm').format(finishDate)),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  Text("Items", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+                  const SizedBox(height: 12),
+                  _buildDetailPesanan(o),
+                  const SizedBox(height: 24),
+
+                  Text("Dokumentasi Proses", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+                  const SizedBox(height: 12),
+                  existingProofs.isEmpty 
+                    ? Text("Tidak ada gambar dokumentasi", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontStyle: FontStyle.italic))
+                    : GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.85
+                        ),
+                        itemCount: existingProofs.length,
+                        itemBuilder: (context, index) {
+                          final pDef = existingProofs[index];
+                          final pData = proofMap[pDef['step']];
+                          
+                          final String path = pData['file_url'].toString().replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
+                          final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+                          
+                          return GestureDetector(
+                            onTap: () => _showPowDialog([pData], [pDef['step'].toString()], pDef['title'].toString()),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0,2))],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                      child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Center(child: Icon(LucideIcons.imageOff, color: Colors.grey))),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(12))
+                                    ),
+                                    child: Text(
+                                      pDef['title'].toString(),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: primaryTeal),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailSearchRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: textGrey)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value, 
+            textAlign: TextAlign.right,
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText),
+          ),
+        ),
+      ],
+    );
   }
 }
