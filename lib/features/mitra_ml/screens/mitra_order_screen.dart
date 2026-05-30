@@ -1710,6 +1710,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     final customerAddress = o['address']?.toString() ?? o['customer_address']?.toString() ?? o['customer']?['address']?.toString() ?? '-';
     final courierName = o['courier']?['name']?.toString() ?? o['courier_name']?.toString() ?? 'Belum Ada';
     final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString();
+    final status = (o['status'] ?? o['order_status'] ?? 'UNKNOWN').toString();
     
     DateTime orderDate;
     try {
@@ -1818,6 +1819,14 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                           const Divider(height: 20),
                           _buildDetailSearchRow("Tgl Selesai", DateFormat('dd MMM yyyy, HH:mm').format(finishDate)),
                         ],
+                        const Divider(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Status", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: textGrey)),
+                            _buildStatusChip(status, o),
+                          ],
+                        ),
                       ],
                     ),
                   ),
