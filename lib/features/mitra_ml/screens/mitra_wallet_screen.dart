@@ -600,7 +600,7 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
                       _buildDetailRow("Sumber Dana", "Wallet Nyutji", value2: "Saldo: ${Formatters.currencyIdr(widget.maxBalance)}", highlight2: true),
                       const Divider(height: 32),
                       hasBank 
-                          ? _buildDetailRow("Rekening Penerima", user!['account_name'] ?? '-', value2: "${user['bank_name']} - ${user['bank_account']}")
+                          ? _buildDetailRow("Rekening Penerima", user['account_name'] ?? '-', value2: "${user['bank_name']} - ${user['bank_account']}")
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
