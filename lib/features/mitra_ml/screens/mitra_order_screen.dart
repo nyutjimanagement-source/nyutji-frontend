@@ -10,6 +10,8 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/utils/status_helper.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_image_picker.dart';
+import '../../../core/widgets/nyutji_loading_overlay.dart';
 
 class MitraOrderScreen extends StatefulWidget {
   const MitraOrderScreen({super.key});
@@ -1437,7 +1439,14 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                         final picker = ImagePicker();
                         final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
                         if (image != null) {
-                          setState(() { powImage = image; });
+                          if (context.mounted) {
+                            NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
+                          }
+                          final compressed = await NyutjiImagePicker.compressToWebP(image);
+                          if (context.mounted) {
+                            NyutjiLoadingOverlay.hide(context);
+                            setState(() { powImage = compressed ?? image; });
+                          }
                         }
                       },
                       icon: const Icon(LucideIcons.camera, size: 16),

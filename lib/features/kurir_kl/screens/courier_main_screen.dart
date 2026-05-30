@@ -21,6 +21,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
+import '../../../core/widgets/nyutji_loading_overlay.dart';
 
 // --- MODELS ---
 enum CourierTaskType { pickup, delivery }
@@ -232,14 +233,19 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
 
   Future<void> _captureTaskPhoto(String orderId) async {
     final ImagePicker picker = ImagePicker();
-    // Kompresi 80% -> imageQuality: 20
-    final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 20);
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
     
     if (photo != null) {
-      setState(() {
-        _taskCapturedImages[orderId] = File(photo.path);
-      });
-      _showBeautifulNotif("Foto berhasil diambil. Jangan lupa tekan Selesai.", true);
+      if (mounted) NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
+      final compressed = await NyutjiImagePicker.compressToWebP(photo);
+      if (mounted) NyutjiLoadingOverlay.hide(context);
+
+      if (mounted) {
+        setState(() {
+          _taskCapturedImages[orderId] = File(compressed?.path ?? photo.path);
+        });
+        _showBeautifulNotif("Foto berhasil diambil. Jangan lupa tekan Selesai.", true);
+      }
     }
   }
 

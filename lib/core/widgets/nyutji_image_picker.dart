@@ -100,7 +100,7 @@ class NyutjiImagePicker {
                         if (photo != null) {
                           if (context.mounted) NyutjiLoadingOverlay.show(context, message: "Mengompresi & Mengunggah...");
                           try {
-                            final compressedPhoto = await _compressToWebP(photo);
+                            final compressedPhoto = await compressToWebP(photo);
                             await onImagePicked(compressedPhoto ?? photo);
                           } finally {
                             if (context.mounted) NyutjiLoadingOverlay.hide(context);
@@ -125,7 +125,7 @@ class NyutjiImagePicker {
                         if (image != null) {
                           if (context.mounted) NyutjiLoadingOverlay.show(context, message: "Mengompresi & Mengunggah...");
                           try {
-                            final compressedImage = await _compressToWebP(image);
+                            final compressedImage = await compressToWebP(image);
                             await onImagePicked(compressedImage ?? image);
                           } finally {
                             if (context.mounted) NyutjiLoadingOverlay.hide(context);
@@ -176,7 +176,7 @@ class NyutjiImagePicker {
       ),
     );
   }
-  static Future<XFile?> _compressToWebP(XFile file) async {
+  static Future<XFile?> compressToWebP(XFile file) async {
     try {
       final dir = await getTemporaryDirectory();
       final targetPath = '${dir.absolute.path}/${DateTime.now().millisecondsSinceEpoch}.webp';
