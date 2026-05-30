@@ -24,6 +24,8 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
   final ApiService _api = ApiService();
   bool _isLoading = true;
   Map<String, List<dynamic>> _groupedItems = {};
+  // Cache-busting per item: itemId -> timestamp
+  final Map<dynamic, int> _photoVersions = {};
 
   @override
   void initState() {
@@ -198,10 +200,18 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                         
                         final streamedResponse = await request.send();
                         if (streamedResponse.statusCode == 200) {
-                          // Evict cache lama agar gambar baru langsung tampil
-                          final oldUrl = item['url_photo'];
-                          if (oldUrl != null) {
-                            await NetworkImage("${ApiConstants.baseUrl}$oldUrl").evict();
+                          // Evict cache Flutter untuk URL lama
+                          final oldFileName = item['url_photo'];
+                          if (oldFileName != null) {
+                            final oldVer = _photoVersions[item['id']] ?? 0;
+                            final oldFullUrl = "${ApiConstants.baseUrl}/nyutji-storage/uploads/inventory/$oldFileName?v=$oldVer";
+                            await NetworkImage(oldFullUrl).evict();
+                          }
+                          // Update versi item ini → trigger rebuild dengan URL baru
+                          if (mounted) {
+                            setState(() {
+                              _photoVersions[item['id']] = DateTime.now().millisecondsSinceEpoch;
+                            });
                           }
                           await _fetchItems();
                           if (ctx.mounted) {
@@ -285,8 +295,9 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                           (context, index) {
                             final item = items[index];
                             final categoryItem = item['category']?.toString() ?? '';
+                            final version = _photoVersions[item['id']] ?? 0;
                             final imageUrl = (item['url_photo'] != null)
-                                ? "${ApiConstants.baseUrl}${item['url_photo']}"
+                                ? "${ApiConstants.baseUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}?v=$version"
                                 : _getImageForService(item['name'] ?? '');
                             final unit = (categoryItem.toLowerCase() == 'satuan') 
                                 ? 'Pcs' 
