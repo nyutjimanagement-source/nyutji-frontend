@@ -7,6 +7,7 @@ import '../../../providers/order_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../auth/screens/pin_screen.dart' as pin_screen;
+import 'mitra_profile_screen.dart';
 
 class MitraWalletScreen extends StatefulWidget {
   const MitraWalletScreen({super.key});
@@ -339,9 +340,9 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildCashItem("Total Cash In", cashIn, Colors.green, LucideIcons.arrowDownLeft)),
+                Expanded(child: _buildCashItem("Total CashIn", cashIn, Colors.green, LucideIcons.arrowDownLeft)),
                 Container(width: 1, height: 40, color: Colors.grey[200]),
-                Expanded(child: _buildCashItem("Total Cash Out", cashOut, Colors.red, LucideIcons.arrowUpRight)),
+                Expanded(child: _buildCashItem("Total Cashout", cashOut, Colors.red, LucideIcons.arrowUpRight)),
               ],
             )
           ],
@@ -450,28 +451,39 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("Mutasi Log", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: darkText)),
-                Container(
-                  height: 32,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.circular(8)
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedFilter,
-                      icon: const Icon(LucideIcons.filter, size: 14, color: primaryTeal),
-                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
-                      onChanged: (String? newValue) {
-                        setState(() { _selectedFilter = newValue!; });
-                      },
-                      items: _filters.map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(value: value, child: Text(value));
-                      }).toList(),
-                    ),
-                  ),
-                ),
               ],
+            ),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: _filters.map((filter) {
+                  final isSelected = _selectedFilter == filter;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedFilter = filter),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? primaryTeal : bgColor,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: isSelected ? [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+                        border: Border.all(color: isSelected ? primaryTeal : Colors.grey[300]!),
+                      ),
+                      child: Text(
+                        filter,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12, 
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600, 
+                          color: isSelected ? Colors.white : Colors.grey[600]
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
             const SizedBox(height: 16),
             
@@ -562,27 +574,63 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-            const SizedBox(height: 24),
-            Text("Konfirmasi Tarik Dana Laundry", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF111827))),
-            const SizedBox(height: 24),
-            
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  _buildDetailRow("Nama Laundry", widget.laundryName),
-                  const Divider(height: 32),
-                  _buildDetailRow("Sumber Dana", "Wallet Nyutji", value2: "Saldo: ${Formatters.currencyIdr(widget.maxBalance)}", highlight2: true),
-                  const Divider(height: 32),
-                  _buildDetailRow("Rekening Penerima", "Budi Santoso", value2: "Bank Mandiri - 1234567890"),
-                ],
-              ),
-            ),
+        child: Consumer<AuthProvider>(
+          builder: (context, auth, _) {
+            final user = auth.user;
+            final hasBank = user != null && 
+                            user['bank_name'] != null && user['bank_name'].toString().isNotEmpty && 
+                            user['bank_account'] != null && user['bank_account'].toString().isNotEmpty && 
+                            user['account_name'] != null && user['account_name'].toString().isNotEmpty;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+                const SizedBox(height: 24),
+                Text("Konfirmasi Tarik Dana Laundry", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF111827))),
+                const SizedBox(height: 24),
+                
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      _buildDetailRow("Nama Laundry", widget.laundryName),
+                      const Divider(height: 32),
+                      _buildDetailRow("Sumber Dana", "Wallet Nyutji", value2: "Saldo: ${Formatters.currencyIdr(widget.maxBalance)}", highlight2: true),
+                      const Divider(height: 32),
+                      hasBank 
+                          ? _buildDetailRow("Rekening Penerima", user!['account_name'] ?? '-', value2: "${user['bank_name']} - ${user['bank_account']}")
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Rekening Penerima", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MitraProfileScreen()));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(LucideIcons.alertCircle, size: 12, color: Colors.red),
+                                        const SizedBox(width: 4),
+                                        Text("Setup Rekening", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red)),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                    ],
+                  ),
+                ),
             
             const SizedBox(height: 32),
             Padding(
@@ -635,10 +683,8 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _amount > 0 ? () {
+                  onPressed: (_amount > 0 && hasBank) ? () {
                     Navigator.pop(context);
-                    // Instead of Navigator.pushNamed(context, '/pin') which might not be registered
-                    // We directly push using MaterialPageRoute
                     Navigator.push(context, MaterialPageRoute(
                       builder: (context) => pin_screen.PinScreen(amountToWithdraw: _amount)
                     ));
@@ -648,15 +694,15 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
                     disabledBackgroundColor: Colors.grey[300],
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: _amount > 0 ? 8 : 0,
+                    elevation: (_amount > 0 && hasBank) ? 8 : 0,
                     shadowColor: const Color(0xFF1E5655).withValues(alpha: 0.4),
                   ),
                   child: Text(
-                    _amount > 0 ? "Tarik Dana  >  ${Formatters.currencyIdr(_amount)}" : "Tentukan Nominal",
+                    !hasBank ? "Setup Rekening Dulu" : (_amount > 0 ? "Tarik Dana  >  ${Formatters.currencyIdr(_amount)}" : "Tentukan Nominal"),
                     style: GoogleFonts.montserrat(
                       fontSize: 14, 
                       fontWeight: FontWeight.bold, 
-                      color: _amount > 0 ? Colors.white : Colors.grey[600]
+                      color: (_amount > 0 && hasBank) ? Colors.white : Colors.grey[600]
                     )
                   ),
                 ),
@@ -664,7 +710,9 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
             ),
             const SizedBox(height: 32),
           ],
-        ),
+        );
+        },
+      ),
       ),
     );
   }
