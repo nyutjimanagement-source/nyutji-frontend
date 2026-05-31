@@ -683,8 +683,8 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
             ),
           ),
         ),
-        if (isExpanded && isSelesai)
-          _buildOrderDetails(order!),
+        if (isExpanded && isSelesai && order != null)
+          _buildOrderDetails(order),
       ],
     );
   }
@@ -706,7 +706,9 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
       if (finishDateRaw != null) {
         finishDate = DateTime.parse(finishDateRaw.toString()).toLocal();
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore empty catch
+    }
 
     final List<dynamic> proofs = order['proofs'] ?? [];
     final Map<String, dynamic> proofMap = {};
