@@ -419,111 +419,110 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        // Gambar — cover + Positioned.fill agar mengisi Stack tanpa overflow putih
+                        // Gambar
                         Positioned.fill(
                           child: Image.network(
                             imageUrl,
                             fit: BoxFit.cover,
-                              width: double.infinity,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return const SizedBox(
-                                  height: 260,
-                                  child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) => const SizedBox(
-                                height: 220,
-                                child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
-                              ),
+                            width: double.infinity,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const SizedBox(
+                                height: 260,
+                                child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) => const SizedBox(
+                              height: 220,
+                              child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
                             ),
                           ),
-                          // Watermark 1 — kiri atas
-                          Positioned(
-                            top: 40, left: -10,
-                            child: IgnorePointer(
-                              child: Transform.rotate(
-                                angle: -0.785, // -45°
-                                child: Text(
-                                  'Properti Nyutji Management',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white.withValues(alpha: 0.38),
-                                    letterSpacing: 1.0,
-                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                                  ),
+                        ),
+                        // Watermark 1 — kiri atas
+                        Positioned(
+                          top: 40, left: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Properti Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.38),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                                 ),
                               ),
                             ),
                           ),
-                          // Watermark 2 — tengah (sedikit geser kanan)
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: Align(
-                                alignment: const Alignment(0.2, 0.0),
-                                child: Transform.rotate(
-                                  angle: -0.785,
-                                  child: Text(
-                                    'Properti Nyutji Management',
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white.withValues(alpha: 0.42),
-                                      letterSpacing: 1.2,
-                                      shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Watermark 3 — kanan bawah
-                          Positioned(
-                            bottom: 60, right: -10,
-                            child: IgnorePointer(
+                        ),
+                        // Watermark 2 — tengah (sedikit geser kanan)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Align(
+                              alignment: const Alignment(0.2, 0.0),
                               child: Transform.rotate(
                                 angle: -0.785,
                                 child: Text(
                                   'Properti Nyutji Management',
                                   style: GoogleFonts.montserrat(
-                                    fontSize: 13,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w900,
-                                    color: Colors.white.withValues(alpha: 0.35),
-                                    letterSpacing: 1.0,
+                                    color: Colors.white.withValues(alpha: 0.42),
+                                    letterSpacing: 1.2,
                                     shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                          // Gradient + Info overlay bawah kanan
-                          Positioned(
-                            bottom: 0, left: 0, right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [Colors.black54, Colors.transparent],
+                        ),
+                        // Watermark 3 — kanan bawah
+                        Positioned(
+                          bottom: 60, right: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Properti Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.35),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                                 ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                                  Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
-                                  Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
-                                ],
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        // Gradient + Info overlay bawah
+                        Positioned(
+                          bottom: 0, left: 0, right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                                Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),        // tutup InteractiveViewer
-                ),          // tutup SizedBox
+                  ),
+                ),
               ],
             ),
           ),
