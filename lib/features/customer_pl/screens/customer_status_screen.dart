@@ -409,78 +409,85 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                     ],
                   ),
                 ),
-                // Foto + Watermark + Info
-                SizedBox(
-                  height: screenH * 0.55,
+                // Foto + Watermark + Info — smart-dinamis untuk semua ukuran layar
+                Flexible(
                   child: InteractiveViewer(
-                panEnabled: true,
-                minScale: 0.8,
-                maxScale: 5.0,
-                child: Stack(
-                  children: [
-                    // Gambar
-                    Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
+                    panEnabled: true,
+                    minScale: 0.8,
+                    maxScale: 5.0,
+                    child: Container(
+                      color: Colors.black,
                       width: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const SizedBox(
-                          height: 260,
-                          child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) => const SizedBox(
-                        height: 220,
-                        child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
-                      ),
-                    ),
-                    // Watermark diagonal
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: Center(
-                          child: Transform.rotate(
-                            angle: -0.5,
-                            child: Text(
-                              'Properti Nyutji Management',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white.withValues(alpha: 0.45),
-                                letterSpacing: 1.2,
-                                shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                      // Tinggi maksimal: sisa layar setelah dikurangi header & padding
+                      constraints: BoxConstraints(maxHeight: screenH * 0.72),
+                      child: Stack(
+                        children: [
+                          // Gambar — menggunakan contain agar tidak ada sisa putih
+                          Positioned.fill(
+                            child: Image.network(
+                              imageUrl,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const SizedBox(
+                                  height: 260,
+                                  child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) => const SizedBox(
+                                height: 220,
+                                child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
-                    // Gradient + Info overlay bawah kanan
-                    Positioned(
-                      bottom: 0, left: 0, right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [Colors.black54, Colors.transparent],
+                          // Watermark diagonal
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: Center(
+                                child: Transform.rotate(
+                                  angle: -0.5,
+                                  child: Text(
+                                    'Properti Nyutji Management',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white.withValues(alpha: 0.45),
+                                      letterSpacing: 1.2,
+                                      shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                            Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
-                            Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
-                          ],
-                        ),
+                          // Gradient + Info overlay bawah kanan
+                          Positioned(
+                            bottom: 0, left: 0, right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [Colors.black54, Colors.transparent],
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                                  Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                  Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),        // tutup InteractiveViewer
-            ),          // tutup SizedBox
+                  ),        // tutup InteractiveViewer
+                ),          // tutup Flexible
             ],
           ),
         ),
