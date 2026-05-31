@@ -37,7 +37,6 @@ class CustomerHomeScreen extends StatefulWidget {
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final ScrollController _mainScrollController = ScrollController();
   final ScrollController _promoController = ScrollController();
-  Timer? _promoTimer;
   bool _showBackToTop = false;
   bool _sortClosest = true;
   double? _currentLat;
@@ -119,27 +118,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     }
   }
 
-  void _startPromoMarquee() {
-    _promoTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (_promoController.hasClients) {
-        double maxScroll = _promoController.position.maxScrollExtent;
-        double currentScroll = _promoController.offset;
-        if (currentScroll >= maxScroll) {
-          _promoController.jumpTo(0);
-        } else {
-          _promoController.animateTo(
-            currentScroll + 1,
-            duration: const Duration(milliseconds: 50),
-            curve: Curves.linear,
-          );
-        }
-      }
-    });
-  }
-
   @override
   void dispose() {
-    _promoTimer?.cancel();
     _promoController.dispose();
     _mainScrollController.dispose();
     super.dispose();
@@ -635,8 +615,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         allPromos[i]['img']!, 
         allPromos[i]['narration']!
       );
-      if (i % 2 == 0) leftCol.add(card);
-      else rightCol.add(card);
+      if (i % 2 == 0) {
+        leftCol.add(card);
+      } else {
+        rightCol.add(card);
+      }
     }
 
     showModalBottomSheet(
