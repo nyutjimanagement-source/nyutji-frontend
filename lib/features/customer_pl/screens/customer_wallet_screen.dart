@@ -764,10 +764,10 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
             _buildDetailSearchRow("Kurir", courierName.toString()),
           ],
           const SizedBox(height: 8),
-          _buildDetailSearchRow("Tgl Order", DateFormat('dd MMM yyyy, HH:mm').format(orderDate)),
+          _buildDetailSearchRow("Tgl Order", DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(orderDate)),
           if (finishDate != null) ...[
             const SizedBox(height: 8),
-            _buildDetailSearchRow("Tgl Selesai", DateFormat('dd MMM yyyy, HH:mm').format(finishDate)),
+            _buildDetailSearchRow("Tgl Selesai", DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(finishDate)),
           ],
           const SizedBox(height: 16),
           Text("Items:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[600])),
