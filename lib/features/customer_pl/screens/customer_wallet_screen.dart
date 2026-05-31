@@ -9,6 +9,8 @@ import '../../../core/theme/nyutji_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../providers/order_provider.dart';
+import '../../../core/constants/api_constants.dart';
 
 class CustomerWalletScreen extends StatefulWidget {
   const CustomerWalletScreen({super.key});
@@ -18,11 +20,14 @@ class CustomerWalletScreen extends StatefulWidget {
 }
 
 class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
+  String _historyFilter = 'Bulan';
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallet();
+      context.read<OrderProvider>().fetchOrders();
     });
   }
 
@@ -30,11 +35,20 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     Map<String, List<dynamic>> grouped = {};
     for (var m in mutasi) {
       DateTime date = DateTime.tryParse(m['createdAt']?.toString() ?? '') ?? DateTime.now();
-      String monthKey = DateFormat('MMMM yyyy', 'id_ID').format(date.toLocal());
-      if (!grouped.containsKey(monthKey)) {
-        grouped[monthKey] = [];
+      String key;
+      if (_historyFilter == 'Minggu') {
+        int week = ((date.toLocal().day - 1) / 7).floor() + 1;
+        key = "Minggu ke-$week ${DateFormat('MMMM yyyy', 'id_ID').format(date.toLocal())}";
+      } else if (_historyFilter == 'Tahun') {
+        key = DateFormat('yyyy', 'id_ID').format(date.toLocal());
+      } else {
+        key = DateFormat('MMMM yyyy', 'id_ID').format(date.toLocal());
       }
-      grouped[monthKey]!.add(m);
+
+      if (!grouped.containsKey(key)) {
+        grouped[key] = [];
+      }
+      grouped[key]!.add(m);
     }
     return grouped;
   }
@@ -139,6 +153,22 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(currentT['history'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: ['Minggu', 'Bulan', 'Tahun'].map((f) {
+                            bool isSelected = _historyFilter == f;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ActionChip(
+                                label: Text(f),
+                                backgroundColor: isSelected ? const Color(0xFF403600) : Colors.grey[100],
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
+                                labelStyle: GoogleFonts.montserrat(color: isSelected ? Colors.white : Colors.grey[600], fontSize: 11, fontWeight: FontWeight.bold),
+                                onPressed: () => setState(() => _historyFilter = f),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                         const Divider(height: 32, color: Color(0xFFE3DCCF)),
                         if (wallet.mutasiList.isEmpty)
                           Center(child: Padding(
@@ -159,18 +189,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 child: Text(entry.key, style: GoogleFonts.montserrat(fontSize: 10, color: const Color(0xFF403600), fontWeight: FontWeight.w900)),
                               ),
-                                  ...entry.value.map((m) {
-                                    final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
-                                    final txType = (m['transaction_type'] ?? m['type'] ?? '').toString().toUpperCase();
-                                    final isOut = txType == 'PAYMENT' || txType == 'WITHDRAW' || txType == 'FEE_PLATFORM' || txType == 'DEBIT' || amt < 0;
-                                    
-                                    return _buildHistoryRow(
-                                      m['description'] ?? m['title'] ?? txType,
-                                      "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}",
-                                      isOut ? const Color(0xFFC3312E) : const Color(0xFF10B981),
-                                      m['createdAt'] ?? m['date'] ?? '-',
-                                    );
-                                  }),
+                                  ...entry.value.map((m) => _HistoryRowItem(transaction: m)),
                               const SizedBox(height: 12),
                             ],
                           )),
@@ -450,41 +469,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
     );
   }
 
-  Widget _buildHistoryRow(String title, String val, Color c, String date) {
-    final bool isOut = val.startsWith('-');
-    String formattedDate = "-";
-    try {
-      DateTime dt = DateTime.tryParse(date) ?? DateTime.now();
-      formattedDate = DateFormat('dd MMM, HH:mm', 'id_ID').format(dt.toLocal());
-    } catch (_) {}
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10), 
-                decoration: BoxDecoration(color: c.withValues(alpha: 0.1), shape: BoxShape.circle), 
-                child: Icon(isOut ? LucideIcons.arrowUp : LucideIcons.arrowDown, size: 14, color: c)
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF131109))),
-                  Text(formattedDate, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500], fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ],
-          ),
-          Text(val, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: c)),
-        ],
-      ),
-    );
-  }
+// Removed _buildHistoryRow, moved to _HistoryRowItem
 }
 
 class WalletHeaderClipper extends CustomClipper<Path> {
@@ -526,4 +511,345 @@ class MiniPiePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// ─────────────────────────────────────────
+// EXPANDABLE HISTORY ROW
+// ─────────────────────────────────────────
+class _HistoryRowItem extends StatefulWidget {
+  final dynamic transaction;
+  const _HistoryRowItem({required this.transaction});
+
+  @override
+  State<_HistoryRowItem> createState() => _HistoryRowItemState();
+}
+
+class _HistoryRowItemState extends State<_HistoryRowItem> {
+  bool isExpanded = false;
+
+  void _showPowImage(BuildContext context, String imageUrl, String title) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+          child: Container(
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text("Bukti $title", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF403600))),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
+                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(ctx).size.height * 0.55,
+                  child: InteractiveViewer(
+                    panEnabled: true,
+                    minScale: 0.8,
+                    maxScale: 5.0,
+                    child: Stack(
+                      children: [
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          loadingBuilder: (_, child, prog) => prog == null ? child : const Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
+                        ),
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Center(
+                              child: Transform.rotate(
+                                angle: -0.5,
+                                child: Text(
+                                  'Properti Nyutji Management',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 18, fontWeight: FontWeight.w900,
+                                    color: Colors.white.withValues(alpha: 0.45),
+                                    letterSpacing: 1.2, shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = widget.transaction;
+    final amt = double.tryParse(m['amount'].toString()) ?? 0.0;
+    final txType = (m['transaction_type'] ?? m['type'] ?? '').toString().toUpperCase();
+    final isOut = txType == 'PAYMENT' || txType == 'WITHDRAW' || txType == 'FEE_PLATFORM' || txType == 'DEBIT' || amt < 0;
+    final title = (m['description'] ?? m['title'] ?? txType).toString();
+    final val = "${isOut ? '-' : '+'} ${Formatters.currencyIdr(amt.abs())}";
+    final c = isOut ? const Color(0xFFC3312E) : const Color(0xFF10B981);
+    final dateStr = (m['createdAt'] ?? m['date'] ?? '-').toString();
+    
+    String formattedDate = "-";
+    try {
+      DateTime dt = DateTime.tryParse(dateStr) ?? DateTime.now();
+      formattedDate = DateFormat('dd MMM, HH:mm', 'id_ID').format(dt.toLocal());
+    } catch (_) {}
+
+    final orderProvider = context.read<OrderProvider>();
+    final allOrders = [...orderProvider.activeOrders, ...orderProvider.historyOrders];
+    final String refId = (m['reference_id'] ?? m['order_id'] ?? '').toString();
+    
+    Map<String, dynamic>? order;
+    for (var o in allOrders) {
+      final String oNum = (o['order_number'] ?? o['orderNumber'] ?? '').toString();
+      if (oNum.isNotEmpty && (title.contains(oNum) || refId == oNum)) {
+        order = o; break;
+      }
+      final String oId = (o['id'] ?? o['identifier'] ?? '').toString();
+      if (oId.isNotEmpty && (refId == oId || title.contains(oId))) {
+        order = o; break;
+      }
+    }
+
+    final bool isSelesai = order != null && ['DONE', 'PAID'].contains((order['status'] ?? order['order_status'] ?? '').toString().toUpperCase());
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: isSelesai ? () => setState(() => isExpanded = !isExpanded) : null,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10), 
+                        decoration: BoxDecoration(color: c.withValues(alpha: 0.1), shape: BoxShape.circle), 
+                        child: Icon(isOut ? LucideIcons.arrowUp : LucideIcons.arrowDown, size: 14, color: c)
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF131109))),
+                            Text(formattedDate, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500], fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Row(
+                  children: [
+                    Text(val, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: c)),
+                    if (isSelesai) ...[
+                      const SizedBox(width: 4),
+                      Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+                    ]
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isExpanded && isSelesai)
+          _buildOrderDetails(order!),
+      ],
+    );
+  }
+
+  Widget _buildOrderDetails(Map<String, dynamic> order) {
+    final orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
+    final mitraName = (order['mitra'] is Map ? order['mitra']['name'] : null) ?? order['mitra_name'] ?? 'Mitra Nyutji';
+    final courierName = (order['courier'] is Map ? order['courier']['name'] : null) ?? order['courier_name'] ?? order['petugas_kurir'];
+    
+    DateTime orderDate;
+    try {
+      final orderDateRaw = order['createdAt'] ?? order['created_at'];
+      orderDate = orderDateRaw != null ? DateTime.parse(orderDateRaw.toString()).toLocal() : DateTime.now();
+    } catch (e) { orderDate = DateTime.now(); }
+
+    DateTime? finishDate;
+    try {
+      final finishDateRaw = order['doneAt'] ?? order['done_at'] ?? order['completedAt'] ?? order['completed_at'] ?? order['updatedAt'] ?? order['updated_at'];
+      if (finishDateRaw != null) {
+        finishDate = DateTime.parse(finishDateRaw.toString()).toLocal();
+      }
+    } catch (e) {}
+
+    final List<dynamic> proofs = order['proofs'] ?? [];
+    final Map<String, dynamic> proofMap = {};
+    for (var p in proofs) {
+      final s = p['step']?.toString() ?? '';
+      if (s.isNotEmpty) proofMap[s] = p;
+    }
+
+    final proofSteps = [
+      {'step': 'WEIGHING', 'title': 'Timbang'},
+      {'step': 'WASH_START', 'title': 'Cuci'},
+      {'step': 'IRONING', 'title': 'Setrika'},
+      {'step': 'PACKING', 'title': 'Packing'},
+      {'step': 'DONE', 'title': 'Selesai'},
+    ];
+    final existingProofs = proofSteps.where((p) => proofMap.containsKey(p['step'])).toList();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24, top: 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFDF9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE3DCCF), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.receipt, size: 16, color: Color(0xFF403600)),
+              const SizedBox(width: 8),
+              Text("Detail Order Selesai", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF403600))),
+            ],
+          ),
+          const Divider(height: 24, color: Color(0xFFF3F0E9)),
+          _buildDetailSearchRow("Nomor Order", orderId),
+          const SizedBox(height: 8),
+          _buildDetailSearchRow("Mitra Laundry", mitraName),
+          if (courierName != null && courierName.toString().isNotEmpty && courierName.toString() != "null") ...[
+            const SizedBox(height: 8),
+            _buildDetailSearchRow("Kurir", courierName.toString()),
+          ],
+          const SizedBox(height: 8),
+          _buildDetailSearchRow("Tgl Order", DateFormat('dd MMM yyyy, HH:mm').format(orderDate)),
+          if (finishDate != null) ...[
+            const SizedBox(height: 8),
+            _buildDetailSearchRow("Tgl Selesai", DateFormat('dd MMM yyyy, HH:mm').format(finishDate)),
+          ],
+          const SizedBox(height: 16),
+          Text("Items:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[600])),
+          const SizedBox(height: 8),
+          _buildDetailPesanan(order),
+          
+          if (existingProofs.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text("Galeri POW:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[600])),
+            const SizedBox(height: 8),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.0
+              ),
+              itemCount: existingProofs.length,
+              itemBuilder: (context, index) {
+                final pDef = existingProofs[index];
+                final pData = proofMap[pDef['step']];
+                final String path = pData['file_url'].toString().replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
+                final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+                
+                return GestureDetector(
+                  onTap: () => _showPowImage(context, imageUrl, pDef['title'].toString()),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE3DCCF)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Center(child: Icon(LucideIcons.imageOff, color: Colors.grey))),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(12))
+                          ),
+                          child: Text(
+                            pDef['title'].toString(),
+                            style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF403600)),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailSearchRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(flex: 2, child: Text(label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey[600]))),
+        Expanded(flex: 3, child: Text(value, textAlign: TextAlign.right, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF131109)))),
+      ],
+    );
+  }
+
+  Widget _buildDetailPesanan(Map<String, dynamic> order) {
+    final items = order['orderItems'] as List? ?? order['order_items'] as List? ?? order['items'] as List? ?? [];
+    if (items.isEmpty) {
+      return Text("-", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF131109)));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items.map<Widget>((it) {
+        final name = (it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString();
+        final qty = double.tryParse(it['qty']?.toString() ?? '1') ?? 1.0;
+        final unitText = (it['unit'] ?? 'Pcs').toString();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text(name, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF131109)))),
+              Text("${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF403600))),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
 }
