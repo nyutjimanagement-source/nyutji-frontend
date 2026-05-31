@@ -524,10 +524,10 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                     ),
                   ),        // tutup InteractiveViewer
                 ),          // tutup SizedBox
-            ],
+              ],
+            ),
           ),
-        ),
-      );
+        );
       },
     );
   }
