@@ -325,8 +325,8 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
             final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
             if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
-            if (currentFilter == "Same Day") return isFast || serviceType.contains('SAME');
-            if (currentFilter == "Reguler") return serviceType.contains('REGULER') || serviceType.contains('BIASA');
+            if (currentFilter == "Same Day") return (isFast || serviceType.contains('SAME')) && status != 'DONE' && status != 'PAID';
+            if (currentFilter == "Reguler") return (serviceType.contains('REGULER') || serviceType.contains('BIASA')) && status != 'DONE' && status != 'PAID';
             if (currentFilter == "SELESAI") return status == 'DONE' || status == 'PAID';
             return false;
           }).toList();
@@ -538,13 +538,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       }
       
       // Same Day
-      if (isFast || serviceType.contains('SAME')) {
+      if ((isFast || serviceType.contains('SAME')) && status != 'DONE' && status != 'PAID') {
         totalSameDay += price;
         countSameDay++;
       }
       
       // Reguler
-      if (serviceType.contains('REGULER') || serviceType.contains('BIASA')) {
+      if ((serviceType.contains('REGULER') || serviceType.contains('BIASA')) && status != 'DONE' && status != 'PAID') {
         totalReguler += price;
         countReguler++;
       }
