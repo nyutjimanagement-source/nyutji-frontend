@@ -356,9 +356,17 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
     // Info overlay
     final String orderId = (foundProof['orderId'] ?? foundProof['order_id'] ?? '-').toString();
     final String uploaderRole = (foundProof['uploader_role'] ?? 'PL').toString();
-    final String uploaderLabel = uploaderRole == 'ML' ? 'Mitra Laundry'
+    final String uploaderRoleLabel = uploaderRole == 'ML' ? 'Mitra Laundry'
         : uploaderRole == 'KL' ? 'Kurir'
         : 'Pelanggan';
+        
+    String uploaderDisplay = uploaderRoleLabel;
+    if (foundProof['uploader'] is Map && foundProof['uploader']['name'] != null) {
+      final String name = foundProof['uploader']['name'].toString().trim();
+      if (name.isNotEmpty) {
+        uploaderDisplay = "$name ($uploaderRoleLabel)";
+      }
+    }
     String uploadedAt = '-';
     try {
       final dt = DateTime.tryParse(foundProof['createdAt']?.toString() ?? '');
@@ -514,7 +522,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                               children: [
                                 Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
                                 Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
-                                Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                Text('oleh: $uploaderDisplay', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
                               ],
                             ),
                           ),
