@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +25,7 @@ class _MitraMesinScreenState extends State<MitraMesinScreen> {
   
   bool _isLoading = true;
   List<Map<String, dynamic>> _devices = [];
-  Map<String, LgWasherModel> _deviceStatuses = {};
+  final Map<String, LgWasherModel> _deviceStatuses = {};
   Timer? _pollingTimer;
 
   @override
@@ -66,7 +67,7 @@ class _MitraMesinScreenState extends State<MitraMesinScreen> {
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
-      print("Error fetching LG devices: $e");
+      debugPrint("Error fetching LG devices: $e");
     }
   }
 
@@ -81,7 +82,7 @@ class _MitraMesinScreenState extends State<MitraMesinScreen> {
           });
         }
       } catch (e) {
-        print("Error fetching status for $deviceId: $e");
+        debugPrint("Error fetching status for $deviceId: $e");
       }
     }
   }
