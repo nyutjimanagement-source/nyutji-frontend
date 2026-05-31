@@ -683,7 +683,7 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
             ),
           ),
         ),
-        if (isExpanded && isSelesai && order != null)
+        if (isExpanded && isSelesai)
           _buildOrderDetails(order),
       ],
     );
