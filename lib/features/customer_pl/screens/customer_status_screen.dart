@@ -409,24 +409,21 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                     ],
                   ),
                 ),
-                // Foto + Watermark + Info — smart-dinamis untuk semua ukuran layar
-                Flexible(
+                // Foto + Watermark + Info
+                SizedBox(
+                  height: screenH * 0.55,
                   child: InteractiveViewer(
                     panEnabled: true,
                     minScale: 0.8,
                     maxScale: 5.0,
-                    child: Container(
-                      color: Colors.black,
-                      width: double.infinity,
-                      // Tinggi maksimal: sisa layar setelah dikurangi header & padding
-                      constraints: BoxConstraints(maxHeight: screenH * 0.72),
-                      child: Stack(
-                        children: [
-                          // Gambar — menggunakan contain agar tidak ada sisa putih
-                          Positioned.fill(
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Gambar — cover + Positioned.fill agar mengisi Stack tanpa overflow putih
+                        Positioned.fill(
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
                               width: double.infinity,
                               loadingBuilder: (context, child, loadingProgress) {
                                 if (loadingProgress == null) return child;
@@ -526,7 +523,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       ),
                     ),
                   ),        // tutup InteractiveViewer
-                ),          // tutup Flexible
+                ),          // tutup SizedBox
             ],
           ),
         ),
