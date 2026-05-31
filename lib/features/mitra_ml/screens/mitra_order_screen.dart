@@ -391,11 +391,18 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 physics: const BouncingScrollPhysics(),
                 children: [
                   ...["Baru", "Same Day", "Reguler", "SELESAI"].map((f) {
-                    final bool hasNew = orderProv.activeOrders.any((o) {
+                    int count = 0;
+                    final allList = [...orderProv.activeOrders, ...orderProv.historyOrders];
+                    for (var o in allList) {
                       final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
-                      return s == 'SEARCHING' || s == 'WAITING_DROPOFF';
-                    });
-                    return _buildFilterPill(f, hasNew);
+                      final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
+                      final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
+                      
+                      if (f == "Baru" && (s == 'SEARCHING' || s == 'WAITING_DROPOFF')) count++;
+                      else if (f == "Same Day" && (isFast || serviceType.contains('SAME')) && s != 'DONE' && s != 'PAID') count++;
+                      else if (f == "Reguler" && (serviceType.contains('REGULER') || serviceType.contains('BIASA')) && s != 'DONE' && s != 'PAID') count++;
+                    }
+                    return _buildFilterPill(f, count);
                   }),
                   _buildSearchButton(orderProv),
                 ],
@@ -409,9 +416,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     );
   }
 
-  Widget _buildFilterPill(String label, bool showDot) {
+  Widget _buildFilterPill(String label, int count) {
     final bool isSel = currentFilter == label;
-    final bool needsDot = label == "Baru" && showDot;
+    final bool hasCount = count > 0 && label != "SELESAI";
     return GestureDetector(
       onTap: () {
         if (currentFilter != label) {
@@ -437,9 +444,23 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             fontWeight: isSel ? FontWeight.w800 : FontWeight.w600, 
             color: isSel ? primaryTeal : Colors.white,
           )),
-          if (needsDot) ...[
+          if (hasCount) ...[
             const SizedBox(width: 6),
-            Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                count.toString(),
+                style: GoogleFonts.montserrat(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ],
         ]),
       ),
