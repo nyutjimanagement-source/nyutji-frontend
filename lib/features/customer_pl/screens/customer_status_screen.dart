@@ -441,21 +441,60 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                               ),
                             ),
                           ),
-                          // Watermark diagonal
+                          // Watermark 1 — kiri atas
+                          Positioned(
+                            top: 40, left: -10,
+                            child: IgnorePointer(
+                              child: Transform.rotate(
+                                angle: -0.785, // -45°
+                                child: Text(
+                                  'Properti Nyutji Management',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white.withValues(alpha: 0.38),
+                                    letterSpacing: 1.0,
+                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Watermark 2 — tengah (sedikit geser kanan)
                           Positioned.fill(
                             child: IgnorePointer(
-                              child: Center(
+                              child: Align(
+                                alignment: const Alignment(0.2, 0.0),
                                 child: Transform.rotate(
-                                  angle: -0.5,
+                                  angle: -0.785,
                                   child: Text(
                                     'Properti Nyutji Management',
                                     style: GoogleFonts.montserrat(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w900,
-                                      color: Colors.white.withValues(alpha: 0.45),
+                                      color: Colors.white.withValues(alpha: 0.42),
                                       letterSpacing: 1.2,
                                       shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                                     ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Watermark 3 — kanan bawah
+                          Positioned(
+                            bottom: 60, right: -10,
+                            child: IgnorePointer(
+                              child: Transform.rotate(
+                                angle: -0.785,
+                                child: Text(
+                                  'Properti Nyutji Management',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white.withValues(alpha: 0.35),
+                                    letterSpacing: 1.0,
+                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                                   ),
                                 ),
                               ),
