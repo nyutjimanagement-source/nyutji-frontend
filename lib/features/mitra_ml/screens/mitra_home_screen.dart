@@ -21,6 +21,7 @@ import 'mitra_inventory_screen.dart';
 import 'mitra_pos_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import 'mitra_profile_screen.dart';
+import 'mitra_mesin.dart';
 
 class MitraHomeScreen extends StatefulWidget {
   const MitraHomeScreen({super.key});
@@ -394,7 +395,18 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                   },
                 ));
               }),
-              _buildGridAction("Mesin", LucideIcons.cpu, Colors.cyan, (){}),
+              _buildGridAction("Mesin", LucideIcons.cpu, Colors.cyan, () {
+                Navigator.push(context, PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => const MitraMesinScreen(),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOutCubic;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    return SlideTransition(position: animation.drive(tween), child: child);
+                  },
+                ));
+              }),
               _buildGridAction("Inventory", LucideIcons.boxes, Colors.purple, () {
                 setState(() => _homeSubPage = "inventory");
               }),
