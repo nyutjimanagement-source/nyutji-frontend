@@ -25,7 +25,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   static const Color darkText = Color(0xFF111827);
   static const Color textGrey = Color(0xFF6B7280);
 
-  String currentFilter = "Semua";
+  String currentFilter = "Baru";
   final Set<String> _expandedIds = {};
   late PageController _pageController;
   late ScrollController _summaryScrollController;
@@ -324,11 +324,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
             final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
             final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
-            if (currentFilter == "Semua") return true;
             if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
             if (currentFilter == "Same Day") return isFast || serviceType.contains('SAME');
             if (currentFilter == "Reguler") return serviceType.contains('REGULER') || serviceType.contains('BIASA');
-            return true;
+            if (currentFilter == "SELESAI") return status == 'DONE' || status == 'PAID';
+            return false;
           }).toList();
 
           return Column(
@@ -389,7 +389,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  ...["Semua", "Baru", "Same Day", "Reguler"].map((f) {
+                  ...["Baru", "Same Day", "Reguler", "SELESAI"].map((f) {
                     final bool hasNew = orderProv.activeOrders.any((o) {
                       final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
                       return s == 'SEARCHING' || s == 'WAITING_DROPOFF';
@@ -502,33 +502,40 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   }
 
   void _animateSummaryScrollForFilter(String filter) {
-    if (filter == "Semua") {
+    if (filter == "Baru") {
       _animateSummaryScroll(0);
     } else if (filter == "Same Day") {
       _animateSummaryScroll(1);
     } else if (filter == "Reguler") {
       _animateSummaryScroll(2);
+    } else if (filter == "SELESAI") {
+      _animateSummaryScroll(3);
     }
   }
 
   Widget _buildSummaryCards(OrderProvider orderProv) {
     final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
     
-    double totalSemua = 0;
-    int countSemua = 0;
+    double totalBaru = 0;
+    int countBaru = 0;
     double totalSameDay = 0;
     int countSameDay = 0;
     double totalReguler = 0;
     int countReguler = 0;
+    double totalSelesai = 0;
+    int countSelesai = 0;
 
     for (var o in allOrders) {
       final price = double.tryParse((o['servicePrice'] ?? o['service_price'] ?? o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
       final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
       final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
+      final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
       
-      // Semua
-      totalSemua += price;
-      countSemua++;
+      // Baru
+      if (status == 'SEARCHING' || status == 'WAITING_DROPOFF') {
+        totalBaru += price;
+        countBaru++;
+      }
       
       // Same Day
       if (isFast || serviceType.contains('SAME')) {
@@ -540,6 +547,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       if (serviceType.contains('REGULER') || serviceType.contains('BIASA')) {
         totalReguler += price;
         countReguler++;
+      }
+      
+      // Selesai
+      if (status == 'DONE' || status == 'PAID') {
+        totalSelesai += price;
+        countSelesai++;
       }
     }
 
@@ -553,16 +566,16 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       child: Row(
         children: [
           _buildSummaryCard(
-            label: "Semua",
-            value: "${currencyFormatter.format(totalSemua)} | $countSemua",
-            isActive: currentFilter == "Semua",
+            label: "Baru",
+            value: "${currencyFormatter.format(totalBaru)} | $countBaru",
+            isActive: currentFilter == "Baru",
             activeColor: primaryTeal,
-            icon: LucideIcons.layers,
+            icon: LucideIcons.sparkles,
             onTap: () {
               _animateSummaryScroll(0);
-              if (currentFilter != "Semua") {
+              if (currentFilter != "Baru") {
                 setState(() {
-                  currentFilter = "Semua";
+                  currentFilter = "Baru";
                   _currentPage = 0;
                 });
                 if (_pageController.hasClients) _pageController.jumpToPage(0);
@@ -597,6 +610,23 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               if (currentFilter != "Reguler") {
                 setState(() {
                   currentFilter = "Reguler";
+                  _currentPage = 0;
+                });
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+              }
+            },
+          ),
+          _buildSummaryCard(
+            label: "SELESAI",
+            value: "${currencyFormatter.format(totalSelesai)} | $countSelesai",
+            isActive: currentFilter == "SELESAI",
+            activeColor: const Color(0xFF10B981),
+            icon: LucideIcons.checkCircle,
+            onTap: () {
+              _animateSummaryScroll(3);
+              if (currentFilter != "SELESAI") {
+                setState(() {
+                  currentFilter = "SELESAI";
                   _currentPage = 0;
                 });
                 if (_pageController.hasClients) _pageController.jumpToPage(0);
