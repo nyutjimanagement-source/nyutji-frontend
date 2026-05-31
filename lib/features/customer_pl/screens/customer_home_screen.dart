@@ -290,17 +290,26 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       );
                     },
                   ),
-                  if (orderProv.notifCountPL > 0)
+                  if (orderProv.activeOrders.isNotEmpty)
                     Positioned(
-                      top: 12,
-                      right: 12,
+                      top: 6,
+                      right: 6,
                       child: Container(
-                        width: 10,
-                        height: 10,
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
+                          color: const Color(0xFFC3312E),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: const Color(0xFF403600), width: 1.5),
+                        ),
+                        child: Text(
+                          '${orderProv.activeOrders.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            height: 1.1,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
