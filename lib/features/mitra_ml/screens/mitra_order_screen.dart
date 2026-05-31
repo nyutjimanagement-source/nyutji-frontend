@@ -398,9 +398,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                       final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
                       final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
                       
-                      if (f == "Baru" && (s == 'SEARCHING' || s == 'WAITING_DROPOFF')) count++;
-                      else if (f == "Same Day" && (isFast || serviceType.contains('SAME')) && s != 'DONE' && s != 'PAID') count++;
-                      else if (f == "Reguler" && (serviceType.contains('REGULER') || serviceType.contains('BIASA')) && s != 'DONE' && s != 'PAID') count++;
+                      if (f == "Baru" && (s == 'SEARCHING' || s == 'WAITING_DROPOFF')) {
+                        count++;
+                      } else if (f == "Same Day" && (isFast || serviceType.contains('SAME')) && s != 'DONE' && s != 'PAID') {
+                        count++;
+                      } else if (f == "Reguler" && (serviceType.contains('REGULER') || serviceType.contains('BIASA')) && s != 'DONE' && s != 'PAID') {
+                        count++;
+                      }
                     }
                     return _buildFilterPill(f, count);
                   }),
