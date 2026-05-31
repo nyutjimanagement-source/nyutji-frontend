@@ -110,7 +110,30 @@ class _MitraMesinScreenState extends State<MitraMesinScreen> {
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: primaryTeal))
         : _buildContent(),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: primaryTeal,
+        onPressed: _showAddMachineBottomSheet,
+        icon: const Icon(LucideIcons.plus, color: Colors.white),
+        label: Text(
+          "Tambah Mesin",
+          style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
     );
+  }
+
+  void _showAddMachineBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return const AddMachineBottomSheet();
+      },
+    ).then((_) {
+      setState(() => _isLoading = true);
+      _fetchDevices();
+    });
   }
 
   Widget _buildContent() {
@@ -316,6 +339,154 @@ class _MitraMesinScreenState extends State<MitraMesinScreen> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class AddMachineBottomSheet extends StatefulWidget {
+  const AddMachineBottomSheet({super.key});
+
+  @override
+  State<AddMachineBottomSheet> createState() => _AddMachineBottomSheetState();
+}
+
+class _AddMachineBottomSheetState extends State<AddMachineBottomSheet> {
+  final LgWasherService _lgWasherService = LgWasherService();
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _availableDevices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAvailableDevices();
+  }
+
+  Future<void> _fetchAvailableDevices() async {
+    try {
+      final devices = await _lgWasherService.getAvailableDevices();
+      if (mounted) {
+        setState(() {
+          _availableDevices = devices;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+      debugPrint("Error fetching available devices: $e");
+    }
+  }
+
+  Future<void> _claimDevice(Map<String, dynamic> device) async {
+    try {
+      final auth = context.read<AuthProvider>();
+      final userId = auth.user?['identifier'] ?? '';
+      
+      final success = await _lgWasherService.registerDevice(
+        userId, 
+        device['deviceId'], 
+        device['alias'] ?? 'Mesin LG', 
+        device['modelName'] ?? 'Unknown'
+      );
+
+      if (success && mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      debugPrint("Error claiming device: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Pilih Mesin",
+                style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: const Color(0xFF111827)),
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.x),
+                onPressed: () => Navigator.pop(context),
+              )
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator(color: Color(0xFF1E5655)))
+          else if (_availableDevices.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Text(
+                  "Tidak ada mesin LG yang tersedia.",
+                  style: GoogleFonts.montserrat(color: const Color(0xFF6B7280)),
+                ),
+              ),
+            )
+          else
+            ..._availableDevices.map((device) => _buildAvailableCard(device)),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvailableCard(Map<String, dynamic> device) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1E5655),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(LucideIcons.waves, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  device['alias'] ?? 'LG Washer',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 14),
+                ),
+                Text(
+                  "Model: ${device['modelName'] ?? 'N/A'}",
+                  style: GoogleFonts.montserrat(fontSize: 12, color: const Color(0xFF6B7280)),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E5655),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            onPressed: () => _claimDevice(device),
+            child: Text("Klaim", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
+          )
+        ],
+      ),
     );
   }
 }

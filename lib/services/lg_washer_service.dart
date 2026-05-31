@@ -42,4 +42,45 @@ class LgWasherService {
       throw Exception('Failed to load washer status');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getAvailableDevices() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/lg/washer/available'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(jsonResponse['data']);
+    } else {
+      throw Exception('Failed to load available devices');
+    }
+  }
+
+  Future<bool> registerDevice(String userId, String deviceId, String name, String model) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/lg/washer/register'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'userId': userId,
+        'deviceId': deviceId,
+        'name_machine': name,
+        'model': model
+      }),
+    );
+
+    return response.statusCode == 201;
+  }
 }
+
