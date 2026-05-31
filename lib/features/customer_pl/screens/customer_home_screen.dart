@@ -517,10 +517,132 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               _buildServiceItem("Jadwal", "icon_jadwal.png"),
               _buildServiceItem("Cek Status", "icon_status.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()))),
               _buildServiceItem("Pengaturan", "icon_pengaturan.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerProfileScreen()))),
-              _buildServiceItem("Bantuan", "icon_bantuan.png"),
+              _buildServiceItem("Bantuan", "icon_bantuan.png", onTap: () => _showBantuanBottomSheet()),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showBantuanBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40, height: 5,
+                  decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: Image.asset('assets/icons/app_icon.png', width: 60, height: 60),
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: Text(
+                  "Bantuan dari Ny Utji",
+                  style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 22),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFaqItem(
+                        "Apakah cucian saya akan dicampur dengan milik pelanggan lain?",
+                        "Sama sekali tidak. Nyutji menerapkan standar ketat 1 pelanggan = 1 mesin cuci & 1 mesin pengering. Higienitas dan keamanan pakaian Anda adalah prioritas utama kami."
+                      ),
+                      _buildFaqItem(
+                        "Bagaimana jika ada pakaian saya yang tertukar atau rusak?",
+                        "Nyutji memberikan Garansi Layanan. Jika terdapat pakaian yang tertukar atau rusak akibat kelalaian operasional kami, segera laporkan ke admin outlet dalam waktu maksimal 24 jam setelah pakaian diterima dengan membawa struk digital Anda. Kami akan melakukan investigasi dan memberikan ganti rugi sesuai ketentuan yang berlaku."
+                      ),
+                      _buildFaqItem(
+                        "Berapa lama batas waktu maksimal pengambilan pakaian yang sudah selesai?",
+                        "Pakaian yang telah selesai diproses wajib diambil dalam waktu 14 hari kalender. Kehilangan atau kerusakan pada pakaian yang tidak diambil lebih dari 30 hari di luar tanggung jawab Nyutji Laundry."
+                      ),
+                      _buildFaqItem(
+                        "Metode pembayaran apa saja yang didukung?",
+                        "Kami menerima pembayaran tunai di kasir, Transfer Bank, serta pembayaran non-tunai praktis menggunakan QRIS (GoPay, OVO, Dana, ShopeePay, LinkAja, dan Mobile Banking)."
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF403600).withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFF556B2F).withValues(alpha: 0.2), width: 1.5),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Punya saran, kritik, atau keluhan yang belum terselesaikan?",
+                              style: NyutjiTheme.h2(const Color(0xFF403600)).copyWith(fontSize: 15),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              "Hubungi Customer Care Nyutji via WhatsApp di 0812-3456-7890 atau email nyutji-care@nyutji.com.\n\nKritik Anda membantu kami tumbuh lebih bersih dan profesional!",
+                              style: NyutjiTheme.body(const Color(0xFF131109)).copyWith(fontSize: 13, height: 1.5),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  Widget _buildFaqItem(String question, String answer) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          iconColor: const Color(0xFF556B2F),
+          collapsedIconColor: const Color(0xFF403600),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          title: Text(
+            question,
+            style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 14, height: 1.4),
+          ),
+          children: [
+            Text(
+              answer,
+              style: NyutjiTheme.body(const Color(0xFF131109).withValues(alpha: 0.8)).copyWith(fontSize: 13, height: 1.6),
+            ),
+          ],
+        ),
       ),
     );
   }
