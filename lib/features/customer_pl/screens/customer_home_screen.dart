@@ -546,10 +546,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   Widget _buildPromoSection(Map<String, dynamic> currentT) {
     final promoItems = [
-      {'title': 'NyutjiPay Special', 'tag': 'Cashback Kece', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/1.webp', 'narration': 'Top Up Sekarang Dapatkan Cashback Instan Untuk Transaksi Laundry Pertama Anda'},
-      {'title': 'Cuci Kilat 6 Jam', 'tag': 'Ekspres', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/2.webp', 'narration': 'Waktu Sangat Berharga Biarkan Kami Menyelesaikan Cucian Anda Dalam Waktu Singkat'},
-      {'title': 'Voucher Berkah', 'tag': 'Limited', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/3.webp', 'narration': 'Berbagi Kebaikan Dengan Voucher Potongan Harga Spesial Untuk Pelanggan Setia Nyutji'},
-      {'title': 'Member Platinum', 'tag': 'Premium', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/4.webp', 'narration': 'Nikmati Layanan Prioritas Dan Antrean Khusus Untuk Member Platinum Terpilih Nyutji'},
+      {'title': 'NyutjiPay Special', 'tag': 'Cashback Kece', 'img': '${ApiConstants.rootUrl}/storage/1.webp', 'narration': 'Top Up Sekarang Dapatkan Cashback Instan Untuk Transaksi Laundry Pertama Anda'},
+      {'title': 'Cuci Kilat 6 Jam', 'tag': 'Ekspres', 'img': '${ApiConstants.rootUrl}/storage/2.webp', 'narration': 'Waktu Sangat Berharga Biarkan Kami Menyelesaikan Cucian Anda Dalam Waktu Singkat'},
+      {'title': 'Voucher Berkah', 'tag': 'Limited', 'img': '${ApiConstants.rootUrl}/storage/3.webp', 'narration': 'Berbagi Kebaikan Dengan Voucher Potongan Harga Spesial Untuk Pelanggan Setia Nyutji'},
+      {'title': 'Member Platinum', 'tag': 'Premium', 'img': '${ApiConstants.rootUrl}/storage/4.webp', 'narration': 'Nikmati Layanan Prioritas Dan Antrean Khusus Untuk Member Platinum Terpilih Nyutji'},
     ];
 
     return Column(
@@ -595,14 +595,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   void _showPromoBottomSheet() {
     final allPromos = [
-      {'title': 'NyutjiPay Special', 'tag': 'Cashback Kece', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/1.webp', 'narration': 'Top Up Sekarang Dapatkan Cashback Instan Untuk Transaksi Laundry Pertama Anda'},
-      {'title': 'Cuci Kilat 6 Jam', 'tag': 'Ekspres', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/2.webp', 'narration': 'Waktu Sangat Berharga Biarkan Kami Menyelesaikan Cucian Anda Dalam Waktu Singkat'},
-      {'title': 'Voucher Berkah', 'tag': 'Limited', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/3.webp', 'narration': 'Berbagi Kebaikan Dengan Voucher Potongan Harga Spesial Untuk Pelanggan Setia Nyutji'},
-      {'title': 'Member Platinum', 'tag': 'Premium', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/4.webp', 'narration': 'Nikmati Layanan Prioritas Dan Antrean Khusus Untuk Member Platinum Terpilih Nyutji'},
-      {'title': 'Gratis Antar Jemput', 'tag': 'Transport', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/5.webp', 'narration': 'Layanan antar jemput gratis untuk radius 5km'},
-      {'title': 'Diskon Akhir Pekan', 'tag': 'Weekend', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/6.webp', 'narration': 'Potongan 20% untuk semua layanan di hari Sabtu dan Minggu'},
-      {'title': 'Paket Keluarga', 'tag': 'Hemat', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/7.webp', 'narration': 'Cuci lebih banyak lebih hemat dengan paket keluarga'},
-      {'title': 'Cuci Sepatu Premium', 'tag': 'Shoes', 'img': '${ApiConstants.rootUrl}/storage/uploads/inventory/8.webp', 'narration': 'Perawatan khusus untuk sepatu kesayangan Anda'},
+      {'title': 'NyutjiPay Special', 'tag': 'Cashback Kece', 'img': '${ApiConstants.rootUrl}/storage/1.webp', 'narration': 'Top Up Sekarang Dapatkan Cashback Instan Untuk Transaksi Laundry Pertama Anda'},
+      {'title': 'Cuci Kilat 6 Jam', 'tag': 'Ekspres', 'img': '${ApiConstants.rootUrl}/storage/2.webp', 'narration': 'Waktu Sangat Berharga Biarkan Kami Menyelesaikan Cucian Anda Dalam Waktu Singkat'},
+      {'title': 'Voucher Berkah', 'tag': 'Limited', 'img': '${ApiConstants.rootUrl}/storage/3.webp', 'narration': 'Berbagi Kebaikan Dengan Voucher Potongan Harga Spesial Untuk Pelanggan Setia Nyutji'},
+      {'title': 'Member Platinum', 'tag': 'Premium', 'img': '${ApiConstants.rootUrl}/storage/4.webp', 'narration': 'Nikmati Layanan Prioritas Dan Antrean Khusus Untuk Member Platinum Terpilih Nyutji'},
+      {'title': 'Gratis Antar Jemput', 'tag': 'Transport', 'img': '${ApiConstants.rootUrl}/storage/5.webp', 'narration': 'Layanan antar jemput gratis untuk radius 5km'},
+      {'title': 'Diskon Akhir Pekan', 'tag': 'Weekend', 'img': '${ApiConstants.rootUrl}/storage/6.webp', 'narration': 'Potongan 20% untuk semua layanan di hari Sabtu dan Minggu'},
+      {'title': 'Paket Keluarga', 'tag': 'Hemat', 'img': '${ApiConstants.rootUrl}/storage/7.webp', 'narration': 'Cuci lebih banyak lebih hemat dengan paket keluarga'},
+      {'title': 'Cuci Sepatu Premium', 'tag': 'Shoes', 'img': '${ApiConstants.rootUrl}/storage/8.webp', 'narration': 'Perawatan khusus untuk sepatu kesayangan Anda'},
     ];
 
     List<Widget> leftCol = [];
