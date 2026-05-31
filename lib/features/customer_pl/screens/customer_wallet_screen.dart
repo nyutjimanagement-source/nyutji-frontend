@@ -182,17 +182,15 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                             ),
                           ))
                         else
-                          ...grouped.entries.map((entry) => Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                child: Text(entry.key, style: GoogleFonts.montserrat(fontSize: 10, color: const Color(0xFF403600), fontWeight: FontWeight.w900)),
-                              ),
-                                  ...entry.value.map((m) => _HistoryRowItem(transaction: m)),
-                              const SizedBox(height: 12),
-                            ],
-                          )),
+                          ...grouped.entries.toList().asMap().entries.map((mapEntry) {
+                            int idx = mapEntry.key;
+                            var entry = mapEntry.value;
+                            return _HistoryGroupItem(
+                              title: entry.key,
+                              items: entry.value,
+                              isInitialExpanded: idx == 0,
+                            );
+                          }),
                       ],
                     ),
                   );
@@ -650,6 +648,7 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
               children: [
                 Expanded(
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
                         padding: const EdgeInsets.all(10), 
@@ -661,7 +660,24 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF131109))),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFF131109)))),
+                                const SizedBox(width: 8),
+                                Row(
+                                  children: [
+                                    Text(val, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: c)),
+                                    if (isSelesai) ...[
+                                      const SizedBox(width: 4),
+                                      Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+                                    ]
+                                  ]
+                                )
+                              ]
+                            ),
+                            const SizedBox(height: 2),
                             Text(formattedDate, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[500], fontWeight: FontWeight.w500)),
                           ],
                         ),
@@ -669,22 +685,17 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Row(
-                  children: [
-                    Text(val, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: c)),
-                    if (isSelesai) ...[
-                      const SizedBox(width: 4),
-                      Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
-                    ]
-                  ],
-                ),
               ],
             ),
           ),
         ),
-        if (isExpanded && isSelesai)
-          _buildOrderDetails(order),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: (isExpanded && isSelesai)
+              ? _buildOrderDetails(order)
+              : const SizedBox(width: double.infinity, height: 0),
+        ),
       ],
     );
   }
@@ -852,6 +863,67 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+class _HistoryGroupItem extends StatefulWidget {
+  final String title;
+  final List<dynamic> items;
+  final bool isInitialExpanded;
+  
+  const _HistoryGroupItem({required this.title, required this.items, required this.isInitialExpanded});
+
+  @override
+  State<_HistoryGroupItem> createState() => _HistoryGroupItemState();
+}
+
+class _HistoryGroupItemState extends State<_HistoryGroupItem> {
+  late bool isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    isExpanded = widget.isInitialExpanded;
+  }
+
+  @override
+  void didUpdateWidget(covariant _HistoryGroupItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isInitialExpanded != widget.isInitialExpanded) {
+      isExpanded = widget.isInitialExpanded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => setState(() => isExpanded = !isExpanded),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(widget.title, style: GoogleFonts.montserrat(fontSize: 10, color: const Color(0xFF403600), fontWeight: FontWeight.w900)),
+                Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: const Color(0xFF403600)),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: isExpanded
+              ? Column(
+                  children: widget.items.map((m) => _HistoryRowItem(transaction: m)).toList(),
+                )
+              : const SizedBox(width: double.infinity, height: 0),
+        ),
+        const SizedBox(height: 12),
+      ],
     );
   }
 }
