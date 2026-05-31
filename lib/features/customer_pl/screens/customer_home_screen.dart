@@ -58,7 +58,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       context.read<OrderProvider>().fetchOrders();
       context.read<OrderProvider>().fetchOrders();
       _fetchMitrasByLocation();
-      _startPromoMarquee();
+      // _startPromoMarquee(); // Disabled marquee
     });
   }
 
@@ -585,8 +585,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                   style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 20)),
               ),
               const SizedBox(width: 8),
-              Text("Lihat Semua", 
-                style: NyutjiTheme.body(const Color(0xFF556B2F)).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
+              GestureDetector(
+                onTap: () => _showPromoBottomSheet(),
+                child: Text("Lihat Semua", 
+                  style: NyutjiTheme.body(const Color(0xFF556B2F)).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
+              ),
             ],
           ),
         ),
@@ -597,9 +600,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             controller: _promoController,
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: 1000, 
+            itemCount: promoItems.length, 
             itemBuilder: (context, index) {
-              final item = promoItems[index % promoItems.length];
+              final item = promoItems[index];
               return Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: _buildPromoCard(item['title']!, item['tag']!, item['img']!, item['narration']!),
@@ -608,6 +611,111 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showPromoBottomSheet() {
+    final allPromos = [
+      {'title': 'NyutjiPay Special', 'tag': 'Cashback Kece', 'img': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&q=80', 'narration': 'Top Up Sekarang Dapatkan Cashback Instan Untuk Transaksi Laundry Pertama Anda'},
+      {'title': 'Cuci Kilat 6 Jam', 'tag': 'Ekspres', 'img': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&q=80', 'narration': 'Waktu Sangat Berharga Biarkan Kami Menyelesaikan Cucian Anda Dalam Waktu Singkat'},
+      {'title': 'Voucher Berkah', 'tag': 'Limited', 'img': 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=400&q=80', 'narration': 'Berbagi Kebaikan Dengan Voucher Potongan Harga Spesial Untuk Pelanggan Setia Nyutji'},
+      {'title': 'Member Platinum', 'tag': 'Premium', 'img': 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=400&q=80', 'narration': 'Nikmati Layanan Prioritas Dan Antrean Khusus Untuk Member Platinum Terpilih Nyutji'},
+      {'title': 'Gratis Antar Jemput', 'tag': 'Transport', 'img': 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=400&q=80', 'narration': 'Layanan antar jemput gratis untuk radius 5km'},
+      {'title': 'Diskon Akhir Pekan', 'tag': 'Weekend', 'img': 'https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?w=400&q=80', 'narration': 'Potongan 20% untuk semua layanan di hari Sabtu dan Minggu'},
+      {'title': 'Paket Keluarga', 'tag': 'Hemat', 'img': 'https://images.unsplash.com/photo-1583845112239-9af0f3315bb4?w=400&q=80', 'narration': 'Cuci lebih banyak lebih hemat dengan paket keluarga'},
+      {'title': 'Cuci Sepatu Premium', 'tag': 'Shoes', 'img': 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&q=80', 'narration': 'Perawatan khusus untuk sepatu kesayangan Anda'},
+    ];
+
+    List<Widget> leftCol = [];
+    List<Widget> rightCol = [];
+    for (int i = 0; i < allPromos.length; i++) {
+      Widget card = _buildVerticalPromoCard(
+        allPromos[i]['title']!, 
+        allPromos[i]['tag']!, 
+        allPromos[i]['img']!, 
+        allPromos[i]['narration']!
+      );
+      if (i % 2 == 0) leftCol.add(card);
+      else rightCol.add(card);
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              Center(child: Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(10)))),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text("Promo Nyutji Bulan Ini", style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 22)),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: Column(children: leftCol)),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(children: rightCol)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  Widget _buildVerticalPromoCard(String title, String tag, String img, String narration) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        image: DecorationImage(image: NetworkImage(img), fit: BoxFit.cover),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent]),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 80), 
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: const Color(0xFFC3312E), borderRadius: BorderRadius.circular(8)),
+              child: Text(tag, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Text(title, style: NyutjiTheme.h2(Colors.white).copyWith(fontSize: 15), textAlign: TextAlign.right),
+            const SizedBox(height: 4),
+            Text(narration, 
+              style: NyutjiTheme.detail(Colors.white.withValues(alpha: 0.9)).copyWith(fontSize: 9, fontStyle: FontStyle.italic), 
+              textAlign: TextAlign.right,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
