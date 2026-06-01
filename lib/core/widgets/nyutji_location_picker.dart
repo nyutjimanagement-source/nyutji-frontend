@@ -249,11 +249,13 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    const primaryTeal = Color(0xFF286B6A);
+    const darkTeal = Color(0xFF1E5655);
     
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
       child: Container(
-        height: MediaQuery.of(context).size.height * 0.85,
+        height: MediaQuery.of(context).size.height * 0.9,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -273,8 +275,8 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Pilih Lokasi Alamat", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: const Color(0xFF1E5655))),
-                      Text("Cari atau geser peta ke titik lokasi Anda", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500])),
+                      Text("Pilih Lokasi Alamat", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: darkTeal)),
+                      Text("Sentuh peta untuk meletakkan pin lokasi Anda", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500])),
                     ],
                   ),
                 ),
@@ -286,29 +288,109 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
               ],
             ),
           ),
+          
+          if (!_isLoading)
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: darkTeal.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: _isGeocoding
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: darkTeal))
+                            : const Icon(LucideIcons.compass, size: 20, color: darkTeal),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Alamat Terdeteksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                            const SizedBox(height: 4),
+                            Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87, height: 1.3)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _addressDetailController,
+                    style: GoogleFonts.montserrat(fontSize: 13, color: Colors.black87),
+                    decoration: InputDecoration(
+                      hintText: "Detail tambahan: Blok, No Rumah, Patokan...",
+                      hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
+                      prefixIcon: const Icon(Icons.edit_outlined, size: 16, color: darkTeal),
+                      filled: true,
+                      fillColor: const Color(0xFFF5F5F5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _hasValidLocation ? primaryTeal : Colors.grey[400],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                      ),
+                      onPressed: _hasValidLocation
+                          ? () {
+                              Navigator.pop(context, NyutjiLocationResult(
+                                lat: _currentLatLng.latitude,
+                                lng: _currentLatLng.longitude,
+                                district: _village,
+                                subdistrict: _subdistrict,
+                                city: _city,
+                                street: _addressDetailController.text.trim(),
+                                address: "${_addressDetailController.text.trim()}, $_addressInfo".replaceAll(RegExp(r'^,\s*'), ''),
+                              ));
+                            }
+                          : null,
+                      child: Text(
+                        _hasValidLocation ? "KONFIRMASI LOKASI" : "Menunggu Koordinat...",
+                        style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
           Expanded(
             child: Stack(
               children: [
-                // MAP
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   child: FlutterMap(
                     mapController: _mapController,
                     options: MapOptions(
                       initialCenter: _currentLatLng,
                       initialZoom: 16.0,
                       backgroundColor: const Color(0xFFa8d5e8),
-                      // FIX #3: Selalu update _currentLatLng saat peta bergerak
-                      onPositionChanged: (pos, hasGesture) {
-                        if (pos.center != null) {
-                          _currentLatLng = pos.center!;
-                          if (hasGesture) _hasValidLocation = true;
-                        }
-                      },
-                      onMapEvent: (event) {
-                        if (event is MapEventMoveEnd) {
-                          _reverseGeocode(_currentLatLng);
-                        }
+                      onTap: (tapPosition, point) {
+                        setState(() {
+                          _currentLatLng = point;
+                          _hasValidLocation = true;
+                        });
+                        _mapController.move(point, _mapController.camera.zoom);
+                        _reverseGeocode(point);
                       },
                     ),
                     children: [
@@ -316,14 +398,33 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.nyutji.app',
                       ),
+                      if (!_isLoading && _hasValidLocation)
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: _currentLatLng,
+                              width: 46,
+                              height: 46,
+                              alignment: Alignment.topCenter,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: primaryTeal,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
+                                ),
+                                child: const Icon(LucideIcons.mapPin, color: Colors.white, size: 26),
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
-
-                // SEARCH BAR
                 Positioned(
                   top: 16, left: 16, right: 16,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Container(
                         decoration: BoxDecoration(
@@ -337,7 +438,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           decoration: InputDecoration(
                             hintText: "Cari lokasi atau nama jalan...",
                             hintStyle: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey),
-                            prefixIcon: const Icon(LucideIcons.search, size: 18, color: Color(0xFF1E5655)),
+                            prefixIcon: const Icon(LucideIcons.search, size: 18, color: darkTeal),
                             suffixIcon: _searchController.text.isNotEmpty
                                 ? IconButton(
                                     icon: const Icon(LucideIcons.xCircle, size: 18),
@@ -348,9 +449,23 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           ),
                         ),
                       ),
+                      if (!_isLoading && _hasValidLocation)
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
+                          ),
+                          child: Text(
+                            "${_currentLatLng.latitude.toStringAsFixed(5)}, ${_currentLatLng.longitude.toStringAsFixed(5)}",
+                            style: GoogleFonts.montserrat(fontSize: 11, color: darkTeal, fontWeight: FontWeight.w800),
+                          ),
+                        ),
                       if (_searchResults.isNotEmpty)
                         Container(
-                          margin: const EdgeInsets.only(top: 4),
+                          margin: const EdgeInsets.only(top: 8),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
@@ -374,139 +489,23 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                     ],
                   ),
                 ),
-
-                // FIX #1: Loading overlay — sekarang di ATAS semua, termasuk confirm button
                 if (_isLoading)
                   Positioned.fill(
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                      ),
+                      color: Colors.white.withValues(alpha: 0.9),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const CircularProgressIndicator(color: Color(0xFF1E5655)),
+                          const CircularProgressIndicator(color: darkTeal),
                           const SizedBox(height: 16),
                           Text("Mendeteksi lokasi GPS...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                         ],
                       ),
                     ),
                   ),
-
-                // CENTER CROSSHAIR PIN
-                if (!_isLoading)
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
-                          ),
-                          child: const Icon(LucideIcons.mapPin, color: Colors.white, size: 30),
-                        ),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
               ],
             ),
           ),
-          // INFO CARD + CONFIRM (Dikeluarkan dari Stack agar peta dan pin otomatis menyesuaikan ukuran ruang yang tersisa)
-          if (!_isLoading)
-            Container(
-              padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(context).padding.bottom + 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 30, offset: const Offset(0, -10))],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E5655).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: _isGeocoding
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1E5655)))
-                            : const Icon(LucideIcons.navigation, size: 16, color: Color(0xFF1E5655)),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          "Lokasi Terdeteksi:",
-                          style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w900, letterSpacing: 0.5),
-                        ),
-                      ),
-                      Text(
-                        "${_currentLatLng.latitude.toStringAsFixed(5)}, ${_currentLatLng.longitude.toStringAsFixed(5)}",
-                        style: GoogleFonts.montserrat(fontSize: 9, color: Colors.grey[400], fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.black87)),
-                  const SizedBox(height: 12),
-                  // TEXT BOX: Nomor rumah / gang / kompleks
-                  TextField(
-                    controller: _addressDetailController,
-                    style: GoogleFonts.montserrat(fontSize: 13, color: Colors.black87),
-                    decoration: InputDecoration(
-                      hintText: "Nama jalan, nomor rumah, gang, atau kompleks...",
-                      hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
-                      prefixIcon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF1E5655)),
-                      filled: true,
-                      fillColor: const Color(0xFFF5F5F5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      isDense: true,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _hasValidLocation ? const Color(0xFF286B6A) : Colors.grey[400],
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        elevation: 0,
-                      ),
-                      onPressed: _hasValidLocation
-                          ? () {
-                              Navigator.pop(context, NyutjiLocationResult(
-                                lat: _currentLatLng.latitude,
-                                lng: _currentLatLng.longitude,
-                                district: _village,
-                                subdistrict: _subdistrict,
-                                city: _city,
-                                street: _addressDetailController.text.trim(),
-                                address: "${_addressDetailController.text.trim()}, $_addressInfo".replaceAll(RegExp(r'^,\s*'), ''),
-                              ));
-                            }
-                          : null,
-                      child: Text(
-                        _hasValidLocation ? "KONFIRMASI LOKASI" : "Menunggu GPS...",
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     ));
