@@ -300,50 +300,132 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     return todayTotal;
   }
 
+  double _calculateWIP(List<dynamic> activeOrders) {
+    double total = 0.0;
+    for (var o in activeOrders) {
+      total += double.tryParse((o['servicePrice'] ?? o['service_price'] ?? o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
+    }
+    return total;
+  }
+
   Widget _buildCommandMetrics() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Consumer2<WalletProvider, OrderProvider>(
+        builder: (context, wallet, orderProv, _) {
+          final todayRevenue = _calculateTodayRevenue(wallet.mutasiList);
+          final activeOrders = orderProv.activeOrders;
+          final wipValue = _calculateWIP(activeOrders);
+          final activeOrderCount = activeOrders.length;
+          final auth = context.read<AuthProvider>();
+          final couriersCount = auth.couriers.length;
+          final withdrawable = wallet.balance;
+
+          return Column(
+            children: [
+              // Baris 1: Revenue & Antrean (Font Besar)
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildBigMetricCard(
+                      "Revenue Hari Ini", 
+                      Formatters.currencyIdr(todayRevenue), 
+                      LucideIcons.trendingUp, 
+                      Colors.green
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildBigMetricCard(
+                      "Antrean Berlangsung", 
+                      "${Formatters.currencyIdr(wipValue)}\n($activeOrderCount Order)", 
+                      LucideIcons.loader, 
+                      Colors.orange,
+                      onTap: () {
+                        _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                      }
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Baris 2: Rupiah Bisa Ditarik, Layanan, Kurir, Washer
+              GridView.count(
+                crossAxisCount: 4,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.85,
+                children: [
+                  _buildSmallMetricCard("Rupiah\nDitarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, primaryTeal, () {
+                    _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                  }),
+                  _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
+                  _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
+                  _buildSmallMetricCard("Washer", "0", LucideIcons.users, Colors.purple, () {}),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBigMetricCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]),
-        child: Consumer2<WalletProvider, OrderProvider>(
-          builder: (context, wallet, orderProv, _) => Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildMetricItem("HARI INI", Formatters.currencyIdr(_calculateTodayRevenue(wallet.mutasiList)), LucideIcons.trendingUp, Colors.greenAccent),
-              Container(width: 1, height: 35, color: Colors.white24),
-              _buildMetricItem("ANTREAN", orderProv.activeOrders.length.toString(), LucideIcons.layers, Colors.orangeAccent, onTap: () {
-                _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-              }),
-              Container(width: 1, height: 35, color: Colors.white24),
-              _buildMetricItem("SELESAI", orderProv.historyOrders.length.toString(), LucideIcons.checkSquare, Colors.blueAccent),
-              Container(width: 1, height: 35, color: Colors.white24),
-              _buildMetricItem("KENDALA", "0", LucideIcons.alertTriangle, Colors.white70),
-            ],
-          ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+          border: Border.all(color: Colors.grey[200]!)
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: color),
+                const SizedBox(width: 6),
+                Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 2)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              value, 
+              style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText, height: 1.3),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildMetricItem(String label, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+  Widget _buildSmallMetricCard(String title, String value, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 10, color: color),
-              const SizedBox(width: 4),
-              Text(label, style: GoogleFonts.montserrat(fontSize: 9, color: Colors.white70, fontWeight: FontWeight.w700)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(value, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
+          border: Border.all(color: Colors.grey[100]!)
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: 8),
+            Text(value, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: darkText), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 4),
+            Text(title, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.grey[600], height: 1.1), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
     );
   }
