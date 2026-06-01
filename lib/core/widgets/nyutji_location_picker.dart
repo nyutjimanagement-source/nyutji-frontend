@@ -356,20 +356,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           ),
                         ),
                       ),
-                      if (!_isLoading && _hasValidLocation)
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
-                          ),
-                          child: Text(
-                            "${_currentLatLng.latitude.toStringAsFixed(5)}, ${_currentLatLng.longitude.toStringAsFixed(5)}",
-                            style: GoogleFonts.montserrat(fontSize: 11, color: darkTeal, fontWeight: FontWeight.w800),
-                          ),
-                        ),
+
                       if (_searchResults.isNotEmpty)
                         Container(
                           margin: const EdgeInsets.only(top: 8),
@@ -399,13 +386,13 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                 
                 if (!_isLoading)
                   Positioned(
-                    bottom: 0, left: 0, right: 0,
+                    bottom: 16 + MediaQuery.of(context).padding.bottom, left: 16, right: 16,
                     child: Container(
-                      padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(context).padding.bottom + 20),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 30, offset: const Offset(0, -10))],
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 30, offset: const Offset(0, 10))],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,7 +415,15 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Alamat Terdeteksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      children: [
+                                        Text("Alamat Terdeteksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                                        if (_hasValidLocation)
+                                          Text(" - ${_currentLatLng.latitude.toStringAsFixed(5)}, ${_currentLatLng.longitude.toStringAsFixed(5)}", 
+                                            style: GoogleFonts.montserrat(fontSize: 10, color: darkTeal, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                                      ],
+                                    ),
                                     const SizedBox(height: 4),
                                     Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87, height: 1.3)),
                                   ],
