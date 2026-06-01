@@ -311,71 +311,61 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   Widget _buildCommandMetrics() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 8))],
-        ),
-        child: Consumer2<WalletProvider, OrderProvider>(
-          builder: (context, wallet, orderProv, _) {
-            final todayRevenue = _calculateTodayRevenue(wallet.mutasiList);
-            final activeOrders = orderProv.activeOrders;
-            final wipValue = _calculateWIP(activeOrders);
-            final activeOrderCount = activeOrders.length;
-            final auth = context.read<AuthProvider>();
-            final couriersCount = auth.couriers.length;
-            final withdrawable = wallet.balance;
+      child: Consumer2<WalletProvider, OrderProvider>(
+        builder: (context, wallet, orderProv, _) {
+          final todayRevenue = _calculateTodayRevenue(wallet.mutasiList);
+          final activeOrders = orderProv.activeOrders;
+          final wipValue = _calculateWIP(activeOrders);
+          final activeOrderCount = activeOrders.length;
+          final auth = context.read<AuthProvider>();
+          final couriersCount = auth.couriers.length;
+          final withdrawable = wallet.balance;
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Baris 1: Revenue Hari Ini
-                _buildBigMetricCard(
-                  "Revenue Hari Ini", 
-                  Formatters.currencyIdr(todayRevenue), 
-                  LucideIcons.trendingUp, 
-                  Colors.green,
-                ),
-                const SizedBox(height: 12),
-                
-                // Baris 2: Antrean Berlangsung
-                _buildBigMetricCard(
-                  "Antrean Berlangsung", 
-                  "${Formatters.currencyIdr(wipValue)} ($activeOrderCount Order)", 
-                  LucideIcons.loader, 
-                  Colors.orange,
-                  onTap: () {
-                    _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                  }
-                ),
-                
-                const SizedBox(height: 16),
-                Container(height: 1, color: Colors.grey[200]),
-                const SizedBox(height: 16),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Baris 1: Revenue Hari Ini
+              _buildBigMetricCard(
+                "Revenue Hari Ini", 
+                Formatters.currencyIdr(todayRevenue), 
+                LucideIcons.trendingUp, 
+                Colors.green,
+              ),
+              const SizedBox(height: 12),
+              
+              // Baris 2: Antrean Berlangsung
+              _buildBigMetricCard(
+                "Antrean Berlangsung", 
+                "${Formatters.currencyIdr(wipValue)} ($activeOrderCount Order)", 
+                LucideIcons.loader, 
+                Colors.orange,
+                onTap: () {
+                  _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                }
+              ),
+              
+              const SizedBox(height: 12),
 
-                // Grid Bawah: Rupiah Ditarik, Layanan, Kurir, Mesin Cuci
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 2.2,
-                  children: [
-                    _buildSmallMetricCard("Rupiah Ditarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, primaryTeal, () {
-                      _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                    }),
-                    _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
-                    _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
-                    _buildSmallMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purple, () {}),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
+              // Grid Bawah: Rupiah Ditarik, Layanan, Kurir, Mesin Cuci
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 2.1,
+                children: [
+                  _buildSmallMetricCard("Rupiah Ditarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, primaryTeal, () {
+                    _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                  }),
+                  _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
+                  _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
+                  _buildSmallMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purple, () {}),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -388,6 +378,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
           border: Border.all(color: Colors.grey[200]!),
         ),
         child: Column(
@@ -419,6 +410,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 3))],
           border: Border.all(color: Colors.grey[200]!),
         ),
         child: Row(
