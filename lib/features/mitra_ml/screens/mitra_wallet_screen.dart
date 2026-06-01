@@ -38,7 +38,8 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   double _calculateTotalCash(List<dynamic> logs, String type) {
     double total = 0.0;
     for (var m in logs) {
-      if ((m['transaction_type'] ?? '').toString().toUpperCase() == type.toUpperCase()) {
+      final tType = (m['type'] ?? m['transaction_type'] ?? '').toString().toUpperCase();
+      if (tType == type.toUpperCase()) {
         total += double.tryParse(m['amount']?.toString() ?? '0') ?? 0.0;
       }
     }
@@ -117,7 +118,8 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
 
     // Group Revenues
     for (var m in logs) {
-      if ((m['transaction_type'] ?? '').toString().toUpperCase() != 'REVENUE') continue;
+      final tType = (m['type'] ?? m['transaction_type'] ?? '').toString().toUpperCase();
+      if (tType != 'CREDIT' && tType != 'REVENUE') continue;
       
       DateTime dt;
       try {
@@ -164,8 +166,8 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
         builder: (context, wallet, order, _) {
           final allOrders = [...order.activeOrders, ...order.historyOrders];
           
-          final double totalCashIn = _calculateTotalCash(wallet.mutasiList, 'REVENUE');
-          final double totalCashOut = _calculateTotalCash(wallet.mutasiList, 'WITHDRAW');
+          final double totalCashIn = _calculateTotalCash(wallet.mutasiList, 'CREDIT');
+          final double totalCashOut = _calculateTotalCash(wallet.mutasiList, 'DEBIT');
           final double wip = _calculateWIP(order.activeOrders);
           final double totalKg = _calculateTotalKg(allOrders);
           final double avgRating = _calculateAverageRating(order.historyOrders);
