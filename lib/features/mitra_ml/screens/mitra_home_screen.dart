@@ -311,93 +311,99 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   Widget _buildCommandMetrics() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Consumer2<WalletProvider, OrderProvider>(
-        builder: (context, wallet, orderProv, _) {
-          final todayRevenue = _calculateTodayRevenue(wallet.mutasiList);
-          final activeOrders = orderProv.activeOrders;
-          final wipValue = _calculateWIP(activeOrders);
-          final activeOrderCount = activeOrders.length;
-          final auth = context.read<AuthProvider>();
-          final couriersCount = auth.couriers.length;
-          final withdrawable = wallet.balance;
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: primaryTeal,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
+        ),
+        child: Consumer2<WalletProvider, OrderProvider>(
+          builder: (context, wallet, orderProv, _) {
+            final todayRevenue = _calculateTodayRevenue(wallet.mutasiList);
+            final activeOrders = orderProv.activeOrders;
+            final wipValue = _calculateWIP(activeOrders);
+            final activeOrderCount = activeOrders.length;
+            final auth = context.read<AuthProvider>();
+            final couriersCount = auth.couriers.length;
+            final withdrawable = wallet.balance;
 
-          return Column(
-            children: [
-              // Baris 1: Revenue & Antrean (Font Besar)
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildBigMetricCard(
-                      "Revenue Hari Ini", 
-                      Formatters.currencyIdr(todayRevenue), 
-                      LucideIcons.trendingUp, 
-                      Colors.green
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildBigMetricCard(
-                      "Antrean Berlangsung", 
-                      "${Formatters.currencyIdr(wipValue)}\n($activeOrderCount Order)", 
-                      LucideIcons.loader, 
-                      Colors.orange,
-                      onTap: () {
-                        _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                      }
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Baris 2: Rupiah Bisa Ditarik, Layanan, Kurir, Washer
-              GridView.count(
-                crossAxisCount: 4,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.85,
-                children: [
-                  _buildSmallMetricCard("Rupiah\nDitarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, primaryTeal, () {
-                    _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                  }),
-                  _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
-                  _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
-                  _buildSmallMetricCard("Washer", "0", LucideIcons.users, Colors.purple, () {}),
-                ],
-              ),
-            ],
-          );
-        },
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Baris 1: Revenue Hari Ini
+                _buildBigTealMetricCard(
+                  "Revenue Hari Ini", 
+                  Formatters.currencyIdr(todayRevenue), 
+                  LucideIcons.trendingUp, 
+                  Colors.greenAccent,
+                ),
+                const SizedBox(height: 12),
+                
+                // Baris 2: Antrean Berlangsung
+                _buildBigTealMetricCard(
+                  "Antrean Berlangsung", 
+                  "${Formatters.currencyIdr(wipValue)} ($activeOrderCount Order)", 
+                  LucideIcons.loader, 
+                  Colors.orangeAccent,
+                  onTap: () {
+                    _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                  }
+                ),
+                
+                const SizedBox(height: 16),
+                Container(height: 1, color: Colors.white.withValues(alpha: 0.15)),
+                const SizedBox(height: 16),
+
+                // Grid Bawah: Rupiah Ditarik, Layanan, Kurir, Mesin Cuci
+                GridView.count(
+                  crossAxisCount: 4,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 0.85,
+                  children: [
+                    _buildSmallTealMetricCard("Rupiah\nDitarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, Colors.tealAccent, () {
+                      _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                    }),
+                    _buildSmallTealMetricCard("Layanan", "0", LucideIcons.tags, Colors.blueAccent, () {}),
+                    _buildSmallTealMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigoAccent, () {}),
+                    _buildSmallTealMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purpleAccent, () {}),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildBigMetricCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+  Widget _buildBigTealMetricCard(String title, String value, IconData icon, Color iconColor, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
-          border: Border.all(color: Colors.grey[200]!)
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 16, color: color),
-                const SizedBox(width: 6),
-                Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 2)),
+                Icon(icon, size: 16, color: iconColor),
+                const SizedBox(width: 8),
+                Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9)), maxLines: 1)),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               value, 
-              style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText, height: 1.3),
+              style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, height: 1.2),
             ),
           ],
         ),
@@ -405,25 +411,24 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  Widget _buildSmallMetricCard(String title, String value, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildSmallTealMetricCard(String title, String value, IconData icon, Color iconColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
-          border: Border.all(color: Colors.grey[100]!)
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 20, color: color),
+            Icon(icon, size: 20, color: iconColor),
             const SizedBox(height: 8),
-            Text(value, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: darkText), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(value, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
-            Text(title, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.grey[600], height: 1.1), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(title, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.8), height: 1.1), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
