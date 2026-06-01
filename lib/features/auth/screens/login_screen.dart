@@ -198,13 +198,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             colors: [Color(0xFFFDF7EA), Color(0xFFE8F4F4)],
           ),
         ),
-        child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 12),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 60),
                   // Header: ID & Bantuan
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -395,7 +394,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               ),
             ),
           ),
-        ),
       ),
       bottomNavigationBar: Container(
         height: 40 + MediaQuery.of(context).padding.bottom,
