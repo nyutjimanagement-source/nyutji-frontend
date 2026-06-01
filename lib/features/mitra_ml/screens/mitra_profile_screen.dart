@@ -33,6 +33,7 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
   double _selectedLat = 0.0;
   double _selectedLng = 0.0;
   bool _isUpdatingLocation = false;
+  bool _hasUnsavedLocationChanges = false;
 
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _oldPasswordController = TextEditingController();
@@ -303,6 +304,9 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                       const SizedBox(height: 8),
                       TextField(
                         controller: _fullAddressController,
+                        onChanged: (_) {
+                          if (!_hasUnsavedLocationChanges) setState(() => _hasUnsavedLocationChanges = true);
+                        },
                         maxLines: 2,
                         style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
                         decoration: InputDecoration(
@@ -346,23 +350,24 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isUpdatingLocation ? null : () => _handleUpdateLocation(auth),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryTeal,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 4,
-                            shadowColor: primaryTeal.withValues(alpha: 0.3),
+                      if (_hasUnsavedLocationChanges)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isUpdatingLocation ? null : () => _handleUpdateLocation(auth),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryTeal,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 4,
+                              shadowColor: primaryTeal.withValues(alpha: 0.3),
+                            ),
+                            child: _isUpdatingLocation 
+                              ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : Text("Save Update", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
                           ),
-                          child: _isUpdatingLocation 
-                            ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : Text("Save Update", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
-                      ),
                     ],
                   ),
                 )
@@ -851,6 +856,7 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
         _selectedLat = result.lat;
         _selectedLng = result.lng;
         _fullAddressController.text = result.address;
+        _hasUnsavedLocationChanges = true;
       });
       if(mounted) _showBeautifulNotif("Lokasi GPS terpilih: $_selectedDistrict", true);
     }
@@ -876,7 +882,10 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
       setState(() => _isUpdatingLocation = false);
       if (success) {
         _showBeautifulNotif("Data Lokasi Mitra berhasil diperbarui!", true);
-        setState(() => _isAddressExpanded = false);
+        setState(() {
+          _isAddressExpanded = false;
+          _hasUnsavedLocationChanges = false;
+        });
       } else {
         _showBeautifulNotif("Gagal memperbarui data lokasi.", false);
       }
