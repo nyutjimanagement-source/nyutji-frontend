@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/utils/status_helper.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_loading_overlay.dart';
@@ -473,7 +474,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
   Widget _buildListContent(List<dynamic> filtered, bool isLoading, bool hasNewOrders) {
     if (isLoading && filtered.isEmpty) {
-      return const Center(key: ValueKey('loading'), child: CircularProgressIndicator(color: primaryTeal));
+      return ListView.separated(
+        key: const ValueKey('loading'),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+        itemCount: 4,
+        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        itemBuilder: (_, __) => const ShimmerLoading(height: 180, borderRadius: 16),
+      );
     }
 
     return AnimatedSwitcher(

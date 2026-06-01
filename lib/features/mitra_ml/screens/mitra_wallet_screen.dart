@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -165,6 +166,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
       body: Consumer2<WalletProvider, OrderProvider>(
         builder: (context, wallet, order, _) {
           final allOrders = [...order.activeOrders, ...order.historyOrders];
+          final isLoading = wallet.isLoading || order.isLoading;
           
           final double totalCashIn = _calculateTotalCash(wallet.mutasiList, 'CREDIT');
           final double totalCashOut = _calculateTotalCash(wallet.mutasiList, 'DEBIT');
@@ -176,15 +178,15 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                _buildHeader(context, wallet.balance, wallet.isLoading),
+                _buildHeader(context, wallet.balance, isLoading),
                 const SizedBox(height: 16),
                 _buildRankAndQuickAction(context, avgRating, wallet),
                 const SizedBox(height: 16),
-                _buildCashInOutCard(totalCashIn, totalCashOut),
+                _buildCashInOutCard(totalCashIn, totalCashOut, isLoading),
                 const SizedBox(height: 24),
-                _buildExecutiveReport(wallet.mutasiList.length, totalCashOut, totalCashIn, wip, allOrders.length, totalKg),
+                _buildExecutiveReport(wallet.mutasiList.length, totalCashOut, totalCashIn, wip, allOrders.length, totalKg, isLoading),
                 const SizedBox(height: 8),
-                _buildMutationFilterAndList(wallet.mutasiList, allOrders),
+                _buildMutationFilterAndList(wallet.mutasiList, allOrders, isLoading),
                 const SizedBox(height: 40),
               ],
             ),
@@ -231,8 +233,8 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
           const SizedBox(height: 16),
           Text("Total Kredit Tersedia", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white60)),
           const SizedBox(height: 4),
-          isLoading && balance == 0
-              ? const SizedBox(height: 40, width: 40, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+          isLoading
+              ? const ShimmerLoading(height: 40, width: 200, borderRadius: 8, baseColor: Colors.white24, highlightColor: Colors.white54)
               : Text(Formatters.currencyIdr(balance), style: GoogleFonts.montserrat(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1.5)),
         ],
       ),
@@ -325,7 +327,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
     );
   }
 
-  Widget _buildCashInOutCard(double cashIn, double cashOut) {
+  Widget _buildCashInOutCard(double cashIn, double cashOut, bool isLoading) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -342,9 +344,17 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildCashItem("Total CashIn", cashIn, Colors.green, LucideIcons.arrowDownLeft)),
+                Expanded(
+                  child: isLoading 
+                      ? const ShimmerLoading(height: 40, borderRadius: 8) 
+                      : _buildCashItem("Total CashIn", cashIn, Colors.green, LucideIcons.arrowDownLeft)
+                ),
                 Container(width: 1, height: 40, color: Colors.grey[200]),
-                Expanded(child: _buildCashItem("Total Cashout", cashOut, Colors.red, LucideIcons.arrowUpRight)),
+                Expanded(
+                  child: isLoading 
+                      ? const Padding(padding: EdgeInsets.only(left: 8.0), child: ShimmerLoading(height: 40, borderRadius: 8))
+                      : _buildCashItem("Total Cashout", cashOut, Colors.red, LucideIcons.arrowUpRight)
+                ),
               ],
             )
           ],
@@ -377,7 +387,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
     );
   }
 
-  Widget _buildExecutiveReport(int totalMutasi, double totalTarikan, double nominalSelesai, double wip, int totalOrder, double totalKg) {
+  Widget _buildExecutiveReport(int totalMutasi, double totalTarikan, double nominalSelesai, double wip, int totalOrder, double totalKg, bool isLoading) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -393,12 +403,12 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
             crossAxisSpacing: 10,
             childAspectRatio: 1.1,
             children: [
-               _buildStatPill("Total Transaksi", "$totalMutasi", Colors.blue),
-               _buildStatPill("Total Tarikan", Formatters.currencyIdr(totalTarikan), Colors.red),
-               _buildStatPill("Nominal Selesai", Formatters.currencyIdr(nominalSelesai), Colors.green),
-               _buildStatPill("Nilai WIP", "~${Formatters.currencyIdr(wip)}", Colors.orange),
-               _buildStatPill("Total Order", "$totalOrder", primaryTeal),
-               _buildStatPill("Total Kg", "${totalKg.toStringAsFixed(1)} Kg", Colors.indigo),
+               _buildStatPill("Total Transaksi", isLoading ? "-" : "$totalMutasi", Colors.blue),
+               _buildStatPill("Total Tarikan", isLoading ? "-" : Formatters.currencyIdr(totalTarikan), Colors.red),
+               _buildStatPill("Nominal Selesai", isLoading ? "-" : Formatters.currencyIdr(nominalSelesai), Colors.green),
+               _buildStatPill("Nilai WIP", isLoading ? "-" : "~${Formatters.currencyIdr(wip)}", Colors.orange),
+               _buildStatPill("Total Order", isLoading ? "-" : "$totalOrder", primaryTeal),
+               _buildStatPill("Total Kg", isLoading ? "-" : "${totalKg.toStringAsFixed(1)} Kg", Colors.indigo),
             ],
           )
         ],
@@ -434,7 +444,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
     );
   }
 
-  Widget _buildMutationFilterAndList(List<dynamic> logs, List<dynamic> orders) {
+  Widget _buildMutationFilterAndList(List<dynamic> logs, List<dynamic> orders, bool isLoading) {
     final filteredData = _generateFilteredData(logs, orders);
 
     return Padding(
@@ -489,7 +499,9 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
             ),
             const SizedBox(height: 16),
             
-            if (filteredData.isEmpty)
+            if (isLoading)
+              ...List.generate(3, (_) => const Padding(padding: EdgeInsets.only(bottom: 12.0), child: ShimmerLoading(height: 60, borderRadius: 10)))
+            else if (filteredData.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 30),
                 child: Center(child: Text("Belum ada mutasi / order", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey))),

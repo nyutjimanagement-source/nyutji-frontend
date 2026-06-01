@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/widgets/forecast_weather.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
@@ -321,6 +322,27 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           final couriersCount = auth.couriers.length;
           final withdrawable = wallet.balance;
           final withdrawableDisplay = ((withdrawable ~/ 100000) * 100000).toDouble();
+
+          if (wallet.isLoading || orderProv.isLoading || auth.isLoading) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const ShimmerLoading(height: 90, borderRadius: 16),
+                const SizedBox(height: 12),
+                const ShimmerLoading(height: 90, borderRadius: 16),
+                const SizedBox(height: 12),
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 2.1,
+                  children: List.generate(4, (_) => const ShimmerLoading(height: 70, borderRadius: 12)),
+                ),
+              ],
+            );
+          }
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

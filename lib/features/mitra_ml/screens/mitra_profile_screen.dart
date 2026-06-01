@@ -7,8 +7,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 import 'mitra_keamanan_pin.dart';
 
 class MitraProfileScreen extends StatefulWidget {
@@ -279,53 +279,59 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      TextField(
-                        controller: _fullAddressController,
-                        onChanged: (_) {
-                          if (!_hasUnsavedLocationChanges) setState(() => _hasUnsavedLocationChanges = true);
-                        },
-                        maxLines: 2,
-                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
-                        decoration: InputDecoration(
-                          hintText: "Masukkan Alamat Lengkap (Jl, No, Gang, dsb)",
-                          hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
-                          filled: true,
-                          fillColor: Colors.grey[50],
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryTeal)),
-                        ),
-                      ),
+                      auth.isLoading 
+                          ? const ShimmerLoading(height: 60, borderRadius: 12)
+                          : TextField(
+                              controller: _fullAddressController,
+                              onChanged: (_) {
+                                if (!_hasUnsavedLocationChanges) setState(() => _hasUnsavedLocationChanges = true);
+                              },
+                              maxLines: 2,
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
+                              decoration: InputDecoration(
+                                hintText: "Masukkan Alamat Lengkap (Jl, No, Gang, dsb)",
+                                hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryTeal)),
+                              ),
+                            ),
                       const SizedBox(height: 16),
                       Text("Kecamatan dan Kab/Kota", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
                       const SizedBox(height: 8),
-                      TextField(
-                        controller: TextEditingController(text: _selectedDistrict.isEmpty ? "Belum Set Lokasi" : "$_selectedDistrict, $_selectedCity"),
-                        readOnly: true,
-                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                        ),
-                      ),
+                      auth.isLoading 
+                          ? const ShimmerLoading(height: 50, borderRadius: 12)
+                          : TextField(
+                              controller: TextEditingController(text: _selectedDistrict.isEmpty ? "Belum Set Lokasi" : "$_selectedDistrict, $_selectedCity"),
+                              readOnly: true,
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.grey[100],
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                              ),
+                            ),
                       const SizedBox(height: 16),
                       Text("Latitude / Longitude", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
                       const SizedBox(height: 8),
-                      TextField(
-                        controller: TextEditingController(text: _selectedLat == 0.0 ? "Belum Set Lokasi" : "$_selectedLat, $_selectedLng"),
-                        readOnly: true,
-                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                        ),
-                      ),
+                      auth.isLoading 
+                          ? const ShimmerLoading(height: 50, borderRadius: 12)
+                          : TextField(
+                              controller: TextEditingController(text: _selectedLat == 0.0 ? "Belum Set Lokasi" : "$_selectedLat, $_selectedLng"),
+                              readOnly: true,
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.grey[100],
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                              ),
+                            ),
                       const SizedBox(height: 20),
                       if (_hasUnsavedLocationChanges)
                         SizedBox(
