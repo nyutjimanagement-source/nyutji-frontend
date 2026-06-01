@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'shimmer_loading.dart';
 
 class NyutjiLocationResult {
   final double lat;
@@ -417,7 +418,9 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                                   children: [
                                     Text("Alamat Terdeteksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                                     const SizedBox(height: 4),
-                                    Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87, height: 1.3)),
+                                    _isGeocoding
+                                        ? const ShimmerLoading(height: 18, borderRadius: 4)
+                                        : Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87, height: 1.3)),
                                   ],
                                 ),
                               ),
@@ -477,18 +480,8 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                   ),
 
                 if (_isLoading)
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const CircularProgressIndicator(color: darkTeal),
-                          const SizedBox(height: 16),
-                          Text("Mendeteksi lokasi GPS...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
-                        ],
-                      ),
-                    ),
+                  const Positioned.fill(
+                    child: ShimmerLoading(height: double.infinity, borderRadius: 0),
                   ),
               ],
             ),
