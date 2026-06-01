@@ -8,6 +8,7 @@ import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 import 'mitra_keamanan_pin.dart';
 
 class MitraProfileScreen extends StatefulWidget {
@@ -83,37 +84,11 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
   }
 
   void _showBeautifulNotif(String message, bool success) {
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 20,
-        left: 20,
-        right: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: success ? Colors.green.shade800 : Colors.red.shade800,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(context).insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) overlayEntry.remove();
-    });
+    if (success) {
+      NyutjiNotif.showSuccess(context, message);
+    } else {
+      NyutjiNotif.showError(context, message);
+    }
   }
 
   void _pickImage(AuthProvider auth) {
