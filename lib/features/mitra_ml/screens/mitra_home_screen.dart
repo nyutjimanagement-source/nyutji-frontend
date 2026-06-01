@@ -169,9 +169,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildDenseHeader(),
-          const ForecastWeather(),
-          const SizedBox(height: 12),
           _buildCommandMetrics(),
+          const SizedBox(height: 12),
+          const ForecastWeather(),
           const SizedBox(height: 16),
           _buildQuickActionsGrid(),
           const SizedBox(height: 16),
