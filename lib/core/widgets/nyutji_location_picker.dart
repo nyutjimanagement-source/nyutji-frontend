@@ -318,10 +318,10 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                           markers: [
                             Marker(
                               point: _currentLatLng,
-                              width: 24,
-                              height: 24,
+                              width: 28,
+                              height: 28,
                               alignment: Alignment.topCenter,
-                              child: const Icon(LucideIcons.mapPin, color: Color(0xFF00A859), size: 24),
+                              child: const Icon(Icons.location_on, color: primaryTeal, size: 28),
                             ),
                           ],
                         ),
