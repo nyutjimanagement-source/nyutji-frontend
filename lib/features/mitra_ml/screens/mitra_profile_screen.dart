@@ -59,6 +59,8 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
         _fullAddressController.text = auth.user!['address'] ?? '';
         _selectedDistrict = auth.user!['owner_district_name'] ?? auth.user!['district_name'] ?? '';
         _selectedCity = auth.user!['owner_city_name'] ?? auth.user!['city_name'] ?? '';
+        _selectedLat = double.tryParse(auth.user!['latitude']?.toString() ?? '0.0') ?? 0.0;
+        _selectedLng = double.tryParse(auth.user!['longitude']?.toString() ?? '0.0') ?? 0.0;
       }
     });
   }
@@ -288,7 +290,16 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                     children: [
                       const Divider(),
                       const SizedBox(height: 8),
-                      Text("Alamat Lengkap", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Alamat Lengkap", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                          InkWell(
+                            onTap: () => _showLocationPicker(auth),
+                            child: Text("Ubah Alamat ?", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _fullAddressController,
@@ -305,43 +316,34 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("WILAYAH (GPS)", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: textGrey)),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(LucideIcons.navigation, size: 12, color: primaryTeal),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        _selectedDistrict.isEmpty ? "Belum Set Lokasi" : "$_selectedDistrict, $_selectedCity", 
-                                        style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () => _showLocationPicker(auth),
-                            icon: const Icon(LucideIcons.locateFixed, size: 12),
-                            label: Text("UBAH GPS", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryTeal,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                            ),
-                          ),
-                        ],
+                      Text("Kecamatan dan Kab/Kota", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: TextEditingController(text: _selectedDistrict.isEmpty ? "Belum Set Lokasi" : "$_selectedDistrict, $_selectedCity"),
+                        readOnly: true,
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text("Latitude / Longitude", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: TextEditingController(text: _selectedLat == 0.0 ? "Belum Set Lokasi" : "$_selectedLat, $_selectedLng"),
+                        readOnly: true,
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       SizedBox(
@@ -349,16 +351,16 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                         child: ElevatedButton(
                           onPressed: _isUpdatingLocation ? null : () => _handleUpdateLocation(auth),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFF59E0B),
+                            backgroundColor: primaryTeal,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 4,
-                            shadowColor: Colors.orange.withValues(alpha: 0.3),
+                            shadowColor: primaryTeal.withValues(alpha: 0.3),
                           ),
                           child: _isUpdatingLocation 
                             ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : Text("UPDATE DATA LOKASI", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                            : Text("Save Update", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
                       ),
                     ],
