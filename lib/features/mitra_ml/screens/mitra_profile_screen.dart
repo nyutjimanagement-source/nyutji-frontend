@@ -57,12 +57,14 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
-      if (auth.user != null) {
-        _fullAddressController.text = auth.user!['address'] ?? '';
-        _selectedDistrict = auth.user!['owner_district_name'] ?? auth.user!['district_name'] ?? '';
-        _selectedCity = auth.user!['owner_city_name'] ?? auth.user!['city_name'] ?? '';
-        _selectedLat = double.tryParse(auth.user!['latitude']?.toString() ?? '0.0') ?? 0.0;
-        _selectedLng = double.tryParse(auth.user!['longitude']?.toString() ?? '0.0') ?? 0.0;
+      if (auth.user != null && mounted) {
+        setState(() {
+          _fullAddressController.text = auth.user!['address'] ?? '';
+          _selectedDistrict = auth.user!['owner_district_name'] ?? auth.user!['district_name'] ?? '';
+          _selectedCity = auth.user!['owner_city_name'] ?? auth.user!['city_name'] ?? '';
+          _selectedLat = double.tryParse(auth.user!['latitude']?.toString() ?? '0.0') ?? 0.0;
+          _selectedLng = double.tryParse(auth.user!['longitude']?.toString() ?? '0.0') ?? 0.0;
+        });
       }
     });
   }
