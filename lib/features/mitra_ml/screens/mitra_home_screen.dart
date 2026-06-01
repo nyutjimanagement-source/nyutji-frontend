@@ -36,7 +36,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
   String _homeSubPage = "main"; // "main" atau "inventory"
-
+  bool _showAllActions = false;
 
   int _selectedIndex = 0;
   late PageController _pageController;
@@ -320,6 +320,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           final auth = context.read<AuthProvider>();
           final couriersCount = auth.couriers.length;
           final withdrawable = wallet.balance;
+          final withdrawableDisplay = ((withdrawable ~/ 100000) * 100000).toDouble();
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -355,7 +356,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                 crossAxisSpacing: 12,
                 childAspectRatio: 2.1,
                 children: [
-                  _buildSmallMetricCard("Rupiah Ditarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, primaryTeal, () {
+                  _buildSmallMetricCard("Dana Siap Ditarik", Formatters.currencyIdr(withdrawableDisplay), LucideIcons.wallet, primaryTeal, () {
                     _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
                   }),
                   _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
@@ -439,6 +440,77 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   }
 
   Widget _buildQuickActionsGrid() {
+    final List<Widget> primaryActions = [
+      _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
+        _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      }),
+      _buildGridAction("Harga & Promosi", LucideIcons.banknote, Colors.red, () {
+        Navigator.push(context, PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const MitraPricingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(position: animation.drive(tween), child: child);
+          },
+        ));
+      }),
+      _buildGridAction("Kasir/POS", LucideIcons.calculator, Colors.indigo, () {
+        Navigator.push(context, PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const MitraPosScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(position: animation.drive(tween), child: child);
+          },
+        ));
+      }),
+    ];
+
+    final List<Widget> secondaryActions = [
+      _buildGridAction("Dompet", LucideIcons.wallet, Colors.green, () {
+        _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      }),
+      _buildGridAction("Kinerja", LucideIcons.pieChart, Colors.orange, (){}),
+      _buildGridAction("Mesin", LucideIcons.cpu, Colors.cyan, () {
+        Navigator.push(context, PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const MitraMesinScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            return SlideTransition(position: animation.drive(tween), child: child);
+          },
+        ));
+      }),
+      _buildGridAction("Inventory", LucideIcons.boxes, Colors.purple, () {
+        setState(() => _homeSubPage = "inventory");
+      }),
+      _buildGridAction("Kendala", LucideIcons.alertTriangle, Colors.amber, () {
+        Navigator.pushNamed(context, '/mitra_report_issue');
+      }),
+    ];
+
+    List<Widget> displayedActions = List.from(primaryActions);
+    if (_showAllActions) {
+      displayedActions.addAll(secondaryActions);
+      displayedActions.add(
+        _buildGridAction("Tutup", LucideIcons.chevronUp, Colors.grey, () {
+          setState(() => _showAllActions = false);
+        }),
+      );
+    } else {
+      displayedActions.add(
+        _buildGridAction("Lainnya", LucideIcons.moreHorizontal, Colors.grey, () {
+          setState(() => _showAllActions = true);
+        }),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -453,57 +525,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
             childAspectRatio: 0.75,
-            children: [
-              _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
-                _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-              }),
-              _buildGridAction("Kasir/POS", LucideIcons.calculator, Colors.indigo, () {
-                Navigator.push(context, PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => const MitraPosScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    const begin = Offset(1.0, 0.0);
-                    const end = Offset.zero;
-                    const curve = Curves.easeInOutCubic;
-                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                    return SlideTransition(position: animation.drive(tween), child: child);
-                  },
-                ));
-              }),
-              _buildGridAction("Dompet", LucideIcons.wallet, Colors.green, () {
-                _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-              }),
-              _buildGridAction("Kinerja", LucideIcons.pieChart, Colors.orange, (){}),
-              _buildGridAction("Harga & Promosi", LucideIcons.banknote, Colors.red, () {
-                Navigator.push(context, PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => const MitraPricingScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    const begin = Offset(1.0, 0.0);
-                    const end = Offset.zero;
-                    const curve = Curves.easeInOut;
-                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                    return SlideTransition(position: animation.drive(tween), child: child);
-                  },
-                ));
-              }),
-              _buildGridAction("Mesin", LucideIcons.cpu, Colors.cyan, () {
-                Navigator.push(context, PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => const MitraMesinScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    const begin = Offset(1.0, 0.0);
-                    const end = Offset.zero;
-                    const curve = Curves.easeInOutCubic;
-                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                    return SlideTransition(position: animation.drive(tween), child: child);
-                  },
-                ));
-              }),
-              _buildGridAction("Inventory", LucideIcons.boxes, Colors.purple, () {
-                setState(() => _homeSubPage = "inventory");
-              }),
-              _buildGridAction("Kendala", LucideIcons.alertTriangle, Colors.amber, () {
-                Navigator.pushNamed(context, '/mitra_report_issue');
-              }),
-            ],
+            children: displayedActions,
           )
         ],
       ),
