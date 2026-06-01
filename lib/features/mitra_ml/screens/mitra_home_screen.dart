@@ -212,7 +212,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   Widget _buildDenseHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-      color: Colors.white,
+      color: Colors.transparent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -314,9 +314,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: primaryTeal,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 8))],
         ),
         child: Consumer2<WalletProvider, OrderProvider>(
           builder: (context, wallet, orderProv, _) {
@@ -332,44 +332,44 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Baris 1: Revenue Hari Ini
-                _buildBigTealMetricCard(
+                _buildBigMetricCard(
                   "Revenue Hari Ini", 
                   Formatters.currencyIdr(todayRevenue), 
                   LucideIcons.trendingUp, 
-                  Colors.greenAccent,
+                  Colors.green,
                 ),
                 const SizedBox(height: 12),
                 
                 // Baris 2: Antrean Berlangsung
-                _buildBigTealMetricCard(
+                _buildBigMetricCard(
                   "Antrean Berlangsung", 
                   "${Formatters.currencyIdr(wipValue)} ($activeOrderCount Order)", 
                   LucideIcons.loader, 
-                  Colors.orangeAccent,
+                  Colors.orange,
                   onTap: () {
                     _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
                   }
                 ),
                 
                 const SizedBox(height: 16),
-                Container(height: 1, color: Colors.white.withValues(alpha: 0.15)),
+                Container(height: 1, color: Colors.grey[200]),
                 const SizedBox(height: 16),
 
                 // Grid Bawah: Rupiah Ditarik, Layanan, Kurir, Mesin Cuci
                 GridView.count(
-                  crossAxisCount: 4,
+                  crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,
-                  childAspectRatio: 0.85,
+                  childAspectRatio: 2.2,
                   children: [
-                    _buildSmallTealMetricCard("Rupiah\nDitarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, Colors.tealAccent, () {
+                    _buildSmallMetricCard("Rupiah Ditarik", Formatters.currencyIdr(withdrawable), LucideIcons.wallet, primaryTeal, () {
                       _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
                     }),
-                    _buildSmallTealMetricCard("Layanan", "0", LucideIcons.tags, Colors.blueAccent, () {}),
-                    _buildSmallTealMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigoAccent, () {}),
-                    _buildSmallTealMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purpleAccent, () {}),
+                    _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
+                    _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
+                    _buildSmallMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purple, () {}),
                   ],
                 ),
               ],
@@ -380,15 +380,15 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  Widget _buildBigTealMetricCard(String title, String value, IconData icon, Color iconColor, {VoidCallback? onTap}) {
+  Widget _buildBigMetricCard(String title, String value, IconData icon, Color iconColor, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+          border: Border.all(color: Colors.grey[200]!),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,13 +397,13 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               children: [
                 Icon(icon, size: 16, color: iconColor),
                 const SizedBox(width: 8),
-                Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9)), maxLines: 1)),
+                Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 1)),
               ],
             ),
             const SizedBox(height: 10),
             Text(
               value, 
-              style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, height: 1.2),
+              style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w900, color: darkText, height: 1.2),
             ),
           ],
         ),
@@ -411,24 +411,35 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  Widget _buildSmallTealMetricCard(String title, String value, IconData icon, Color iconColor, VoidCallback onTap) {
+  Widget _buildSmallMetricCard(String title, String value, IconData icon, Color iconColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          border: Border.all(color: Colors.grey[200]!),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            Icon(icon, size: 20, color: iconColor),
-            const SizedBox(height: 8),
-            Text(value, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 4),
-            Text(title, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.8), height: 1.1), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(icon, size: 20, color: iconColor),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(title, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey[600], height: 1.1), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
           ],
         ),
       ),
