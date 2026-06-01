@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import 'shimmer_loading.dart';
 
 class ForecastWeather extends StatefulWidget {
   const ForecastWeather({super.key});
@@ -61,18 +62,14 @@ class _ForecastWeatherState extends State<ForecastWeather> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Container(
-        height: 100,
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF286B6A), Color(0xFF1E5655)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: ShimmerLoading(
+          height: 90, 
+          borderRadius: 16,
+          baseColor: Color(0xFF1E293B),
+          highlightColor: Color(0xFF334155),
         ),
-        child: const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
       );
     }
 
