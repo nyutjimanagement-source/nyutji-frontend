@@ -415,20 +415,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Wrap(
-                                      crossAxisAlignment: WrapCrossAlignment.center,
-                                      children: [
-                                        Text("Alamat Terdeteksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
-                                        if (_hasValidLocation)
-                                          Container(
-                                            margin: const EdgeInsets.only(left: 6),
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(color: darkTeal, borderRadius: BorderRadius.circular(6)),
-                                            child: Text("${_currentLatLng.latitude.toStringAsFixed(5)}, ${_currentLatLng.longitude.toStringAsFixed(5)}", 
-                                              style: GoogleFonts.montserrat(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                                          ),
-                                      ],
-                                    ),
+                                    Text("Alamat Terdeteksi", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                                     const SizedBox(height: 4),
                                     Text(_addressInfo, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87, height: 1.3)),
                                   ],
