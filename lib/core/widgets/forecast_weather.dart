@@ -62,7 +62,7 @@ class _ForecastWeatherState extends State<ForecastWeather> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Container(
-        height: 120,
+        height: 100,
         margin: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -86,7 +86,7 @@ class _ForecastWeatherState extends State<ForecastWeather> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
@@ -115,7 +115,7 @@ class _ForecastWeatherState extends State<ForecastWeather> {
                   Text(
                     city,
                     style: GoogleFonts.montserrat(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -124,7 +124,7 @@ class _ForecastWeatherState extends State<ForecastWeather> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -134,16 +134,16 @@ class _ForecastWeatherState extends State<ForecastWeather> {
                 children: [
                   Text(
                     _getWeatherEmoji(weatherCode),
-                    style: const TextStyle(fontSize: 46, height: 1),
+                    style: const TextStyle(fontSize: 40, height: 1),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "$currentTemp",
                         style: GoogleFonts.montserrat(
-                          fontSize: 52,
+                          fontSize: 42,
                           fontWeight: FontWeight.w400,
                           color: Colors.white,
                           height: 1,
@@ -154,7 +154,7 @@ class _ForecastWeatherState extends State<ForecastWeather> {
                         child: Text(
                           "°C",
                           style: GoogleFonts.montserrat(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
                           ),
