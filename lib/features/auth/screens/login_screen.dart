@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -183,7 +184,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final auth = Provider.of<AuthProvider>(context);
     final currentT = t[auth.lang] ?? t['id'];
 
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark, // Adjust based on your light background
+      ),
+      child: Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -404,6 +410,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
         ),
+      ),
       ),
     );
   }
