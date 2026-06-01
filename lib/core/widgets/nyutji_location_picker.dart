@@ -321,7 +321,7 @@ class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
                               width: 24,
                               height: 24,
                               alignment: Alignment.topCenter,
-                              child: const Icon(LucideIcons.mapPin, color: primaryTeal, size: 24),
+                              child: const Icon(LucideIcons.mapPin, color: Color(0xFF00A859), size: 24),
                             ),
                           ],
                         ),
