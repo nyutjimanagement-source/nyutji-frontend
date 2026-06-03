@@ -391,7 +391,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
               ? SizedBox(
                   height: 170,
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(left: 20, right: 4),
                     scrollDirection: Axis.horizontal,
                     itemCount: 3,
                     itemBuilder: (context, index) => Container(
@@ -422,7 +423,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 : SizedBox(
                     height: 170,
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.only(left: 20, right: 4),
                       scrollDirection: Axis.horizontal,
                       itemCount: _mitras.length,
                       itemBuilder: (context, index) => _buildHorizontalMitraCard(_mitras[index]),
