@@ -26,6 +26,7 @@ import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
