@@ -339,9 +339,11 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                   ),
                   const SizedBox(height: 16),
                   if (hasOrder) ...[
-                    Text("$activeOrderCount Order sedang dicuci", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: darkText)),
-                    const SizedBox(height: 4),
-                    Text("${Formatters.currencyIdr(wipValue)} Nilai Revenue", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: primaryTeal)),
+                    Text("$activeOrderCount Order", style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: darkText, height: 1.1)),
+                    Text("Sedang dicuci", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
+                    const SizedBox(height: 16),
+                    Text(Formatters.currencyIdr(wipValue), style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: primaryTeal, height: 1.1)),
+                    Text("Nilai Revenue", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
                   ] else ...[
                     Text("Belum ada order cucian", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[400])),
                   ],
