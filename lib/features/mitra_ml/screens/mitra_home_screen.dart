@@ -434,11 +434,15 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   }
 
   Widget _buildQuickActionsGrid() {
-    final List<Widget> primaryActions = [
-      _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
-        _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-      }),
-      _buildGridAction("Harga & Promosi", LucideIcons.banknote, Colors.red, () {
+    return Consumer<OrderProvider>(
+      builder: (context, orderProv, _) {
+        final activeOrderCount = orderProv.activeOrders.length;
+
+        final List<Widget> primaryActions = [
+          _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
+            _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+          }, badgeCount: activeOrderCount),
+          _buildGridAction("Harga & Promosi", LucideIcons.banknote, Colors.red, () {
         Navigator.push(context, PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => const MitraPricingScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -513,9 +517,11 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         ],
       ),
     );
+      },
+    );
   }
 
-  Widget _buildGridAction(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildGridAction(String title, IconData icon, Color color, VoidCallback onTap, {int badgeCount = 0}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -523,10 +529,35 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 30),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+                  child: Icon(icon, color: color, size: 30),
+                ),
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        badgeCount.toString(),
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
