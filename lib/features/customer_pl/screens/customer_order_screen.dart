@@ -1009,8 +1009,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   children: [
                     Icon(icon, size: 20, color: primaryTeal),
                     const SizedBox(width: 12),
-                    Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900)),
-                    const Spacer(),
+                    Expanded(
+                      child: Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: 8),
                     if (chunks.length > 1)
                       Text("Slide untuk lainnya", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
                   ],
