@@ -37,7 +37,6 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
   String _homeSubPage = "main"; // "main" atau "inventory"
-  bool _showAllActions = false;
 
   int _selectedIndex = 0;
   late PageController _pageController;
@@ -170,12 +169,12 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildDenseHeader(),
-          _buildCommandMetrics(),
-          const SizedBox(height: 12),
-          const ForecastWeather(),
-          const SizedBox(height: 16),
-          _buildQuickActionsGrid(),
-          const SizedBox(height: 16),
+          _buildAntreanCucianCard(), // Panel Antrean Cucian Sekarang dipindah ke paling atas
+          const SizedBox(height: 24),
+          _buildQuickActionsGrid(), // Seluruh widget Aksi Cepat
+          const SizedBox(height: 24),
+          _buildDanaSiapDitarikGrid(), // Widget Dana Siap Ditarik, Layanan, Kurir, Mesin Cuci
+          const SizedBox(height: 24),
           _buildLiveQueueMachine(),
           const SizedBox(height: 40),
         ],
@@ -279,28 +278,6 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  double _calculateTodayRevenue(List<dynamic> mutasiList) {
-    if (mutasiList.isEmpty) return 0.0;
-    double todayTotal = 0.0;
-    final now = DateTime.now();
-    
-    for (var m in mutasiList) {
-      final amt = double.tryParse(m['amount']?.toString() ?? '0') ?? 0.0;
-      final type = (m['transaction_type'] ?? '').toString().toUpperCase();
-      
-      // Hitung yang masuk saja (revenue)
-      if (amt > 0 && type != 'TOPUP') {
-        try {
-          DateTime dt = DateTime.tryParse(m['createdAt'] ?? m['date'] ?? '')?.toLocal() ?? DateTime.now();
-          if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
-            todayTotal += amt;
-          }
-        } catch (_) {}
-      }
-    }
-    return todayTotal;
-  }
-
   double _calculateWIP(List<dynamic> activeOrders) {
     double total = 0.0;
     for (var o in activeOrders) {
@@ -309,86 +286,109 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     return total;
   }
 
-  Widget _buildCommandMetrics() {
+  Widget _buildAntreanCucianCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Consumer2<WalletProvider, OrderProvider>(
         builder: (context, wallet, orderProv, _) {
-          final todayRevenue = _calculateTodayRevenue(wallet.mutasiList);
           final activeOrders = orderProv.activeOrders;
           final wipValue = _calculateWIP(activeOrders);
           final activeOrderCount = activeOrders.length;
-          final auth = context.read<AuthProvider>();
-          final couriersCount = auth.couriers.length;
-          final withdrawable = wallet.balance;
-          final withdrawableDisplay = ((withdrawable ~/ 100000) * 100000).toDouble();
+          final bool hasOrder = activeOrderCount > 0;
 
-          if (wallet.isLoading || orderProv.isLoading || auth.isLoading) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const ShimmerLoading(height: 90, borderRadius: 16),
-                const SizedBox(height: 12),
-                const ShimmerLoading(height: 90, borderRadius: 16),
-                const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 2.1,
-                  children: List.generate(4, (_) => const ShimmerLoading(height: 70, borderRadius: 12)),
-                ),
-              ],
+          if (wallet.isLoading || orderProv.isLoading) {
+            return const ShimmerLoading(height: 110, borderRadius: 16);
+          }
+
+          return GestureDetector(
+            onTap: () {
+              _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(LucideIcons.loader, size: 18, color: hasOrder ? Colors.orange : Colors.grey[400]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Text("Antrean Cucian Sekarang", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 1),
+                            if (hasOrder) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                width: 6, height: 6,
+                                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                              ),
+                            ]
+                          ],
+                        )
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (hasOrder) ...[
+                    Text("$activeOrderCount Order sedang dicuci", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: darkText)),
+                    const SizedBox(height: 4),
+                    Text("${Formatters.currencyIdr(wipValue)} Nilai Revenue", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: primaryTeal)),
+                  ] else ...[
+                    Text("Belum ada order cucian", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[400])),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDanaSiapDitarikGrid() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Consumer2<WalletProvider, AuthProvider>(
+        builder: (context, wallet, auth, _) {
+          final couriersCount = auth.couriers.length;
+          final withdrawableDisplay = ((wallet.balance ~/ 100000) * 100000).toDouble();
+
+          if (wallet.isLoading || auth.isLoading) {
+            return GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 2.1,
+              children: List.generate(4, (_) => const ShimmerLoading(height: 70, borderRadius: 12)),
             );
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          return GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 2.1,
             children: [
-              // Baris 1: Revenue Hari Ini
-              _buildBigMetricCard(
-                "Revenue Hari Ini", 
-                Formatters.currencyIdr(todayRevenue), 
-                LucideIcons.trendingUp, 
-                Colors.green,
-              ),
-              const SizedBox(height: 12),
-              
-              // Baris 2: Antrean Berlangsung
-              _buildBigMetricCard(
-                "Antrean Berlangsung", 
-                "${Formatters.currencyIdr(wipValue)} ($activeOrderCount Order)", 
-                LucideIcons.loader, 
-                Colors.orange,
-                onTap: () {
-                  _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                }
-              ),
-              
-              const SizedBox(height: 12),
-
-              // Grid Bawah: Rupiah Ditarik, Layanan, Kurir, Mesin Cuci
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 2.1,
-                children: [
-                  _buildSmallMetricCard("Dana Siap Ditarik", Formatters.currencyIdr(withdrawableDisplay), LucideIcons.wallet, primaryTeal, () {
-                    _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                  }),
-                  _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
-                  _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
-                  _buildSmallMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purple, () {}),
-                ],
-              ),
+              _buildSmallMetricCard("Dana Siap Ditarik", Formatters.currencyIdr(withdrawableDisplay), LucideIcons.wallet, primaryTeal, () {
+                _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+              }),
+              _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
+              _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
+              _buildSmallMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purple, () {}),
             ],
           );
-        },
+        }
       ),
     );
   }
@@ -517,21 +517,10 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
       }),
     ];
 
-    List<Widget> displayedActions = List.from(primaryActions);
-    if (_showAllActions) {
-      displayedActions.addAll(secondaryActions);
-      displayedActions.add(
-        _buildGridAction("Tutup", LucideIcons.chevronUp, Colors.grey, () {
-          setState(() => _showAllActions = false);
-        }),
-      );
-    } else {
-      displayedActions.add(
-        _buildGridAction("Lainnya", LucideIcons.moreHorizontal, Colors.grey, () {
-          setState(() => _showAllActions = true);
-        }),
-      );
-    }
+    List<Widget> displayedActions = [
+      ...primaryActions,
+      ...secondaryActions,
+    ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
