@@ -380,7 +380,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     const SizedBox(height: 24),
                     Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
                   ],
-                  ],
                   const SizedBox(height: 12),
                 ],
               ),
