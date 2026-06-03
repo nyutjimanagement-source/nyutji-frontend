@@ -23,6 +23,8 @@ import 'mitra_pos_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import 'mitra_profile_screen.dart';
 import 'mitra_mesin.dart';
+import 'dart:math';
+import '../../../data/services/api_service.dart';
 
 class MitraHomeScreen extends StatefulWidget {
   const MitraHomeScreen({super.key});
@@ -40,6 +42,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
 
   int _selectedIndex = 0;
   late PageController _pageController;
+  OverlayEntry? _connectionToast;
+  bool _isInit = false;
+  String? _randomPosImage;
   bool isShopOpen = true;
   Timer? _pollingTimer;
 
@@ -47,6 +52,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
+    _fetchRandomPosImage();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
       context.read<WalletProvider>().fetchWallet();
@@ -307,47 +313,96 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
             },
             child: Container(
-              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
                 border: Border.all(color: Colors.grey[200]!),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(LucideIcons.loader, size: 18, color: hasOrder ? Colors.orange : Colors.grey[400]),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Text("Antrean Cucian Sekarang", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 1),
-                            if (hasOrder) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 6, height: 6,
-                                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                              ),
-                            ]
-                          ],
-                        )
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Stack(
+                  children: [
+                    // Background Image or Grey color
+                    Positioned.fill(
+                      child: _randomPosImage != null
+                          ? Image.network(
+                              "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/$_randomPosImage",
+                              fit: BoxFit.cover,
+                              alignment: Alignment.centerRight,
+                              errorBuilder: (_, __, ___) => Container(color: Colors.grey[200]),
+                            )
+                          : Container(color: Colors.grey[200]),
+                    ),
+                    // Large transparent icon if no image
+                    if (_randomPosImage == null)
+                      Positioned(
+                        right: -20,
+                        bottom: -20,
+                        child: Icon(
+                          LucideIcons.loader,
+                          size: 140,
+                          color: Colors.black.withValues(alpha: 0.04),
+                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (hasOrder) ...[
-                    Text("$activeOrderCount Order", style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: darkText, height: 1.1)),
-                    Text("Sedang dicuci", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
-                    const SizedBox(height: 16),
-                    Text(Formatters.currencyIdr(wipValue), style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: primaryTeal, height: 1.1)),
-                    Text("Nilai Revenue", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
-                  ] else ...[
-                    Text("Belum ada order cucian", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[400])),
+                    // White gradient fading to the left
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Colors.white.withValues(alpha: 1.0),
+                              Colors.white.withValues(alpha: 0.8),
+                              Colors.white.withValues(alpha: 0.1),
+                            ],
+                            stops: const [0.3, 0.6, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Foreground Content
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(LucideIcons.loader, size: 18, color: hasOrder ? Colors.orange : Colors.grey[400]),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Text("Antrean Cucian Sekarang", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 1),
+                                    if (hasOrder) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        width: 6, height: 6,
+                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                      ),
+                                    ]
+                                  ],
+                                )
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          if (hasOrder) ...[
+                            Text("$activeOrderCount Order", style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: darkText, height: 1.1)),
+                            Text("Sedang dicuci", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
+                            const SizedBox(height: 16),
+                            Text(Formatters.currencyIdr(wipValue), style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: primaryTeal, height: 1.1)),
+                            Text("Nilai Revenue", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
+                          ] else ...[
+                            Text("Belum ada order cucian", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[400])),
+                          ],
+                        ],
+                      ),
+                    ),
                   ],
-                ],
+                ),
               ),
             ),
           );
