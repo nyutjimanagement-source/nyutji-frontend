@@ -42,8 +42,6 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
 
   int _selectedIndex = 0;
   late PageController _pageController;
-  OverlayEntry? _connectionToast;
-  bool _isInit = false;
   String? _randomPosImage;
   bool isShopOpen = true;
   Timer? _pollingTimer;
@@ -69,6 +67,30 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         context.read<AuthProvider>().fetchPendingApprovals();
       }
     });
+  }
+
+  Future<void> _fetchRandomPosImage() async {
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final mitraId = auth.user?['id'];
+      if (mitraId == null) return;
+      
+      final api = ApiService();
+      final items = await api.getMitraItems(mitraId);
+      
+      final itemsWithPhoto = items.where((i) => i['url_photo'] != null).toList();
+      if (itemsWithPhoto.isNotEmpty) {
+        final random = Random();
+        final randomItem = itemsWithPhoto[random.nextInt(itemsWithPhoto.length)];
+        if (mounted) {
+          setState(() {
+            _randomPosImage = randomItem['url_photo'];
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching random pos image: $e");
+    }
   }
 
   @override
