@@ -892,28 +892,50 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
   Widget _buildDenseSpeedSelector(Map<String, dynamic> cT) {
     return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFECE5),
+        borderRadius: BorderRadius.circular(100),
+      ),
       child: Row(
         children: [
-          Expanded(child: _speedPill(cT['speed_reg'], cT['speed_reg_desc'], 'regular', primaryTeal)),
-          Expanded(child: _speedPill(cT['speed_fast'], cT['speed_fast_desc'], 'fast', Colors.red)),
+          Expanded(child: _speedPill(cT['speed_reg'], cT['speed_reg_desc'], 'regular', const Color(0xFF403600), LucideIcons.clock)),
+          Expanded(child: _speedPill(cT['speed_fast'], cT['speed_fast_desc'], 'fast', const Color(0xFF403600), LucideIcons.zap)),
         ],
       ),
     );
   }
 
-  Widget _speedPill(String title, String desc, String id, Color activeC) {
+  Widget _speedPill(String title, String desc, String id, Color activeC, IconData icon) {
     bool isSel = _serviceSpeed == id;
     return GestureDetector(
       onTap: () => setState(() => _serviceSpeed = id),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(color: isSel ? activeC.withValues(alpha: 0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
-        child: Column(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSel ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(100),
+          boxShadow: isSel ? [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
+          ] : [],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isSel ? activeC : Colors.grey[400])),
-            Text(desc, style: GoogleFonts.montserrat(fontSize: 11, color: isSel ? activeC.withValues(alpha: 0.8) : Colors.grey[400])),
+            Icon(icon, size: 16, color: isSel ? activeC : Colors.grey[500]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: isSel ? activeC : Colors.grey[500]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(desc, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: isSel ? activeC.withValues(alpha: 0.6) : Colors.grey[400]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
           ],
         ),
       ),
