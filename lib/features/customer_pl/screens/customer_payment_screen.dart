@@ -10,6 +10,7 @@ import '../../../providers/wallet_provider.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 import 'customer_wallet_screen.dart';
 
 class CustomerPaymentScreen extends StatefulWidget {
@@ -631,7 +632,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
             const SizedBox(height: 12),
             _invoiceDetailRow("Layanan Kurir", courierServiceName),
             _invoiceDetailRow("Jarak Antar", "${_calculatedDistance.toStringAsFixed(1)} Km"),
-            _invoiceDetailRow("Biaya Kurir", _isLoadingPrice ? "Menghitung..." : NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(courierFee), isBold: true),
+            _invoiceDetailRow("Biaya Kurir", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(courierFee), isBold: true, isLoading: _isLoadingPrice),
             
             const Divider(height: 40),
           ] else ...[
@@ -690,14 +691,16 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     );
   }
 
-  Widget _invoiceDetailRow(String label, String value, {bool isBold = false}) {
+  Widget _invoiceDetailRow(String label, String value, {bool isBold = false, bool isLoading = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
-          Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w500, color: Colors.black87)),
+          isLoading 
+            ? const ShimmerLoading(height: 16, width: 80, borderRadius: 4)
+            : Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w500, color: Colors.black87)),
         ],
       ),
     );

@@ -1150,7 +1150,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                           ),
                         )
                       : isLoading 
-                        ? const Center(child: CircularProgressIndicator())
+                        ? ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            itemCount: 3,
+                            itemBuilder: (context, index) => const Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: ShimmerLoading(height: 80, borderRadius: 16),
+                            ),
+                          )
                         : (filteredMitras.isEmpty && filteredOrders.isEmpty)
                           ? Center(
                               child: Column(

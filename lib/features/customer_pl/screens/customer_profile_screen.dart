@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -156,19 +157,23 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text(
-                    auth.user?['name'] ?? "Pelanggan",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: NyutjiTheme.h2(Colors.white).copyWith(fontSize: 20),
-                  ),
+                   auth.isLoading 
+                    ? const ShimmerLoading(height: 24, width: 150, borderRadius: 4)
+                    : Text(
+                        auth.user?['name'] ?? "Pelanggan",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: NyutjiTheme.h2(Colors.white).copyWith(fontSize: 20),
+                      ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(LucideIcons.mapPin, size: 12, color: Colors.white70),
                       const SizedBox(width: 4),
                       Expanded(
-                        child: Text(
+                        child: auth.isLoading
+                        ? const ShimmerLoading(height: 14, width: 120, borderRadius: 4)
+                        : Text(
                           "$district, $city",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -254,13 +259,19 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(mainAddress, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                    auth.isLoading
+                    ? const ShimmerLoading(height: 18, width: 250, borderRadius: 4)
+                    : Text(mainAddress, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
                     if (addressDetail.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(addressDetail, style: NyutjiTheme.detail(Colors.grey[600]!)),
+                      auth.isLoading
+                      ? const ShimmerLoading(height: 14, width: 200, borderRadius: 4)
+                      : Text(addressDetail, style: NyutjiTheme.detail(Colors.grey[600]!)),
                     ],
                     const SizedBox(height: 8),
-                    Text("$district, $city", style: NyutjiTheme.detail(Colors.grey[400]!).copyWith(fontWeight: FontWeight.w500)),
+                    auth.isLoading
+                    ? const ShimmerLoading(height: 14, width: 150, borderRadius: 4)
+                    : Text("$district, $city", style: NyutjiTheme.detail(Colors.grey[400]!).copyWith(fontWeight: FontWeight.w500)),
                   ],
                 ),
               )

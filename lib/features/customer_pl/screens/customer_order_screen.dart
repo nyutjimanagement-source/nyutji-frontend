@@ -12,6 +12,7 @@ import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/nyutji_distance.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class CustomerOrderScreen extends StatefulWidget {
   final String orderType;
@@ -387,7 +388,19 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
           
           SliverToBoxAdapter(
             child: _isLoadingMitras 
-              ? const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+              ? SizedBox(
+                  height: 170,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 3,
+                    itemBuilder: (context, index) => Container(
+                      width: 180,
+                      margin: const EdgeInsets.only(right: 16, bottom: 10, top: 4),
+                      child: const ShimmerLoading(height: 170, borderRadius: 22),
+                    ),
+                  ),
+                )
               : _mitras.isEmpty 
                 ? Center(
                     child: Padding(

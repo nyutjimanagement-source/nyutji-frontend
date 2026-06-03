@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class CustomerWalletScreen extends StatefulWidget {
   const CustomerWalletScreen({super.key});
@@ -103,7 +104,9 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                         children: [
                           Text(currentT['active_balance'], style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
-                          Text(Formatters.currencyIdr(wallet.balance), style: GoogleFonts.montserrat(color: const Color(0xFFDAC66F), fontSize: 24, fontWeight: FontWeight.w900)),
+                          wallet.isLoading
+                          ? const Padding(padding: EdgeInsets.only(top: 8), child: ShimmerLoading(height: 24, width: 120, borderRadius: 8))
+                          : Text(Formatters.currencyIdr(wallet.balance), style: GoogleFonts.montserrat(color: const Color(0xFFDAC66F), fontSize: 24, fontWeight: FontWeight.w900)),
                         ],
                       ),
                       ElevatedButton.icon(
@@ -170,7 +173,14 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                           }).toList(),
                         ),
                         const Divider(height: 32, color: Color(0xFFE3DCCF)),
-                        if (wallet.mutasiList.isEmpty)
+                        if (wallet.isLoading)
+                          Column(
+                            children: List.generate(3, (index) => const Padding(
+                              padding: EdgeInsets.only(bottom: 16),
+                              child: ShimmerLoading(height: 50, borderRadius: 12),
+                            )),
+                          )
+                        else if (wallet.mutasiList.isEmpty)
                           Center(child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 40),
                             child: Column(
