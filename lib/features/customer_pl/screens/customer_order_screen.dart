@@ -380,7 +380,8 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                     const SizedBox(height: 24),
                     Text(cT['recom_mitra'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
                   ],
-                  const SizedBox(height: 4),
+                  ],
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -439,7 +440,6 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                   Text(cT['speed_label'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
                   const SizedBox(height: 12),
                   _buildDenseSpeedSelector(cT),
-                  const SizedBox(height: 24),
                   const SizedBox(height: 24),
                   _buildDenseItemList(cT),
                   const SizedBox(height: 24),
@@ -891,18 +891,12 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
 
   Widget _buildDenseSpeedSelector(Map<String, dynamic> cT) {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFECE5),
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Row(
-        children: [
-          Expanded(child: _speedPill(cT['speed_reg'], cT['speed_reg_desc'], 'regular', const Color(0xFF403600), LucideIcons.clock)),
-          Expanded(child: _speedPill(cT['speed_fast'], cT['speed_fast_desc'], 'fast', const Color(0xFF403600), LucideIcons.zap)),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(child: _speedPill(cT['speed_reg'], cT['speed_reg_desc'], 'regular', const Color(0xFF403600), LucideIcons.clock)),
+        const SizedBox(width: 12),
+        Expanded(child: _speedPill(cT['speed_fast'], cT['speed_fast_desc'], 'fast', const Color(0xFF403600), LucideIcons.zap)),
+      ],
     );
   }
 
@@ -913,18 +907,19 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSel ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(100),
-          boxShadow: isSel ? [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
-          ] : [],
+          color: isSel ? const Color(0xFFEFECE5) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isSel ? const Color(0xFFDAC66F) : const Color(0xFFE3DCCF), width: 1.5),
+          boxShadow: isSel ? [] : [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: isSel ? activeC : Colors.grey[500]),
+            Icon(icon, size: 20, color: isSel ? activeC : Colors.grey[400]),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -932,6 +927,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: isSel ? activeC : Colors.grey[500]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 2),
                   Text(desc, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: isSel ? activeC.withValues(alpha: 0.6) : Colors.grey[400]), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
