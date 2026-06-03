@@ -169,11 +169,13 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildDenseHeader(),
-          _buildAntreanCucianCard(), // Panel Antrean Cucian Sekarang dipindah ke paling atas
+          _buildAntreanCucianCard(),
           const SizedBox(height: 24),
-          _buildQuickActionsGrid(), // Seluruh widget Aksi Cepat
+          _buildQuickActionsGrid(),
           const SizedBox(height: 24),
-          _buildDanaSiapDitarikGrid(), // Widget Dana Siap Ditarik, Layanan, Kurir, Mesin Cuci
+          _buildDanaSiapDitarikGrid(),
+          const SizedBox(height: 24),
+          const ForecastWeather(),
           const SizedBox(height: 24),
           _buildLiveQueueMachine(),
           const SizedBox(height: 40),
