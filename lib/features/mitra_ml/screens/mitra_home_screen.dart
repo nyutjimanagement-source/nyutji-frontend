@@ -395,38 +395,6 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     );
   }
 
-  Widget _buildBigMetricCard(String title, String value, IconData icon, Color iconColor, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 16, color: iconColor),
-                const SizedBox(width: 8),
-                Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 1)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              value, 
-              style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.w900, color: darkText, height: 1.2),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildSmallMetricCard(String title, String value, IconData icon, Color iconColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
