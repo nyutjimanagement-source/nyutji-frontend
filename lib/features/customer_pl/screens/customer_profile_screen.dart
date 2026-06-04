@@ -337,9 +337,18 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     _buildReadOnlyTextField("Nama", name),
                     _buildReadOnlyTextField("No Handphone", phone),
                     _buildReadOnlyTextField("Email", email),
-                    _buildReadOnlyTextField("Membership", tier, suffix: GestureDetector(
-                      onTap: () => NyutjiNotif.showInfo(context, "Membership memberikan benefit khusus pelanggan setia"),
-                      child: const Icon(LucideIcons.helpCircle, size: 16, color: Colors.grey)
+                    _buildReadOnlyTextField("Membership", tier, suffix: Tooltip(
+                      message: "Kategori Membership terkait jumlah walletNyutji tersimpan dan Layanan Prima Nyutji",
+                      triggerMode: TooltipTriggerMode.tap,
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500),
+                      showDuration: const Duration(seconds: 4),
+                      child: const Icon(LucideIcons.helpCircle, size: 16, color: Colors.grey),
                     )),
                   ],
                 ),
