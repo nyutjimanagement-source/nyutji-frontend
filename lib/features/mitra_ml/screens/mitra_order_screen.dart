@@ -28,10 +28,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   static const Color darkText = Color(0xFF111827);
   static const Color textGrey = Color(0xFF6B7280);
 
-  String currentFilter = "Baru";
+  String currentFilter = "Same Day";
   final Set<String> _expandedIds = {};
   late PageController _pageController;
   late ScrollController _summaryScrollController;
+  late ScrollController _pillScrollController;
   int _currentPage = 0;
 
   @override
@@ -39,6 +40,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     super.initState();
     _pageController = PageController();
     _summaryScrollController = ScrollController();
+    _pillScrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<OrderProvider>().fetchOrders();
     });
@@ -48,6 +50,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   void dispose() {
     _pageController.dispose();
     _summaryScrollController.dispose();
+    _pillScrollController.dispose();
     super.dispose();
   }
 
@@ -386,10 +389,11 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               margin: const EdgeInsets.only(bottom: 4),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: ListView(
+                controller: _pillScrollController,
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  ...["Baru", "Same Day", "Reguler", "SELESAI"].map((f) {
+                  ...["Same Day", "Reguler", "SELESAI"].map((f) {
                     int count = 0;
                     final allList = [...orderProv.activeOrders, ...orderProv.historyOrders];
                     for (var o in allList) {
@@ -397,9 +401,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                       final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
                       final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
                       
-                      if (f == "Baru" && (s == 'SEARCHING' || s == 'WAITING_DROPOFF')) {
-                        count++;
-                      } else if (f == "Same Day" && (isFast || serviceType.contains('SAME')) && s != 'DONE' && s != 'PAID') {
+                      if (f == "Same Day" && (isFast || serviceType.contains('SAME')) && s != 'DONE' && s != 'PAID') {
                         count++;
                       } else if (f == "Reguler" && (serviceType.contains('REGULER') || serviceType.contains('BIASA')) && s != 'DONE' && s != 'PAID') {
                         count++;
@@ -512,20 +514,27 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     );
   }
 
-  void _animateSummaryScroll(int index) {
+  void _animateScrolls(int index) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_summaryScrollController.hasClients) {
         double targetOffset = index * 274.0;
         final maxScroll = _summaryScrollController.position.maxScrollExtent;
-        if (targetOffset > maxScroll) {
-          targetOffset = maxScroll;
-        }
-        if (targetOffset < 0) {
-          targetOffset = 0;
-        }
+        if (targetOffset > maxScroll) targetOffset = maxScroll;
+        if (targetOffset < 0) targetOffset = 0;
         _summaryScrollController.animateTo(
           targetOffset,
           duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+        );
+      }
+      if (_pillScrollController.hasClients) {
+        double targetOffset = index * 100.0;
+        final maxScroll = _pillScrollController.position.maxScrollExtent;
+        if (targetOffset > maxScroll) targetOffset = maxScroll;
+        if (targetOffset < 0) targetOffset = 0;
+        _pillScrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutCubic,
         );
       }
@@ -533,22 +542,18 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   }
 
   void _animateSummaryScrollForFilter(String filter) {
-    if (filter == "Baru") {
-      _animateSummaryScroll(0);
-    } else if (filter == "Same Day") {
-      _animateSummaryScroll(1);
+    if (filter == "Same Day") {
+      _animateScrolls(0);
     } else if (filter == "Reguler") {
-      _animateSummaryScroll(2);
+      _animateScrolls(1);
     } else if (filter == "SELESAI") {
-      _animateSummaryScroll(3);
+      _animateScrolls(2);
     }
   }
 
   Widget _buildSummaryCards(OrderProvider orderProv) {
     final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
     
-    double totalBaru = 0;
-    int countBaru = 0;
     double totalSameDay = 0;
     int countSameDay = 0;
     double totalReguler = 0;
@@ -561,12 +566,6 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
       final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
       final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
-      
-      // Baru
-      if (status == 'SEARCHING' || status == 'WAITING_DROPOFF') {
-        totalBaru += price;
-        countBaru++;
-      }
       
       // Same Day
       if ((isFast || serviceType.contains('SAME')) && status != 'DONE' && status != 'PAID') {
@@ -597,30 +596,13 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       child: Row(
         children: [
           _buildSummaryCard(
-            label: "Baru",
-            value: "${currencyFormatter.format(totalBaru)} | $countBaru",
-            isActive: currentFilter == "Baru",
-            activeColor: primaryTeal,
-            icon: LucideIcons.sparkles,
-            onTap: () {
-              _animateSummaryScroll(0);
-              if (currentFilter != "Baru") {
-                setState(() {
-                  currentFilter = "Baru";
-                  _currentPage = 0;
-                });
-                if (_pageController.hasClients) _pageController.jumpToPage(0);
-              }
-            },
-          ),
-          _buildSummaryCard(
             label: "Same Day",
             value: "${currencyFormatter.format(totalSameDay)} | $countSameDay",
             isActive: currentFilter == "Same Day",
             activeColor: const Color(0xFFEA580C),
             icon: LucideIcons.zap,
             onTap: () {
-              _animateSummaryScroll(1);
+              _animateScrolls(0);
               if (currentFilter != "Same Day") {
                 setState(() {
                   currentFilter = "Same Day";
@@ -637,7 +619,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             activeColor: const Color(0xFF2563EB),
             icon: LucideIcons.calendar,
             onTap: () {
-              _animateSummaryScroll(2);
+              _animateScrolls(1);
               if (currentFilter != "Reguler") {
                 setState(() {
                   currentFilter = "Reguler";
@@ -654,7 +636,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             activeColor: const Color(0xFF10B981),
             icon: LucideIcons.checkCircle,
             onTap: () {
-              _animateSummaryScroll(3);
+              _animateScrolls(2);
               if (currentFilter != "SELESAI") {
                 setState(() {
                   currentFilter = "SELESAI";
@@ -881,11 +863,14 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      customerName,
-                      maxLines: 1, 
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        customerName,
+                        maxLines: 1, 
+                        style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+                      ),
                     ),
                   ),
                   if (_isPremiumOrder(o))
@@ -906,32 +891,36 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 ],
               ),
               const SizedBox(height: 6),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 4,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: primaryTeal.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(servicePrice),
-                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal)
-                    ),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: primaryTeal.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(servicePrice),
+                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal)
+                        ),
+                      ),
+                      Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey[400], shape: BoxShape.circle)),
+                      Text(DateFormat('dd MMM, HH:mm', 'id_ID').format(doneAt),
+                        style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                    ],
                   ),
-                  Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey[400], shape: BoxShape.circle)),
-                  Text(DateFormat('dd MMM, HH:mm', 'id_ID').format(doneAt),
-                    style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                  _buildStatusChip(status, o),
                 ],
               ),
             ],
           )
         ),
-        const SizedBox(width: 10),
-        _buildStatusChip(status, o),
       ]),
     );
   }
@@ -962,11 +951,14 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          customerName,
-                          maxLines: 1, 
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            customerName,
+                            maxLines: 1, 
+                            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText, letterSpacing: -0.3)
+                          ),
                         ),
                       ),
                       if (_isPremiumOrder(o))
@@ -987,21 +979,26 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: primaryTeal.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(servicePrice),
-                      style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal)
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: primaryTeal.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(servicePrice),
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal)
+                        ),
+                      ),
+                      _buildStatusChip(status, o),
+                    ],
                   ),
                 ],
               ),
             ),
-            _buildStatusChip(status, o),
           ],
         ),
 
