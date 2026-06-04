@@ -1373,6 +1373,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       labelText = StatusHelper.getLabel(displayStatus, 'ML');
     }
     
+    // Convert to Title Case (First Letter of Each Word is Uppercase)
+    labelText = labelText.toLowerCase().split(' ').map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '').join(' ');
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
