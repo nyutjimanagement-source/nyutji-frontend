@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import '../../../core/utils/formatters.dart';
 
 import '../../../data/services/api_service.dart';
