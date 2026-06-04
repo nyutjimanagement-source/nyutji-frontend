@@ -21,6 +21,7 @@ class CustomerProfileScreen extends StatefulWidget {
 
 class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   bool _isAddressExpanded = false;
+  bool _isSettingsExpanded = false;
   late TextEditingController _addressDetailController;
   String _imageVersion = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -92,7 +93,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               _settingRow(LucideIcons.heart, currentT['favorit']),
             ]),
             _buildSettingsGroup([
-              _settingRow(LucideIcons.settings, currentT['settings']),
+              _buildExpandableSettingsRow(currentT, auth),
               _settingRow(LucideIcons.bell, currentT['notif']),
               _settingRow(LucideIcons.headphones, currentT['help']),
             ]),
@@ -254,7 +255,14 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                               }
                             }
                           },
-                          child: const Icon(LucideIcons.edit3, size: 16, color: Colors.blueAccent),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blueAccent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text("Edit", style: NyutjiTheme.detail(Colors.blueAccent).copyWith(fontWeight: FontWeight.bold)),
+                          ),
                         ),
                       ],
                     ),
@@ -272,12 +280,103 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     auth.isLoading
                     ? const ShimmerLoading(height: 14, width: 150, borderRadius: 4)
                     : Text("$district, $city", style: NyutjiTheme.detail(Colors.grey[400]!).copyWith(fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () {
+                         NyutjiNotif.showInfo(context, "Fitur Tambah Alamat akan segera hadir");
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text("+ Tambah Alamat", style: NyutjiTheme.body(Colors.grey[600]!).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                      ),
+                    ),
                   ],
                 ),
               )
             : const SizedBox.shrink(),
         ),
       ],
+    );
+  }
+
+  Widget _buildExpandableSettingsRow(Map<String, dynamic> currentT, AuthProvider auth) {
+    final user = auth.user;
+    final name = user?['name']?.toString() ?? '-';
+    final phone = user?['phone']?.toString() ?? user?['no_hp']?.toString() ?? '-';
+    final email = user?['email']?.toString() ?? '-';
+    final tier = currentT['tier'] ?? 'VIP Member';
+
+    return Column(
+      children: [
+        _settingRow(
+          LucideIcons.settings, 
+          currentT['settings'], 
+          onTap: () => setState(() => _isSettingsExpanded = !_isSettingsExpanded),
+          trailing: Icon(
+            _isSettingsExpanded ? LucideIcons.chevronDown : LucideIcons.chevronRight, 
+            size: 16, color: Colors.grey[400]
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: _isSettingsExpanded 
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(56, 0, 20, 20),
+                decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildReadOnlyTextField("Nama", name),
+                    _buildReadOnlyTextField("No Handphone", phone),
+                    _buildReadOnlyTextField("Email", email),
+                    _buildReadOnlyTextField("Membership", tier, suffix: GestureDetector(
+                      onTap: () => NyutjiNotif.showInfo(context, "Membership memberikan benefit khusus pelanggan setia"),
+                      child: const Icon(LucideIcons.helpCircle, size: 16, color: Colors.grey)
+                    )),
+                  ],
+                ),
+              )
+            : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReadOnlyTextField(String label, String value, {Widget? suffix}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: NyutjiTheme.detail(Colors.grey[600]!).copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(value, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontSize: 13, fontWeight: FontWeight.w500)),
+                ),
+                if (suffix != null) suffix,
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
