@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
@@ -146,7 +147,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                       child: selectedImage != null 
                         ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.file(selectedImage!, fit: BoxFit.cover))
                         : (item['url_photo'] != null)
-                          ? ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.network("${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}", fit: BoxFit.cover, errorBuilder: (_,__,___) => Icon(Icons.broken_image, color: Colors.grey[400], size: 40)))
+                          ? ClipRRect(borderRadius: BorderRadius.circular(14), child: CachedNetworkImage(imageUrl: "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}", fit: BoxFit.cover, errorWidget: (_,__,___) => Icon(Icons.broken_image, color: Colors.grey[400], size: 40)))
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -325,11 +326,11 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                                                 ),
                                                 // Foto jika ada, ikon jika tidak
                                                 if (hasPhoto)
-                                                  Image.network(
+                                                  CachedNetworkImage(
                                                     key: ValueKey('${item['url_photo']}_${_photoVersions[item['id']] ?? 0}'),
-                                                    "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}?v=${_photoVersions[item['id']] ?? 0}",
+                                                    imageUrl: "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/${item['url_photo']}?v=${_photoVersions[item['id']] ?? 0}",
                                                     fit: BoxFit.cover,
-                                                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 40),
+                                                    errorWidget: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 40),
                                                   )
                                                 else
                                                   Center(

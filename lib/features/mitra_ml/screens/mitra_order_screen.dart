@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/utils/status_helper.dart';
@@ -222,20 +223,17 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 child: Stack(
                   children: [
                     // Gambar
-                    Image.network(
-                      imageUrl,
+                    CachedNetworkImage(
+                      imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const SizedBox(
-                          height: 260,
-                          child: Center(child: CircularProgressIndicator(color: primaryTeal)),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) => const SizedBox(
-                        height: 220,
-                        child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
+                      placeholder: (context, url) => const SizedBox(
+                        height: 260,
+                        child: Center(child: CircularProgressIndicator(color: primaryTeal)),
+                      ),
+                      errorWidget: (context, url, error) => const SizedBox(
+                        height: 260,
+                        child: Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 50)),
                       ),
                     ),
                     // Watermark diagonal
@@ -1920,7 +1918,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                                   Expanded(
                                     child: ClipRRect(
                                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                      child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Center(child: Icon(LucideIcons.imageOff, color: Colors.grey))),
+                                      child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover, errorWidget: (_,__,___) => const Center(child: Icon(LucideIcons.imageOff, color: Colors.grey))),
                                     ),
                                   ),
                                   Container(

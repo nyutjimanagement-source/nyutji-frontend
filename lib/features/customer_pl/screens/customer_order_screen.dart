@@ -8,6 +8,8 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/utils/nyutji_parser.dart';
 import '../../../core/widgets/nyutji_pickup_picker.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/wallet_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
@@ -725,11 +727,10 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
                       final fullUrl = imgValue.startsWith('http') 
                           ? imgValue 
                           : '${ApiConstants.rootUrl}/$imgValue';
-                          
-                      return Image.network(
-                        fullUrl, // Hapus timestamp agar tidak flicker/loading ulang saat setState
+                      return CachedNetworkImage(
+                        imageUrl: fullUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+                        errorWidget: (context, url, error) => _buildPlaceholderImage(),
                       );
                     } else {
                       return _buildPlaceholderImage();
