@@ -447,31 +447,33 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             Icon(icon, size: 18, color: primaryTeal),
             const SizedBox(width: 8),
             Text(title, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkBg)),
-            const SizedBox(width: 12), // Spasi untuk icon edit
-            // ICON EDIT DIPINDAH KE SINI AGAR RAPI (TIDAK MINGGI KE KANAN)
-            if (!widget.isReadOnly && !isEditing)
-              IconButton(
-                onPressed: onToggle,
-                icon: const Icon(LucideIcons.edit, size: 16, color: primaryTeal),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                splashRadius: 20,
-              ),
           ],
         ),
-        if (isEditing)
-          ElevatedButton(
-            onPressed: onToggle,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              minimumSize: const Size(60, 30),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text("SAVE", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-          ),
+        if (!widget.isReadOnly)
+          isEditing
+              ? ElevatedButton(
+                  onPressed: onToggle,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    minimumSize: const Size(60, 30),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: Text("SAVE", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
+                )
+              : GestureDetector(
+                  onTap: onToggle,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: primaryTeal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text("Add/Edit", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+                  ),
+                ),
       ],
     );
   }
@@ -771,22 +773,6 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
     if (widget.isReadOnly) return const SizedBox.shrink();
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(child: _buildLuxuryButton("Upload XLS", LucideIcons.uploadCloud, primaryTeal, () {})),
-            const SizedBox(width: 12),
-            Expanded(child: _buildLuxuryButton("Template", LucideIcons.download, Colors.blueGrey, () async {
-              final url = Uri.parse('https://api.nyutji.com/api/v1/mitras/template');
-              try {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              } catch (e) {
-                if (!mounted) return;
-                NyutjiNotif.showError(context, "Tidak ada browser untuk membuka file.");
-              }
-            })),
-          ],
-        ),
-        const SizedBox(height: 12),
         _buildLuxuryButton("Pamflet Promosi Discount", LucideIcons.megaphone, accentGold, () {}),
       ],
     );
