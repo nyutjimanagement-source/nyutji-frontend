@@ -297,18 +297,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   }
 
   void _showNoPowToast() {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text("Foto bukti belum tersedia untuk tahapan ini", style: GoogleFonts.montserrat(fontSize: 12)),
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.black87,
-      margin: EdgeInsets.only(
-        bottom: MediaQuery.of(context).size.height - 150,
-        left: 16,
-        right: 16,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      dismissDirection: DismissDirection.up,
-    ));
+    NyutjiNotif.showInfo(context, "Foto bukti belum tersedia untuk tahapan ini");
   }
 
   @override
