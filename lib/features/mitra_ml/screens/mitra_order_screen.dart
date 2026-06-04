@@ -330,7 +330,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
             if (currentFilter == "Same Day") return (isFast || serviceType.contains('SAME')) && status != 'DONE' && status != 'PAID';
             if (currentFilter == "Reguler") return (serviceType.contains('REGULER') || serviceType.contains('BIASA')) && status != 'DONE' && status != 'PAID';
-            if (currentFilter == "SELESAI") return status == 'DONE' || status == 'PAID';
+            if (currentFilter == "Selesai") return status == 'DONE' || status == 'PAID';
             return false;
           }).toList();
 
@@ -393,7 +393,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  ...["Same Day", "Reguler", "SELESAI"].map((f) {
+                  ...["Same Day", "Reguler", "Selesai"].map((f) {
                     int count = 0;
                     final allList = [...orderProv.activeOrders, ...orderProv.historyOrders];
                     for (var o in allList) {
@@ -423,7 +423,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
   Widget _buildFilterPill(String label, int count) {
     final bool isSel = currentFilter == label;
-    final bool hasCount = count > 0 && label != "SELESAI";
+    final bool hasCount = count > 0 && label != "Selesai";
     return GestureDetector(
       onTap: () {
         if (currentFilter != label) {
@@ -546,7 +546,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       _animateScrolls(0);
     } else if (filter == "Reguler") {
       _animateScrolls(1);
-    } else if (filter == "SELESAI") {
+    } else if (filter == "Selesai") {
       _animateScrolls(2);
     }
   }
@@ -630,16 +630,16 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             },
           ),
           _buildSummaryCard(
-            label: "SELESAI",
+            label: "Selesai",
             value: "${currencyFormatter.format(totalSelesai)} | $countSelesai",
-            isActive: currentFilter == "SELESAI",
+            isActive: currentFilter == "Selesai",
             activeColor: const Color(0xFF10B981),
             icon: LucideIcons.checkCircle,
             onTap: () {
               _animateScrolls(2);
-              if (currentFilter != "SELESAI") {
+              if (currentFilter != "Selesai") {
                 setState(() {
-                  currentFilter = "SELESAI";
+                  currentFilter = "Selesai";
                   _currentPage = 0;
                 });
                 if (_pageController.hasClients) _pageController.jumpToPage(0);
