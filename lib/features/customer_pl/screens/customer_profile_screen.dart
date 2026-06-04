@@ -346,7 +346,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                         color: Colors.black87,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      textStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500),
+                      textStyle: NyutjiTheme.detail(Colors.white).copyWith(fontSize: 12, fontWeight: FontWeight.w500),
                       showDuration: const Duration(seconds: 4),
                       child: const Icon(LucideIcons.helpCircle, size: 16, color: Colors.grey),
                     )),
