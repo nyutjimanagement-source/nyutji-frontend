@@ -50,7 +50,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
-    _fetchRandomPosImage();
+    _fetchMitraItemsData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
       context.read<WalletProvider>().fetchWallet();
@@ -69,27 +69,30 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     });
   }
 
-  Future<void> _fetchRandomPosImage() async {
+  int _servicesCount = 0;
+
+  Future<void> _fetchMitraItemsData() async {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      final mitraId = auth.user?['id'];
+      final mitraId = auth.user?['identifier'] ?? auth.user?['id'];
       if (mitraId == null) return;
       
       final api = ApiService();
       final items = await api.getMitraItems(mitraId);
       
-      final itemsWithPhoto = items.where((i) => i['url_photo'] != null).toList();
-      if (itemsWithPhoto.isNotEmpty) {
-        final random = Random();
-        final randomItem = itemsWithPhoto[random.nextInt(itemsWithPhoto.length)];
-        if (mounted) {
-          setState(() {
+      if (mounted) {
+        setState(() {
+          _servicesCount = items.length;
+          final itemsWithPhoto = items.where((i) => i['url_photo'] != null).toList();
+          if (itemsWithPhoto.isNotEmpty) {
+            final random = Random();
+            final randomItem = itemsWithPhoto[random.nextInt(itemsWithPhoto.length)];
             _randomPosImage = randomItem['url_photo'];
-          });
-        }
+          }
+        });
       }
     } catch (e) {
-      debugPrint("Error fetching random pos image: $e");
+      debugPrint("Error fetching mitra items data: $e");
     }
   }
 
@@ -201,8 +204,18 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           const SizedBox(height: 24),
           _buildQuickActionsGrid(),
           const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text("Informasi Laundry", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+          ),
+          const SizedBox(height: 12),
           _buildDanaSiapDitarikGrid(),
           const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text("Cuaca Hari Ini", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+          ),
+          const SizedBox(height: 12),
           const ForecastWeather(),
           const SizedBox(height: 24),
           _buildLiveQueueMachine(),
@@ -464,7 +477,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
               _buildSmallMetricCard("Dana Siap Ditarik", Formatters.currencyIdr(withdrawableDisplay), LucideIcons.wallet, primaryTeal, () {
                 _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
               }),
-              _buildSmallMetricCard("Layanan", "0", LucideIcons.tags, Colors.blue, () {}),
+              _buildSmallMetricCard("Layanan", "$_servicesCount", LucideIcons.tags, Colors.blue, () {}),
               _buildSmallMetricCard("Kurir", "$couriersCount", LucideIcons.bike, Colors.indigo, () {}),
               _buildSmallMetricCard("Mesin Cuci", "0", LucideIcons.disc, Colors.purple, () {}),
             ],
