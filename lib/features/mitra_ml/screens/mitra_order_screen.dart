@@ -334,6 +334,15 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
             return false;
           }).toList();
 
+          filtered.sort((a, b) {
+            DateTime getParsedDate(dynamic o) {
+              final val = o['updated_at'] ?? o['updatedAt'] ?? o['doneAt'] ?? o['done_at'] ?? o['createdAt'] ?? o['created_at'];
+              if (val == null) return DateTime.fromMillisecondsSinceEpoch(0);
+              return DateTime.tryParse(val.toString()) ?? DateTime.fromMillisecondsSinceEpoch(0);
+            }
+            return getParsedDate(b).compareTo(getParsedDate(a));
+          });
+
           return Column(
             children: [
               _buildTopSection(orderProv),
