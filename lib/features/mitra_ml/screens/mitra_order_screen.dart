@@ -242,19 +242,22 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                     // Watermark diagonal
                     Positioned.fill(
                       child: IgnorePointer(
-                        child: Center(
-                          child: Transform.rotate(
-                            angle: -0.5,
-                            child: Text(
-                              'Properti Nyutji Management',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white.withValues(alpha: 0.45),
-                                letterSpacing: 1.2,
-                                shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: List.generate(3, (index) => 
+                            Transform.rotate(
+                              angle: -0.5,
+                              child: Text(
+                                'Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.45),
+                                  letterSpacing: 1.2,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                ),
                               ),
-                            ),
+                            )
                           ),
                         ),
                       ),
@@ -1883,12 +1886,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                         const Divider(height: 20),
                         _buildDetailSearchRow("Kurir", courierName),
                         const Divider(height: 20),
-                        _buildDetailSearchRow("Layanan", serviceType.isNotEmpty ? serviceType : 'Reguler'),
+                        _buildDetailSearchRow("Layanan", serviceType.isNotEmpty ? serviceType.replaceAll('_', ' ').toLowerCase().split(' ').map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '').join(' ') : 'Reguler'),
                         const Divider(height: 20),
-                        _buildDetailSearchRow("Tgl Order", DateFormat('dd MMM yyyy, HH:mm').format(orderDate)),
+                        _buildDetailSearchRow("Tgl Order", DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(orderDate)),
                         if (finishDate != null) ...[
                           const Divider(height: 20),
-                          _buildDetailSearchRow("Tgl Selesai", DateFormat('dd MMM yyyy, HH:mm').format(finishDate)),
+                          _buildDetailSearchRow("Tgl Selesai", DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(finishDate)),
                         ],
                         const Divider(height: 20),
                         Row(
