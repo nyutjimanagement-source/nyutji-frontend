@@ -8,7 +8,6 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/utils/nyutji_parser.dart';
 import '../../../core/widgets/nyutji_pickup_picker.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/wallet_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
