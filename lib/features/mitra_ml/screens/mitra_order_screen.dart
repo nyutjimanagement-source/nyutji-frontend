@@ -914,7 +914,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                           const SizedBox(width: 8),
                           Container(width: 4, height: 4, decoration: BoxDecoration(color: Colors.grey[400], shape: BoxShape.circle)),
                           const SizedBox(width: 8),
-                          Text(DateFormat('dd MMM, HH:mm', 'id_ID').format(doneAt),
+                          Text(DateFormat('dd MMM', 'id_ID').format(doneAt),
                             style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
                         ],
                       ),
