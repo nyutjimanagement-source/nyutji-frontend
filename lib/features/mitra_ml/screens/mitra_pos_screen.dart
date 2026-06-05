@@ -79,7 +79,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
           builder: (context, setModalState) {
             return Container(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 24,
                 left: 24, right: 24, top: 24
               ),
               decoration: const BoxDecoration(
@@ -153,7 +153,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                               children: [
                                 Icon(Icons.camera_alt_outlined, size: 40, color: primaryTeal.withValues(alpha: 0.6)),
                                 const SizedBox(height: 8),
-                                Text("Ketuk untuk Ambil Foto", style: GoogleFonts.montserrat(color: primaryTeal, fontWeight: FontWeight.w600, fontSize: 13)),
+                                Text("Tekan untuk Ambil Foto", style: GoogleFonts.montserrat(color: primaryTeal, fontWeight: FontWeight.w600, fontSize: 13)),
                               ],
                             ),
                     ),
@@ -263,13 +263,13 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                       ),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
+                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24),
                       sliver: SliverGrid(
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           mainAxisSpacing: 0,
-                          crossAxisSpacing: 16,
-                          childAspectRatio: 0.65, // Taller cells to accommodate staggered padding
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 0.68, // Sedikit lebih besar
                         ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
@@ -286,8 +286,8 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
 
                             return Padding(
                               padding: EdgeInsets.only(
-                                top: isOdd ? 32.0 : 0.0,
-                                bottom: isOdd ? 0.0 : 32.0,
+                                top: isOdd ? 24.0 : 0.0,
+                                bottom: isOdd ? 0.0 : 24.0,
                               ),
                               child: Container(
                                 decoration: BoxDecoration(
