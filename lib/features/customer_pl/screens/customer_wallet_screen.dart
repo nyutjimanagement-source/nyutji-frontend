@@ -588,7 +588,7 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
                               child: Transform.rotate(
                                 angle: -0.5,
                                 child: Text(
-                                  'Properti Nyutji Management',
+                                  'Nyutji Management',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 18, fontWeight: FontWeight.w900,
                                     color: Colors.white.withValues(alpha: 0.45),

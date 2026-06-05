@@ -446,7 +446,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                             child: Transform.rotate(
                               angle: -0.785,
                               child: Text(
-                                'Properti Nyutji Management',
+                                'Nyutji Management',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w900,
@@ -466,7 +466,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                               child: Transform.rotate(
                                 angle: -0.785,
                                 child: Text(
-                                  'Properti Nyutji Management',
+                                  'Nyutji Management',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w900,
@@ -486,7 +486,7 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                             child: Transform.rotate(
                               angle: -0.785,
                               child: Text(
-                                'Properti Nyutji Management',
+                                'Nyutji Management',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w900,
