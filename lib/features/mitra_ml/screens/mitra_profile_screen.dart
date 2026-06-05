@@ -735,10 +735,22 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: primaryTeal.withValues(alpha: 0.1),
-            child: const Icon(LucideIcons.user, size: 14, color: primaryTeal),
+          Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              color: primaryTeal.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: (user['profile_photo'] != null && user['profile_photo'].toString().isNotEmpty)
+                ? Image.network(
+                    user['profile_photo'].toString().startsWith('http') 
+                      ? user['profile_photo'].toString() 
+                      : "${ApiConstants.rootUrl}/${user['profile_photo']}",
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(LucideIcons.user, size: 14, color: primaryTeal),
+                  )
+                : const Icon(LucideIcons.user, size: 14, color: primaryTeal),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -783,10 +795,22 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: Colors.grey[100],
-            child: const Icon(LucideIcons.user, size: 14, color: textGrey),
+          Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              shape: BoxShape.circle,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: (user['profile_photo'] != null && user['profile_photo'].toString().isNotEmpty)
+                ? Image.network(
+                    user['profile_photo'].toString().startsWith('http') 
+                      ? user['profile_photo'].toString() 
+                      : "${ApiConstants.rootUrl}/${user['profile_photo']}",
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(LucideIcons.user, size: 14, color: textGrey),
+                  )
+                : const Icon(LucideIcons.user, size: 14, color: textGrey),
           ),
           const SizedBox(width: 12),
           Expanded(
