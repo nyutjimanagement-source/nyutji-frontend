@@ -11,6 +11,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/services/api_service.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 const Color primaryTeal = Color(0xFF1E5655);
 
@@ -237,7 +238,17 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: primaryTeal))
+        ? GridView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.68,
+            ),
+            itemCount: 6,
+            itemBuilder: (context, index) => const ShimmerLoading(height: 200, borderRadius: 16),
+          )
         : _groupedItems.isEmpty
           ? Center(child: Text("Belum ada layanan.", style: GoogleFonts.montserrat(color: Colors.grey)))
           : CustomScrollView(

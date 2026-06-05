@@ -8,6 +8,7 @@ import '../../../core/utils/formatters.dart';
 
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class MitraPricingScreen extends StatefulWidget {
   final bool isReadOnly;
@@ -329,14 +330,26 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
       children: [
         Scaffold(
           backgroundColor: const Color(0xFFF9FAFB),
-          body: _isInitialLoading 
-            ? const Center(child: CircularProgressIndicator(color: primaryTeal))
-            : CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildElegantHeader(mitraName),
-                  SliverToBoxAdapter(
-                    child: Padding(
+          body: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              _buildElegantHeader(mitraName),
+              if (_isInitialLoading)
+                SliverPadding(
+                  padding: const EdgeInsets.all(20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: ShimmerLoading(height: 70, borderRadius: 12),
+                      ),
+                      childCount: 6,
+                    ),
+                  ),
+                )
+              else
+                SliverToBoxAdapter(
+                  child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
