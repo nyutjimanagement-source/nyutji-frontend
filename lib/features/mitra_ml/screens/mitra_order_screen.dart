@@ -224,19 +224,22 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                 minScale: 0.8,
                 maxScale: 5.0,
                 child: Stack(
+                  fit: StackFit.expand,
                   children: [
                     // Gambar
-                    CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (context, url) => const SizedBox(
-                        height: 260,
-                        child: Center(child: CircularProgressIndicator(color: primaryTeal)),
-                      ),
-                      errorWidget: (context, url, error) => const SizedBox(
-                        height: 260,
-                        child: Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 50)),
+                    Positioned.fill(
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (context, url) => const SizedBox(
+                          height: 260,
+                          child: Center(child: CircularProgressIndicator(color: primaryTeal)),
+                        ),
+                        errorWidget: (context, url, error) => const SizedBox(
+                          height: 260,
+                          child: Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 50)),
+                        ),
                       ),
                     ),
                     // Watermark diagonal
