@@ -283,11 +283,18 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       if (e is DioException) {
-        final data = e.response?.data;
-        if (data is Map) {
-          _lastErrorMessage = data['message']?.toString() ?? e.message;
+        if (e.type == DioExceptionType.connectionError || 
+            e.type == DioExceptionType.connectionTimeout || 
+            (e.message ?? '').toLowerCase().contains('connection error') ||
+            (e.message ?? '').toLowerCase().contains('connection reset')) {
+          _lastErrorMessage = "Gangguan Koneksi Internet";
         } else {
-          _lastErrorMessage = e.message;
+          final data = e.response?.data;
+          if (data is Map) {
+            _lastErrorMessage = data['message']?.toString() ?? e.message;
+          } else {
+            _lastErrorMessage = e.message;
+          }
         }
       } else {
         _lastErrorMessage = e.toString();
@@ -348,6 +355,9 @@ class AuthProvider with ChangeNotifier {
       }
       if (lowErr == 'validation error') {
         return 'Data yang Anda masukkan sudah digunakan. Periksa kembali.';
+      }
+      if (lowErr.contains('connection error') || lowErr.contains('connection reset')) {
+        return 'Gangguan Koneksi Internet';
       }
 
       
@@ -556,18 +566,25 @@ class AuthProvider with ChangeNotifier {
       }
     } catch (e) {
       if (e is DioException) {
-        final data = e.response?.data;
-        debugPrint("====== ISI ERROR BACKEND ======");
-        debugPrint(data?.toString() ?? "KOSONG");
-        debugPrint("===============================");
-        
-        if (data is Map) {
-          _lastErrorMessage = data['message']?.toString() ?? e.message;
-          if (data['error'] != null) {
-            _lastErrorMessage = "$_lastErrorMessage\nDetail: ${data['error']}";
-          }
+        if (e.type == DioExceptionType.connectionError || 
+            e.type == DioExceptionType.connectionTimeout || 
+            (e.message ?? '').toLowerCase().contains('connection error') ||
+            (e.message ?? '').toLowerCase().contains('connection reset')) {
+          _lastErrorMessage = "Gangguan Koneksi Internet";
         } else {
-          _lastErrorMessage = e.message;
+          final data = e.response?.data;
+          debugPrint("====== ISI ERROR BACKEND ======");
+          debugPrint(data?.toString() ?? "KOSONG");
+          debugPrint("===============================");
+          
+          if (data is Map) {
+            _lastErrorMessage = data['message']?.toString() ?? e.message;
+            if (data['error'] != null) {
+              _lastErrorMessage = "$_lastErrorMessage\nDetail: ${data['error']}";
+            }
+          } else {
+            _lastErrorMessage = e.message;
+          }
         }
       } else {
         _lastErrorMessage = e.toString();
