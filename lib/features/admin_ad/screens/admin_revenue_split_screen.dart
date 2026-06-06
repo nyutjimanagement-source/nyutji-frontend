@@ -47,6 +47,22 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     return (item['doneAt'] ?? item['done_at'] ?? item['created_at'] ?? item['createdAt'])?.toString();
   }
 
+  String _getMonthName(int month) {
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    return months[month - 1];
+  }
+
+  String _getDynamicSummaryTitle() {
+    final now = DateTime.now();
+    if (_selectedPeriod == "Harian") {
+      return "Ringkasan Pendapatan - ${now.day} ${_getMonthName(now.month)}";
+    } else if (_selectedPeriod == "Bulanan") {
+      return "Ringkasan Pendapatan - ${_getMonthName(now.month)}";
+    } else {
+      return "Ringkasan Pendapatan - ${now.year}";
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -169,7 +185,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Ringkasan Pendapatan",
+            _getDynamicSummaryTitle(),
             style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const SizedBox(height: 12),
@@ -323,7 +339,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
                     SizedBox(width: 24, child: Text("${index + 1}.", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGold))),
                     Expanded(
                       flex: 5,
-                      child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white), overflow: TextOverflow.ellipsis),
+                      child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
                     ),
                     Expanded(
                       flex: 4,
@@ -345,115 +361,188 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
   }
 
   Widget _buildCollapsibleSplitsList(List<dynamic> splits) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: () => setState(() => _isRiwayatExpanded = !_isRiwayatExpanded),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Riwayat Split (Per Order)",
-                  style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                Icon(
-                  _isRiwayatExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
-                  color: accentGold,
-                  size: 20,
-                )
-              ],
-            ),
-          ),
-          if (_isRiwayatExpanded) ...[
-            const SizedBox(height: 12),
-            if (splits.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
+    bool isSearchVisible = false;
+    String searchQuery = '';
+
+    return StatefulBuilder(
+      builder: (context, setStateLocal) {
+        final searchedSplits = searchQuery.isEmpty
+            ? splits
+            : splits.where((s) {
+                final orderNo = (s['order_number'] ?? s['orderNumber'] ?? s['orderId'] ?? '').toString().toLowerCase();
+                return orderNo.contains(searchQuery.toLowerCase());
+              }).toList();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () => setState(() => _isRiwayatExpanded = !_isRiwayatExpanded),
+                    child: Text(
+                      "Riwayat Split (Per Order)",
+                      style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
+                  Row(
                     children: [
-                      Icon(LucideIcons.inbox, size: 64, color: Colors.white.withValues(alpha: 0.2)),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Belum ada data revenue split",
-                        style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[500]),
+                      GestureDetector(
+                        onTap: () {
+                          if (!_isRiwayatExpanded) {
+                            setState(() => _isRiwayatExpanded = true);
+                          }
+                          setStateLocal(() {
+                            isSearchVisible = !isSearchVisible;
+                            if (!isSearchVisible) searchQuery = '';
+                          });
+                        },
+                        child: Icon(LucideIcons.search, color: accentGold, size: 20),
+                      ),
+                      const SizedBox(width: 16),
+                      GestureDetector(
+                        onTap: () => setState(() => _isRiwayatExpanded = !_isRiwayatExpanded),
+                        child: Icon(
+                          _isRiwayatExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                          color: accentGold,
+                          size: 20,
+                        ),
                       ),
                     ],
+                  )
+                ],
+              ),
+              if (_isRiwayatExpanded && isSearchVisible) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                  child: TextField(
+                    style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: "Cari nomor order...",
+                      hintStyle: GoogleFonts.montserrat(color: Colors.grey[500], fontSize: 14),
+                      icon: Icon(LucideIcons.search, size: 16, color: Colors.grey[400]),
+                    ),
+                    onChanged: (val) {
+                      setStateLocal(() {
+                        searchQuery = val;
+                      });
+                    },
                   ),
                 ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: splits.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-              final split = splits[index];
-              final orderNo = split['order_number'] ?? split['orderNumber'] ?? split['orderId'] ?? '-';
-              
-              final adminAmount = double.tryParse(split['splits']?['admin']?.toString() ?? '0') ?? 0.0;
-              final mitraAmount = double.tryParse(split['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
-              final kurirAmount = double.tryParse(split['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
+              ],
+              if (_isRiwayatExpanded) ...[
+                const SizedBox(height: 12),
+                if (searchedSplits.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        children: [
+                          Icon(LucideIcons.inbox, size: 64, color: Colors.white.withValues(alpha: 0.2)),
+                          const SizedBox(height: 16),
+                          Text(
+                            searchQuery.isNotEmpty ? "Order tidak ditemukan" : "Belum ada data revenue split",
+                            style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[500]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: searchedSplits.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final split = searchedSplits[index];
+                      final orderNo = split['order_number'] ?? split['orderNumber'] ?? split['orderId'] ?? '-';
+                      final orderRp = Formatters.currencyIdr(double.tryParse(split['totalPrice']?.toString() ?? '0') ?? 0.0);
+                      
+                      final adminAmount = double.tryParse(split['splits']?['admin']?.toString() ?? '0') ?? 0.0;
+                      final mitraAmount = double.tryParse(split['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
+                      final kurirAmount = double.tryParse(split['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
 
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: secondaryDark.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Order: $orderNo",
-                              style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: accentGold),
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: secondaryDark.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: primaryTeal.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                "Split",
-                                style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal),
-                              ),
-                            )
-                          ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Order: $orderNo",
+                                            style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: accentGold),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            "Order Rupiah: $orderRp",
+                                            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey[300]),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: primaryTeal.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        "Split",
+                                        style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(child: _buildSplitRow("Admin", adminAmount, accentGold)),
+                                    Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
+                                    Expanded(child: _buildSplitRow("Mitra", mitraAmount, accentGreen)),
+                                    Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
+                                    Expanded(child: _buildSplitRow("Kurir", kurirAmount, Colors.orange)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(child: _buildSplitRow("Admin", adminAmount, accentGold)),
-                            Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
-                            Expanded(child: _buildSplitRow("Mitra", mitraAmount, accentGreen)),
-                            Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.1)),
-                            Expanded(child: _buildSplitRow("Kurir", kurirAmount, Colors.orange)),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                ),
-              );
-            },
+              ],
+              const SizedBox(height: 40),
+            ],
           ),
-          ],
-          const SizedBox(height: 40),
-        ],
-      ),
+        );
+      },
     );
   }
 
