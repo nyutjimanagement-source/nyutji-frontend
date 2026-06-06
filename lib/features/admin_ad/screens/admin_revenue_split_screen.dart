@@ -195,7 +195,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 1.5,
+            childAspectRatio: 2.2,
             children: [
               _buildGlassCard("Total Order", totalOrders.toString(), LucideIcons.shoppingBag, accentBlue),
               _buildGlassCard("Admin (Nyutji)", Formatters.currencyIdr(adminRev), LucideIcons.building, accentGold),
@@ -338,18 +338,19 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
                   children: [
                     SizedBox(width: 24, child: Text("${index + 1}.", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGold))),
                     Expanded(
-                      flex: 5,
+                      flex: 6,
                       child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
                     ),
                     Expanded(
-                      flex: 4,
+                      flex: 3,
                       child: Text(item['city'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400]), overflow: TextOverflow.ellipsis),
                     ),
-                    if (showRp)
-                      Expanded(
-                        flex: 4,
-                        child: Text(Formatters.currencyIdr(item['rev'] as double), textAlign: TextAlign.right, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGreen)),
-                      ),
+                    Expanded(
+                      flex: 4,
+                      child: showRp
+                          ? Text(Formatters.currencyIdr(item['rev'] as double), textAlign: TextAlign.right, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGreen))
+                          : const SizedBox.shrink(),
+                    ),
                   ],
                 ),
               );
