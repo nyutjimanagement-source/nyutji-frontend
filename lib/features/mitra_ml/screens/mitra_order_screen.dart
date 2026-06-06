@@ -242,25 +242,61 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                         ),
                       ),
                     ),
-                    // Watermark diagonal
+                    // Watermark 1 — kiri atas
+                    Positioned(
+                      top: 40, left: -10,
+                      child: IgnorePointer(
+                        child: Transform.rotate(
+                          angle: -0.785,
+                          child: Text(
+                            'Nyutji Management',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white.withValues(alpha: 0.45),
+                              letterSpacing: 1.2,
+                              shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Watermark 2 — tengah (sedikit geser kanan)
                     Positioned.fill(
                       child: IgnorePointer(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: List.generate(3, (index) => 
-                            Transform.rotate(
-                              angle: -0.5,
-                              child: Text(
-                                'Nyutji Management',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white.withValues(alpha: 0.45),
-                                  letterSpacing: 1.2,
-                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                                ),
+                        child: Align(
+                          alignment: const Alignment(0.2, 0.0),
+                          child: Transform.rotate(
+                            angle: -0.785,
+                            child: Text(
+                              'Nyutji Management',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white.withValues(alpha: 0.45),
+                                letterSpacing: 1.2,
+                                shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                               ),
-                            )
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Watermark 3 — kanan bawah
+                    Positioned(
+                      bottom: 60, right: -10,
+                      child: IgnorePointer(
+                        child: Transform.rotate(
+                          angle: -0.785,
+                          child: Text(
+                            'Nyutji Management',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white.withValues(alpha: 0.45),
+                              letterSpacing: 1.2,
+                              shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                            ),
                           ),
                         ),
                       ),
@@ -1273,23 +1309,58 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
               "label": isPremium ? "Diterima" : "Timbang", 
               "icon": isPremium ? LucideIcons.packageCheck : 'assets/icons/scale.png', 
               "active": isStep1,
-              "onTap": isPremium ? () => _showPowDialog(o['proofs'], ['WEIGHING'], "Diterima") : null
+              "onTap": () => _showPowDialog(o['proofs'], ['WEIGHING', 'SEARCHING', 'WAITING_DROPOFF'], isPremium ? "Diterima" : "Timbang")
             },
-            {"label": "Cuci", "icon": LucideIcons.droplets, "active": isStep2},
-            {"label": "Packing", "icon": LucideIcons.package, "active": isStep3},
-            {"label": "Selesai", "icon": LucideIcons.checkCircle, "active": isStep5},
+            {
+              "label": "Cuci", 
+              "icon": LucideIcons.droplets, 
+              "active": isStep2,
+              "onTap": () => _showPowDialog(o['proofs'], ['WASHING'], "Cuci")
+            },
+            {
+              "label": "Packing", 
+              "icon": LucideIcons.package, 
+              "active": isStep3,
+              "onTap": () => _showPowDialog(o['proofs'], ['PACKING'], "Packing")
+            },
+            {
+              "label": "Selesai", 
+              "icon": LucideIcons.checkCircle, 
+              "active": isStep5,
+              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERED', 'COMPLETED', 'PICKUP_READY'], "Selesai")
+            },
           ]
         : [
             {
               "label": isPremium ? "Diterima" : "Timbang", 
               "icon": isPremium ? LucideIcons.packageCheck : 'assets/icons/scale.png', 
               "active": isStep1,
-              "onTap": isPremium ? () => _showPowDialog(o['proofs'], ['WEIGHING'], "Diterima") : null
+              "onTap": () => _showPowDialog(o['proofs'], ['WEIGHING', 'SEARCHING', 'WAITING_DROPOFF'], isPremium ? "Diterima" : "Timbang")
             },
-            {"label": "Cuci", "icon": LucideIcons.droplets, "active": isStep2},
-            {"label": "Packing", "icon": LucideIcons.package, "active": isStep3},
-            {"label": "Kirim", "icon": LucideIcons.navigation, "active": isStep4},
-            {"label": "Selesai", "icon": LucideIcons.checkCircle, "active": isStep5},
+            {
+              "label": "Cuci", 
+              "icon": LucideIcons.droplets, 
+              "active": isStep2,
+              "onTap": () => _showPowDialog(o['proofs'], ['WASHING'], "Cuci")
+            },
+            {
+              "label": "Packing", 
+              "icon": LucideIcons.package, 
+              "active": isStep3,
+              "onTap": () => _showPowDialog(o['proofs'], ['PACKING'], "Packing")
+            },
+            {
+              "label": "Kirim", 
+              "icon": LucideIcons.navigation, 
+              "active": isStep4,
+              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERING'], "Kirim")
+            },
+            {
+              "label": "Selesai", 
+              "icon": LucideIcons.checkCircle, 
+              "active": isStep5,
+              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERED', 'COMPLETED', 'PICKUP_READY'], "Selesai")
+            },
           ];
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
