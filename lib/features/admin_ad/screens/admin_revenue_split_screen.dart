@@ -241,7 +241,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     for (var s in splits) {
       final name = (s['mitra']?['name'] ?? 'Unknown').toString();
       if (name == 'Unknown' || name == '-') continue;
-      final city = '-'; // Data kab/kota tidak diekspos backend secara default
+      const city = '-'; // Data kab/kota tidak diekspos backend secara default
       final rev = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
       if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
       map[name]!['rev'] += rev;
@@ -258,7 +258,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     for (var s in splits) {
       final name = (s['customer']?['name'] ?? 'Unknown').toString();
       if (name == 'Unknown' || name == '-') continue;
-      final city = '-';
+      const city = '-';
       final admin = double.tryParse(s['splits']?['admin']?.toString() ?? '0') ?? 0.0;
       final mitra = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
       final kurir = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
@@ -278,7 +278,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     for (var s in splits) {
       final name = (s['courier']?['name'] ?? 'Unknown').toString();
       if (name == 'Unknown' || name == '-') continue;
-      final city = '-';
+      const city = '-';
       final rev = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
       if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
       map[name]!['rev'] += rev;
@@ -446,9 +446,10 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
                       ],
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          ),
           ],
           const SizedBox(height: 40),
         ],
