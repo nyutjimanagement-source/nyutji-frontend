@@ -21,6 +21,32 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
   final Color accentBlue = const Color(0xFF3B82F6);
   final Color accentGreen = const Color(0xFF10B981);
 
+  String _selectedPeriod = 'Harian';
+  bool _isRiwayatExpanded = false;
+
+  bool _isDateInPeriod(String? dateStr, String period) {
+    if (dateStr == null || dateStr.isEmpty) return false;
+    DateTime date;
+    try {
+      date = DateTime.parse(dateStr).toLocal();
+    } catch (e) {
+      return false;
+    }
+    final now = DateTime.now();
+    if (period == "Harian") {
+      return date.year == now.year && date.month == now.month && date.day == now.day;
+    } else if (period == "Bulanan") {
+      return date.year == now.year && date.month == now.month;
+    } else if (period == "Tahunan") {
+      return date.year == now.year;
+    }
+    return true;
+  }
+
+  String? _getDate(dynamic item) {
+    return (item['doneAt'] ?? item['done_at'] ?? item['created_at'] ?? item['createdAt'])?.toString();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -55,8 +81,8 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
             return const Center(child: CircularProgressIndicator(color: Color(0xFFF59E0B)));
           }
 
-          final summary = provider.summary;
           final splits = provider.revenueSplits;
+          final filteredSplits = splits.where((o) => _isDateInPeriod(_getDate(o), _selectedPeriod)).toList();
 
           return RefreshIndicator(
             color: accentGold,
@@ -67,9 +93,15 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSummaryHeader(summary),
+                  _buildFilterCapsule(),
+                  const SizedBox(height: 16),
+                  _buildSummaryHeader(filteredSplits),
+                  const SizedBox(height: 16),
+                  _buildTopMitras(filteredSplits),
+                  _buildTopCustomers(filteredSplits),
+                  _buildTopKurirs(filteredSplits),
                   const SizedBox(height: 24),
-                  _buildSplitsList(splits),
+                  _buildCollapsibleSplitsList(filteredSplits),
                 ],
               ),
             ),
@@ -79,11 +111,57 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     );
   }
 
-  Widget _buildSummaryHeader(Map<String, dynamic>? summary) {
-    final totalOrders = summary?['totalOrders'] ?? 0;
-    final adminRev = double.tryParse(summary?['totalAdminRevenue']?.toString() ?? '0') ?? 0.0;
-    final mitraRev = double.tryParse(summary?['totalMitraRevenue']?.toString() ?? '0') ?? 0.0;
-    final kurirRev = double.tryParse(summary?['totalKurirRevenue']?.toString() ?? '0') ?? 0.0;
+  Widget _buildFilterCapsule() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: secondaryDark.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: Row(
+          children: ["Harian", "Bulanan", "Tahunan"].map((String period) {
+            final isSelected = _selectedPeriod == period;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedPeriod = period),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? accentGold : Colors.transparent,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Center(
+                    child: Text(
+                      period,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected ? darkGray : Colors.grey[400],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryHeader(List<dynamic> splits) {
+    final totalOrders = splits.length;
+    double adminRev = 0;
+    double mitraRev = 0;
+    double kurirRev = 0;
+    for (var s in splits) {
+      adminRev += double.tryParse(s['splits']?['admin']?.toString() ?? '0') ?? 0.0;
+      mitraRev += double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
+      kurirRev += double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -158,41 +236,162 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     );
   }
 
-  Widget _buildSplitsList(List<dynamic> splits) {
-    if (splits.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            children: [
-              Icon(LucideIcons.inbox, size: 64, color: Colors.white.withValues(alpha: 0.2)),
-              const SizedBox(height: 16),
-              Text(
-                "Belum ada data revenue split",
-                style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[500]),
-              ),
-            ],
-          ),
-        ),
-      );
+  Widget _buildTopMitras(List<dynamic> splits) {
+    Map<String, Map<String, dynamic>> map = {};
+    for (var s in splits) {
+      final name = (s['mitra']?['name'] ?? 'Unknown').toString();
+      if (name == 'Unknown' || name == '-') continue;
+      final city = '-'; // Data kab/kota tidak diekspos backend secara default
+      final rev = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
+      if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
+      map[name]!['rev'] += rev;
     }
+    final list = map.values.toList();
+    list.sort((a, b) => b['rev'].compareTo(a['rev']));
+    final top5 = list.take(5).toList();
+    if (top5.isEmpty) return const SizedBox.shrink();
+    return _buildTopList("5 Top Revenue Mitra Laundry", top5, showRp: true, icon: LucideIcons.store);
+  }
 
+  Widget _buildTopCustomers(List<dynamic> splits) {
+    Map<String, Map<String, dynamic>> map = {};
+    for (var s in splits) {
+      final name = (s['customer']?['name'] ?? 'Unknown').toString();
+      if (name == 'Unknown' || name == '-') continue;
+      final city = '-';
+      final admin = double.tryParse(s['splits']?['admin']?.toString() ?? '0') ?? 0.0;
+      final mitra = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
+      final kurir = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
+      final rev = (s['totalPrice'] != null) ? (double.tryParse(s['totalPrice'].toString()) ?? 0.0) : (admin + mitra + kurir);
+      if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
+      map[name]!['rev'] += rev;
+    }
+    final list = map.values.toList();
+    list.sort((a, b) => b['rev'].compareTo(a['rev']));
+    final top5 = list.take(5).toList();
+    if (top5.isEmpty) return const SizedBox.shrink();
+    return _buildTopList("5 Top Kontributor Customer", top5, showRp: false, icon: LucideIcons.users);
+  }
+
+  Widget _buildTopKurirs(List<dynamic> splits) {
+    Map<String, Map<String, dynamic>> map = {};
+    for (var s in splits) {
+      final name = (s['courier']?['name'] ?? 'Unknown').toString();
+      if (name == 'Unknown' || name == '-') continue;
+      final city = '-';
+      final rev = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
+      if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
+      map[name]!['rev'] += rev;
+    }
+    final list = map.values.toList();
+    list.sort((a, b) => b['rev'].compareTo(a['rev']));
+    final top5 = list.take(5).toList();
+    if (top5.isEmpty) return const SizedBox.shrink();
+    return _buildTopList("5 Top Revenue Mitra Kurir", top5, showRp: true, icon: LucideIcons.bike);
+  }
+
+  Widget _buildTopList(String title, List<Map<String, dynamic>> items, {bool showRp = true, IconData icon = LucideIcons.medal}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: secondaryDark.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16, color: accentGold),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...List.generate(items.length, (index) {
+              final item = items[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  children: [
+                    SizedBox(width: 24, child: Text("${index + 1}.", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGold))),
+                    Expanded(
+                      flex: 5,
+                      child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white), overflow: TextOverflow.ellipsis),
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: Text(item['city'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400]), overflow: TextOverflow.ellipsis),
+                    ),
+                    if (showRp)
+                      Expanded(
+                        flex: 4,
+                        child: Text(Formatters.currencyIdr(item['rev'] as double), textAlign: TextAlign.right, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGreen)),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCollapsibleSplitsList(List<dynamic> splits) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Riwayat Split (Per Order)",
-            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+          GestureDetector(
+            onTap: () => setState(() => _isRiwayatExpanded = !_isRiwayatExpanded),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Riwayat Split (Per Order)",
+                  style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                Icon(
+                  _isRiwayatExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                  color: accentGold,
+                  size: 20,
+                )
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: splits.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
+          if (_isRiwayatExpanded) ...[
+            const SizedBox(height: 12),
+            if (splits.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    children: [
+                      Icon(LucideIcons.inbox, size: 64, color: Colors.white.withValues(alpha: 0.2)),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Belum ada data revenue split",
+                        style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: splits.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
               final split = splits[index];
               final orderNo = split['order_number'] ?? split['orderNumber'] ?? split['orderId'] ?? '-';
               
@@ -247,10 +446,10 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
                       ],
                     ),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
+          ],
           const SizedBox(height: 40),
         ],
       ),
