@@ -252,12 +252,21 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     );
   }
 
+  String _extractCity(dynamic userObj) {
+    if (userObj == null || userObj['identifier'] == null) return '-';
+    final parts = userObj['identifier'].toString().split('-');
+    if (parts.length >= 2) {
+      return parts[1].toUpperCase();
+    }
+    return '-';
+  }
+
   Widget _buildTopMitras(List<dynamic> splits) {
     Map<String, Map<String, dynamic>> map = {};
     for (var s in splits) {
       final name = (s['mitra']?['name'] ?? 'Unknown').toString();
       if (name == 'Unknown' || name == '-') continue;
-      const city = '-'; // Data kab/kota tidak diekspos backend secara default
+      final city = _extractCity(s['mitra']);
       final rev = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
       if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
       map[name]!['rev'] += rev;
@@ -274,7 +283,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     for (var s in splits) {
       final name = (s['customer']?['name'] ?? 'Unknown').toString();
       if (name == 'Unknown' || name == '-') continue;
-      const city = '-';
+      final city = _extractCity(s['customer']);
       final admin = double.tryParse(s['splits']?['admin']?.toString() ?? '0') ?? 0.0;
       final mitra = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
       final kurir = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
@@ -286,7 +295,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     list.sort((a, b) => b['rev'].compareTo(a['rev']));
     final top5 = list.take(5).toList();
     if (top5.isEmpty) return const SizedBox.shrink();
-    return _buildTopList("5 Top Kontributor Customer", top5, showRp: false, icon: LucideIcons.users);
+    return _buildTopList("5 Top Kontributor Customer", top5, showRp: true, icon: LucideIcons.users);
   }
 
   Widget _buildTopKurirs(List<dynamic> splits) {
@@ -294,7 +303,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
     for (var s in splits) {
       final name = (s['courier']?['name'] ?? 'Unknown').toString();
       if (name == 'Unknown' || name == '-') continue;
-      const city = '-';
+      final city = _extractCity(s['courier']);
       final rev = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
       if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
       map[name]!['rev'] += rev;
