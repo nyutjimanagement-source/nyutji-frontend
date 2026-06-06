@@ -137,6 +137,11 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
   }
 
   Widget _buildHomeTab() {
+    final orderProv = context.watch<OrderProvider>();
+    final authProv = context.watch<AuthProvider>();
+    final walletProv = context.watch<WalletProvider>();
+    final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
+
     return Container(
       color: lightGray,
       child: SingleChildScrollView(
@@ -147,9 +152,9 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
             _buildDenseHeader(),
             _buildSystemStatusStrip(),
             const SizedBox(height: 12),
-            _buildDenseSummaryGrid(),
+            _buildDenseSummaryGrid(allOrders, authProv, walletProv),
             const SizedBox(height: 16),
-            _buildMiniLiveChart(),
+            _buildMiniLiveChart(allOrders),
             const SizedBox(height: 16),
             _buildTwoColStats(),
             const SizedBox(height: 16),
@@ -159,6 +164,57 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
         ),
       ),
     );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: ["Hari Ini", "Bulanan", "Tahunan"].map((String choice) {
+              return ListTile(
+                title: Text(choice, style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
+                trailing: selectedPeriod == choice ? const Icon(LucideIcons.check, color: Color(0xFF1E5655)) : null,
+                onTap: () {
+                  setState(() => selectedPeriod = choice);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+        );
+      }
+    );
+  }
+
+  bool _isDateInPeriod(String? dateStr, String period) {
+    if (dateStr == null || dateStr.isEmpty) return false; // Default if no date
+    DateTime date;
+    try {
+      date = DateTime.parse(dateStr).toLocal();
+    } catch (e) {
+      return false;
+    }
+    final now = DateTime.now();
+    if (period == "Hari Ini") {
+      return date.year == now.year && date.month == now.month && date.day == now.day;
+    } else if (period == "Bulanan") {
+      return date.year == now.year && date.month == now.month;
+    } else if (period == "Tahunan") {
+      return date.year == now.year;
+    }
+    return true;
+  }
+
+  String? _getDate(dynamic item) {
+    return (item['created_at'] ?? item['createdAt'] ?? item['order_date'] ?? item['orderDate'])?.toString();
+  }
+
+  double _getPrice(dynamic o) {
+    return double.tryParse((o['total_price'] ?? o['totalPrice'] ?? '0').toString()) ?? 0.0;
   }
 
   Widget _buildDenseHeader() {
@@ -277,7 +333,19 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
     );
   }
 
-  Widget _buildDenseSummaryGrid() {
+  Widget _buildDenseSummaryGrid(List<dynamic> allOrders, AuthProvider auth, WalletProvider wallet) {
+    final filteredOrders = allOrders.where((o) => _isDateInPeriod(_getDate(o), selectedPeriod)).toList();
+    final totalOmzet = filteredOrders.fold(0.0, (sum, o) => sum + _getPrice(o));
+    
+    // Asumsikan data user memiliki created_at, jika tidak kita hitung seluruhnya untuk demo
+    final activeUsers = auth.allUsers.where((u) => u['role'] != 'AD');
+    final filteredUsers = activeUsers.where((u) => _isDateInPeriod(_getDate(u), selectedPeriod)).toList();
+    final totalUsersToDisplay = filteredUsers.isNotEmpty ? filteredUsers.length : activeUsers.length;
+
+    final mitras = auth.allUsers.where((u) => u['role'] == 'ML');
+    final filteredMitras = mitras.where((u) => _isDateInPeriod(_getDate(u), selectedPeriod)).toList();
+    final totalMitrasToDisplay = filteredMitras.isNotEmpty ? filteredMitras.length : mitras.length;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -287,15 +355,18 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Ringkasan Eksekutif", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.grey[300]!)),
-                child: Row(
-                  children: [
-                    Text("Hari Ini", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
-                    const SizedBox(width: 4),
-                    const Icon(LucideIcons.chevronDown, size: 12),
-                  ],
+              GestureDetector(
+                onTap: _showFilterSheet,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.grey[300]!)),
+                  child: Row(
+                    children: [
+                      Text(selectedPeriod, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+                      const SizedBox(width: 4),
+                      const Icon(LucideIcons.chevronDown, size: 12),
+                    ],
+                  ),
                 ),
               )
             ],
@@ -309,27 +380,21 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
             crossAxisSpacing: 10,
             childAspectRatio: 2.2,
             children: [
-              Consumer<WalletProvider>(
-                builder: (context, wallet, _) => _buildKPIBox("Omzet Platform", Formatters.currencyIdr(wallet.balance), "+12.5%", true),
+              _buildKPIBox("Omzet Platform", Formatters.currencyIdr(totalOmzet), "+12.5%", true),
+              _buildKPIBox(
+                "Total Pesanan", 
+                filteredOrders.length.toString(), 
+                "+5.2%", 
+                true,
+                onTap: () => _showOrderListModal(context, context.read<OrderProvider>())
               ),
-              Consumer<OrderProvider>(
-                builder: (context, order, _) => _buildKPIBox(
-                  "Total Pesanan", 
-                  (order.activeOrders.length + order.historyOrders.length).toString(), 
-                  "+5.2%", 
-                  true,
-                  onTap: () => _showOrderListModal(context, order)
-                ),
+              _buildKPIBox(
+                "User Aktif", 
+                totalUsersToDisplay.toString(), 
+                "+${auth.pendingApprovals.length} baru", 
+                true,
               ),
-              Consumer<AuthProvider>(
-                builder: (context, auth, _) => _buildKPIBox(
-                  "User Aktif", 
-                  auth.allUsers.where((u) => u['role'] != 'AD').length.toString(), 
-                  "+${auth.pendingApprovals.length} baru", 
-                  true,
-                ),
-              ),
-              _buildKPIBox("Mitra Online", "8", "+0%", true),
+              _buildKPIBox("Mitra Online", totalMitrasToDisplay.toString(), "+0%", true),
             ],
           )
         ],
@@ -343,33 +408,32 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(title, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w600)),
-          const Spacer(),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(val, style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkGray, letterSpacing: -0.5)),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(color: isUp ? Colors.green[50] : Colors.red[50], borderRadius: BorderRadius.circular(4)),
-                child: Row(
-                  children: [
-                    Icon(isUp ? LucideIcons.trendingUp : LucideIcons.trendingDown, size: 8, color: isUp ? Colors.green[700] : Colors.red[700]),
-                    const SizedBox(width: 2),
-                    Text(percent, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: isUp ? Colors.green[700] : Colors.red[700])),
-                  ],
-                ),
-              )
-            ],
-          )
-        ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(color: isUp ? Colors.green[50] : Colors.red[50], borderRadius: BorderRadius.circular(4)),
+                  child: Row(
+                    children: [
+                      Icon(isUp ? LucideIcons.trendingUp : LucideIcons.trendingDown, size: 8, color: isUp ? Colors.green[700] : Colors.red[700]),
+                      const SizedBox(width: 2),
+                      Text(percent, style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.bold, color: isUp ? Colors.green[700] : Colors.red[700])),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            const Spacer(),
+            Text(val, style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkGray, letterSpacing: -0.5), overflow: TextOverflow.ellipsis, maxLines: 1),
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -539,7 +603,46 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
     );
   }
 
-  Widget _buildMiniLiveChart() {
+  Widget _buildMiniLiveChart(List<dynamic> allOrders) {
+    String chartTitle = "Grafik Omzet Real-time";
+    final now = DateTime.now();
+    List<double> values = [];
+    int expectedLength = 20;
+
+    if (selectedPeriod == "Hari Ini") {
+      chartTitle = "Grafik Omzet - Hari Ini";
+      expectedLength = 24;
+      values = List.filled(24, 0.0);
+      final todayOrders = allOrders.where((o) => _isDateInPeriod(_getDate(o), "Hari Ini"));
+      for (var o in todayOrders) {
+        final d = _parseDate(_getDate(o));
+        if (d != null) values[d.hour] += _getPrice(o);
+      }
+    } else if (selectedPeriod == "Bulanan") {
+      final monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      chartTitle = "Grafik Omzet - Bulan ${monthNames[now.month - 1]} ${now.year}";
+      final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+      expectedLength = daysInMonth;
+      values = List.filled(daysInMonth, 0.0);
+      final monthOrders = allOrders.where((o) => _isDateInPeriod(_getDate(o), "Bulanan"));
+      for (var o in monthOrders) {
+        final d = _parseDate(_getDate(o));
+        if (d != null) values[d.day - 1] += _getPrice(o);
+      }
+    } else if (selectedPeriod == "Tahunan") {
+      chartTitle = "Grafik Omzet - Tahun ${now.year}";
+      expectedLength = 12;
+      values = List.filled(12, 0.0);
+      final yearOrders = allOrders.where((o) => _isDateInPeriod(_getDate(o), "Tahunan"));
+      for (var o in yearOrders) {
+        final d = _parseDate(_getDate(o));
+        if (d != null) values[d.month - 1] += _getPrice(o);
+      }
+    }
+
+    double maxVal = values.isNotEmpty ? values.reduce((a, b) => a > b ? a : b) : 0;
+    if (maxVal == 0) maxVal = 1; // Prevent division by zero if no orders
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -553,20 +656,28 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Grafik Omzet Real-time", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w600)),
+                Text(chartTitle, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w600)),
                 const Icon(LucideIcons.barChart2, size: 14, color: Colors.white),
               ],
             ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(20, (index) {
-                // Fake histogram values
-                final heights = [10, 15, 20, 25, 40, 30, 25, 50, 45, 60, 55, 70, 65, 80, 75, 90, 85, 100, 95, 120];
-                return Container(
-                  width: 8,
-                  height: heights[index] * 0.4,
-                  decoration: BoxDecoration(color: index == 19 ? accentGold : Colors.white24, borderRadius: BorderRadius.circular(2)),
+              children: List.generate(expectedLength, (index) {
+                final heightRatio = values[index] / maxVal;
+                final barHeight = heightRatio * 50; // Max height 50
+                
+                bool isCurrent = false;
+                if (selectedPeriod == "Hari Ini") isCurrent = index == now.hour;
+                if (selectedPeriod == "Bulanan") isCurrent = index == (now.day - 1);
+                if (selectedPeriod == "Tahunan") isCurrent = index == (now.month - 1);
+
+                return Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 1),
+                    height: barHeight == 0 ? 2 : barHeight,
+                    decoration: BoxDecoration(color: isCurrent ? accentGold : Colors.white24, borderRadius: BorderRadius.circular(2)),
+                  ),
                 );
               }),
             )
@@ -574,6 +685,11 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
         ),
       ),
     );
+  }
+
+  DateTime? _parseDate(String? d) {
+    if (d == null) return null;
+    try { return DateTime.parse(d).toLocal(); } catch (e) { return null; }
   }
 
   Widget _buildTwoColStats() {
