@@ -347,15 +347,14 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
                   children: [
                     SizedBox(width: 24, child: Text("${index + 1}.", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGold))),
                     Expanded(
-                      flex: 6,
                       child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
                     ),
-                    Expanded(
-                      flex: 3,
-                      child: Text(item['city'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400]), overflow: TextOverflow.ellipsis),
+                    SizedBox(
+                      width: 40,
+                      child: Text(item['city'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400]), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
                     ),
-                    Expanded(
-                      flex: 4,
+                    SizedBox(
+                      width: 90,
                       child: showRp
                           ? Text(Formatters.currencyIdr(item['rev'] as double), textAlign: TextAlign.right, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGreen))
                           : const SizedBox.shrink(),
