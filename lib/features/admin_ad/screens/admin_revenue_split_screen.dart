@@ -68,10 +68,6 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSummaryHeader(summary),
-                  const SizedBox(height: 16),
-                  _buildTopMitras(splits),
-                  _buildTopCustomers(splits),
-                  _buildTopKurirs(splits),
                   const SizedBox(height: 24),
                   _buildSplitsList(splits),
                 ],
@@ -157,114 +153,6 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopMitras(List<dynamic> splits) {
-    Map<String, Map<String, dynamic>> map = {};
-    for (var s in splits) {
-      final name = (s['mitra_name'] ?? s['mitraName'] ?? s['mitra_id'] ?? 'Unknown').toString();
-      if (name == 'Unknown' || name == '-') continue;
-      final city = (s['mitra_city'] ?? s['mitraCity'] ?? s['city'] ?? '-').toString();
-      final rev = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
-      if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
-      map[name]!['rev'] += rev;
-    }
-    final list = map.values.toList();
-    list.sort((a, b) => b['rev'].compareTo(a['rev']));
-    final top5 = list.take(5).toList();
-    if (top5.isEmpty) return const SizedBox.shrink();
-    return _buildTopList("5 Top Revenue Mitra Laundry", top5, showRp: true, icon: LucideIcons.store);
-  }
-
-  Widget _buildTopCustomers(List<dynamic> splits) {
-    Map<String, Map<String, dynamic>> map = {};
-    for (var s in splits) {
-      final name = (s['customer_name'] ?? s['customerName'] ?? s['customer_id'] ?? 'Unknown').toString();
-      if (name == 'Unknown' || name == '-') continue;
-      final city = (s['customer_city'] ?? s['customerCity'] ?? s['city'] ?? '-').toString();
-      final admin = double.tryParse(s['splits']?['admin']?.toString() ?? '0') ?? 0.0;
-      final mitra = double.tryParse(s['splits']?['mitra']?.toString() ?? '0') ?? 0.0;
-      final kurir = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
-      final rev = (s['total_price'] != null) ? (double.tryParse(s['total_price'].toString()) ?? 0.0) : (admin + mitra + kurir);
-      if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
-      map[name]!['rev'] += rev;
-    }
-    final list = map.values.toList();
-    list.sort((a, b) => b['rev'].compareTo(a['rev']));
-    final top5 = list.take(5).toList();
-    if (top5.isEmpty) return const SizedBox.shrink();
-    return _buildTopList("5 Top Kontributor Customer", top5, showRp: false, icon: LucideIcons.users);
-  }
-
-  Widget _buildTopKurirs(List<dynamic> splits) {
-    Map<String, Map<String, dynamic>> map = {};
-    for (var s in splits) {
-      final name = (s['kurir_name'] ?? s['kurirName'] ?? s['kurir_id'] ?? 'Unknown').toString();
-      if (name == 'Unknown' || name == '-') continue;
-      final city = (s['kurir_city'] ?? s['kurirCity'] ?? s['city'] ?? '-').toString();
-      final rev = double.tryParse(s['splits']?['kurir']?.toString() ?? '0') ?? 0.0;
-      if (!map.containsKey(name)) map[name] = {'name': name, 'city': city, 'rev': 0.0};
-      map[name]!['rev'] += rev;
-    }
-    final list = map.values.toList();
-    list.sort((a, b) => b['rev'].compareTo(a['rev']));
-    final top5 = list.take(5).toList();
-    if (top5.isEmpty) return const SizedBox.shrink();
-    return _buildTopList("5 Top Revenue Mitra Kurir", top5, showRp: true, icon: LucideIcons.bike);
-  }
-
-  Widget _buildTopList(String title, List<Map<String, dynamic>> items, {bool showRp = true, IconData icon = LucideIcons.medal}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: secondaryDark.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 16, color: accentGold),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...List.generate(items.length, (index) {
-              final item = items[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  children: [
-                    SizedBox(width: 24, child: Text("${index + 1}.", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGold))),
-                    Expanded(
-                      flex: 5,
-                      child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white), overflow: TextOverflow.ellipsis),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: Text(item['city'], style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400]), overflow: TextOverflow.ellipsis),
-                    ),
-                    if (showRp)
-                      Expanded(
-                        flex: 4,
-                        child: Text(Formatters.currencyIdr(item['rev'] as double), textAlign: TextAlign.right, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: accentGreen)),
-                      ),
-                  ],
-                ),
-              );
-            }),
-          ],
         ),
       ),
     );
