@@ -375,7 +375,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                           _buildPageIndicator(_kiloanPage, (kiloanData.length / (_isEditingKiloan ? 4 : 5)).ceil()),
                           const SizedBox(height: 24),
                           
-                          _buildSectionHeader("Laundry Satuan ?", LucideIcons.shirt, hasSearch: true, isEditing: _isEditingSatuan, 
+                          _buildSectionHeader("Laundry Satuan", LucideIcons.shirt, hasSearch: true, isEditing: _isEditingSatuan, 
                             onEdit: () {
                               setState(() => _isEditingSatuan = true);
                             },
@@ -474,7 +474,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
             Icon(icon, size: 18, color: primaryTeal),
             const SizedBox(width: 8),
             Text(title, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkBg)),
-            if (title == "Laundry Satuan ?") ...[
+            if (title == "Laundry Satuan") ...[
               const SizedBox(width: 6),
               Tooltip(
                 message: "Untuk jenis Laundry per Meter atau per M2, bisa ditulis untuk Jenis Service. Contoh: Gordyn per Meter",
@@ -487,7 +487,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey[400]!)),
-                  child: Icon(LucideIcons.info, size: 12, color: Colors.grey[600]),
+                  child: Icon(LucideIcons.info, size: 14, color: Colors.grey[600]),
                 ),
               )
             ]
@@ -505,7 +505,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                           color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text("Cancel", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
+                        child: Text("Cancel", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red)),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -517,7 +517,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                           color: primaryTeal.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text("Save", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+                        child: Text("Save", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTeal)),
                       ),
                     ),
                   ],
@@ -530,7 +530,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
                       color: primaryTeal.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text("Add/Edit", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
+                    child: Text("Add/Edit", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTeal)),
                   ),
                 ),
       ],
