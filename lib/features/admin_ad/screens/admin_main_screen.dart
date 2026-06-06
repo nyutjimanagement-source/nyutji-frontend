@@ -170,8 +170,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) {
-        return SafeArea(
+      builder: (ctx) {
+        final bottomPadding = MediaQuery.of(ctx).padding.bottom;
+        return Container(
+          padding: EdgeInsets.only(bottom: bottomPadding > 0 ? bottomPadding : 16, top: 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: ["Hari Ini", "Bulanan", "Tahunan"].map((String choice) {
@@ -180,7 +182,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                 trailing: selectedPeriod == choice ? const Icon(LucideIcons.check, color: Color(0xFF1E5655)) : null,
                 onTap: () {
                   setState(() => selectedPeriod = choice);
-                  Navigator.pop(context);
+                  Navigator.pop(ctx);
                 },
               );
             }).toList(),
@@ -646,7 +648,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        height: 120,
+        height: 135,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]),
         child: Column(
@@ -668,15 +670,37 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                 final barHeight = heightRatio * 50; // Max height 50
                 
                 bool isCurrent = false;
-                if (selectedPeriod == "Hari Ini") isCurrent = index == now.hour;
-                if (selectedPeriod == "Bulanan") isCurrent = index == (now.day - 1);
-                if (selectedPeriod == "Tahunan") isCurrent = index == (now.month - 1);
+                String label = "";
+                if (selectedPeriod == "Hari Ini") {
+                  isCurrent = index == now.hour;
+                  if (index % 4 == 0 || index == 23) label = index.toString().padLeft(2, '0');
+                } else if (selectedPeriod == "Bulanan") {
+                  isCurrent = index == (now.day - 1);
+                  if ((index + 1) % 5 == 0 || index == 0 || index == expectedLength - 1) label = (index + 1).toString();
+                } else if (selectedPeriod == "Tahunan") {
+                  isCurrent = index == (now.month - 1);
+                  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+                  label = months[index];
+                }
 
                 return Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 1),
-                    height: barHeight == 0 ? 2 : barHeight,
-                    decoration: BoxDecoration(color: isCurrent ? accentGold : Colors.white24, borderRadius: BorderRadius.circular(2)),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        height: barHeight == 0 ? 2 : barHeight,
+                        decoration: BoxDecoration(color: isCurrent ? accentGold : Colors.white24, borderRadius: BorderRadius.circular(2)),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        label,
+                        style: GoogleFonts.montserrat(fontSize: 7, color: Colors.white70, fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal),
+                        maxLines: 1,
+                        overflow: TextOverflow.visible,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 );
               }),
