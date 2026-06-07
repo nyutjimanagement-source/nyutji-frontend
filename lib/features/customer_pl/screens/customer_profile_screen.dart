@@ -11,6 +11,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -143,10 +144,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   image: kIsWeb
                       ? (auth.temporaryWebBytes != null
                           ? DecorationImage(image: MemoryImage(auth.temporaryWebBytes!), fit: BoxFit.cover)
-                          : (finalUrl != null) ? DecorationImage(image: NetworkImage(finalUrl), fit: BoxFit.cover) : null)
+                          : (finalUrl != null) ? DecorationImage(image: CachedNetworkImageProvider(finalUrl), fit: BoxFit.cover) : null)
                       : (localPhoto != null
                           ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
-                          : (finalUrl != null) ? DecorationImage(image: NetworkImage(finalUrl), fit: BoxFit.cover) : null),
+                          : (finalUrl != null) ? DecorationImage(image: CachedNetworkImageProvider(finalUrl), fit: BoxFit.cover) : null),
                 ),
                 child: (localPhoto == null && auth.temporaryWebBytes == null && finalUrl == null)
                     ? const Icon(LucideIcons.user, color: Colors.white70, size: 35)
