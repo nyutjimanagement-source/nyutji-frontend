@@ -283,14 +283,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(LucideIcons.bell, color: Colors.white, size: 24),
-                    onPressed: () {
-                      orderProv.resetNotif('PL');
-                      orderProv.markAllPLOrdersAsSeen();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CustomerStatusScreen()),
-                      );
-                    },
+                    onPressed: null, // Disabled tap per user request
                   ),
                   if (orderProv.activeOrders.isNotEmpty)
                     Positioned(
@@ -1061,17 +1054,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     Text("$dist \u2022 ", style: NyutjiTheme.detail(Colors.grey).copyWith(fontSize: 13)),
                     Text(isBuka ? "Buka Sekarang" : "Tutup", 
                       style: NyutjiTheme.detail(isBuka ? const Color(0xFF556B2F) : Colors.red).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.star, size: 14, color: Color(0xFFDAC66F)),
+                    const SizedBox(width: 2),
+                    Text(rating, style: NyutjiTheme.detail(const Color(0xFF131109)).copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
             ),
-          ),
-          Row(
-            children: [
-              const Icon(Icons.star, size: 20, color: Color(0xFFDAC66F)),
-              const SizedBox(width: 4),
-              Text(rating, style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 18)),
-            ],
           ),
         ],
       ),
