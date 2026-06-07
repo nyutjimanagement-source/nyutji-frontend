@@ -59,12 +59,12 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                       border: Border.all(color: const Color(0xFFE3DCCF), width: 1.2),
                       boxShadow: [BoxShadow(color: const Color(0xFF403600).withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
-                    child: Row(
+                    child: const Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const ShimmerLoading(height: 52, width: 52, borderRadius: 18),
-                        const SizedBox(width: 14),
-                        const Expanded(
+                        ShimmerLoading(height: 52, width: 52, borderRadius: 18),
+                        SizedBox(width: 14),
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -76,7 +76,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
-                          children: const [
+                          children: [
                             ShimmerLoading(height: 14, width: 60, borderRadius: 4),
                             SizedBox(height: 4),
                             ShimmerLoading(height: 10, width: 80, borderRadius: 2),
