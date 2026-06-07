@@ -12,6 +12,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerWalletScreen extends StatefulWidget {
   const CustomerWalletScreen({super.key});
@@ -576,12 +577,12 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
                     maxScale: 5.0,
                     child: Stack(
                       children: [
-                        Image.network(
-                          imageUrl,
+                        CachedNetworkImage(
+                          imageUrl: imageUrl,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          loadingBuilder: (_, child, prog) => prog == null ? child : const Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
-                          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
+                          placeholder: (context, url) => const Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                          errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
                         ),
                         Positioned.fill(
                           child: IgnorePointer(

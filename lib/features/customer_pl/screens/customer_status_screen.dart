@@ -9,6 +9,7 @@ import '../../../core/utils/status_helper.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerStatusScreen extends StatefulWidget {
   const CustomerStatusScreen({super.key});
@@ -466,20 +467,17 @@ class _PremiumOrderCardState extends State<PremiumOrderCard> {
                       children: [
                         // Gambar
                         Positioned.fill(
-                          child: Image.network(
-                            imageUrl,
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const SizedBox(
+                            placeholder: (context, url) => const SizedBox(
                                 height: 260,
                                 child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) => const SizedBox(
-                              height: 220,
-                              child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
+                            ),
+                            errorWidget: (context, url, error) => const SizedBox(
+                                height: 220,
+                                child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
                             ),
                           ),
                         ),
