@@ -984,7 +984,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerOrderScreen(orderType: 'pickup', preselectedMitra: m)));
+                      _showMitraActionSheet(context, m);
                     },
                     child: _buildMitraRow(
                       m['name'] ?? 'Mitra Nyutji', 
@@ -1360,10 +1360,133 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                               }).toList(),
                             ),
                           ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF403600),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onPressed: () => _showMitraActionSheet(context, m),
+                            child: Text("Pilih Mitra Ini", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+                          ),
+                        ),
                       ],
                     )
                   : const SizedBox.shrink(),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMitraActionSheet(BuildContext context, dynamic mitra) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFF9ED),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(child: Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)))),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Container(
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      image: (mitra['image'] != null || mitra['profile_photo'] != null)
+                          ? DecorationImage(
+                              image: NetworkImage((mitra['image'] ?? mitra['profile_photo']).toString().startsWith('http') 
+                                ? (mitra['image'] ?? mitra['profile_photo']) 
+                                : "${ApiConstants.rootUrl}/${mitra['image'] ?? mitra['profile_photo']}"), 
+                              fit: BoxFit.cover)
+                          : const DecorationImage(image: AssetImage("assets/icons/icon_ML.png"), fit: BoxFit.contain),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Pesan di", style: NyutjiTheme.detail(Colors.grey).copyWith(fontWeight: FontWeight.bold)),
+                        Text(mitra['name'] ?? 'Mitra Nyutji', style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text("Pilih Metode Layanan", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.w900, fontSize: 14)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActionCard(
+                      icon: LucideIcons.truck,
+                      title: "Jemput\nKurir",
+                      color: const Color(0xFF556B2F),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerOrderScreen(orderType: 'pickup', preselectedMitra: mitra)));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildActionCard(
+                      icon: LucideIcons.user,
+                      title: "Antar\nSendiri",
+                      color: const Color(0xFF403600),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerOrderScreen(orderType: 'drop', preselectedMitra: mitra)));
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionCard({required IconData icon, required String title, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(icon, size: 28, color: color),
+            ),
+            const SizedBox(height: 16),
+            Text(title, textAlign: TextAlign.center, style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 14, color: color, height: 1.2)),
           ],
         ),
       ),
