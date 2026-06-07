@@ -281,8 +281,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               builder: (context, orderProv, _) => Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  IconButton(
-                    icon: const Icon(LucideIcons.bell, color: Colors.white, size: 24),
+                  const IconButton(
+                    icon: Icon(LucideIcons.bell, color: Colors.white, size: 24),
                     onPressed: null, // Disabled tap per user request
                   ),
                   if (orderProv.activeOrders.isNotEmpty)
