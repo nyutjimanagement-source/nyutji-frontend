@@ -25,6 +25,7 @@ import '../../../core/utils/status_helper.dart';
 import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
 import 'customer_main_screen.dart';
+import 'customer_scheduler_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -521,7 +522,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               _buildServiceItem("Cuci\nSepatu", "icon_sepatu.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerCuciSepatuScreen()))),
               _buildServiceItem("Pakaian\nBayi", "icon_bayi.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerPakaianBayiScreen()))),
               // Baris 3
-              _buildServiceItem("Jadwal", "icon_jadwal.png"),
+              _buildServiceItem("Jadwal", "icon_jadwal.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerSchedulerScreen()))),
               _buildServiceItem("Cek Status", "icon_status.png", onTap: () {
                 final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
                 if (mainState != null) {
