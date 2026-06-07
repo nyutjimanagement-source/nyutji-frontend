@@ -367,7 +367,12 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
 
           filtered.sort((a, b) {
             DateTime getParsedDate(dynamic o) {
-              final val = o['updated_at'] ?? o['updatedAt'] ?? o['doneAt'] ?? o['done_at'] ?? o['createdAt'] ?? o['created_at'];
+              dynamic val;
+              if (currentFilter == "Selesai") {
+                val = o['doneAt'] ?? o['done_at'] ?? o['updated_at'] ?? o['updatedAt'] ?? o['createdAt'] ?? o['created_at'];
+              } else {
+                val = o['createdAt'] ?? o['created_at'] ?? o['updated_at'] ?? o['updatedAt'];
+              }
               if (val == null) return DateTime.fromMillisecondsSinceEpoch(0);
               return DateTime.tryParse(val.toString()) ?? DateTime.fromMillisecondsSinceEpoch(0);
             }
@@ -1708,7 +1713,18 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                   final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List? ?? [];
                   bool itemMatch = items.any((it) => (it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase().contains(q));
                   
-                  return orderId.contains(q) || customerName.contains(q) || address.contains(q) || itemMatch;
+                  String dateStr = '';
+                  try {
+                    final dtRaw = o['createdAt'] ?? o['created_at'] ?? o['doneAt'] ?? o['done_at'];
+                    if (dtRaw != null) {
+                      final dt = DateTime.parse(dtRaw.toString()).toLocal();
+                      final months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                      final shortMonths = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+                      dateStr = '${dt.day} ${months[dt.month - 1]} ${dt.year} ${dt.day} ${shortMonths[dt.month - 1]} ${dt.year} ${dt.day}-${dt.month}-${dt.year} ${dt.day}/${dt.month}/${dt.year}'.toLowerCase();
+                    }
+                  } catch (_) {}
+
+                  return orderId.contains(q) || customerName.contains(q) || address.contains(q) || itemMatch || dateStr.contains(q);
                 }).toList();
 
           return Container(

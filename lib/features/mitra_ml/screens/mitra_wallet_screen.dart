@@ -58,11 +58,12 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   double _calculateTotalKg(List<dynamic> allOrders) {
     double total = 0.0;
     for (var o in allOrders) {
-      final attachments = o['order_attachments'] ?? o['attachments'] ?? o['order_attachment'] ?? [];
-      if (attachments is List) {
-        for (var att in attachments) {
-          if ((att['unit']?.toString().toUpperCase() ?? '') == 'KG') {
-            total += double.tryParse(att['qty']?.toString() ?? '0') ?? 0.0;
+      final items = o['orderItems'] ?? o['order_items'] ?? o['items'] ?? [];
+      if (items is List) {
+        for (var it in items) {
+          final String unit = (it['unit']?.toString() ?? '').toUpperCase();
+          if (unit == 'KG' || unit.contains('KILO')) {
+            total += double.tryParse(it['qty']?.toString() ?? '0') ?? 0.0;
           }
         }
       }
