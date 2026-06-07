@@ -730,6 +730,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         SizedBox(
           height: 160,
           child: ListView.builder(
+            physics: const BouncingScrollPhysics(),
             controller: _promoController,
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
