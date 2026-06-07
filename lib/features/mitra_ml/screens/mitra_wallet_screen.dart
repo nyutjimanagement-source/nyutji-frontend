@@ -487,60 +487,55 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))]),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.arrowUpRight, size: 20, color: Colors.green),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Total Sukses Withdrawal", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(Formatters.currencyIdr(approved), style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        ],
-                      ),
-                    )
-                  ],
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.arrowUpRight, size: 24, color: Colors.green),
                 ),
-              ),
-              const VerticalDivider(color: Colors.black12, width: 30, thickness: 1),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.arrowUpRight, size: 20, color: Colors.red),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Total Pending Withdrawal", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(Formatters.currencyIdr(pending), style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        ],
-                      ),
-                    )
-                  ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Total Sukses Withdrawal", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text(Formatters.currencyIdr(approved), style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(color: Colors.black12, height: 1, thickness: 1),
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.arrowUpRight, size: 24, color: Colors.red),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Total Pending Withdrawal", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text(Formatters.currencyIdr(pending), style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ],
         ),
       ),
     );
