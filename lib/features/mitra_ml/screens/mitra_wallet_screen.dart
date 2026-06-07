@@ -77,20 +77,20 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
       final reviews = o['reviews'] ?? o['review'];
       if (reviews != null) {
         if (reviews is List && reviews.isNotEmpty) {
-          final rating = double.tryParse(reviews.first['rating_mitra']?.toString() ?? '0') ?? 0.0;
+          final rating = double.tryParse((reviews.first['rating_mitra'] ?? reviews.first['ratingMitra'])?.toString() ?? '0') ?? 0.0;
           if (rating > 0) {
             totalRating += rating;
             count++;
           }
         } else if (reviews is Map) {
-          final rating = double.tryParse(reviews['rating_mitra']?.toString() ?? '0') ?? 0.0;
+          final rating = double.tryParse((reviews['rating_mitra'] ?? reviews['ratingMitra'])?.toString() ?? '0') ?? 0.0;
           if (rating > 0) {
             totalRating += rating;
             count++;
           }
         }
       } else {
-        final rating = double.tryParse(o['rating_mitra']?.toString() ?? '0') ?? 0.0;
+        final rating = double.tryParse((o['rating_mitra'] ?? o['ratingMitra'])?.toString() ?? '0') ?? 0.0;
         if (rating > 0) {
           totalRating += rating;
           count++;
@@ -113,8 +113,9 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
       } catch (_) { dt = DateTime.now(); }
 
       String key = _getGroupKey(dt);
-      if (!grouped.containsKey(key)) grouped[key] = {'orders': 0, 'revenue': 0.0};
+      if (!grouped.containsKey(key)) grouped[key] = {'orders': 0, 'revenue': 0.0, 'sortDate': dt};
       grouped[key]!['orders'] = (grouped[key]!['orders'] as int) + 1;
+      if (dt.isBefore(grouped[key]!['sortDate'])) grouped[key]!['sortDate'] = dt;
     }
 
     // Group Revenues
@@ -129,18 +130,20 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
       } catch (_) { dt = DateTime.now(); }
 
       String key = _getGroupKey(dt);
-      if (!grouped.containsKey(key)) grouped[key] = {'orders': 0, 'revenue': 0.0};
+      if (!grouped.containsKey(key)) grouped[key] = {'orders': 0, 'revenue': 0.0, 'sortDate': dt};
       
       final amt = double.tryParse(m['amount']?.toString() ?? '0') ?? 0.0;
       grouped[key]!['revenue'] = (grouped[key]!['revenue'] as double) + amt;
+      if (dt.isBefore(grouped[key]!['sortDate'])) grouped[key]!['sortDate'] = dt;
     }
 
     List<Map<String, dynamic>> result = [];
     grouped.forEach((key, data) {
-      result.add({'label': key, 'orders': data['orders'], 'revenue': data['revenue']});
+      result.add({'label': key, 'orders': data['orders'], 'revenue': data['revenue'], 'sortDate': data['sortDate']});
     });
 
-    return result.reversed.toList();
+    result.sort((a, b) => (b['sortDate'] as DateTime).compareTo(a['sortDate'] as DateTime));
+    return result;
   }
 
   String _getGroupKey(DateTime dt) {
@@ -180,7 +183,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
               children: [
                 _buildHeader(context, wallet.balance, isLoading),
                 const SizedBox(height: 16),
-                _buildRankAndQuickAction(context, avgRating, wallet),
+                _buildRankAndQuickAction(context, avgRating, wallet, order.historyOrders),
                 const SizedBox(height: 16),
                 _buildCashInOutCard(totalCashIn, totalCashOut, isLoading),
                 const SizedBox(height: 24),
@@ -241,7 +244,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
     );
   }
 
-  Widget _buildRankAndQuickAction(BuildContext context, double avgRating, WalletProvider wallet) {
+  Widget _buildRankAndQuickAction(BuildContext context, double avgRating, WalletProvider wallet, List<dynamic> historyOrders) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: IntrinsicHeight(
@@ -270,26 +273,164 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
             const SizedBox(width: 12),
             Expanded(
               flex: 3,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFD4AF37)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(16), 
-                  boxShadow: [BoxShadow(color: const Color(0xFFD4AF37).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(LucideIcons.trophy, size: 24, color: Colors.white),
-                    const SizedBox(height: 6),
-                    Text(avgRating > 0 ? "Rating ${avgRating.toStringAsFixed(1)}" : "Belum Ada", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ],
+              child: GestureDetector(
+                onTap: () => _showReviewBottomSheet(context, historyOrders, avgRating),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFD4AF37)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    borderRadius: BorderRadius.circular(16), 
+                    boxShadow: [BoxShadow(color: const Color(0xFFD4AF37).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))]
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.trophy, size: 24, color: Colors.white),
+                      const SizedBox(height: 6),
+                      Text(avgRating > 0 ? "Rating ${avgRating.toStringAsFixed(1)}" : "Belum Ada", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ],
+                  ),
                 ),
               ),
             )
           ],
         ),
       ),
+    );
+  }
+
+  void _showReviewBottomSheet(BuildContext context, List<dynamic> historyOrders, double avgRating) {
+    final auth = context.read<AuthProvider>();
+    final laundryName = auth.user?['name'] ?? "Mitra Laundry";
+
+    // Kumpulkan data review
+    List<Map<String, dynamic>> validReviews = [];
+    for (var o in historyOrders) {
+      final reviews = o['reviews'] ?? o['review'];
+      double rating = 0;
+      String comment = '';
+      
+      if (reviews != null) {
+        if (reviews is List && reviews.isNotEmpty) {
+          rating = double.tryParse((reviews.first['rating_mitra'] ?? reviews.first['ratingMitra'])?.toString() ?? '0') ?? 0.0;
+          comment = (reviews.first['comment'] ?? reviews.first['comment_mitra'] ?? reviews.first['commentMitra'])?.toString() ?? '';
+        } else if (reviews is Map) {
+          rating = double.tryParse((reviews['rating_mitra'] ?? reviews['ratingMitra'])?.toString() ?? '0') ?? 0.0;
+          comment = (reviews['comment'] ?? reviews['comment_mitra'] ?? reviews['commentMitra'])?.toString() ?? '';
+        }
+      } else {
+        rating = double.tryParse((o['rating_mitra'] ?? o['ratingMitra'])?.toString() ?? '0') ?? 0.0;
+        comment = (o['comment'] ?? o['comment_mitra'] ?? o['commentMitra'])?.toString() ?? '';
+      }
+
+      if (rating > 0) {
+        String customerName = "Pelanggan";
+        final cust = o['customer'];
+        if (cust is Map && cust['name'] != null) {
+          customerName = cust['name'].toString();
+        } else if (o['customer_name'] != null) {
+          customerName = o['customer_name'].toString();
+        }
+
+        DateTime dt;
+        try {
+          final raw = o['createdAt'] ?? o['created_at'] ?? o['orderDate'] ?? o['order_date'];
+          dt = raw != null ? DateTime.parse(raw.toString()).toLocal() : DateTime.now();
+        } catch (_) { dt = DateTime.now(); }
+
+        validReviews.add({
+          'customerName': customerName,
+          'rating': rating,
+          'comment': comment.isEmpty ? 'Tidak ada komentar' : comment,
+          'date': dt,
+        });
+      }
+    }
+
+    // Sort descending by date
+    validReviews.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+    
+    // Ambil 3 terbaru
+    final top3 = validReviews.take(3).toList();
+    final totalReviews = validReviews.length;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).padding.bottom + 24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+              const SizedBox(height: 24),
+              Text("Review dan Rating", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+              const SizedBox(height: 4),
+              Text(laundryName, style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900, color: darkText), textAlign: TextAlign.center),
+              const SizedBox(height: 24),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(avgRating.toStringAsFixed(1), style: GoogleFonts.montserrat(fontSize: 32, fontWeight: FontWeight.w900, color: darkText)),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.star, color: Color(0xFFF59E0B), size: 28),
+                  const SizedBox(width: 8),
+                  Text("Penilaian Layanan ($totalReviews)", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                ],
+              ),
+              const SizedBox(height: 32),
+              
+              if (top3.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text("Belum ada review.", style: GoogleFonts.montserrat(color: Colors.grey)),
+                )
+              else
+                ...top3.map((rv) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey[200]!)
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(rv['customerName'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+                            Row(
+                              children: List.generate(5, (index) {
+                                return Icon(
+                                  index < rv['rating'] ? Icons.star : Icons.star_border,
+                                  color: index < rv['rating'] ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
+                                  size: 14,
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(rv['comment'], style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[700], height: 1.5)),
+                      ],
+                    ),
+                  );
+                }),
+            ],
+          ),
+        );
+      },
     );
   }
 
