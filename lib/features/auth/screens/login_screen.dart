@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       'help': "Bantuan",
       'promo': "Promo & Layanan Kami",
       'about': "Tentang Nyutji Management",
-      'marquee': "••• Progress Kemitraan Nyutji Management: 5 Cabang Baru Dibuka di Bulan Ini! Bergabunglah Menjadi Mitra Kami ••• Promo Diskon 10% untuk Cuci Komplit •••",
+      'marquee': "••• Progress Kemitraan Nyutji Management: 5 Cabang Baru Dibuka di Bulan Ini! Bergabunglah Menjadi Mitra Kami ••• Promo Diskon 10% untuk Cuci Komplit ••• Gratis Antar Jemput untuk Pelanggan Baru",
       'aboutDesc': "Pelajari lebih lanjut tentang sistem kemitraan dan manajemen laundry profesional kami.",
       'products': [
         { 'title': "Cuci Komplit", 'desc': "Bersih & Wangi 24 Jam", 'img': "assets/images/cuci_komplit.jpg" },
