@@ -144,28 +144,35 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 margin: const EdgeInsets.only(bottom: 32),
                 decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
               ),
-              Text(currentT['register_as'], style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 20, color: const Color(0xFF286B6A))),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Daftarkan Diri Anda", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 22, color: const Color(0xFF286B6A))),
+              ),
+              const SizedBox(height: 24),
+              Column(
                 children: [
                   _buildRoleItem(
                     context,
-                    label: currentT['roles']['PL'],
+                    label: currentT['roles']['PL'] ?? "Pelanggan",
+                    description: "Manfaatkan layanan Nyutji Bersama menjadi gaya hidup urban ketika baju kesayangan Anda otomatis bersih dan sampai didepan pintu rumah dalam kondisi harum dan rapi",
                     icon: LucideIcons.user,
                     color: const Color(0xFF286B6A),
                     onTap: () { Navigator.pop(context); Navigator.push(context, RetroRoute(page: const RegisterPelangganScreen())); },
                   ),
+                  const SizedBox(height: 16),
                   _buildRoleItem(
                     context,
-                    label: currentT['roles']['ML'],
+                    label: currentT['roles']['ML'] ?? "Mitra",
+                    description: "Kemitraan bersama Nyutji Bersama akan mendapatkan dukungan secara profesional dan pelayanan terbaik bagi Pelanggan adalah sebagai standart utama",
                     icon: LucideIcons.store,
                     color: const Color(0xFFC3312E),
                     onTap: () { Navigator.pop(context); Navigator.push(context, RetroRoute(page: const RegisterMitraScreen())); },
                   ),
+                  const SizedBox(height: 16),
                   _buildRoleItem(
                     context,
-                    label: currentT['roles']['KL'],
+                    label: currentT['roles']['KL'] ?? "Kurir",
+                    description: "Jadilah bagian Nyutji Bersama untuk mengirimkan pakaian harum serta rapi Pelanggan dari Mitra secara efisien dan menguntungkan",
                     icon: LucideIcons.truck,
                     color: const Color(0xFFD35400),
                     onTap: () { Navigator.pop(context); Navigator.push(context, RetroRoute(page: const RegisterKurirScreen())); },
@@ -511,23 +518,41 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
-  Widget _buildRoleItem(BuildContext context, {required String label, required IconData icon, required Color color, required VoidCallback onTap}) {
+  Widget _buildRoleItem(BuildContext context, {required String label, required String description, required IconData icon, required Color color, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: color.withValues(alpha: 0.1), width: 1.5),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 28, color: color),
             ),
-            child: Icon(icon, size: 32, color: color),
-          ),
-          const SizedBox(height: 12),
-          Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: color)),
+                  const SizedBox(height: 6),
+                  Text(description, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700], height: 1.4)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
