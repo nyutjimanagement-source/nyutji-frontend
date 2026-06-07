@@ -186,7 +186,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
                 const SizedBox(height: 16),
                 _buildRankAndQuickAction(context, avgRating, wallet, order.historyOrders),
                 const SizedBox(height: 16),
-                _buildCashInOutCard(totalCashIn, totalCashOut, wallet.withdrawalsList, isLoading),
+                _buildCashInOutCard(totalCashIn, wip, isLoading),
                 const SizedBox(height: 24),
                 _buildExecutiveReport(wallet.mutasiList.length, totalCashOut, totalCashIn, wip, allOrders.length, totalKg, isLoading),
                 const SizedBox(height: 8),
@@ -469,77 +469,37 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
     );
   }
 
-  Widget _buildCashInOutCard(double totalCashIn, double totalCashOut, List<dynamic> withdrawalsList, bool isLoading) {
-    double approved = 0.0;
-    double pending = 0.0;
-    for (var w in withdrawalsList) {
-      final amt = double.tryParse(w['amount']?.toString() ?? '0') ?? 0.0;
-      final st = w['status']?.toString().toUpperCase() ?? '';
-      if (st == 'APPROVED' || st == 'COMPLETED') {
-        approved += amt;
-      } else if (st == 'PENDING_APPROVAL' || st == 'PENDING') {
-        pending += amt;
-      }
-    }
-
+  Widget _buildCashInOutCard(double totalCashIn, double wip, bool isLoading) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))]),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _buildCashItem("Total Pemasukan", totalCashIn, Colors.green, LucideIcons.arrowDownLeft, null)),
-              const VerticalDivider(color: Colors.black12, width: 30, thickness: 1),
-              Expanded(
-                child: _buildCashItem(
-                  "Total Tarikan", 
-                  totalCashOut, 
-                  Colors.red, 
-                  LucideIcons.arrowUpRight,
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 6),
-                      Text("✓ ${Formatters.currencyIdr(approved)} - Approved", style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.green[700], fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 2),
-                      Text("⏳ ${Formatters.currencyIdr(pending)} - Pending", style: GoogleFonts.montserrat(fontSize: 8.5, color: Colors.orange[700], fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: const Icon(LucideIcons.arrowDownLeft, size: 24, color: Colors.green),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Total Pemasukan", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(Formatters.currencyIdr(totalCashIn), style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text("⏳ ${Formatters.currencyIdr(wip)} - Pending", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.orange[700], fontWeight: FontWeight.bold)),
+                ],
               ),
-            ],
-          ),
+            )
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildCashItem(String label, double amount, Color color, IconData icon, Widget? extra) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-          child: Icon(icon, size: 16, color: color),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w600)),
-              const SizedBox(height: 2),
-              Text(Formatters.currencyIdr(amount), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText), maxLines: 1, overflow: TextOverflow.ellipsis),
-              if (extra != null) extra,
-            ],
-          ),
-        )
-      ],
     );
   }
 
