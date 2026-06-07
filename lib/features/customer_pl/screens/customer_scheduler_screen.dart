@@ -52,6 +52,7 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
     DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
     String selectedService = 'Antar-Jemput Kurir';
     String selectedPayment = 'Auto Debit';
+    bool isDropSameAsPickup = true;
 
     // Set default pickup/drop from user profile
     final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -250,9 +251,31 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
                             const SizedBox(height: 16),
                             _buildLabel("Tempat Pickup"),
                             _buildLocationField(context, pickupController, "Alamat Pickup"),
-                            const SizedBox(height: 12),
-                            _buildLabel("Tempat Drop"),
-                            _buildLocationField(context, dropController, "Alamat Drop"),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: Checkbox(
+                                    value: isDropSameAsPickup,
+                                    onChanged: (val) {
+                                      setModalState(() {
+                                        isDropSameAsPickup = val ?? true;
+                                      });
+                                    },
+                                    activeColor: const Color(0xFF286B6A),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text("Tempat Drop sama dengan Pickup", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                              ],
+                            ),
+                            if (!isDropSameAsPickup) ...[
+                              const SizedBox(height: 16),
+                              _buildLabel("Tempat Drop"),
+                              _buildLocationField(context, dropController, "Alamat Drop"),
+                            ],
                           ],
 
                           const SizedBox(height: 20),
@@ -287,6 +310,9 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
                               NyutjiNotif.showError(context, "Nama Jadwal harus diisi");
                               return;
                             }
+                            if (selectedService == 'Antar-Jemput Kurir' && isDropSameAsPickup) {
+                              dropController.text = pickupController.text;
+                            }
                             _saveSchedule({
                               'name': nameController.text,
                               'interval': selectedInterval,
@@ -294,6 +320,8 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
                               'date': selectedDate,
                               'service': selectedService,
                               'payment': selectedPayment,
+                              'pickup': selectedService == 'Antar-Jemput Kurir' ? pickupController.text : '-',
+                              'drop': selectedService == 'Antar-Jemput Kurir' ? dropController.text : '-',
                               'status': 'DRAFT',
                             });
                             Navigator.pop(ctx);
@@ -318,6 +346,9 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
                               NyutjiNotif.showError(context, "Pilih Mitra terlebih dahulu");
                               return;
                             }
+                            if (selectedService == 'Antar-Jemput Kurir' && isDropSameAsPickup) {
+                              dropController.text = pickupController.text;
+                            }
                             _saveSchedule({
                               'name': nameController.text,
                               'interval': selectedInterval,
@@ -325,6 +356,8 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
                               'date': selectedDate,
                               'service': selectedService,
                               'payment': selectedPayment,
+                              'pickup': selectedService == 'Antar-Jemput Kurir' ? pickupController.text : '-',
+                              'drop': selectedService == 'Antar-Jemput Kurir' ? dropController.text : '-',
                               'status': 'ACTIVE',
                             });
                             Navigator.pop(ctx);
