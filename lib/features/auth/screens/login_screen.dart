@@ -12,6 +12,7 @@ import 'register_kurir_screen.dart';
 import 'register_mitra_screen.dart';
 import 'register_pelanggan_screen.dart';
 import '../../admin_ad/screens/admin_tentang_nyutji.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -491,7 +492,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             child: Stack(
               children: [
                 isNetwork 
-                    ? Image.network(imgSrc, height: 140, width: 200, fit: BoxFit.cover, errorBuilder: (c,e,s) => Container(height: 140, color: Colors.grey[300], child: const Icon(Icons.image_not_supported)))
+                    ? CachedNetworkImage(imageUrl: imgSrc, height: 140, width: 200, fit: BoxFit.cover, errorWidget: (c,e,s) => Container(height: 140, color: Colors.grey[300], child: const Icon(Icons.image_not_supported)))
                     : Image.asset(imgSrc, height: 140, width: 200, fit: BoxFit.cover, errorBuilder: (c,e,s) => Container(height: 140, color: Colors.grey[300], child: const Icon(Icons.image_not_supported))),
                 Container(
                   height: 140,
