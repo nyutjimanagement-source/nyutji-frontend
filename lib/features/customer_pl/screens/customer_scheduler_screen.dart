@@ -4,7 +4,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/nyutji_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
@@ -19,8 +18,6 @@ class CustomerSchedulerScreen extends StatefulWidget {
 class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
   final List<Map<String, dynamic>> _schedules = [];
   List<Map<String, dynamic>> _availableMitras = [];
-  bool _isLoadingMitras = false;
-
   @override
   void initState() {
     super.initState();
@@ -31,25 +28,16 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final city = auth.user?['city_name'] ?? 'Tangerang Selatan';
     
-    setState(() {
-      _isLoadingMitras = true;
-    });
-
     try {
       final api = ApiService();
       final data = await api.getRecommendedMitras(cityName: city);
       if (mounted) {
         setState(() {
           _availableMitras = List<Map<String, dynamic>>.from(data);
-          _isLoadingMitras = false;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingMitras = false;
-        });
-      }
+      // Handle error implicitly by keeping available Mitras empty
     }
   }
 
@@ -540,7 +528,7 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
                 Switch(
                   value: true,
                   onChanged: (val) {},
-                  activeColor: const Color(0xFFDAC66F),
+                  activeThumbColor: const Color(0xFFDAC66F),
                   activeTrackColor: const Color(0xFF403600),
                 ),
             ],
