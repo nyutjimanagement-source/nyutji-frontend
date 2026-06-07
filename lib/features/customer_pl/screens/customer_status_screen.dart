@@ -8,6 +8,7 @@ import 'customer_review_screen.dart';
 import '../../../core/utils/status_helper.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class CustomerStatusScreen extends StatefulWidget {
   const CustomerStatusScreen({super.key});
@@ -43,7 +44,50 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
         body: Column(
           children: [
             _buildPremiumHeader("Status Pesanan"),
-            const Expanded(child: Center(child: CircularProgressIndicator())),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: const Color(0xFFE3DCCF), width: 1.2),
+                      boxShadow: [BoxShadow(color: const Color(0xFF403600).withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const ShimmerLoading(height: 52, width: 52, borderRadius: 18),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ShimmerLoading(height: 14, width: 150, borderRadius: 4),
+                              SizedBox(height: 8),
+                              ShimmerLoading(height: 18, width: 100, borderRadius: 4),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: const [
+                            ShimmerLoading(height: 14, width: 60, borderRadius: 4),
+                            SizedBox(height: 4),
+                            ShimmerLoading(height: 10, width: 80, borderRadius: 2),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       );
