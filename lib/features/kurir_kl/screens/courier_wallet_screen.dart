@@ -8,7 +8,7 @@ import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/theme/nyutji_theme.dart';
-import '../../mitra_ml/screens/mitra_wallet_screen.dart';
+import 'courier_tarik_dana_modal.dart';
 
 class CourierWalletScreen extends StatefulWidget {
   const CourierWalletScreen({super.key});
@@ -337,8 +337,8 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => TarikDanaModal(
-        laundryName: userName,
+      builder: (ctx) => CourierTarikDanaModal(
+        courierName: userName,
         maxBalance: wallet.balance,
       ),
     );

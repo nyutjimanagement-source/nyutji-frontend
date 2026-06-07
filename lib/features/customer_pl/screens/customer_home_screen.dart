@@ -24,6 +24,7 @@ import 'customer_dryclean.dart';
 import '../../../core/utils/status_helper.dart';
 import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
+import 'customer_main_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -508,7 +509,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               _buildServiceItem("Pick Up\nKurir", "icon_pickup.png", hasPromo: true, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'pickup')))),
               _buildServiceItem("Antar\nSendiri", "icon_dropoff.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'drop')))),
               _buildServiceItem("Nyutji\nCoin", "icon_coin.png"),
-              _buildServiceItem("Top-Up", "icon_topup.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerWalletScreen()))),
+              _buildServiceItem("Top-Up", "icon_topup.png", onTap: () {
+                final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
+                if (mainState != null) {
+                  mainState.switchToTab(2);
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerWalletScreen()));
+                }
+              }),
               // Baris 2
               _buildServiceItem("Cuci\nKhusus", "baby_stroller.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerCuciKhususScreen()))),
               _buildServiceItem("Dry\nClean", "icon_dryclean.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerDryCleanScreen()))),
@@ -516,8 +524,22 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               _buildServiceItem("Pakaian\nBayi", "icon_bayi.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerPakaianBayiScreen()))),
               // Baris 3
               _buildServiceItem("Jadwal", "icon_jadwal.png"),
-              _buildServiceItem("Cek Status", "icon_status.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()))),
-              _buildServiceItem("Pengaturan", "icon_pengaturan.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerProfileScreen()))),
+              _buildServiceItem("Cek Status", "icon_status.png", onTap: () {
+                final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
+                if (mainState != null) {
+                  mainState.switchToTab(1);
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
+                }
+              }),
+              _buildServiceItem("Pengaturan", "icon_pengaturan.png", onTap: () {
+                final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
+                if (mainState != null) {
+                  mainState.switchToTab(3);
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerProfileScreen()));
+                }
+              }),
               _buildServiceItem("Bantuan", "icon_bantuan.png", onTap: () => _showBantuanBottomSheet()),
             ],
           ),
@@ -531,13 +553,15 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (ctx) {
+        final bottomPadding = MediaQuery.of(ctx).padding.bottom;
         return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
+          height: MediaQuery.of(ctx).size.height * 0.85,
           decoration: const BoxDecoration(
             color: Color(0xFFF3F4F6),
             borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
           ),
+          padding: EdgeInsets.only(bottom: bottomPadding > 0 ? bottomPadding : 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

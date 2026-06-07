@@ -345,9 +345,12 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
+      builder: (ctx) {
+        final bottomPadding = MediaQuery.of(ctx).padding.bottom;
+        return Container(
+          padding: EdgeInsets.only(bottom: bottomPadding > 0 ? bottomPadding : 16),
+          child: Wrap(
+            children: [
             ListTile(
               leading: const Icon(LucideIcons.camera, color: Color(0xFF403600)),
               title: Text("Ambil Foto Pakaian", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
@@ -368,7 +371,8 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
             ),
           ],
         ),
-      ),
+      );
+    },
     );
   }
 
@@ -1094,8 +1098,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
                     children: [
                       Icon(LucideIcons.camera, size: 36, color: primaryTeal.withValues(alpha: 0.5)),
                       const SizedBox(height: 8),
-                      Text("Pencet untuk Ambil/Unggah Foto", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
-                      Text("Sebagai check-in awal kondisi fisik pakaian dry clean", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
+                      Text("Tekan untuk Unggah Foto", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal)),
                     ],
                   )
                 : Stack(

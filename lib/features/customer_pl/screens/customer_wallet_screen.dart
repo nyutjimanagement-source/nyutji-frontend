@@ -319,9 +319,10 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
         return StatefulBuilder(
           builder: (BuildContext stCtx, StateSetter setState) {
             final itemWidth = (MediaQuery.of(ctx).size.width - 48 - 12) / 2;
+            final bottomPadding = MediaQuery.of(ctx).padding.bottom;
 
             return Padding(
-              padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+              padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + (bottomPadding > 0 ? bottomPadding : 24)),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,

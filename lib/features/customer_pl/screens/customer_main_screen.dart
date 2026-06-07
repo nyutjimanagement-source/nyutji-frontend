@@ -13,10 +13,10 @@ class CustomerMainScreen extends StatefulWidget {
   const CustomerMainScreen({super.key});
 
   @override
-  State<CustomerMainScreen> createState() => _CustomerMainScreenState();
+  State<CustomerMainScreen> createState() => CustomerMainScreenState();
 }
 
-class _CustomerMainScreenState extends State<CustomerMainScreen> {
+class CustomerMainScreenState extends State<CustomerMainScreen> {
   int _selectedIndex = 0;
   late PageController _pageController;
 
@@ -45,6 +45,10 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
       duration: const Duration(milliseconds: 500), 
       curve: Curves.fastOutSlowIn
     );
+  }
+
+  void switchToTab(int index) {
+    _onItemTapped(index);
   }
 
   @override
