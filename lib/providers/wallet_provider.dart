@@ -12,6 +12,9 @@ class WalletProvider extends ChangeNotifier {
   List<dynamic> _mutasiList = [];
   List<dynamic> get mutasiList => _mutasiList;
 
+  List<dynamic> _withdrawalsList = [];
+  List<dynamic> get withdrawalsList => _withdrawalsList;
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -27,11 +30,13 @@ class WalletProvider extends ChangeNotifier {
       debugPrint('[fetchWallet] data: $data');
       _balance = double.parse(data['balance'].toString());
       _mutasiList = data['logs'] ?? [];
+      _withdrawalsList = data['withdrawals'] ?? [];
     } catch (e) {
       debugPrint('[fetchWallet] ERROR: $e');
       _errorMessage = 'Gagal memuat saldo dompet: $e';
       _balance = 0.0;
       _mutasiList = [];
+      _withdrawalsList = [];
     } finally {
       _isLoading = false;
       notifyListeners();
