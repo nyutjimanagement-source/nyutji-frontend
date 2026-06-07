@@ -395,7 +395,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         return GestureDetector(
           onTap: () {
             if (latestOrder != null) {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
+              final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
+              if (mainState != null) {
+                mainState.switchToTab(1);
+              } else {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
+              }
             } else {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'pickup')));
             }
