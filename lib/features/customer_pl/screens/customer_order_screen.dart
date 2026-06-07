@@ -117,7 +117,36 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
 
       if (!mounted || myGeneration != _loadGeneration) return;
 
+      // INJECT PRESELECTED MITRA JIKA TIDAK ADA DI HASIL API
+      if (_selectedMitra != null) {
+        bool exists = mapped.any((m) => m['id'].toString() == _selectedMitra!['id'].toString());
+        if (!exists) {
+          final normalizedMitra = {
+            'id': _selectedMitra!['id'] ?? _selectedMitra!['identifier'] ?? '-',
+            'name': _selectedMitra!['name'] ?? _selectedMitra!['brand_name'] ?? 'Mitra Nyutji',
+            'rating': NyutjiParser.toDouble(_selectedMitra!['rating'] ?? 5.0),
+            'distance': NyutjiParser.toDouble(_selectedMitra!['distance'] ?? 0.1),
+            'address': _selectedMitra!['address'] ?? '-',
+            'district': _selectedMitra!['district_name'] ?? _selectedMitra!['owner_district_name'] ?? _selectedMitra!['district'] ?? '-',
+            'image': _selectedMitra!['image'] ?? _selectedMitra!['profile_photo'] ?? _selectedMitra!['photo'],
+            'lat': NyutjiParser.toDouble(_selectedMitra!['lat']),
+            'lng': NyutjiParser.toDouble(_selectedMitra!['lng']),
+            'items': _selectedMitra!['items'] ?? [],
+            'items_loaded': false,
+          };
+          mapped.insert(0, normalizedMitra);
+        }
+      }
+
       _mitras = mapped;
+      
+      // Sinkronkan referensi _selectedMitra dengan object di _mitras agar UI Daftar Harga langsung update
+      if (_selectedMitra != null) {
+        try {
+          _selectedMitra = _mitras.firstWhere((m) => m['id'].toString() == _selectedMitra!['id'].toString());
+        } catch (_) {}
+      }
+
       _recalculateDistances();
 
       setState(() {
