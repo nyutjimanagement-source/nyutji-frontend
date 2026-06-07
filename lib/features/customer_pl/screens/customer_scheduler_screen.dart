@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_location_picker.dart';
 
 class CustomerSchedulerScreen extends StatefulWidget {
   const CustomerSchedulerScreen({super.key});
@@ -248,10 +249,10 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
                           if (selectedService == 'Antar-Jemput Kurir') ...[
                             const SizedBox(height: 16),
                             _buildLabel("Tempat Pickup"),
-                            _buildTextField(pickupController, "Alamat Pickup", LucideIcons.mapPin),
+                            _buildLocationField(context, pickupController, "Alamat Pickup"),
                             const SizedBox(height: 12),
                             _buildLabel("Tempat Drop"),
-                            _buildTextField(dropController, "Alamat Drop", LucideIcons.mapPin),
+                            _buildLocationField(context, dropController, "Alamat Drop"),
                           ],
 
                           const SizedBox(height: 20),
@@ -383,6 +384,45 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
           prefixIcon: Icon(icon, size: 18, color: Colors.grey[400]),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationField(BuildContext context, TextEditingController controller, String hint) {
+    return GestureDetector(
+      onTap: () async {
+        FocusScope.of(context).unfocus();
+        final result = await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (ctx) => const NyutjiLocationPicker(),
+        );
+        if (result != null) {
+          controller.text = result.address;
+        }
+      },
+      child: AbsorbPointer(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: TextField(
+            controller: controller,
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+            maxLines: null,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400]),
+              prefixIcon: const Icon(LucideIcons.mapPin, size: 18, color: Colors.grey),
+              suffixIcon: const Icon(LucideIcons.chevronRight, size: 18, color: Colors.grey),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          ),
         ),
       ),
     );
