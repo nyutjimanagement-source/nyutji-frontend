@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -20,6 +21,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
+  // Pink elegant color for Mitra
+  static const Color primaryColor = Color(0xFFD81B60);
+
   // Step 1: Info Pemilik
   final TextEditingController nameController = TextEditingController();
   final TextEditingController identityController = TextEditingController();
@@ -41,7 +45,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   // Step 3: Segmen & Kategori
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
-  List<dynamic> dlaundryServices = [];
+  List<String> dlaundryServices = [];
   bool _isLoadingServices = false;
 
   @override
@@ -59,7 +63,8 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       });
       if (response.data['success']) {
         setState(() {
-          dlaundryServices = response.data['data'];
+          final allData = response.data['data'] as List;
+          dlaundryServices = allData.map((e) => e['category'].toString()).toSet().toList();
         });
       }
     } catch (e) {
@@ -98,6 +103,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     NyutjiImagePicker.show(
       context,
       title: "Unggah Foto KTP",
+      primaryColor: primaryColor,
       onImagePicked: (file) {
         setState(() => ktpFile = file);
         NyutjiNotif.showSuccess(context, "KTP berhasil dipilih");
@@ -159,8 +165,6 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF286B6A);
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -184,6 +188,12 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         type: StepperType.vertical,
         currentStep: _currentStep,
         physics: const BouncingScrollPhysics(),
+        onStepTapped: (step) {
+          // Allow expanding previously completed steps to view read-only info
+          if (step < _currentStep) {
+            setState(() => _currentStep = step);
+          }
+        },
         onStepContinue: () {
           if (_currentStep == 0) {
             // Validasi step 1
@@ -221,7 +231,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: const StadiumBorder(),
                       elevation: 0,
                     ),
                     child: _isLoading && _currentStep == 2
@@ -239,7 +249,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                       onPressed: details.onStepCancel,
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: const StadiumBorder(),
                         side: BorderSide(color: Colors.grey[300]!),
                       ),
                       child: Text(
@@ -255,6 +265,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         steps: [
           Step(
             title: Text("Info Pemilik", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, color: _currentStep == 0 ? primaryColor : Colors.black87)),
+            subtitle: _currentStep > 0
+                ? Text("${nameController.text}\nNIK: ${identityController.text}", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600]))
+                : null,
             content: _buildGroupContainer(
               children: [
                 _buildTextField(nameController, "Nama Sesuai KTP", LucideIcons.user),
@@ -275,6 +288,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
           ),
           Step(
             title: Text("Info Bisnis", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, color: _currentStep == 1 ? primaryColor : Colors.black87)),
+            subtitle: _currentStep > 1
+                ? Text("${businessNameController.text.isNotEmpty ? businessNameController.text : 'Laundry Tanpa Nama'}\n${phoneController.text}", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600]))
+                : null,
             content: _buildGroupContainer(
               children: [
                 _buildTextField(businessNameController, "Nama Laundry (Opsional)", LucideIcons.store),
@@ -318,7 +334,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                 Text("Daftar Layanan Tersedia:", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: primaryColor)),
                 const SizedBox(height: 8),
                 _isLoadingServices
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator(color: primaryColor))
                     : Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -327,7 +343,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                           border: Border.all(color: primaryColor.withValues(alpha: 0.1)),
                         ),
                         child: Column(
-                          children: dlaundryServices.map((svc) {
+                          children: dlaundryServices.map((catName) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
@@ -336,7 +352,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      svc['category'],
+                                      catName,
                                       style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
                                     ),
                                   ),
@@ -385,7 +401,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         filled: true,
         fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF286B6A), width: 1.5)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: primaryColor, width: 1.5)),
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),
     );
@@ -430,7 +446,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         filled: true,
         fillColor: Colors.grey[50],
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF286B6A), width: 1.5)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: primaryColor, width: 1.5)),
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),
     );
@@ -441,27 +457,44 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       onTap: _pickKtp,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: EdgeInsets.symmetric(vertical: ktpFile != null ? 8 : 24, horizontal: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF286B6A).withValues(alpha: 0.05),
+          color: primaryColor.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.3), style: BorderStyle.solid),
+          border: Border.all(color: primaryColor.withValues(alpha: 0.3), style: BorderStyle.solid),
         ),
-        child: Column(
-          children: [
-            Icon(ktpFile != null ? LucideIcons.checkCircle : LucideIcons.uploadCloud, size: 32, color: const Color(0xFF286B6A)),
-            const SizedBox(height: 8),
-            Text(
-              ktpFile != null ? "KTP Berhasil Diunggah" : "Unggah Foto KTP",
-              style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF286B6A)),
-            ),
-            if (ktpFile == null)
-              Text(
-                "Ambil dari Kamera atau Galeri",
-                style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[500]),
+        child: ktpFile != null
+            ? Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.file(File(ktpFile!.path), height: 140, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.refreshCw, size: 14, color: primaryColor),
+                      const SizedBox(width: 6),
+                      Text("Ganti Foto KTP", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: primaryColor)),
+                    ],
+                  ),
+                ],
+              )
+            : Column(
+                children: [
+                  const Icon(LucideIcons.uploadCloud, size: 32, color: primaryColor),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Unggah Foto KTP",
+                    style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: primaryColor),
+                  ),
+                  Text(
+                    "Ambil dari Kamera atau Galeri",
+                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
               ),
-          ],
-        ),
       ),
     );
   }
@@ -480,10 +513,10 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         fontSize: 13,
       ),
       backgroundColor: Colors.white,
-      selectedColor: const Color(0xFF286B6A),
+      selectedColor: primaryColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: isSelected ? const Color(0xFF286B6A) : Colors.grey[300]!),
+        side: BorderSide(color: isSelected ? primaryColor : Colors.grey[300]!),
       ),
       showCheckmark: false,
     );
