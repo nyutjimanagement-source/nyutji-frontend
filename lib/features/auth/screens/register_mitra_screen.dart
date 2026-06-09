@@ -430,8 +430,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                         return InkWell(
                                           onTap: () {
                                             setState(() {
-                                              if (isSvcChecked) checkedServices.remove(svcId);
-                                              else checkedServices.add(svcId);
+                                              if (isSvcChecked) {
+                                                checkedServices.remove(svcId);
+                                              } else {
+                                                checkedServices.add(svcId);
+                                              }
                                             });
                                           },
                                           child: Padding(
