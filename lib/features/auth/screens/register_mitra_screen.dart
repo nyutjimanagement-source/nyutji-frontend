@@ -62,6 +62,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         'category': selectedCategory
       });
       if (response.data['success']) {
+        if (!mounted) return;
         setState(() {
           final allData = response.data['data'] as List;
           dlaundryServices = allData.map((e) => e['category'].toString()).toSet().toList();
@@ -70,7 +71,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     } catch (e) {
       debugPrint("Gagal fetch services: $e");
     } finally {
-      setState(() => _isLoadingServices = false);
+      if (mounted) {
+        setState(() => _isLoadingServices = false);
+      }
     }
   }
 
@@ -159,7 +162,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       }
       NyutjiNotif.showError(context, errMsg);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
