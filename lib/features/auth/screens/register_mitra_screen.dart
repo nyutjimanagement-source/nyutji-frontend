@@ -332,7 +332,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
                                 children: [
-                                  Icon(LucideIcons.checkCircle2, color: primaryColor, size: 18),
+                                  const Icon(LucideIcons.checkCircle2, color: primaryColor, size: 18),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
