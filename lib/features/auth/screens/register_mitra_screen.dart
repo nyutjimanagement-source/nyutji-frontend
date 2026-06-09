@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
-import '../../../core/utils/formatters.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
@@ -122,11 +118,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         'name': nameController.text.trim(),
         'owner_identity': identityController.text.trim(),
         'email': emailController.text.trim(),
-        'owner_address': ownerAddressController.text.trim() + " " + ownerDetailController.text.trim(),
+        'owner_address': "${ownerAddressController.text.trim()} ${ownerDetailController.text.trim()}",
         'owner_district_name': ownerDistrict,
         'owner_city_name': ownerCity,
         'business_name': businessNameController.text.trim(),
-        'phone_number': Formatters.formatPhoneNumber(phoneController.text),
+        'phone_number': phoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
         'password': passController.text,
         'business_address': businessAddressController.text.trim(),
         'business_district_name': businessDistrict,
