@@ -38,6 +38,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   final TextEditingController businessNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passController = TextEditingController();
+  final TextEditingController confirmPassController = TextEditingController();
   final TextEditingController businessAddressController = TextEditingController();
   String businessDistrict = "";
   String businessCity = "";
@@ -47,7 +48,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   String selectedCategory = 'KECIL';
   Map<String, List<dynamic>> groupedServices = {};
   Set<String> checkedCategories = {};
+  Set<String> checkedServices = {};
   bool _isLoadingServices = false;
+  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
@@ -68,6 +71,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
           final allData = response.data['data'] as List;
           groupedServices.clear();
           checkedCategories.clear();
+          checkedServices.clear();
           for (var item in allData) {
             final cat = item['category'].toString();
             if (!groupedServices.containsKey(cat)) {
@@ -147,6 +151,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         'business_city_name': businessCity,
         'business_type': selectedSegment,
         'mitra_category': selectedCategory,
+        'selected_services': checkedServices.toList().join(','),
       });
 
       if (ktpFile != null) {
@@ -217,8 +222,12 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
             }
           } else if (_currentStep == 1) {
             // Validasi step 2
-            if (phoneController.text.isEmpty || passController.text.isEmpty || businessAddressController.text.isEmpty) {
+            if (phoneController.text.isEmpty || passController.text.isEmpty || confirmPassController.text.isEmpty || businessAddressController.text.isEmpty) {
               NyutjiNotif.showError(context, "Lengkapi data bisnis");
+              return;
+            }
+            if (passController.text != confirmPassController.text) {
+              NyutjiNotif.showError(context, "Kata Sandi dan Konfirmasi Kata Sandi tidak cocok");
               return;
             }
           } else if (_currentStep == 2) {
@@ -313,7 +322,9 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                 const SizedBox(height: 16),
                 _buildTextField(phoneController, "Nomor Handphone Bisnis", LucideIcons.phone, isNumber: true),
                 const SizedBox(height: 16),
-                _buildPasswordField(),
+                _buildPasswordField(passController, "Kata Sandi", _obscurePassword, () => setState(() => _obscurePassword = !_obscurePassword)),
+                const SizedBox(height: 16),
+                _buildPasswordField(confirmPassController, "Konfirmasi Kata Sandi", _obscureConfirmPassword, () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword)),
               ],
             ),
             isActive: _currentStep >= 1,
@@ -367,8 +378,14 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                     setState(() {
                                       if (isChecked) {
                                         checkedCategories.remove(catName);
+                                        for (var s in groupedServices[catName]!) {
+                                          checkedServices.remove(s['id'].toString());
+                                        }
                                       } else {
                                         checkedCategories.add(catName);
+                                        for (var s in groupedServices[catName]!) {
+                                          checkedServices.add(s['id'].toString());
+                                        }
                                       }
                                     });
                                   },
@@ -408,25 +425,34 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: groupedServices[catName]!.map((svc) {
-                                        return Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 3),
-                                          child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Container(
-                                                margin: const EdgeInsets.only(top: 6),
-                                                width: 5,
-                                                height: 5,
-                                                decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.5), shape: BoxShape.circle),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  svc['name_service'].toString(),
-                                                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[700]),
+                                        final svcId = svc['id'].toString();
+                                        final isSvcChecked = checkedServices.contains(svcId);
+                                        return InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              if (isSvcChecked) checkedServices.remove(svcId);
+                                              else checkedServices.add(svcId);
+                                            });
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 6),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  isSvcChecked ? LucideIcons.checkSquare : LucideIcons.square,
+                                                  color: isSvcChecked ? primaryColor : Colors.grey[400],
+                                                  size: 16,
                                                 ),
-                                              ),
-                                            ],
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    svc['name_service'].toString(),
+                                                    style: GoogleFonts.montserrat(fontSize: 13, color: isSvcChecked ? primaryColor : Colors.grey[700], fontWeight: isSvcChecked ? FontWeight.w600 : FontWeight.w500),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         );
                                       }).toList(),
@@ -508,18 +534,18 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     );
   }
 
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField(TextEditingController controller, String hint, bool isObscure, VoidCallback onToggle) {
     return TextField(
-      controller: passController,
-      obscureText: _obscurePassword,
+      controller: controller,
+      obscureText: isObscure,
       style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
-        hintText: "Kata Sandi",
+        hintText: hint,
         hintStyle: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[400]),
         prefixIcon: Icon(LucideIcons.lock, size: 20, color: Colors.grey[500]),
         suffixIcon: IconButton(
-          icon: Icon(_obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye, size: 20, color: Colors.grey[400]),
-          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+          icon: Icon(isObscure ? LucideIcons.eyeOff : LucideIcons.eye, size: 20, color: Colors.grey[400]),
+          onPressed: onToggle,
         ),
         filled: true,
         fillColor: Colors.grey[50],
