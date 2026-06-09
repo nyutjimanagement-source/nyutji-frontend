@@ -45,7 +45,8 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   // Step 3: Segmen & Kategori
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
-  List<String> dlaundryServices = [];
+  Map<String, List<dynamic>> groupedServices = {};
+  Set<String> checkedCategories = {};
   bool _isLoadingServices = false;
 
   @override
@@ -65,7 +66,15 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
         if (!mounted) return;
         setState(() {
           final allData = response.data['data'] as List;
-          dlaundryServices = allData.map((e) => e['category'].toString()).toSet().toList();
+          groupedServices.clear();
+          checkedCategories.clear();
+          for (var item in allData) {
+            final cat = item['category'].toString();
+            if (!groupedServices.containsKey(cat)) {
+              groupedServices[cat] = [];
+            }
+            groupedServices[cat]!.add(item);
+          }
         });
       }
     } catch (e) {
@@ -242,7 +251,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                     child: _isLoading && _currentStep == 2
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : Text(
-                            _currentStep == 2 ? "KIRIM PENDAFTARAN" : "LANJUT",
+                            _currentStep == 2 ? "DAFTAR" : "LANJUT",
                             style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white),
                           ),
                   ),
@@ -341,28 +350,92 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                 _isLoadingServices
                     ? const Center(child: CircularProgressIndicator(color: primaryColor))
                     : Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: primaryColor.withValues(alpha: 0.05),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: primaryColor.withValues(alpha: 0.1)),
+                          border: Border.all(color: Colors.grey[200]!),
                         ),
                         child: Column(
-                          children: dlaundryServices.map((catName) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  const Icon(LucideIcons.checkCircle2, color: primaryColor, size: 18),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      catName,
-                                      style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+                          children: groupedServices.keys.map((catName) {
+                            final isChecked = checkedCategories.contains(catName);
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      if (isChecked) {
+                                        checkedCategories.remove(catName);
+                                      } else {
+                                        checkedCategories.add(catName);
+                                      }
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          isChecked ? LucideIcons.checkSquare : LucideIcons.square,
+                                          color: isChecked ? primaryColor : Colors.grey[400],
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            catName,
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 14,
+                                              fontWeight: isChecked ? FontWeight.w700 : FontWeight.w500,
+                                              color: isChecked ? primaryColor : Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                        Icon(
+                                          isChecked ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                                          color: isChecked ? primaryColor : Colors.grey[400],
+                                          size: 18,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                AnimatedCrossFade(
+                                  firstChild: const SizedBox(width: double.infinity, height: 0),
+                                  secondChild: Padding(
+                                    padding: const EdgeInsets.only(left: 32, top: 4, bottom: 8),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: groupedServices[catName]!.map((svc) {
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 3),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                margin: const EdgeInsets.only(top: 6),
+                                                width: 5,
+                                                height: 5,
+                                                decoration: BoxDecoration(color: primaryColor.withValues(alpha: 0.5), shape: BoxShape.circle),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  svc['name_service'].toString(),
+                                                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[700]),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                  crossFadeState: isChecked ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                                  duration: const Duration(milliseconds: 200),
+                                ),
+                              ],
                             );
                           }).toList(),
                         ),
