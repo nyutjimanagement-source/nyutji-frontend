@@ -22,7 +22,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   bool _obscurePassword = true;
 
   // Pink elegant color for Mitra
-  static const Color primaryColor = Color(0xFFD81B60);
+  static const Color primaryColor = Color(0xFFC3312E);
 
   // Step 1: Info Pemilik
   final TextEditingController nameController = TextEditingController();
@@ -172,7 +172,12 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       if (!mounted) return;
       String errMsg = "Gagal Registrasi";
       if (e is DioException && e.response != null) {
-        errMsg = e.response?.data['message'] ?? e.response?.data['error'] ?? errMsg;
+        final errText = (e.response?.data['message']?.toString() ?? '') + (e.response?.data['error']?.toString() ?? '');
+        if (errText.toLowerCase().contains('phone_number') || errText.toLowerCase().contains('unique')) {
+          errMsg = "Registrasi Gagal: No Handphone sudah digunakan Mitra lain";
+        } else {
+          errMsg = e.response?.data['message'] ?? e.response?.data['error'] ?? errMsg;
+        }
       }
       NyutjiNotif.showError(context, errMsg);
     } finally {
@@ -312,11 +317,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
           Step(
             title: Text("Info Bisnis", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, color: _currentStep == 1 ? primaryColor : Colors.black87)),
             subtitle: _currentStep > 1
-                ? Text("${businessNameController.text.isNotEmpty ? businessNameController.text : 'Laundry Tanpa Nama'}\n${phoneController.text}", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600]))
+                ? Text("${businessNameController.text}\n${phoneController.text}", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600]))
                 : null,
             content: _buildGroupContainer(
               children: [
-                _buildTextField(businessNameController, "Nama Laundry (Opsional)", LucideIcons.store),
+                _buildTextField(businessNameController, "Nama Laundry", LucideIcons.store),
                 const SizedBox(height: 16),
                 _buildLocationField(businessAddressController, "Lokasi Wilayah Operasional", false),
                 const SizedBox(height: 16),
@@ -343,6 +348,13 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                     Expanded(child: _buildChoiceChip('BADAN', 'Badan Usaha', selectedSegment, (v) => setState(() => selectedSegment = v))),
                   ],
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    selectedSegment == 'PRIBADI' ? "Bisnis dikelola Perorangan, dikelola mandiri" : "Entitas hukum (PT/CV), operasional tim",
+                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                  ),
+                ),
                 const SizedBox(height: 20),
                 Text("Kategori Mitra", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey[700])),
                 const SizedBox(height: 8),
@@ -354,6 +366,13 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                     _buildChoiceChip('MENENGAH', 'Menengah', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
                     _buildChoiceChip('BESAR', 'Besar', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
                   ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    selectedCategory == 'KECIL' ? "Kapasitas < 50 kg/hari" : selectedCategory == 'MENENGAH' ? "Kapasitas 50-200 kg/hari" : "Kapasitas > 200 kg/hari",
+                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Text("Daftar Layanan Tersedia:", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: primaryColor)),
