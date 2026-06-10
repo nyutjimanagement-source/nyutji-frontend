@@ -192,53 +192,61 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF0F0),
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // Header: Akun Baru Nyutji
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(LucideIcons.chevronLeft, color: primaryColor),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Spacer(),
-                  Text(
-                    "Akun Baru Nyutji",
-                    style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
-                  ),
-                  const Spacer(),
-                  const SizedBox(width: 48), // To balance the IconButton
-                ],
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Header: Akun Baru Nyutji
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(LucideIcons.chevronLeft, color: primaryColor),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const Spacer(),
+                          Text(
+                            "Akun Baru Nyutji",
+                            style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
+                          ),
+                          const Spacer(),
+                          const SizedBox(width: 48), // To balance the IconButton
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Profile Icon
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: primaryColor.withValues(alpha: 0.1), width: 2),
+                      ),
+                      child: const Icon(LucideIcons.store, size: 50, color: primaryColor),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Registrasi Mitra",
+                      style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Bangun bisnis laundry Anda bersama\nNyutji Management",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 30),
-            // Profile Icon
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: primaryColor.withValues(alpha: 0.1), width: 2),
-              ),
-              child: const Icon(LucideIcons.store, size: 50, color: primaryColor),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              "Registrasi Mitra",
-              style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Bangun bisnis laundry Anda bersama\nNyutji Management",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 30),
-            Expanded(
-              child: Container(
+            ];
+          },
+          body: Container(
                 clipBehavior: Clip.hardEdge,
                 decoration: const BoxDecoration(
                   color: Colors.white,
@@ -250,7 +258,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                 child: Stepper(
         type: StepperType.vertical,
         currentStep: _currentStep,
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         onStepTapped: (step) {
           // Allow expanding previously completed steps to view read-only info
           if (step < _currentStep) {
