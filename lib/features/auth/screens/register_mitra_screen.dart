@@ -191,14 +191,13 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF0F0),
-      body: SafeArea(
-        child: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  SizedBox(height: MediaQuery.of(context).padding.top + 20),
                     // Header: Akun Baru Nyutji
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -247,13 +246,8 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
             ];
           },
           body: Container(
-                clipBehavior: Clip.hardEdge,
                 decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5)),
-                  ],
+                  color: Color(0xFFFDF0F0),
                 ),
                 child: Stepper(
         type: StepperType.vertical,
@@ -543,20 +537,14 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
       ),
         ),
       ),
-      ),
     );
   }
 
   Widget _buildGroupContainer({required List<Widget> children}) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!, width: 1.5),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
