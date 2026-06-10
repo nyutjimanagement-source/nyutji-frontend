@@ -541,10 +541,8 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
           ),
         ],
       ),
-              ),
-            ),
-          ],
         ),
+      ),
       ),
     );
   }
