@@ -190,25 +190,64 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Color(0xFF111827)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "Registrasi Mitra",
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-            color: const Color(0xFF111827),
-          ),
-        ),
-      ),
-      body: Stepper(
+      backgroundColor: const Color(0xFFFDF0F0),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            // Header: Akun Baru Nyutji
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(LucideIcons.chevronLeft, color: primaryColor),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const Spacer(),
+                  Text(
+                    "Akun Baru Nyutji",
+                    style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
+                  ),
+                  const Spacer(),
+                  const SizedBox(width: 48), // To balance the IconButton
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            // Profile Icon
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: primaryColor.withValues(alpha: 0.1), width: 2),
+              ),
+              child: const Icon(LucideIcons.store, size: 50, color: primaryColor),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "Registrasi Mitra",
+              style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Bangun bisnis laundry Anda bersama\nNyutji Management",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 30),
+            Expanded(
+              child: Container(
+                clipBehavior: Clip.hardEdge,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5)),
+                  ],
+                ),
+                child: Stepper(
         type: StepperType.vertical,
         currentStep: _currentStep,
         physics: const BouncingScrollPhysics(),
@@ -493,6 +532,11 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
             isActive: _currentStep >= 2,
           ),
         ],
+      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
