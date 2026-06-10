@@ -37,7 +37,7 @@ class AdminTentangNyutjiScreen extends StatelessWidget {
             _buildSection(
               title: "System Kemitraan Laundry",
               icon: LucideIcons.store,
-              color: const Color(0xFF286B6A),
+              color: const Color(0xFFC3312E),
               content: "Nyutji menyediakan sistem kemitraan laundry yang terintegrasi secara profesional. Mitra akan mendapatkan dukungan sistem manajemen, pelatihan, serta perlengkapan yang terstandarisasi untuk memberikan pelayanan terbaik bagi pelanggan.",
               linkText: "DAFTAR MITRA LAUNDRY",
               onLinkTap: () {
@@ -59,7 +59,7 @@ class AdminTentangNyutjiScreen extends StatelessWidget {
             _buildSection(
               title: "System Nyuci Bersama:\nNyutji Management",
               icon: LucideIcons.users,
-              color: const Color(0xFFC3312E),
+              color: const Color(0xFF286B6A),
               content: "Ekosistem Nyutji menyatukan pelanggan, mitra laundry, dan mitra kurir dalam satu platform manajemen terpadu yang transparan, mudah digunakan, dan memastikan kualitas layanan yang prima setiap saat.",
             ),
             const SizedBox(height: 40),

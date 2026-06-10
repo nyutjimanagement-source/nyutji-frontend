@@ -185,9 +185,9 @@ class NyutjiImagePicker {
         file.path,
         targetPath,
         format: CompressFormat.webp,
-        quality: 80,
-        minWidth: 1080,
-        minHeight: 1080,
+        quality: 60,
+        minWidth: 800,
+        minHeight: 800,
       );
       return result;
     } catch (e) {
