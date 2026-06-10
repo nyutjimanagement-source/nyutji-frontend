@@ -104,7 +104,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
 
         // FILTER DIPERBAIKI: Gunakan limit 10 Juta (sama dengan validasi simpan) agar tidak ada item tersembunyi
         kiloanData = items
-          .where((i) => i['category'] == 'Kiloan')
+          .where((i) => i['category'] == 'Kiloan' || i['category'] == 'Layanan Kiloan')
           .where((i) => parseSafe(i['price_regular']) < 10000000)
           .map<Map<String, String>>((i) => {
           "id": i['id'].toString(),
@@ -114,7 +114,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
         }).toList();
 
         satuanData = items
-          .where((i) => i['category'] == 'Satuan')
+          .where((i) => i['category'] != 'Kiloan' && i['category'] != 'Layanan Kiloan')
           .where((i) => parseSafe(i['price_regular']) < 10000000)
           .map<Map<String, String>>((i) => {
           "id": i['id'].toString(),
