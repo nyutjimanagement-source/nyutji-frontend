@@ -712,8 +712,9 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   Widget _buildKiloanRow(String id, Map<String, String> item, bool editing) {
     bool isSelected = (_selectedItems[id] ?? 0) > 0;
     bool isBeingEdited = _selectedForEdit.contains(id);
+    bool canDelete = editing && !isBeingEdited;
 
-    return Container(
+    Widget rowContent = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
       child: Row(
@@ -754,13 +755,35 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         ],
       ),
     );
+
+    if (!canDelete) return rowContent;
+
+    return Dismissible(
+      key: ValueKey("kiloan-$id"),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        setState(() {
+          kiloanData.removeWhere((element) => element['id'] == id);
+          _selectedForEdit.remove(id);
+          _selectedItems.remove(id);
+        });
+      },
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Icon(LucideIcons.trash2, color: Colors.white),
+      ),
+      child: rowContent,
+    );
   }
 
   Widget _buildSatuanRow(String id, Map<String, String> item, bool editing) {
     bool isSelected = (_selectedItems[id] ?? 0) > 0;
     bool isBeingEdited = _selectedForEdit.contains(id);
+    bool canDelete = editing && !isBeingEdited;
 
-    return Container(
+    Widget rowContent = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
       child: Row(
@@ -804,6 +827,27 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           ),
         ],
       ),
+    );
+
+    if (!canDelete) return rowContent;
+
+    return Dismissible(
+      key: ValueKey("satuan-$id"),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        setState(() {
+          satuanData.removeWhere((element) => element['id'] == id);
+          _selectedForEdit.remove(id);
+          _selectedItems.remove(id);
+        });
+      },
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Icon(LucideIcons.trash2, color: Colors.white),
+      ),
+      child: rowContent,
     );
   }
 
