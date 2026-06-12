@@ -772,7 +772,14 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         color: Colors.red,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(LucideIcons.trash2, color: Colors.white),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Daftar Harga Dihapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+            const SizedBox(width: 8),
+            const Icon(LucideIcons.trash2, color: Colors.white),
+          ],
+        ),
       ),
       child: rowContent,
     );
@@ -845,7 +852,14 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         color: Colors.red,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(LucideIcons.trash2, color: Colors.white),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Daftar Harga Dihapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+            const SizedBox(width: 8),
+            const Icon(LucideIcons.trash2, color: Colors.white),
+          ],
+        ),
       ),
       child: rowContent,
     );
