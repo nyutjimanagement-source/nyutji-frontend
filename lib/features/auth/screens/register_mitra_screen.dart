@@ -249,7 +249,9 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                 decoration: const BoxDecoration(
                   color: Color(0xFFFDF0F0),
                 ),
-                              child: Padding(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
@@ -334,6 +336,8 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                   ],
                 ),
               ),
+            ),
+          ),
         ),
       ),
     );
