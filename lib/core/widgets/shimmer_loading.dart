@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ShimmerLoading extends StatefulWidget {
+class ShimmerLoading extends ConsumerStatefulWidget {
   final double width;
   final double height;
   final double borderRadius;
@@ -16,11 +17,10 @@ class ShimmerLoading extends StatefulWidget {
     this.highlightColor = const Color(0xFFF5F5F5),
   });
 
-  @override
-  State<ShimmerLoading> createState() => _ShimmerLoadingState();
+  @override ConsumerState<ShimmerLoading> createState() => _ShimmerLoadingState();
 }
 
-class _ShimmerLoadingState extends State<ShimmerLoading> with SingleTickerProviderStateMixin {
+class _ShimmerLoadingState extends ConsumerState<ShimmerLoading> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 

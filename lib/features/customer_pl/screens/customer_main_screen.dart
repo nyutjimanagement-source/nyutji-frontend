@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
-import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'customer_home_screen.dart';
 
@@ -9,14 +9,13 @@ import 'customer_profile_screen.dart';
 import 'customer_status_screen.dart';
 import '../../../providers/auth_provider.dart';
 
-class CustomerMainScreen extends StatefulWidget {
+class CustomerMainScreen extends ConsumerStatefulWidget {
   const CustomerMainScreen({super.key});
 
-  @override
-  State<CustomerMainScreen> createState() => CustomerMainScreenState();
+  @override ConsumerState<CustomerMainScreen> createState() => CustomerMainScreenState();
 }
 
-class CustomerMainScreenState extends State<CustomerMainScreen> {
+class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
   int _selectedIndex = 0;
   late PageController _pageController;
 
@@ -53,7 +52,7 @@ class CustomerMainScreenState extends State<CustomerMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     
     final Map<String, dynamic> t = {
       'id': {

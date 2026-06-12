@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/services/api_service.dart';
 import 'package:dio/dio.dart';
 
@@ -114,3 +115,5 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 }
+
+final walletProvider = ChangeNotifierProvider<WalletProvider>((ref) => WalletProvider());

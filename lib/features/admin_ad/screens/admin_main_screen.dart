@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../../data/services/api_service.dart';
 import '../../../providers/auth_provider.dart';
@@ -17,14 +17,13 @@ import '../../../providers/sentiment_provider.dart';
 import '../../../providers/simulasi_provider.dart';
 import 'admin_revenue_split_screen.dart';
 
-class AdminMainScreen extends StatefulWidget {
+class AdminMainScreen extends ConsumerStatefulWidget {
   const AdminMainScreen({super.key});
 
-  @override
-  State<AdminMainScreen> createState() => _AdminMainScreenState();
+  @override ConsumerState<AdminMainScreen> createState() => _AdminMainScreenState();
 }
 
-class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProviderStateMixin {
+class _AdminMainScreenState extends ConsumerState<AdminMainScreen> with SingleTickerProviderStateMixin {
   final Color primaryTeal = const Color(0xFF1E5655);
   final Color darkGray = const Color(0xFF111827);
   final Color secondaryDark = const Color(0xFF1F2937); 
@@ -62,12 +61,12 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
   }
 
   void _loadAdminData() {
-    context.read<WalletProvider>().fetchWallet();
-    context.read<OrderProvider>().fetchAdminOrders();
-    context.read<IssueProvider>().fetchIssues();
-    context.read<SentimentProvider>().fetchSentiments();
-    context.read<AuthProvider>().fetchPendingApprovals();
-    context.read<AuthProvider>().fetchAllUsers(); // Tarik semua user
+    ref.read(walletProvider).fetchWallet();
+    ref.read(orderProvider).fetchAdminOrders();
+    ref.read(issueProvider).fetchIssues();
+    ref.read(sentimentProvider).fetchSentiments();
+    ref.read(authProvider).fetchPendingApprovals();
+    ref.read(authProvider).fetchAllUsers(); // Tarik semua user
   }
 
   Future<void> _fetchSystemStatus() async {
@@ -95,7 +94,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final Map<String, dynamic> t = {
       'id': {
         'logout': 'Keluar Akun',
@@ -137,9 +136,9 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
   }
 
   Widget _buildHomeTab() {
-    final orderProv = context.watch<OrderProvider>();
-    final authProv = context.watch<AuthProvider>();
-    final walletProv = context.watch<WalletProvider>();
+    final orderProv = ref.watch(orderProvider);
+    final authProv = ref.watch(authProvider);
+    final walletProv = ref.watch(walletProvider);
     final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
 
     return Container(
@@ -255,14 +254,16 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Consumer<AuthProvider>(
-                              builder: (context, auth, _) => Text(
+                            Consumer(
+                              builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return Text(
                                 auth.user?['name']?.toUpperCase() ?? "GLOBAL COMMAND", 
                                 style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                              ),
-                            ),
+                              );
+}),
                             Text("SuperAdmin • Induk Semang", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[400], fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis, maxLines: 1),
                           ],
                         ),
@@ -388,7 +389,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                 filteredOrders.length.toString(), 
                 "+5.2%", 
                 true,
-                onTap: () => _showOrderListModal(context, context.read<OrderProvider>())
+                onTap: () => _showOrderListModal(context, ref.read(orderProvider))
               ),
               _buildKPIBox(
                 "User Aktif", 
@@ -899,8 +900,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                   const Divider(height: 1),
                   _buildMenuItem(LucideIcons.server, "Database / AWS Server", false),
                   const Divider(height: 1),
-                  Consumer<AuthProvider>(
-                    builder: (context, auth, _) => GestureDetector(
+                  Consumer(
+                    builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return GestureDetector(
                       onTap: () async {
                         final navigator = Navigator.of(context);
                         await auth.logout();
@@ -908,8 +911,8 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                         navigator.pushReplacementNamed('/login');
                       },
                       child: _buildMenuItem(LucideIcons.logOut, "Tutup Sesi (Logout)", true),
-                    ),
-                  )
+                    );
+})
                 ],
               ),
             )

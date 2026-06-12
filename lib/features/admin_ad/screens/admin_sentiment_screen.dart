@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/sentiment_provider.dart';
 
-class AdminSentimentScreen extends StatelessWidget {
+class AdminSentimentScreen extends ConsumerWidget {
   const AdminSentimentScreen({super.key});
 
 
   @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<SentimentProvider>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = ref.watch(sentimentProvider);
     final summary = provider.summary;
     final sentiments = provider.sentiments;
 

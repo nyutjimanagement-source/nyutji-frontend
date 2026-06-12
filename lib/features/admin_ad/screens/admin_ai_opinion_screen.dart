@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:math';
 
-class AdminAiOpinionScreen extends StatefulWidget {
+class AdminAiOpinionScreen extends ConsumerStatefulWidget {
   const AdminAiOpinionScreen({super.key});
 
-  @override
-  State<AdminAiOpinionScreen> createState() => _AdminAiOpinionScreenState();
+  @override ConsumerState<AdminAiOpinionScreen> createState() => _AdminAiOpinionScreenState();
 }
 
-class _AdminAiOpinionScreenState extends State<AdminAiOpinionScreen> {
+class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
   final Color primaryTeal = const Color(0xFF1E5655);
   final Color darkBg = const Color(0xFF0F172A); // Deep Midnight Blue
   final Color cardColor = Colors.white;

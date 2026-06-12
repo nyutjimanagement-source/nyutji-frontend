@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
@@ -13,7 +13,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'customer_wallet_screen.dart';
 
-class CustomerPaymentScreen extends StatefulWidget {
+class CustomerPaymentScreen extends ConsumerStatefulWidget {
   final int totalPrice;
   final int totalItems;
   final String address;
@@ -61,11 +61,10 @@ class CustomerPaymentScreen extends StatefulWidget {
     this.mitraDistrict = '',
   });
 
-  @override
-  State<CustomerPaymentScreen> createState() => _CustomerPaymentScreenState();
+  @override ConsumerState<CustomerPaymentScreen> createState() => _CustomerPaymentScreenState();
 }
 
-class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
+class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
   final Color primaryTeal = NyutjiTheme.m3Primary;
   final Color primaryRed = const Color(0xFFC3312E);
   final Color bgColor = NyutjiTheme.m3Surface;
@@ -98,7 +97,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     });
 
     // 2. Refresh Saldo Dompet Nyutji
-    final walletProv = Provider.of<WalletProvider>(context, listen: false);
+    final walletProv = ref.read(walletProvider);
     await walletProv.fetchWallet();
 
     // 3. Ambil Biaya Kurir Dinamis
@@ -201,7 +200,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   }
 
   void _showEstimationInvoice(int grandTotal) {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final now = DateTime.now();
 
     // JENIS NOTA & JUDUL
@@ -347,9 +346,9 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
   Future<void> _processPayment(int grandTotal, DateTime finishDate) async {
     if (_isSubmitting) return;
 
-    final walletProv = context.read<WalletProvider>();
-    final auth = context.read<AuthProvider>();
-    final orderProv = context.read<OrderProvider>();
+    final walletProv = ref.read(walletProvider);
+    final auth = ref.read(authProvider);
+    final orderProv = ref.read(orderProvider);
 
     // 1. Validasi Saldo (INSTRUKSI JENDERAL)
     if (walletProv.balance < grandTotal) {
@@ -475,7 +474,7 @@ class _CustomerPaymentScreenState extends State<CustomerPaymentScreen> {
     int courierFee = needsCourier ? _dynamicCourierFee : 0;
     int grandTotal = widget.totalPrice + courierFee;
     
-    final walletProv = context.watch<WalletProvider>();
+    final walletProv = ref.watch(walletProvider);
     
     return Scaffold(
       backgroundColor: bgColor,

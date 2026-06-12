@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'nyutji_location_picker.dart';
 
@@ -26,15 +26,14 @@ class NyutjiPickupResult {
 
 /// Bottom sheet untuk memilih lokasi penjemputan.
 /// Mengembalikan [NyutjiPickupResult] via Navigator.pop.
-class NyutjiPickupPicker extends StatefulWidget {
+class NyutjiPickupPicker extends ConsumerStatefulWidget {
   final String? title;
   const NyutjiPickupPicker({super.key, this.title});
 
-  @override
-  State<NyutjiPickupPicker> createState() => _NyutjiPickupPickerState();
+  @override ConsumerState<NyutjiPickupPicker> createState() => _NyutjiPickupPickerState();
 }
 
-class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
+class _NyutjiPickupPickerState extends ConsumerState<NyutjiPickupPicker> {
   static const _teal = Color(0xFF1E5655);
 
   Future<void> _pickFromMap(AuthProvider auth) async {
@@ -85,7 +84,7 @@ class _NyutjiPickupPickerState extends State<NyutjiPickupPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
+    final auth = ref.watch(authProvider);
     final home = auth.homeAddress;
 
     return Container(

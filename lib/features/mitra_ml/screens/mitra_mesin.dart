@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/lg_washer_service.dart';
 import '../../../models/lg_washer_model.dart';
 import 'dart:async';
 
-class MitraMesinScreen extends StatefulWidget {
+class MitraMesinScreen extends ConsumerStatefulWidget {
   const MitraMesinScreen({super.key});
 
-  @override
-  State<MitraMesinScreen> createState() => _MitraMesinScreenState();
+  @override ConsumerState<MitraMesinScreen> createState() => _MitraMesinScreenState();
 }
 
-class _MitraMesinScreenState extends State<MitraMesinScreen> {
+class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
   static const primaryTeal = Color(0xFF1E5655);
   static const bgColor = Color(0xFFF3F4F6);
   static const darkText = Color(0xFF111827);
@@ -48,7 +47,7 @@ class _MitraMesinScreenState extends State<MitraMesinScreen> {
 
   Future<void> _fetchDevices() async {
     try {
-      final auth = context.read<AuthProvider>();
+      final auth = ref.read(authProvider);
       final userId = auth.user?['identifier'] ?? '';
       
       if (userId.isEmpty) {

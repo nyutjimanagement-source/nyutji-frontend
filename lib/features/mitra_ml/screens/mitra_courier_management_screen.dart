@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-class MitraCourierManagementScreen extends StatefulWidget {
+class MitraCourierManagementScreen extends ConsumerStatefulWidget {
   const MitraCourierManagementScreen({super.key});
 
-  @override
-  State<MitraCourierManagementScreen> createState() => _MitraCourierManagementScreenState();
+  @override ConsumerState<MitraCourierManagementScreen> createState() => _MitraCourierManagementScreenState();
 }
 
-class _MitraCourierManagementScreenState extends State<MitraCourierManagementScreen> {
+class _MitraCourierManagementScreenState extends ConsumerState<MitraCourierManagementScreen> {
   final Color primaryTeal = const Color(0xFF1E5655);
   final Color darkText = const Color(0xFF111827);
   final Color bgColor = const Color(0xFFF3F4F6);

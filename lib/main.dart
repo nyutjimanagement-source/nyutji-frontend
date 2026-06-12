@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_util.dart';
-
-import 'providers/auth_provider.dart';
-import 'providers/wallet_provider.dart';
-import 'providers/order_provider.dart';
-import 'providers/issue_provider.dart';
-import 'providers/sentiment_provider.dart';
-import 'providers/simulasi_provider.dart';
-import 'providers/revenue_split_provider.dart';
-
+import 'core/widgets/connectivity_wrapper.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_pelanggan_screen.dart';
@@ -30,40 +22,32 @@ void main() async {
   await initializeDateFormatting('id_ID', null);
   // Hanya gunakan font lokal dari assets/google_fonts/
   GoogleFonts.config.allowRuntimeFetching = false;
-  runApp(const NyutjiApp());
+  runApp(const ProviderScope(child: NyutjiApp()));
 }
 
-class NyutjiApp extends StatelessWidget {
+class NyutjiApp extends ConsumerWidget {
   const NyutjiApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     TextTheme textTheme = createTextTheme(context, "Montserrat", "Montserrat");
     MaterialTheme theme = MaterialTheme(textTheme);
 
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => WalletProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
-        ChangeNotifierProvider(create: (_) => IssueProvider()),
-        ChangeNotifierProvider(create: (_) => SentimentProvider()),
-        ChangeNotifierProvider(create: (_) => SimulasiProvider()),
-        ChangeNotifierProvider(create: (_) => RevenueSplitProvider()),
-      ],
-      child: MaterialApp(
-        title: 'Nyutji Laundry',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.light,
-        theme: theme.light(),
-        initialRoute: '/',
-        builder: (context, child) {
+    return MaterialApp(
+      title: 'Nyutji Laundry',
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.light,
+      theme: theme.light(),
+      initialRoute: '/',
+      builder: (context, child) {
           return Container(
             color: const Color(0xFF171717), // Background luar area HP
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 450),
-                child: child,
+                child: ConnectivityWrapper(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               ),
             ),
           );
@@ -103,7 +87,6 @@ class NyutjiApp extends StatelessWidget {
           }
           return RetroRoute(page: page);
         },
-      ),
-    );
+      );
   }
 }

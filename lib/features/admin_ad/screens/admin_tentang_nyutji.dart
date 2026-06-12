@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../auth/screens/register_mitra_screen.dart';
 import '../../auth/screens/register_kurir_screen.dart';
 import '../../../core/theme/theme_util.dart';
 
-class AdminTentangNyutjiScreen extends StatelessWidget {
+class AdminTentangNyutjiScreen extends ConsumerWidget {
   const AdminTentangNyutjiScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF7EA),
       appBar: AppBar(

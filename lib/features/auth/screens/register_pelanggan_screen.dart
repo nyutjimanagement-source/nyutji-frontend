@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 
-class RegisterPelangganScreen extends StatefulWidget {
+class RegisterPelangganScreen extends ConsumerStatefulWidget {
   const RegisterPelangganScreen({super.key});
 
-  @override
-  State<RegisterPelangganScreen> createState() => _RegisterPelangganScreenState();
+  @override ConsumerState<RegisterPelangganScreen> createState() => _RegisterPelangganScreenState();
 }
 
-class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
+class _RegisterPelangganScreenState extends ConsumerState<RegisterPelangganScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -54,7 +53,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
       return;
     }
 
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final errorMsg = await auth.register({
       'name': name,
       'email': emailController.text.trim(),
@@ -74,7 +73,7 @@ class _RegisterPelangganScreenState extends State<RegisterPelangganScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final currentT = t[auth.lang] ?? t['id'];
     const primaryGreen = Color(0xFF286B6A);
 

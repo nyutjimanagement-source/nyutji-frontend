@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 import '../../../core/utils/formatters.dart';
@@ -10,7 +10,7 @@ import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 
-class MitraPricingScreen extends StatefulWidget {
+class MitraPricingScreen extends ConsumerStatefulWidget {
   final bool isReadOnly;
   final bool isSelectionMode;
   final String? customName;
@@ -26,11 +26,10 @@ class MitraPricingScreen extends StatefulWidget {
     this.initialSelected,
   });
 
-  @override
-  State<MitraPricingScreen> createState() => _MitraPricingScreenState();
+  @override ConsumerState<MitraPricingScreen> createState() => _MitraPricingScreenState();
 }
 
-class _MitraPricingScreenState extends State<MitraPricingScreen> {
+class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color accentGold = Color(0xFFF59E0B);
   static const Color darkBg = Color(0xFF111827);
@@ -73,7 +72,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   Future<void> _loadPricingFromApi() async {
     setState(() => _isInitialLoading = true);
     try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final auth = ref.read(authProvider);
       // Deteksi MitraId: Prioritas identifier user, fallback ke mitra_id (untuk Admin/Kurir view)
       final mitraId = auth.user?['identifier'] ?? '0000';
       if (mitraId == null) {
@@ -147,7 +146,7 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   Future<void> _syncPricingToBackend() async {
     setState(() => _isSaving = true);
     try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final auth = ref.read(authProvider);
       final mitraId = auth.user?['identifier']; 
       if (mitraId == null) {
         throw "ID Mitra (Identifier) tidak ditemukan. Pastikan Anda sudah Login dengan benar.";
@@ -316,14 +315,14 @@ class _MitraPricingScreenState extends State<MitraPricingScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final mitraName = widget.customName ?? (auth.user?['name'] ?? "Nyutji Mitra");
     _initializeData(mitraName);
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final mitraName = widget.customName ?? (auth.user?['name'] ?? "Nyutji Mitra");
     
     return Stack(

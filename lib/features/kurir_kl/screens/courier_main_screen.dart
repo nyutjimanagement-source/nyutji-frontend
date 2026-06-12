@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
 import 'package:intl/intl.dart';
@@ -52,14 +52,13 @@ class AvailableOrder {
   // but we will use dynamic Maps for tasks
   
 // --- SCREEN ---
-class CourierMainScreen extends StatefulWidget {
+class CourierMainScreen extends ConsumerStatefulWidget {
   const CourierMainScreen({super.key});
 
-  @override
-  State<CourierMainScreen> createState() => _CourierMainScreenState();
+  @override ConsumerState<CourierMainScreen> createState() => _CourierMainScreenState();
 }
 
-class _CourierMainScreenState extends State<CourierMainScreen> with SingleTickerProviderStateMixin {
+class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
@@ -181,13 +180,13 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   void _refreshData() {
     if (!mounted || !isOnline) return;
     
-    context.read<WalletProvider>().fetchWallet();
-    context.read<OrderProvider>().fetchOrders();
+    ref.read(walletProvider).fetchWallet();
+    ref.read(orderProvider).fetchOrders();
     
     // Fetch order tersedia di KL (Marketplace)
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final district = auth.user?['district_name']?.toString() ?? '';
-    context.read<OrderProvider>().fetchAvailableOrders(district);
+    ref.read(orderProvider).fetchAvailableOrders(district);
   }
 
   @override
@@ -284,7 +283,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final currentT = t[auth.lang] ?? t['id'];
 
     final List<Widget> tabs = [
@@ -330,17 +329,23 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
     if (_selectedNavIndex == 0) {
       return _buildCompactHeader(currentT);
     } else if (_selectedNavIndex == 1) {
-      return Consumer<AuthProvider>(
-        builder: (context, auth, _) => _buildPageTitleHeader("Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history, auth: auth, forceIcon: true),
-      );
+      return Consumer(
+        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return _buildPageTitleHeader("Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history, auth: auth, forceIcon: true);
+});
     } else if (_selectedNavIndex == 2) {
-      return Consumer<AuthProvider>(
-        builder: (context, auth, _) => _buildPageTitleHeader("Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet, auth: auth, forceIcon: true),
-      );
+      return Consumer(
+        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return _buildPageTitleHeader("Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet, auth: auth, forceIcon: true);
+});
     } else {
-      return Consumer<AuthProvider>(
-        builder: (context, auth, _) => _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.user, auth: auth, forceIcon: false),
-      );
+      return Consumer(
+        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.user, auth: auth, forceIcon: false);
+});
     }
   }
 
@@ -416,8 +421,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             ),
           ),
           const SizedBox(width: 12),
-          Consumer<OrderProvider>(
-            builder: (context, orderProv, _) => Stack(
+          Consumer(
+            builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
+return Stack(
               children: [
                 IconButton(
                   onPressed: () => orderProv.resetNotif('KL'),
@@ -438,8 +445,8 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     ),
                   ),
               ],
-            ),
-          )
+            );
+})
         ],
       ),
     );
@@ -475,8 +482,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           Expanded(
             child: Row(
               children: [
-                Consumer<AuthProvider>(
-                  builder: (context, auth, _) {
+                Consumer(
+                  builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
                     final photoUrl = auth.user?['profile_photo'];
                     final localPhoto = auth.temporaryLocalPhoto;
                     return GestureDetector(
@@ -533,8 +541,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Consumer<AuthProvider>(
-                        builder: (context, auth, _) {
+                      Consumer(
+                        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
                           final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? auth.user?['district_code'] ?? "";
                           final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "";
                           return Column(
@@ -561,8 +570,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             ),
           ),
           const SizedBox(width: 12),
-          Consumer<OrderProvider>(
-            builder: (context, orderProv, _) {
+          Consumer(
+            builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
               final bool hasNewOrder = orderProv.availableOrders.isNotEmpty;
               final bool hasActiveTask = orderProv.activeOrders.isNotEmpty;
               final bool showRedDot = hasNewOrder || hasActiveTask;
@@ -623,8 +633,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   }
 
   Widget _buildCompactStatsPanel() {
-    return Consumer<OrderProvider>(
-      builder: (context, orderProv, _) {
+    return Consumer(
+      builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
         final history = orderProv.historyOrders;
         final today = DateTime.now();
         
@@ -655,8 +666,11 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Consumer<WalletProvider>(
-                  builder: (context, wallet, _) => _buildStatCol("Pendapatan", Formatters.currencyIdr(wallet.balance), LucideIcons.wallet, Colors.green[700]!),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final wallet = ref.watch(walletProvider);
+                    return _buildStatCol("Pendapatan", Formatters.currencyIdr(wallet.balance), LucideIcons.wallet, Colors.green[700]!);
+                  }
                 ),
                 Container(width: 1, height: 30, color: Colors.grey[200]),
                 _buildStatCol("Selesai", "$completedTasks Tugas", LucideIcons.checkSquare, primaryTeal),
@@ -698,8 +712,10 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
   // === CARD ORDER TERSEDIA (PREMIUM MARKETPLACE) ==============
   // ============================================================
   Widget _buildAvailableOrdersCard() {
-    return Consumer2<OrderProvider, AuthProvider>(
-      builder: (context, orderProv, auth, _) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final orderProv = ref.watch(orderProvider);
+
         // Gunakan data live jika ada, fallback ke dummy jika kosong
         final liveOrders = orderProv.availableOrders;
         final displayOrders = liveOrders;
@@ -890,7 +906,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                 const Spacer(),
                                 GestureDetector(
                                   onTap: () async {
-                                    final provider = context.read<OrderProvider>();
+                                    final provider = ref.read(orderProvider);
                                     final success = await provider.acceptOrder(orderId);
                                     if (!mounted) return;
                                     if (success) {
@@ -934,7 +950,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
 
 
   Widget _buildDenseTaskSection(Map<String, dynamic> currentT) {
-    final activeOrders = context.watch<OrderProvider>().activeOrders;
+    final activeOrders = ref.watch(orderProvider).activeOrders;
     final pickupCount = activeOrders.where((o) {
       final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
       final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
@@ -1079,8 +1095,9 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
           const SizedBox(height: 16),
           
           // Dense List View (Real Data)
-          Consumer<OrderProvider>(
-            builder: (context, orderProv, _) {
+          Consumer(
+            builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
               final activeOrders = orderProv.activeOrders;
               bool isPickupTab = _tabController.index == 0;
               
@@ -1317,7 +1334,7 @@ class _CourierMainScreenState extends State<CourierMainScreen> with SingleTicker
                                   }
                                   
                                   setState(() => _isUploading = true);
-                                  final provider = context.read<OrderProvider>();
+                                  final provider = ref.read(orderProvider);
                                   
                                   // Step 2: UPLOAD FOTO POW (Real via API)
                                   final step = isDelivery ? 'DELIVERING' : 'PICKING_UP';

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-class PowFullscreenViewer extends StatelessWidget {
+class PowFullscreenViewer extends ConsumerWidget {
   final String imageUrl;
   final String orderNumber;
   final String uploaderName;
@@ -17,7 +18,7 @@ class PowFullscreenViewer extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formattedTime = DateFormat('dd MMM yyyy, HH:mm').format(timestamp);
 
     return Scaffold(

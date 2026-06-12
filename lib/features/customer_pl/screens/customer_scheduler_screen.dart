@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../../providers/auth_provider.dart';
@@ -9,14 +9,13 @@ import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 
-class CustomerSchedulerScreen extends StatefulWidget {
+class CustomerSchedulerScreen extends ConsumerStatefulWidget {
   const CustomerSchedulerScreen({super.key});
 
-  @override
-  State<CustomerSchedulerScreen> createState() => _CustomerSchedulerScreenState();
+  @override ConsumerState<CustomerSchedulerScreen> createState() => _CustomerSchedulerScreenState();
 }
 
-class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
+class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScreen> {
   final List<Map<String, dynamic>> _schedules = [];
   List<Map<String, dynamic>> _availableMitras = [];
   @override
@@ -26,7 +25,7 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
   }
 
   Future<void> _fetchMitras() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final city = auth.user?['city_name'] ?? 'Tangerang Selatan';
     
     try {
@@ -55,7 +54,7 @@ class _CustomerSchedulerScreenState extends State<CustomerSchedulerScreen> {
     bool isDropSameAsPickup = true;
 
     // Set default pickup/drop from user profile
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final userAddress = auth.user?['address']?.toString() ?? '';
     pickupController.text = userAddress;
     dropController.text = userAddress;

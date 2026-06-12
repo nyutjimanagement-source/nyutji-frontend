@@ -1,23 +1,22 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import 'admin_approval.dart';
 
-class AdminUsersScreen extends StatefulWidget {
+class AdminUsersScreen extends ConsumerStatefulWidget {
   const AdminUsersScreen({super.key});
 
-  @override
-  State<AdminUsersScreen> createState() => _AdminUsersScreenState();
+  @override ConsumerState<AdminUsersScreen> createState() => _AdminUsersScreenState();
 }
 
-class _AdminUsersScreenState extends State<AdminUsersScreen> {
+class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color bgColor = Color(0xFFF3F4F6);
   static const Color darkGray = Color(0xFF111827);
@@ -172,7 +171,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   void _showTopupSimulatorSheet(BuildContext context) {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     auth.fetchAllUsers();
     
     String selectedIdentifier = "";
@@ -229,8 +228,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
                           child: DropdownButtonHideUnderline(
-                            child: Consumer<AuthProvider>(
-                              builder: (context, authData, _) {
+                            child: Consumer(
+                              builder: (context, ref, _) {
+final authData = ref.watch(authProvider);
                                 return DropdownButton<String>(
                                   isExpanded: true,
                                   hint: Text("Pilih User...", style: GoogleFonts.montserrat(fontSize: 12)),
@@ -331,8 +331,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   Widget _buildApprovalSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
+      child: Consumer(
+        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
           final pending = auth.pendingApprovals;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,7 +431,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   void _showUserListSheet(BuildContext context) {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     
     // Trigger fetch data
     auth.fetchAllUsers();
@@ -460,8 +461,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               ),
             ),
             Expanded(
-              child: Consumer<AuthProvider>(
-                builder: (context, auth, _) {
+              child: Consumer(
+                builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
                   if (auth.allUsers.isEmpty && auth.isLoading) {
                     return const Center(child: CircularProgressIndicator(color: primaryTeal));
                   }
@@ -530,7 +532,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   }
 
   void _showDeleteUserSheet(BuildContext context) {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     auth.fetchAllUsers();
     
     String searchQuery = "";
@@ -651,8 +653,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   ),
                 ),
                 Expanded(
-                  child: Consumer<AuthProvider>(
-                    builder: (cContext, authData, _) {
+                  child: Consumer(
+                    builder: (cContext, ref, _) {
+final authData = ref.watch(authProvider);
                       if (authData.isLoading && authData.allUsers.isEmpty) {
                         return const Center(child: CircularProgressIndicator(color: primaryTeal));
                       }

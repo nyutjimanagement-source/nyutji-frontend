@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/issue_provider.dart';
 
-class MitraReportIssueScreen extends StatefulWidget {
+class MitraReportIssueScreen extends ConsumerStatefulWidget {
   const MitraReportIssueScreen({super.key});
 
-  @override
-  State<MitraReportIssueScreen> createState() => _MitraReportIssueScreenState();
+  @override ConsumerState<MitraReportIssueScreen> createState() => _MitraReportIssueScreenState();
 }
 
-class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
+class _MitraReportIssueScreenState extends ConsumerState<MitraReportIssueScreen> {
   final _formKey = GlobalKey<FormState>();
   String _issueType = 'MESIN_RUSAK';
   String _priority = 'MEDIUM';
@@ -36,7 +35,7 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
     if (_formKey.currentState!.validate()) {
       final messenger = ScaffoldMessenger.of(context);
       final navigator = Navigator.of(context);
-      final issueProv = context.read<IssueProvider>();
+      final issueProv = ref.read(issueProvider);
 
       final success = await issueProv.reportIssue(
         _issueType,
@@ -160,7 +159,7 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: context.watch<IssueProvider>().isLoading ? null : _submit,
+                  onPressed: ref.watch(issueProvider).isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
                     foregroundColor: Colors.black,
@@ -172,7 +171,7 @@ class _MitraReportIssueScreenState extends State<MitraReportIssueScreen> {
                   ).copyWith(
                     overlayColor: WidgetStateProperty.all(Colors.black.withValues(alpha: 0.1)),
                   ),
-                  child: context.watch<IssueProvider>().isLoading
+                  child: ref.watch(issueProvider).isLoading
                       ? const CircularProgressIndicator(color: Colors.black)
                       : const Text('KIRIM LAPORAN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),

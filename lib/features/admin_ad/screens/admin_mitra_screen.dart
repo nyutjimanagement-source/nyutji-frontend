@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-class AdminMitraScreen extends StatelessWidget {
+class AdminMitraScreen extends ConsumerWidget {
   const AdminMitraScreen({super.key});
 
   static const Color primaryTeal = Color(0xFF286B6A);
   static const Color darkGray = Color(0xFF1A1A1A);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(

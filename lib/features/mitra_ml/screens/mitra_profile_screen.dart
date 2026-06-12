@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:io';
@@ -12,15 +12,14 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'mitra_keamanan_pin.dart';
 
-class MitraProfileScreen extends StatefulWidget {
+class MitraProfileScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? currentT;
   const MitraProfileScreen({super.key, this.currentT});
 
-  @override
-  State<MitraProfileScreen> createState() => _MitraProfileScreenState();
+  @override ConsumerState<MitraProfileScreen> createState() => _MitraProfileScreenState();
 }
 
-class _MitraProfileScreenState extends State<MitraProfileScreen> {
+class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
   static const primaryTeal = Color(0xFF1E5655); 
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
@@ -57,7 +56,7 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = context.read<AuthProvider>();
+      final auth = ref.read(authProvider);
       if (auth.user != null && mounted) {
         setState(() {
           _fullAddressController.text = auth.user!['address'] ?? '';
@@ -138,7 +137,7 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
+    final auth = ref.watch(authProvider);
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
@@ -146,8 +145,9 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             color: Colors.white,
-            child: Consumer<AuthProvider>(
-              builder: (context, auth, _) {
+            child: Consumer(
+              builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
                 final photoUrl = auth.user?['profile_photo'];
                 final localPhoto = auth.temporaryLocalPhoto;
                 final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "Kecamatan";
@@ -216,8 +216,10 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                 const Divider(height: 1),
                 _buildExpandableAccountMenu(auth),
                 const Divider(height: 1),
-                Consumer<AuthProvider>(
-                  builder: (context, auth, _) => GestureDetector(
+                Consumer(
+                  builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return GestureDetector(
                     onTap: () async {
                       try {
                         await auth.logout();
@@ -228,8 +230,8 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
                       }
                     },
                     child: _buildMenuItem(LucideIcons.logOut, widget.currentT?['logout'] ?? 'Keluar Akun', true),
-                  ),
-                )
+                  );
+})
               ],
             ),
           ),
@@ -362,8 +364,9 @@ class _MitraProfileScreenState extends State<MitraProfileScreen> {
   }
 
   Widget _buildExpandableCourierMenu() {
-    return Consumer<AuthProvider>(
-      builder: (context, auth, _) {
+    return Consumer(
+      builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
         final pendingUsers = auth.pendingApprovals;
         final activeCouriers = List.from(auth.couriers);
         activeCouriers.sort((a, b) => (a['name']?.toString() ?? '').compareTo(b['name']?.toString() ?? ''));

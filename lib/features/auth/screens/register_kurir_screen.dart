@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 
-class RegisterKurirScreen extends StatefulWidget {
+class RegisterKurirScreen extends ConsumerStatefulWidget {
   const RegisterKurirScreen({super.key});
 
-  @override
-  State<RegisterKurirScreen> createState() => _RegisterKurirScreenState();
+  @override ConsumerState<RegisterKurirScreen> createState() => _RegisterKurirScreenState();
 }
 
-class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
+class _RegisterKurirScreenState extends ConsumerState<RegisterKurirScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -30,7 +29,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().fetchMitras();
+      ref.read(authProvider).fetchMitras();
     });
   }
 
@@ -85,7 +84,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final currentT = t[auth.lang] ?? t['id'];
     const primaryOrange = Color(0xFFD35400);
 
@@ -270,7 +269,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
       return;
     }
 
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final errorMsg = await auth.register({
       'name': name,
       'email': emailController.text.trim(),
@@ -301,7 +300,7 @@ class _RegisterKurirScreenState extends State<RegisterKurirScreen> {
       return;
     }
 
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final targetKec = searchKecController.text
       .replaceAll(RegExp(r'^kecamatan\s+', caseSensitive: false), '')
       .replaceAll(RegExp(r'^kec\.\s*', caseSensitive: false), '')

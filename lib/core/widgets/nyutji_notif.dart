@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -35,7 +36,7 @@ class NyutjiNotif {
   }
 }
 
-class _BeautyPopupWidget extends StatefulWidget {
+class _BeautyPopupWidget extends ConsumerStatefulWidget {
   final String message;
   final IconData icon;
   final Color color;
@@ -46,11 +47,10 @@ class _BeautyPopupWidget extends StatefulWidget {
     required this.color,
   });
 
-  @override
-  State<_BeautyPopupWidget> createState() => _BeautyPopupWidgetState();
+  @override ConsumerState<_BeautyPopupWidget> createState() => _BeautyPopupWidgetState();
 }
 
-class _BeautyPopupWidgetState extends State<_BeautyPopupWidget> with SingleTickerProviderStateMixin {
+class _BeautyPopupWidgetState extends ConsumerState<_BeautyPopupWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
 

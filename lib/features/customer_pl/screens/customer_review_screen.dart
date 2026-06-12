@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 
-class CustomerReviewScreen extends StatefulWidget {
+class CustomerReviewScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> order;
 
   const CustomerReviewScreen({super.key, required this.order});
 
-  @override
-  State<CustomerReviewScreen> createState() => _CustomerReviewScreenState();
+  @override ConsumerState<CustomerReviewScreen> createState() => _CustomerReviewScreenState();
 }
 
-class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
+class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
   final Color primaryTeal = NyutjiTheme.m3Primary;
   final Color accentGreen = const Color(0xFF22C55E);
   final Color darkBg = const Color(0xFF0F172A);
@@ -35,13 +34,13 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
   void _submitReview() async {
     if (_isSubmitting) return;
     final orderId = (widget.order['orderNumber'] ?? widget.order['order_number'] ?? widget.order['id'] ?? '').toString();
-    final orderProvider = context.read<OrderProvider>();
+    final orderProv = ref.read(orderProvider);
     final navigator = Navigator.of(context);
 
     setState(() => _isSubmitting = true);
 
     if (orderId.isNotEmpty) {
-      await orderProvider.submitReview(
+      await orderProv.submitReview(
         orderId, 
         _ratingML, 
         _ratingKL, 
@@ -54,7 +53,7 @@ class _CustomerReviewScreenState extends State<CustomerReviewScreen> {
     NyutjiNotif.showSuccess(context, "Terima kasih atas ulasan Anda!");
     
     // Bersihkan tracking state
-    orderProvider.clearTracking();
+    orderProv.clearTracking();
     
     // Kembali ke layar utama (refresh/restart tab)
     navigator.pushNamedAndRemoveUntil('/customer_main', (route) => false);

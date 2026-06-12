@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/auth_provider.dart';
@@ -16,13 +16,12 @@ import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_loading_overlay.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 
-class MitraOrderScreen extends StatefulWidget {
+class MitraOrderScreen extends ConsumerStatefulWidget {
   const MitraOrderScreen({super.key});
-  @override
-  State<MitraOrderScreen> createState() => _MitraOrderScreenState();
+  @override ConsumerState<MitraOrderScreen> createState() => _MitraOrderScreenState();
 }
 
-class _MitraOrderScreenState extends State<MitraOrderScreen> {
+class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color bgColor = Color(0xFFF3F4F6);
   static const Color darkText = Color(0xFF111827);
@@ -42,7 +41,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
     _summaryScrollController = ScrollController();
     _pillScrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<OrderProvider>().fetchOrders();
+      if (mounted) ref.read(orderProvider).fetchOrders();
     });
   }
 
@@ -343,8 +342,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
-      body: Consumer<OrderProvider>(
-        builder: (context, orderProv, _) {
+      body: Consumer(
+        builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
           final List<dynamic> baseOrders = (currentFilter == "Baru")
               ? orderProv.activeOrders
               : [...orderProv.activeOrders, ...orderProv.historyOrders];
@@ -533,7 +533,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       duration: const Duration(milliseconds: 300),
       child: filtered.isEmpty
           ? RefreshIndicator(
-              onRefresh: () => context.read<OrderProvider>().fetchOrders(),
+              onRefresh: () => ref.read(orderProvider).fetchOrders(),
               color: primaryTeal,
               child: ListView(
                 key: ValueKey('empty_$currentFilter'),
@@ -780,7 +780,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       children: [
         Expanded(
           child: RefreshIndicator(
-            onRefresh: () => context.read<OrderProvider>().fetchOrders(),
+            onRefresh: () => ref.read(orderProvider).fetchOrders(),
             color: primaryTeal,
             child: PageView.builder(
               controller: _pageController,
@@ -1479,8 +1479,9 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
       builder: (context) => Container(
         decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
         padding: const EdgeInsets.all(24),
-        child: Consumer<AuthProvider>(
-          builder: (context, auth, _) {
+        child: Consumer(
+          builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
             final couriers = auth.couriers;
             return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -1511,7 +1512,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                         title: Text(k['name'] ?? "Kurir", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
                         trailing: const Icon(LucideIcons.chevronRight, size: 16, color: textGrey),
                         onTap: () async {
-                          final provider = context.read<OrderProvider>();
+                          final provider = ref.read(orderProvider);
                           Navigator.pop(context);
                           final success = await provider.assignCourier(orderId, k['identifier'] ?? k['id']);
                           if (!mounted) return;
@@ -1641,7 +1642,7 @@ class _MitraOrderScreenState extends State<MitraOrderScreen> {
                         }
 
                         setState(() { isUploading = true; });
-                        final provider = context.read<OrderProvider>();
+                        final provider = ref.read(orderProvider);
                         
                         // 1. Upload POW
                         final uploadSuccess = await provider.uploadPOWImage(orderId, powImage!, s);

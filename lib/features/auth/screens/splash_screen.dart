@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/auth_provider.dart';
 import 'login_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  @override ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -36,14 +35,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     if (!mounted) return;
     
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final hasToken = await authProvider.checkAuthStatus();
+    final authProv = ref.read(authProvider);
+    final hasToken = await authProv.checkAuthStatus();
     
     if (!mounted) return;
     
     if (hasToken) {
       String targetRoute = '/login';
-      switch (authProvider.role) {
+      switch (authProv.role) {
         case 'PL': targetRoute = '/customer_main'; break;
         case 'ML': targetRoute = '/mitra_home'; break;
         case 'KL': targetRoute = '/courier_main'; break;

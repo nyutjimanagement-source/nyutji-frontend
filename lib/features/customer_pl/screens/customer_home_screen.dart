@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,14 +30,13 @@ import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 
-class CustomerHomeScreen extends StatefulWidget {
+class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
 
-  @override
-  State<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
+  @override ConsumerState<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
 }
 
-class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
+class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   final ScrollController _mainScrollController = ScrollController();
   final ScrollController _promoController = ScrollController();
   bool _showBackToTop = false;
@@ -56,9 +55,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WalletProvider>().fetchWallet();
-      context.read<OrderProvider>().fetchOrders();
-      context.read<OrderProvider>().fetchOrders();
+      ref.read(walletProvider).fetchWallet();
+      ref.read(orderProvider).fetchOrders();
+      ref.read(orderProvider).fetchOrders();
       _fetchMitrasByLocation();
       // _startPromoMarquee(); // Disabled marquee
     });
@@ -76,19 +75,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+        if (mounted) ref.read(orderProvider).fetchRecommendedMitras();
         return;
       }
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+          if (mounted) ref.read(orderProvider).fetchRecommendedMitras();
           return;
         }
       }
       if (permission == LocationPermission.deniedForever) {
-        if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+        if (mounted) ref.read(orderProvider).fetchRecommendedMitras();
         return;
       }
 
@@ -109,15 +108,15 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         if (city != null) {
            city = city.replaceAll('Kota ', '').replaceAll('Kabupaten ', '').trim();
            if (!mounted) return;
-           context.read<OrderProvider>().fetchRecommendedMitras(cityName: city);
+           ref.read(orderProvider).fetchRecommendedMitras(cityName: city);
         } else {
-           if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+           if (mounted) ref.read(orderProvider).fetchRecommendedMitras();
         }
       } else {
-        if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+        if (mounted) ref.read(orderProvider).fetchRecommendedMitras();
       }
     } catch (e) {
-      if (mounted) context.read<OrderProvider>().fetchRecommendedMitras();
+      if (mounted) ref.read(orderProvider).fetchRecommendedMitras();
     }
   }
 
@@ -149,7 +148,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final Map<String, dynamic> t = {
       'id': {
         'greeting': 'Pelanggan Pamulang',
@@ -278,8 +277,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               icon: const Icon(LucideIcons.search, color: Colors.white, size: 24),
               onPressed: () => _showGlobalSearchSheet(context),
             ),
-            Consumer<OrderProvider>(
-              builder: (context, orderProv, _) => Stack(
+            Consumer(
+              builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
+return Stack(
                 clipBehavior: Clip.none,
                 children: [
                   const IconButton(
@@ -310,8 +311,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       ),
                     ),
                 ],
-              ),
-            ),
+              );
+}),
           ],
         ),
       ),
@@ -319,8 +320,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   Widget _buildActiveTrackingBanner(Map<String, dynamic> currentT) {
-    return Consumer<OrderProvider>(
-      builder: (context, orderProv, _) {
+    return Consumer(
+      builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
         final latestOrder = orderProv.activeOrders.isNotEmpty ? orderProv.activeOrders.first : null;
         final rawStatus = latestOrder != null ? (latestOrder['status'] ?? latestOrder['order_status'] ?? 'WAITING').toString().toUpperCase() : "";
         final String rawDel = latestOrder != null ? (latestOrder['deliveryType'] ?? latestOrder['delivery_type'] ?? '').toString().toUpperCase() : "";
@@ -453,9 +455,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         child: Row(
           children: [
             Expanded(
-              child: Consumer<WalletProvider>(
-                builder: (context, wallet, _) => _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Formatters.currencyIdr(wallet.balance)),
-              ),
+              child: Consumer(
+                builder: (context, ref, _) {
+final wallet = ref.watch(walletProvider);
+return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Formatters.currencyIdr(wallet.balance));
+}),
             ),
             Container(width: 1, height: 40, color: Colors.white24),
             Expanded(
@@ -921,8 +925,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Consumer<OrderProvider>(
-            builder: (context, orderProv, _) {
+          Consumer(
+            builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
               if (orderProv.recommendedMitras.isEmpty) {
                 return Center(child: Text("Sedang memuat mitra...", style: NyutjiTheme.detail(Colors.grey)));
               }
@@ -1071,7 +1076,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   void _showGlobalSearchSheet(BuildContext context) {
-    final orderProv = context.read<OrderProvider>();
+    final orderProv = ref.read(orderProvider);
     String searchQuery = "";
     Timer? debounceTimer;
     String? expandedMitraId;
@@ -1098,8 +1103,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             }).toList();
           }
 
-          return Consumer<OrderProvider>(
-            builder: (context, provider, child) {
+          return Consumer(
+            builder: (context, ref, child) {
+final provider = ref.watch(orderProvider);
               final filteredMitras = provider.searchedMitras;
               final isLoading = provider.isLoading;
 

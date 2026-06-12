@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,14 +26,13 @@ import 'mitra_mesin.dart';
 import 'dart:math';
 import '../../../data/services/api_service.dart';
 
-class MitraHomeScreen extends StatefulWidget {
+class MitraHomeScreen extends ConsumerStatefulWidget {
   const MitraHomeScreen({super.key});
 
-  @override
-  State<MitraHomeScreen> createState() => _MitraHomeScreenState();
+  @override ConsumerState<MitraHomeScreen> createState() => _MitraHomeScreenState();
 }
 
-class _MitraHomeScreenState extends State<MitraHomeScreen> {
+class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   static const primaryTeal = Color(0xFF1E5655); // Denser, more executive teal
   static const bgColor = Color(0xFFF3F4F6);
   static const darkText = Color(0xFF111827);
@@ -52,9 +51,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     _pageController = PageController(initialPage: _selectedIndex);
     _fetchMitraItemsData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = context.read<AuthProvider>();
-      context.read<WalletProvider>().fetchWallet();
-      context.read<OrderProvider>().fetchOrders();
+      final auth = ref.read(authProvider);
+      ref.read(walletProvider).fetchWallet();
+      ref.read(orderProvider).fetchOrders();
       auth.fetchCouriers();
       auth.fetchPendingApprovals();
 
@@ -64,7 +63,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
     // Auto-refresh data kurir tiap 5 detik
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (mounted) {
-        context.read<AuthProvider>().fetchPendingApprovals();
+        ref.read(authProvider).fetchPendingApprovals();
       }
     });
   }
@@ -73,7 +72,7 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
 
   Future<void> _fetchMitraItemsData() async {
     try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final auth = ref.read(authProvider);
       final mitraId = auth.user?['identifier'] ?? auth.user?['id'];
       if (mitraId == null) return;
       
@@ -262,8 +261,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
           Expanded(
             child: Row(
               children: [
-                Consumer<AuthProvider>(
-                  builder: (context, auth, _) {
+                Consumer(
+                  builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
                     final photoUrl = auth.user?['profile_photo'];
                     final localPhoto = auth.temporaryLocalPhoto;
                     return GestureDetector(
@@ -287,21 +287,26 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Consumer<AuthProvider>(
-                        builder: (context, auth, _) => Text(
+                      Consumer(
+                        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return Text(
                           auth.user?['name'] ?? "Berkah Laundry", 
                           style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: darkText)
-                        ),
-                      ),
-                      Consumer<AuthProvider>(
-                        builder: (context, auth, _) => Text(
+                        );
+}),
+                      Consumer(
+                        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
+return Text(
                           "ID: ${auth.user?['identifier'] ?? '-'}", 
                           style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)
-                        ),
-                      ),
+                        );
+}),
                       const SizedBox(height: 2),
-                      Consumer<AuthProvider>(
-                        builder: (context, auth, _) {
+                      Consumer(
+                        builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
                           final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "-";
                           final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "-";
                           return Text(
@@ -332,8 +337,11 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   Widget _buildAntreanCucianCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Consumer2<WalletProvider, OrderProvider>(
-        builder: (context, wallet, orderProv, _) {
+      child: Consumer(
+      builder: (context, ref, _) {
+        final wallet = ref.watch(walletProvider);
+        final orderProv = ref.watch(orderProvider);
+
           final activeOrders = orderProv.activeOrders;
           final wipValue = _calculateWIP(activeOrders);
           final activeOrderCount = activeOrders.length;
@@ -449,8 +457,11 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   Widget _buildDanaSiapDitarikGrid() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Consumer2<WalletProvider, AuthProvider>(
-        builder: (context, wallet, auth, _) {
+      child: Consumer(
+      builder: (context, ref, _) {
+        final wallet = ref.watch(walletProvider);
+        final auth = ref.watch(authProvider);
+
           final couriersCount = auth.couriers.length;
           final withdrawableDisplay = ((wallet.balance ~/ 100000) * 100000).toDouble();
 
@@ -524,8 +535,9 @@ class _MitraHomeScreenState extends State<MitraHomeScreen> {
   }
 
   Widget _buildQuickActionsGrid() {
-    return Consumer<OrderProvider>(
-      builder: (context, orderProv, _) {
+    return Consumer(
+      builder: (context, ref, _) {
+final orderProv = ref.watch(orderProvider);
         final activeOrderCount = orderProv.activeOrders.length;
 
         final List<Widget> primaryActions = [

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/utils/nyutji_parser.dart';
 import '../../../core/widgets/nyutji_pickup_picker.dart';
@@ -15,7 +15,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 
-class CustomerOrderScreen extends StatefulWidget {
+class CustomerOrderScreen extends ConsumerStatefulWidget {
   final String orderType;
   final Map<String, dynamic>? preselectedMitra;
 
@@ -25,11 +25,10 @@ class CustomerOrderScreen extends StatefulWidget {
     this.preselectedMitra,
   });
 
-  @override
-  State<CustomerOrderScreen> createState() => _CustomerOrderScreenState();
+  @override ConsumerState<CustomerOrderScreen> createState() => _CustomerOrderScreenState();
 }
 
-class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
+class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   String _pickupAddress = 'Jl. Kebayoran No 12, Jakarta';
   String _pickupNote = '';
   String _serviceSpeed = 'regular';
@@ -60,7 +59,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   @override
   void initState() {
     super.initState();
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     if (auth.user != null) {
       final uLat = double.tryParse(auth.user!['lat']?.toString() ?? '');
       final uLng = double.tryParse(auth.user!['lng']?.toString() ?? '');
@@ -321,7 +320,7 @@ class _CustomerOrderScreenState extends State<CustomerOrderScreen> {
   Widget build(BuildContext context) {
     // Gunakan try-catch di level tertinggi build untuk menangkap error gaib di mode Release
     try {
-      final auth = Provider.of<AuthProvider>(context);
+      final auth = ref.watch(authProvider);
       
       // Sinkronisasi alamat dari AuthProvider jika tersedia (Hanya sekali saat awal)
       if (auth.user != null && (_pickupAddress == 'Jl. Kebayoran No 12, Jakarta' || _selectedDistrict.isEmpty)) {

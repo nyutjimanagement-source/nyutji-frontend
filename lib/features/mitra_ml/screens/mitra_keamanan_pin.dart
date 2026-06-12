@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../core/widgets/nyutji_notif.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../auth/screens/pin_screen.dart';
 
-class MitraKeamananPinScreen extends StatefulWidget {
+class MitraKeamananPinScreen extends ConsumerStatefulWidget {
   const MitraKeamananPinScreen({super.key});
 
-  @override
-  State<MitraKeamananPinScreen> createState() => _MitraKeamananPinScreenState();
+  @override ConsumerState<MitraKeamananPinScreen> createState() => _MitraKeamananPinScreenState();
 }
 
-class _MitraKeamananPinScreenState extends State<MitraKeamananPinScreen> {
+class _MitraKeamananPinScreenState extends ConsumerState<MitraKeamananPinScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -27,7 +26,7 @@ class _MitraKeamananPinScreenState extends State<MitraKeamananPinScreen> {
   String _laundryName = "";
 
   void _validate() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final user = auth.user;
 
     if (user == null) {

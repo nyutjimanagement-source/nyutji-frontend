@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import 'dart:io';
@@ -15,14 +15,13 @@ import '../../../core/widgets/shimmer_loading.dart';
 
 const Color primaryTeal = Color(0xFF1E5655);
 
-class MitraPosScreen extends StatefulWidget {
+class MitraPosScreen extends ConsumerStatefulWidget {
   const MitraPosScreen({super.key});
 
-  @override
-  State<MitraPosScreen> createState() => _MitraPosScreenState();
+  @override ConsumerState<MitraPosScreen> createState() => _MitraPosScreenState();
 }
 
-class _MitraPosScreenState extends State<MitraPosScreen> {
+class _MitraPosScreenState extends ConsumerState<MitraPosScreen> {
   final ApiService _api = ApiService();
   bool _isLoading = true;
   Map<String, List<dynamic>> _groupedItems = {};
@@ -37,7 +36,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
 
   Future<void> _fetchItems() async {
     try {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final auth = ref.read(authProvider);
       final mitraId = auth.user?['identifier'];
       if (mitraId == null) throw Exception("Mitra ID tidak ditemukan");
 
@@ -171,7 +170,7 @@ class _MitraPosScreenState extends State<MitraPosScreen> {
                       
                       setModalState(() => isUploading = true);
                       try {
-                        final auth = Provider.of<AuthProvider>(context, listen: false);
+                        final auth = ref.read(authProvider);
                         final token = auth.token;
                         if (token == null) throw Exception("Sesi telah habis");
                         

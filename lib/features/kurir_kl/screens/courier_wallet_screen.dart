@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
@@ -10,20 +10,19 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'courier_tarik_dana_modal.dart';
 
-class CourierWalletScreen extends StatefulWidget {
+class CourierWalletScreen extends ConsumerStatefulWidget {
   const CourierWalletScreen({super.key});
 
-  @override
-  State<CourierWalletScreen> createState() => _CourierWalletScreenState();
+  @override ConsumerState<CourierWalletScreen> createState() => _CourierWalletScreenState();
 }
 
-class _CourierWalletScreenState extends State<CourierWalletScreen> {
+class _CourierWalletScreenState extends ConsumerState<CourierWalletScreen> {
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WalletProvider>().fetchWallet();
+      ref.read(walletProvider).fetchWallet();
     });
   }
 
@@ -34,7 +33,7 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
     const Color textDark = Color(0xFF2D2A26);
     const Color textGrey = Color(0xFF78716C);
     
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
 
     final Map<String, dynamic> t = {
       'id': {
@@ -92,8 +91,10 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
     }
 
   Widget _buildBalanceCard(Color primaryTeal, Map<String, dynamic> currentT) {
-    return Consumer<WalletProvider>(
-      builder: (context, wallet, _) => Container(
+    return Consumer(
+      builder: (context, ref, _) {
+final wallet = ref.watch(walletProvider);
+return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -115,13 +116,15 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
                 : Text(Formatters.currencyIdr(wallet.balance), style: GoogleFonts.montserrat(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
           ],
         ),
-      ),
-    );
+      );
+});
   }
 
   Widget _buildActionButtons(Map<String, dynamic> currentT, Color primaryTeal) {
-    return Consumer<WalletProvider>(
-      builder: (context, wallet, _) => Row(
+    return Consumer(
+      builder: (context, ref, _) {
+final wallet = ref.watch(walletProvider);
+return Row(
         children: [
           Expanded(
             child: _actionBtn(LucideIcons.plusCircle, currentT['topup'], primaryTeal, onTap: () => _showTopUpSheet(context, wallet)),
@@ -131,8 +134,8 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
             child: _actionBtn(LucideIcons.download, currentT['withdraw_btn'], const Color(0xFF10B981), onTap: () => _showTarikDanaModal(context, wallet)),
           ),
         ],
-      ),
-    );
+      );
+});
   }
 
   Widget _actionBtn(IconData icon, String label, Color color, {VoidCallback? onTap}) {
@@ -330,7 +333,7 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
   }
 
   void _showTarikDanaModal(BuildContext context, WalletProvider wallet) {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final userName = auth.user?['name'] ?? "Kurir";
 
     showModalBottomSheet(
@@ -380,8 +383,10 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
   }
 
   Widget _buildRecentTransactionsSection(Color textDark, Color textGrey, Color primaryTeal, Map<String, dynamic> currentT) {
-    return Consumer<WalletProvider>(
-      builder: (context, wallet, _) => Column(
+    return Consumer(
+      builder: (context, ref, _) {
+final wallet = ref.watch(walletProvider);
+return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -431,8 +436,8 @@ class _CourierWalletScreenState extends State<CourierWalletScreen> {
               },
             ),
         ],
-      ),
-    );
+      );
+});
   }
 
   Widget _transactionCard(String title, String date, String amount, bool isOut, Color textDark, Color textGrey, Color primaryTeal) {

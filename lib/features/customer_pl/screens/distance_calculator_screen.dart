@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/utils/nyutji_distance.dart';
 
-class DistanceCalculatorScreen extends StatefulWidget {
+class DistanceCalculatorScreen extends ConsumerStatefulWidget {
   const DistanceCalculatorScreen({super.key});
 
-  @override
-  State<DistanceCalculatorScreen> createState() => _DistanceCalculatorScreenState();
+  @override ConsumerState<DistanceCalculatorScreen> createState() => _DistanceCalculatorScreenState();
 }
 
-class _DistanceCalculatorScreenState extends State<DistanceCalculatorScreen> {
+class _DistanceCalculatorScreenState extends ConsumerState<DistanceCalculatorScreen> {
   final Color primaryTeal = NyutjiTheme.m3Primary;
   
   // State Lokasi Jemput

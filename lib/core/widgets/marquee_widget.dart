@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MarqueeWidget extends StatefulWidget {
+class MarqueeWidget extends ConsumerStatefulWidget {
   final String text;
   final TextStyle style;
   final double scrollSpeed; // pixels per frame roughly
@@ -12,11 +13,10 @@ class MarqueeWidget extends StatefulWidget {
     this.scrollSpeed = 1.0,
   });
 
-  @override
-  State<MarqueeWidget> createState() => _MarqueeWidgetState();
+  @override ConsumerState<MarqueeWidget> createState() => _MarqueeWidgetState();
 }
 
-class _MarqueeWidgetState extends State<MarqueeWidget> with SingleTickerProviderStateMixin {
+class _MarqueeWidgetState extends ConsumerState<MarqueeWidget> with SingleTickerProviderStateMixin {
   late ScrollController _scrollController;
   
   @override

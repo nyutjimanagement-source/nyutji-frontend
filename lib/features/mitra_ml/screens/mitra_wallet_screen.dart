@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
@@ -10,14 +10,13 @@ import '../../../core/utils/formatters.dart';
 import '../../auth/screens/pin_screen.dart' as pin_screen;
 import 'mitra_profile_screen.dart';
 
-class MitraWalletScreen extends StatefulWidget {
+class MitraWalletScreen extends ConsumerStatefulWidget {
   const MitraWalletScreen({super.key});
 
-  @override
-  State<MitraWalletScreen> createState() => _MitraWalletScreenState();
+  @override ConsumerState<MitraWalletScreen> createState() => _MitraWalletScreenState();
 }
 
-class _MitraWalletScreenState extends State<MitraWalletScreen> {
+class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
   static const Color primaryTeal = Color(0xFF1E5655);
   static const Color darkText = Color(0xFF111827);
   static const Color bgColor = Color(0xFFF3F4F6);
@@ -29,8 +28,8 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WalletProvider>().fetchWallet();
-      context.read<OrderProvider>().fetchOrders();
+      ref.read(walletProvider).fetchWallet();
+      ref.read(orderProvider).fetchOrders();
     });
   }
 
@@ -167,8 +166,11 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
-      body: Consumer2<WalletProvider, OrderProvider>(
-        builder: (context, wallet, order, _) {
+      body: Consumer(
+      builder: (context, ref, _) {
+        final wallet = ref.watch(walletProvider);
+        final order = ref.watch(orderProvider);
+
           final allOrders = [...order.activeOrders, ...order.historyOrders];
           final isLoading = wallet.isLoading || order.isLoading;
           
@@ -301,7 +303,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   }
 
   void _showReviewBottomSheet(BuildContext context, List<dynamic> historyOrders, double avgRating) {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final laundryName = auth.user?['name'] ?? "Mitra Laundry";
 
     // Kumpulkan data review
@@ -436,7 +438,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   }
 
   void _showTarikDanaModal(BuildContext context, WalletProvider wallet) {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final laundryName = auth.user?['name'] ?? "Berkah Laundry";
 
     showModalBottomSheet(
@@ -712,7 +714,7 @@ class _MitraWalletScreenState extends State<MitraWalletScreen> {
   }
 }
 
-class TarikDanaModal extends StatefulWidget {
+class TarikDanaModal extends ConsumerStatefulWidget {
   final String laundryName;
   final double maxBalance;
 
@@ -722,11 +724,10 @@ class TarikDanaModal extends StatefulWidget {
     required this.maxBalance,
   });
 
-  @override
-  State<TarikDanaModal> createState() => _TarikDanaModalState();
+  @override ConsumerState<TarikDanaModal> createState() => _TarikDanaModalState();
 }
 
-class _TarikDanaModalState extends State<TarikDanaModal> {
+class _TarikDanaModalState extends ConsumerState<TarikDanaModal> {
   double _amount = 0;
 
   @override
@@ -742,8 +743,9 @@ class _TarikDanaModalState extends State<TarikDanaModal> {
       ),
       child: SafeArea(
         top: false,
-        child: Consumer<AuthProvider>(
-          builder: (context, auth, _) {
+        child: Consumer(
+          builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
             final user = auth.user;
             final hasBank = user != null && 
                             user['bank_name'] != null && user['bank_name'].toString().isNotEmpty && 

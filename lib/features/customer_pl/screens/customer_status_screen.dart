@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/order_provider.dart';
 import 'customer_order_screen.dart';
 import 'customer_review_screen.dart';
@@ -11,14 +11,13 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class CustomerStatusScreen extends StatefulWidget {
+class CustomerStatusScreen extends ConsumerStatefulWidget {
   const CustomerStatusScreen({super.key});
 
-  @override
-  State<CustomerStatusScreen> createState() => _CustomerStatusScreenState();
+  @override ConsumerState<CustomerStatusScreen> createState() => _CustomerStatusScreenState();
 }
 
-class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
+class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
   final Color primaryTeal = const Color(0xFF403600);
   final Color accentGreen = const Color(0xFF22C55E);
   final Color darkBg = const Color(0xFF131109);
@@ -28,7 +27,7 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        final provider = context.read<OrderProvider>();
+        final provider = ref.read(orderProvider);
         await provider.fetchOrders();
         await provider.markAllPLOrdersAsSeen();
       }
@@ -37,9 +36,9 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider = context.watch<OrderProvider>();
+    final orderProv = ref.watch(orderProvider);
 
-    if (orderProvider.isLoading) {
+    if (orderProv.isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFFFFF9ED),
         body: Column(
@@ -94,8 +93,8 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
       );
     }
 
-    if (orderProvider.activeOrders.isNotEmpty) {
-      return _buildActiveOrdersList(orderProvider.activeOrders);
+    if (orderProv.activeOrders.isNotEmpty) {
+      return _buildActiveOrdersList(orderProv.activeOrders);
     }
 
     return _buildEmptyState();
@@ -235,15 +234,14 @@ class _CustomerStatusScreenState extends State<CustomerStatusScreen> {
 // ─────────────────────────────────────────
 // PREMIUM ORDER CARD
 // ─────────────────────────────────────────
-class PremiumOrderCard extends StatefulWidget {
+class PremiumOrderCard extends ConsumerStatefulWidget {
   final Map<String, dynamic> order;
   const PremiumOrderCard({super.key, required this.order});
 
-  @override
-  State<PremiumOrderCard> createState() => _PremiumOrderCardState();
+  @override ConsumerState<PremiumOrderCard> createState() => _PremiumOrderCardState();
 }
 
-class _PremiumOrderCardState extends State<PremiumOrderCard> {
+class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
   bool isExpanded = false;
   bool _isFirstBuild = true;
 

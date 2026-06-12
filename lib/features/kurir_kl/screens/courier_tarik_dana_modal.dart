@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../auth/screens/pin_screen.dart' as pin_screen;
 import 'courier_profile_screen.dart';
 
-class CourierTarikDanaModal extends StatefulWidget {
+class CourierTarikDanaModal extends ConsumerStatefulWidget {
   final String courierName;
   final double maxBalance;
 
@@ -17,11 +17,10 @@ class CourierTarikDanaModal extends StatefulWidget {
     required this.maxBalance,
   });
 
-  @override
-  State<CourierTarikDanaModal> createState() => _CourierTarikDanaModalState();
+  @override ConsumerState<CourierTarikDanaModal> createState() => _CourierTarikDanaModalState();
 }
 
-class _CourierTarikDanaModalState extends State<CourierTarikDanaModal> {
+class _CourierTarikDanaModalState extends ConsumerState<CourierTarikDanaModal> {
   double _amount = 0;
   static const Color primaryTeal = Color(0xFF286B6A);
 
@@ -38,8 +37,9 @@ class _CourierTarikDanaModalState extends State<CourierTarikDanaModal> {
       ),
       child: SafeArea(
         top: false,
-        child: Consumer<AuthProvider>(
-          builder: (context, auth, _) {
+        child: Consumer(
+          builder: (context, ref, _) {
+final auth = ref.watch(authProvider);
             final user = auth.user;
             final hasBank = user != null && 
                             user['bank_name'] != null && user['bank_name'].toString().isNotEmpty && 

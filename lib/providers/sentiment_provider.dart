@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/services/api_service.dart';
 
 class SentimentProvider with ChangeNotifier {
@@ -33,3 +34,5 @@ class SentimentProvider with ChangeNotifier {
     }
   }
 }
+
+final sentimentProvider = ChangeNotifierProvider<SentimentProvider>((ref) => SentimentProvider());

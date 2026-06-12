@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -16,14 +16,13 @@ import '../../../providers/order_provider.dart';
 import 'customer_wallet_screen.dart';
 import '../../../data/services/api_service.dart';
 
-class CustomerDryCleanScreen extends StatefulWidget {
+class CustomerDryCleanScreen extends ConsumerStatefulWidget {
   const CustomerDryCleanScreen({super.key});
 
-  @override
-  State<CustomerDryCleanScreen> createState() => _CustomerDryCleanScreenState();
+  @override ConsumerState<CustomerDryCleanScreen> createState() => _CustomerDryCleanScreenState();
 }
 
-class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
+class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen> {
   final Color primaryTeal = const Color(0xFF403600);
   final Color accentGold = const Color(0xFFDAC66F);
   final Color darkBg = const Color(0xFF131109);
@@ -171,7 +170,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
   @override
   void initState() {
     super.initState();
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     if (auth.user != null) {
       _selectedLat = double.tryParse(auth.user!['lat']?.toString() ?? '');
       _selectedLng = double.tryParse(auth.user!['lng']?.toString() ?? '');
@@ -181,7 +180,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Provider.of<WalletProvider>(context, listen: false).fetchWallet();
+        ref.read(walletProvider).fetchWallet();
       }
     });
   }
@@ -379,9 +378,9 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
   Future<void> _submitOrderAndPay() async {
     if (_isSubmitting) return;
 
-    final walletProv = context.read<WalletProvider>();
-    final auth = context.read<AuthProvider>();
-    final orderProv = context.read<OrderProvider>();
+    final walletProv = ref.read(walletProvider);
+    final auth = ref.read(authProvider);
+    final orderProv = ref.read(orderProvider);
 
     bool needsCourier = _deliveryType == 'pickup' || _returnMethod == 'courier';
     int courierFee = needsCourier ? _dynamicCourierFee : 0;
@@ -1064,7 +1063,7 @@ class _CustomerDryCleanScreenState extends State<CustomerDryCleanScreen> {
 
   // --- STEP 3: PHOTO UPLOAD POW, ADDRESS INFO, nota TRANSACTION SUMMARY ---
   Widget _buildStep3PaymentSummary() {
-    final walletProv = context.watch<WalletProvider>();
+    final walletProv = ref.watch(walletProvider);
     bool needsCourier = _deliveryType == 'pickup' || _returnMethod == 'courier';
     int courierFee = needsCourier ? _dynamicCourierFee : 0;
     int grandTotal = _totalDryCleanPrice.toInt() + courierFee;

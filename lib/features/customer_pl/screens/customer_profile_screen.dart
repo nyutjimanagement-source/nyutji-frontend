@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,18 +13,17 @@ import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class CustomerProfileScreen extends StatefulWidget {
+class CustomerProfileScreen extends ConsumerStatefulWidget {
   const CustomerProfileScreen({super.key});
 
-  @override
-  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+  @override ConsumerState<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
 }
 
-class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   bool _isAddressExpanded = false;
   bool _isSettingsExpanded = false;
   late TextEditingController _addressDetailController;
-  String _imageVersion = DateTime.now().millisecondsSinceEpoch.toString();
+  String _imageVersion = "";
 
   @override
   void initState() {
@@ -56,7 +55,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final Map<String, dynamic> t = {
       'id': {
         'title': 'Akun Saya',
@@ -123,7 +122,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       if (!path.startsWith('http') && !path.contains('uploads/')) {
         path = "uploads/profiles/$path";
       }
-      finalUrl = path.startsWith('http') ? "$path?v=$_imageVersion" : "${ApiConstants.rootUrl}/$path?v=$_imageVersion";
+      final String versionQuery = _imageVersion.isNotEmpty ? "?v=$_imageVersion" : "";
+      finalUrl = path.startsWith('http') ? "$path$versionQuery" : "${ApiConstants.rootUrl}/$path$versionQuery";
     }
 
     return ClipPath(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/services/api_service.dart';
 
 class IssueProvider with ChangeNotifier {
@@ -51,3 +52,5 @@ class IssueProvider with ChangeNotifier {
     }
   }
 }
+
+final issueProvider = ChangeNotifierProvider<IssueProvider>((ref) => IssueProvider());

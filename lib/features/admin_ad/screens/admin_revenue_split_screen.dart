@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../../providers/revenue_split_provider.dart';
 import '../../../core/utils/formatters.dart';
 
-class AdminRevenueSplitScreen extends StatefulWidget {
+class AdminRevenueSplitScreen extends ConsumerStatefulWidget {
   const AdminRevenueSplitScreen({super.key});
 
-  @override
-  State<AdminRevenueSplitScreen> createState() => _AdminRevenueSplitScreenState();
+  @override ConsumerState<AdminRevenueSplitScreen> createState() => _AdminRevenueSplitScreenState();
 }
 
-class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
+class _AdminRevenueSplitScreenState extends ConsumerState<AdminRevenueSplitScreen> {
   final Color primaryTeal = const Color(0xFF1E5655);
   final Color darkGray = const Color(0xFF111827);
   final Color secondaryDark = const Color(0xFF1F2937);
@@ -67,7 +66,7 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<RevenueSplitProvider>().fetchRevenueData();
+      ref.read(revenueSplitProvider).fetchRevenueData();
     });
   }
 
@@ -91,8 +90,9 @@ class _AdminRevenueSplitScreenState extends State<AdminRevenueSplitScreen> {
           ),
         ),
       ),
-      body: Consumer<RevenueSplitProvider>(
-        builder: (context, provider, child) {
+      body: Consumer(
+        builder: (context, ref, child) {
+final provider = ref.watch(revenueSplitProvider);
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator(color: Color(0xFFF59E0B)));
           }

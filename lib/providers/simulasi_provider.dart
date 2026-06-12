@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// SimulasiProvider — Pusat kendali saldo dummy untuk demo flow PL→ML→KL
 /// Tidak terhubung ke payment gateway, hanya in-memory simulation.
@@ -158,3 +159,5 @@ class SimulasiProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+final simulasiProvider = ChangeNotifierProvider<SimulasiProvider>((ref) => SimulasiProvider());

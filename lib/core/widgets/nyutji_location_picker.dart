@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -30,14 +31,13 @@ class NyutjiLocationResult {
   });
 }
 
-class NyutjiLocationPicker extends StatefulWidget {
+class NyutjiLocationPicker extends ConsumerStatefulWidget {
   const NyutjiLocationPicker({super.key});
 
-  @override
-  State<NyutjiLocationPicker> createState() => _NyutjiLocationPickerState();
+  @override ConsumerState<NyutjiLocationPicker> createState() => _NyutjiLocationPickerState();
 }
 
-class _NyutjiLocationPickerState extends State<NyutjiLocationPicker> {
+class _NyutjiLocationPickerState extends ConsumerState<NyutjiLocationPicker> {
   // FIX #3: Gunakan nullable LatLng agar jelas kapan koordinat belum diset
   LatLng _currentLatLng = const LatLng(-6.2088, 106.8456); // Default Jakarta
   bool _hasValidLocation = false; // FIX #2: flag koordinat valid (bukan default)

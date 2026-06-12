@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import 'package:intl/intl.dart';
 
-class CourierHistoryScreen extends StatefulWidget {
+class CourierHistoryScreen extends ConsumerStatefulWidget {
   const CourierHistoryScreen({super.key});
 
-  @override
-  State<CourierHistoryScreen> createState() => _CourierHistoryScreenState();
+  @override ConsumerState<CourierHistoryScreen> createState() => _CourierHistoryScreenState();
 }
 
-class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
+class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
   final Color primaryTeal = const Color(0xFF286B6A);
   final Color bgColor = const Color(0xFFF3F4F6);
   final Color textDark = const Color(0xFF2D2A26);
@@ -22,9 +21,9 @@ class _CourierHistoryScreenState extends State<CourierHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final walletProv = Provider.of<WalletProvider>(context);
-    final orderProv = Provider.of<OrderProvider>(context);
+    final auth = ref.watch(authProvider);
+    final walletProv = ref.watch(walletProvider);
+    final orderProv = ref.watch(orderProvider);
     final historyOrders = orderProv.historyOrders;
     
     final Map<String, dynamic> t = {

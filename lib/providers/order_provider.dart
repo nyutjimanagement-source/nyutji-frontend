@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -480,3 +481,5 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 }
+
+final orderProvider = ChangeNotifierProvider<OrderProvider>((ref) => OrderProvider());

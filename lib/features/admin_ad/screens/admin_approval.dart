@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 
-class AdminApprovalScreen extends StatefulWidget {
+class AdminApprovalScreen extends ConsumerStatefulWidget {
   const AdminApprovalScreen({super.key});
 
-  @override
-  State<AdminApprovalScreen> createState() => _AdminApprovalScreenState();
+  @override ConsumerState<AdminApprovalScreen> createState() => _AdminApprovalScreenState();
 }
 
-class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
+class _AdminApprovalScreenState extends ConsumerState<AdminApprovalScreen> {
   List<dynamic> pendingUsers = [];
   bool isLoading = true;
 
@@ -23,7 +22,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
   }
 
   Future<void> _loadPending() async {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final data = await auth.fetchPendingApprovals();
     setState(() {
       pendingUsers = data;
@@ -32,7 +31,7 @@ class _AdminApprovalScreenState extends State<AdminApprovalScreen> {
   }
 
   Future<void> _handleAction(dynamic identifier, String action, String name) async {
-    final auth = context.read<AuthProvider>();
+    final auth = ref.read(authProvider);
     final success = await auth.processUserApproval(identifier, action);
     
     if (!mounted) {

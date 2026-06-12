@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -9,14 +9,13 @@ import '../../../providers/issue_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/theme/nyutji_theme.dart';
 
-class AdminIssuesScreen extends StatefulWidget {
+class AdminIssuesScreen extends ConsumerStatefulWidget {
   const AdminIssuesScreen({super.key});
 
-  @override
-  State<AdminIssuesScreen> createState() => _AdminIssuesScreenState();
+  @override ConsumerState<AdminIssuesScreen> createState() => _AdminIssuesScreenState();
 }
 
-class _AdminIssuesScreenState extends State<AdminIssuesScreen> with TickerProviderStateMixin {
+class _AdminIssuesScreenState extends ConsumerState<AdminIssuesScreen> with TickerProviderStateMixin {
   late final MapController _mapController;
   final TextEditingController _searchController = TextEditingController();
   late AnimationController _blinkController;
@@ -30,8 +29,8 @@ class _AdminIssuesScreenState extends State<AdminIssuesScreen> with TickerProvid
     _mapController = MapController();
     // Fetch data mitra real dari backend
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().fetchAllUsers(); // untuk fitur admin lain
-      context.read<AuthProvider>().fetchMitras();   // untuk koordinat peta
+      ref.read(authProvider).fetchAllUsers(); // untuk fitur admin lain
+      ref.read(authProvider).fetchMitras();   // untuk koordinat peta
     });
     _blinkController = AnimationController(
       vsync: this,
@@ -77,7 +76,7 @@ class _AdminIssuesScreenState extends State<AdminIssuesScreen> with TickerProvid
     final query = _searchController.text.toLowerCase();
     if (query.isEmpty) return;
 
-    final mitras = context.read<AuthProvider>().mitras;
+    final mitras = ref.read(authProvider).mitras;
     try {
       final target = mitras.firstWhere(
         (ml) => (ml['name'] ?? ml['shop_name'] ?? '').toString().toLowerCase().contains(query),
@@ -100,8 +99,8 @@ class _AdminIssuesScreenState extends State<AdminIssuesScreen> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<IssueProvider>();
-    final auth = context.watch<AuthProvider>();
+    final provider = ref.watch(issueProvider);
+    final auth = ref.watch(authProvider);
     // Gunakan auth.mitras dari /public/mitras yang menyertakan lat/lng
     final mitras = auth.mitras.where((u) {
       final lat = double.tryParse(u['lat']?.toString() ?? '') ?? 0;

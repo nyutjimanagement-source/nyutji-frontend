@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -16,14 +16,13 @@ import '../../../providers/order_provider.dart';
 import 'customer_wallet_screen.dart';
 import '../../../data/services/api_service.dart';
 
-class CustomerCuciKhususScreen extends StatefulWidget {
+class CustomerCuciKhususScreen extends ConsumerStatefulWidget {
   const CustomerCuciKhususScreen({super.key});
 
-  @override
-  State<CustomerCuciKhususScreen> createState() => _CustomerCuciKhususScreenState();
+  @override ConsumerState<CustomerCuciKhususScreen> createState() => _CustomerCuciKhususScreenState();
 }
 
-class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
+class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScreen> {
   final Color primaryTeal = const Color(0xFF403600);
   final Color accentGold = const Color(0xFFDAC66F);
   final Color darkBg = const Color(0xFF131109);
@@ -172,7 +171,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
   @override
   void initState() {
     super.initState();
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     if (auth.user != null) {
       _selectedLat = double.tryParse(auth.user!['lat']?.toString() ?? '');
       _selectedLng = double.tryParse(auth.user!['lng']?.toString() ?? '');
@@ -182,7 +181,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Provider.of<WalletProvider>(context, listen: false).fetchWallet();
+        ref.read(walletProvider).fetchWallet();
       }
     });
   }
@@ -366,9 +365,9 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
   Future<void> _submitOrderAndPay() async {
     if (_isSubmitting) return;
 
-    final walletProv = context.read<WalletProvider>();
-    final auth = context.read<AuthProvider>();
-    final orderProv = context.read<OrderProvider>();
+    final walletProv = ref.read(walletProvider);
+    final auth = ref.read(authProvider);
+    final orderProv = ref.read(orderProvider);
 
     bool needsCourier = _deliveryType == 'pickup' || _returnMethod == 'courier';
     int courierFee = needsCourier ? _dynamicCourierFee : 0;
@@ -911,7 +910,7 @@ class _CustomerCuciKhususScreenState extends State<CustomerCuciKhususScreen> {
 
   // --- STEP 3: PHOTO POW UPLOAD, ADDRESS, PAYMENT SUMMARY ---
   Widget _buildStep3PaymentSummary() {
-    final walletProv = context.watch<WalletProvider>();
+    final walletProv = ref.watch(walletProvider);
     bool needsCourier = _deliveryType == 'pickup' || _returnMethod == 'courier';
     int courierFee = needsCourier ? _dynamicCourierFee : 0;
     int grandTotal = _specialItemPrice.toInt() + courierFee;

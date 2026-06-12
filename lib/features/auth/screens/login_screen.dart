@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/marquee_widget.dart';
 import '../../../core/widgets/nyutji_notif.dart';
@@ -14,14 +14,13 @@ import 'register_pelanggan_screen.dart';
 import '../../admin_ad/screens/admin_tentang_nyutji.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  @override ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProviderStateMixin {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final FocusNode passwordFocusNode = FocusNode();
@@ -95,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   };
 
   void _handleAction() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     bool success = await auth.login(phoneController.text, passwordController.text);
     
     if (success) {
@@ -120,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   void _showRegisterOptions() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final currentT = t[auth.lang] ?? t['id'];
     
     showModalBottomSheet(
@@ -189,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final currentT = t[auth.lang] ?? t['id'];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(

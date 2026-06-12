@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/services/api_service.dart';
 
 class RevenueSplitProvider with ChangeNotifier {
@@ -28,3 +29,5 @@ class RevenueSplitProvider with ChangeNotifier {
     }
   }
 }
+
+final revenueSplitProvider = ChangeNotifierProvider<RevenueSplitProvider>((ref) => RevenueSplitProvider());

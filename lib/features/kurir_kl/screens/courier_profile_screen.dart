@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 
-class CourierProfileScreen extends StatelessWidget {
+class CourierProfileScreen extends ConsumerWidget {
   const CourierProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     const Color textDark = Color(0xFF2D2A26);
     const Color textGrey = Color(0xFF78716C);
     
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
 
     final Map<String, dynamic> t = {
       'id': {

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'nyutji_location_picker.dart';
 import 'nyutji_notif.dart';
 
-class NyutjiAddressSheet extends StatefulWidget {
+class NyutjiAddressSheet extends ConsumerStatefulWidget {
   const NyutjiAddressSheet({super.key});
 
-  @override
-  State<NyutjiAddressSheet> createState() => _NyutjiAddressSheetState();
+  @override ConsumerState<NyutjiAddressSheet> createState() => _NyutjiAddressSheetState();
 }
 
-class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
+class _NyutjiAddressSheetState extends ConsumerState<NyutjiAddressSheet> {
   final TextEditingController _detailController = TextEditingController();
 
   Future<void> _pickHomeAddress(AuthProvider auth) async {
@@ -73,7 +72,7 @@ class _NyutjiAddressSheetState extends State<NyutjiAddressSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final home = auth.homeAddress;
     final history = auth.addressHistory;
 

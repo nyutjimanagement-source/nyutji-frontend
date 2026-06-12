@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../../providers/wallet_provider.dart';
 import '../../../../core/widgets/nyutji_notif.dart';
 import '../../mitra_ml/screens/mitra_keamanan_pin.dart';
 
 enum PinMode { verify, create, confirm }
 
-class PinScreen extends StatefulWidget {
+class PinScreen extends ConsumerStatefulWidget {
   final PinMode mode;
   final String? initialPin;
   final double? amountToWithdraw;
@@ -20,11 +20,10 @@ class PinScreen extends StatefulWidget {
     this.amountToWithdraw,
   });
 
-  @override
-  State<PinScreen> createState() => _PinScreenState();
+  @override ConsumerState<PinScreen> createState() => _PinScreenState();
 }
 
-class _PinScreenState extends State<PinScreen> {
+class _PinScreenState extends ConsumerState<PinScreen> {
   String _pin = "";
   final int _pinLength = 6;
   bool _isLoading = false;
@@ -66,8 +65,8 @@ class _PinScreenState extends State<PinScreen> {
       }
 
       setState(() => _isLoading = true);
-      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-      final success = await walletProvider.updatePin(_pin);
+      final walletProv = ref.read(walletProvider);
+      final success = await walletProv.updatePin(_pin);
       setState(() => _isLoading = false);
 
       if (!mounted) return;
@@ -82,8 +81,8 @@ class _PinScreenState extends State<PinScreen> {
     setState(() => _isLoading = true);
     
     if (widget.amountToWithdraw != null) {
-      final walletProvider = Provider.of<WalletProvider>(context, listen: false);
-      final success = await walletProvider.requestWithdraw(widget.amountToWithdraw!, _pin);
+      final walletProv = ref.read(walletProvider);
+      final success = await walletProv.requestWithdraw(widget.amountToWithdraw!, _pin);
       
       setState(() => _isLoading = false);
       if (!mounted) return;
@@ -91,7 +90,7 @@ class _PinScreenState extends State<PinScreen> {
       if (success) {
         _showSuccessDialog("Tarik Dana Berhasil!", "Dana Anda sedang diproses dan akan diteruskan ke rekening tujuan.");
       } else {
-        NyutjiNotif.showError(context, walletProvider.errorMessage ?? "Gagal memproses penarikan.");
+        NyutjiNotif.showError(context, walletProv.errorMessage ?? "Gagal memproses penarikan.");
         setState(() {
           _pin = "";
         });

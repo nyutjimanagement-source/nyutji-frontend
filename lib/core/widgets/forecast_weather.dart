@@ -1,20 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'shimmer_loading.dart';
 
-class ForecastWeather extends StatefulWidget {
+class ForecastWeather extends ConsumerStatefulWidget {
   const ForecastWeather({super.key});
 
-  @override
-  State<ForecastWeather> createState() => _ForecastWeatherState();
+  @override ConsumerState<ForecastWeather> createState() => _ForecastWeatherState();
 }
 
-class _ForecastWeatherState extends State<ForecastWeather> {
+class _ForecastWeatherState extends ConsumerState<ForecastWeather> {
   bool _isLoading = true;
   Map<String, dynamic>? _weatherData;
 
@@ -25,7 +24,7 @@ class _ForecastWeatherState extends State<ForecastWeather> {
   }
 
   Future<void> _fetchWeather() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final lat = auth.user?['lat'] ?? -6.2088;
     final lng = auth.user?['lng'] ?? 106.8456;
 
@@ -78,7 +77,7 @@ class _ForecastWeatherState extends State<ForecastWeather> {
     final currentTemp = _weatherData!['current']['temperature_2m'].round();
     final humidity = _weatherData!['current']['relative_humidity_2m']?.round() ?? 0;
     final weatherCode = _weatherData!['current']['weather_code'];
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final auth = ref.read(authProvider);
     final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "Lokasi Mitra";
 
     return Container(

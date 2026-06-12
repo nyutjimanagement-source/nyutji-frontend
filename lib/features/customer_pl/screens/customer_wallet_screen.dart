@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../core/utils/formatters.dart';
@@ -14,22 +14,21 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class CustomerWalletScreen extends StatefulWidget {
+class CustomerWalletScreen extends ConsumerStatefulWidget {
   const CustomerWalletScreen({super.key});
 
-  @override
-  State<CustomerWalletScreen> createState() => _CustomerWalletScreenState();
+  @override ConsumerState<CustomerWalletScreen> createState() => _CustomerWalletScreenState();
 }
 
-class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
+class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
   String _historyFilter = 'Bulan';
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WalletProvider>().fetchWallet();
-      context.read<OrderProvider>().fetchOrders();
+      ref.read(walletProvider).fetchWallet();
+      ref.read(orderProvider).fetchOrders();
     });
   }
 
@@ -57,7 +56,7 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = ref.watch(authProvider);
     final Map<String, dynamic> t = {
       'id': {
         'title': 'Dompet Nyutji',
@@ -89,8 +88,10 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
             // CARD SALDO
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Consumer<WalletProvider>(
-                builder: (context, wallet, _) => Container(
+              child: Consumer(
+                builder: (context, ref, _) {
+final wallet = ref.watch(walletProvider);
+return Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: const Color(0xFF403600), 
@@ -126,25 +127,28 @@ class _CustomerWalletScreenState extends State<CustomerWalletScreen> {
                       )
                     ],
                   ),
-                ),
-              ),
+                );
+}),
             ),
             const SizedBox(height: 16),
 
             // MINI ANALYTICS CHART
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Consumer<WalletProvider>(
-                builder: (context, wallet, _) => _buildAnalyticsCard(currentT, wallet),
-              ),
+              child: Consumer(
+                builder: (context, ref, _) {
+final wallet = ref.watch(walletProvider);
+return _buildAnalyticsCard(currentT, wallet);
+}),
             ),
             const SizedBox(height: 16),
 
             // RIWAYAT TRANSAKSI
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Consumer<WalletProvider>(
-                builder: (context, wallet, _) {
+              child: Consumer(
+                builder: (context, ref, _) {
+final wallet = ref.watch(walletProvider);
                   final grouped = _getGroupedMutasi(wallet.mutasiList);
                   return Container(
                     padding: const EdgeInsets.all(20),
@@ -526,15 +530,14 @@ class MiniPiePainter extends CustomPainter {
 // ─────────────────────────────────────────
 // EXPANDABLE HISTORY ROW
 // ─────────────────────────────────────────
-class _HistoryRowItem extends StatefulWidget {
+class _HistoryRowItem extends ConsumerStatefulWidget {
   final dynamic transaction;
   const _HistoryRowItem({required this.transaction});
 
-  @override
-  State<_HistoryRowItem> createState() => _HistoryRowItemState();
+  @override ConsumerState<_HistoryRowItem> createState() => _HistoryRowItemState();
 }
 
-class _HistoryRowItemState extends State<_HistoryRowItem> {
+class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
   bool isExpanded = false;
 
   void _showPowImage(BuildContext context, String imageUrl, String title) {
@@ -630,8 +633,8 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
       formattedDate = DateFormat('dd MMM, HH:mm', 'id_ID').format(dt.toLocal());
     } catch (_) {}
 
-    final orderProvider = context.read<OrderProvider>();
-    final allOrders = [...orderProvider.activeOrders, ...orderProvider.historyOrders];
+    final orderProv = ref.read(orderProvider);
+    final allOrders = [...orderProv.activeOrders, ...orderProv.historyOrders];
     final String refId = (m['reference_id'] ?? m['order_id'] ?? '').toString();
     
     Map<String, dynamic>? order;
@@ -879,18 +882,17 @@ class _HistoryRowItemState extends State<_HistoryRowItem> {
   }
 }
 
-class _HistoryGroupItem extends StatefulWidget {
+class _HistoryGroupItem extends ConsumerStatefulWidget {
   final String title;
   final List<dynamic> items;
   final bool isInitialExpanded;
   
   const _HistoryGroupItem({required this.title, required this.items, required this.isInitialExpanded});
 
-  @override
-  State<_HistoryGroupItem> createState() => _HistoryGroupItemState();
+  @override ConsumerState<_HistoryGroupItem> createState() => _HistoryGroupItemState();
 }
 
-class _HistoryGroupItemState extends State<_HistoryGroupItem> {
+class _HistoryGroupItemState extends ConsumerState<_HistoryGroupItem> {
   late bool isExpanded;
 
   @override
