@@ -162,39 +162,6 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
     {'name': 'Others', 'logo': ''},
   ];
 
-  void _showBeautifulNotif(String message, bool success) {
-    late OverlayEntry overlayEntry;
-    overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 10,
-        left: 20,
-        right: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: success ? primaryTeal : primaryRed,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
-            ),
-            child: Row(
-              children: [
-                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(context).insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) overlayEntry.remove();
-    });
-  }
-
   Future<void> _handleConfirmOrder(int grandTotal) async {
     _showEstimationInvoice(grandTotal);
   }
@@ -413,10 +380,10 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
       if (success) {
         _showMerpatiSuccess();
       } else {
-        _showBeautifulNotif(orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.", false);
+        NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.");
       }
     } catch (e) {
-      if (mounted) _showBeautifulNotif("Terjadi kesalahan: ${e.toString()}", false);
+      if (mounted) NyutjiNotif.showError(context, "Terjadi kesalahan: ${e.toString()}");
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -476,14 +443,12 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
       if (success) {
         await orderProv.fetchDraftOrders();
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Draft berhasil disimpan!'), backgroundColor: primaryTeal, behavior: SnackBarBehavior.floating),
-        );
+        NyutjiNotif.showSuccess(context, 'Draft berhasil disimpan!');
       } else {
-        _showBeautifulNotif(orderProv.errorMessage ?? "Gagal menyimpan draft", false);
+        NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal menyimpan draft");
       }
     } catch (e) {
-      if (mounted) _showBeautifulNotif("Terjadi kesalahan: ${e.toString()}", false);
+      if (mounted) NyutjiNotif.showError(context, "Terjadi kesalahan: ${e.toString()}");
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
