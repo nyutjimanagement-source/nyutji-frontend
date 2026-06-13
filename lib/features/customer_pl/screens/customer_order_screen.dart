@@ -130,9 +130,10 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                         final draft = drafts[index];
                         final mitraName = draft['mitra']?['name'] ?? 'Mitra';
                         final date = draft['createdAt'] != null ? DateTime.parse(draft['createdAt']).toLocal().toString().split(' ')[0] : '';
+                        final orderIdStr = (draft['orderNumber'] ?? draft['order_number'] ?? draft['id'] ?? index).toString();
                         
                         return Dismissible(
-                          key: Key(draft['order_number']),
+                          key: Key(orderIdStr),
                           direction: DismissDirection.endToStart,
                           background: Container(
                             alignment: Alignment.centerRight,
@@ -142,7 +143,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                             child: const Icon(LucideIcons.trash2, color: Colors.red),
                           ),
                           onDismissed: (direction) {
-                            prov.deleteDraft(draft['order_number']);
+                            prov.deleteDraft(orderIdStr);
                           },
                           child: InkWell(
                             onTap: () {

@@ -362,7 +362,7 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _api.deleteDraftOrder(orderId);
-      _draftOrders.removeWhere((o) => (o['order_number'] ?? o['id']) == orderId);
+      _draftOrders.removeWhere((o) => (o['orderNumber'] ?? o['order_number'] ?? o['id']).toString() == orderId);
       _isLoading = false;
       notifyListeners();
       return true;
