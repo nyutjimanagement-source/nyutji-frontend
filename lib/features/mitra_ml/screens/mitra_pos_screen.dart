@@ -49,8 +49,41 @@ class _MitraPosScreenState extends ConsumerState<MitraPosScreen> {
         grouped[cat]!.add(item);
       }
 
+      // Pastikan urutan item di dalam kategori selalu tetap (diurutkan berdasarkan ID)
+      for (var key in grouped.keys) {
+        grouped[key]!.sort((a, b) {
+          int idA = int.tryParse(a['id']?.toString() ?? '0') ?? 0;
+          int idB = int.tryParse(b['id']?.toString() ?? '0') ?? 0;
+          return idA.compareTo(idB);
+        });
+      }
+
+      // Pastikan urutan kelompok kategori sesuai permintaan
+      const categoryOrder = [
+        "Layanan Kiloan",
+        "Pakaian Satuan",
+        "Perawatan Khusus",
+        "Perlengkapan Bayi & Anak",
+        "Perlengkapan Rumah Tangga",
+        "Lainnya"
+      ];
+
+      var sortedKeys = grouped.keys.toList()..sort((a, b) {
+        int indexA = categoryOrder.indexOf(a);
+        int indexB = categoryOrder.indexOf(b);
+        if (indexA == -1) indexA = 999;
+        if (indexB == -1) indexB = 999;
+        if (indexA == indexB) return a.compareTo(b);
+        return indexA.compareTo(indexB);
+      });
+
+      Map<String, List<dynamic>> sortedGrouped = {};
+      for (var key in sortedKeys) {
+        sortedGrouped[key] = grouped[key]!;
+      }
+
       setState(() {
-        _groupedItems = grouped;
+        _groupedItems = sortedGrouped;
         _isLoading = false;
       });
     } catch (e) {
