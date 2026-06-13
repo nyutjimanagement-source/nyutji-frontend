@@ -202,6 +202,16 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> getDraftOrders() async {
+    final response = await _dio.get("/orders/drafts");
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> deleteDraftOrder(String orderId) async {
+    final response = await _dio.delete("/orders/drafts/$orderId");
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> getCourierPricing() async {
     final response = await _dio.get("/admin/courier-pricing");
     return response.data;

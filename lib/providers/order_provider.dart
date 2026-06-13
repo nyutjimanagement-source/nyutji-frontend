@@ -26,6 +26,9 @@ class OrderProvider extends ChangeNotifier {
   List<dynamic> _availableOrders = [];
   List<dynamic> get availableOrders => _availableOrders;
 
+  List<dynamic> _draftOrders = [];
+  List<dynamic> get draftOrders => _draftOrders;
+
   Map<String, dynamic>? _trackingOrder;
   Map<String, dynamic>? get trackingOrder => _trackingOrder;
 
@@ -340,6 +343,33 @@ class OrderProvider extends ChangeNotifier {
       _errorMessage = 'Terjadi kesalahan: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> fetchDraftOrders() async {
+    try {
+      final response = await _api.getDraftOrders();
+      _draftOrders = response['data'] ?? [];
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error fetching drafts: $e");
+    }
+  }
+
+  Future<bool> deleteDraft(String orderId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _api.deleteDraftOrder(orderId);
+      _draftOrders.removeWhere((o) => (o['order_number'] ?? o['id']) == orderId);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      debugPrint("Error deleting draft: $e");
       return false;
     }
   }

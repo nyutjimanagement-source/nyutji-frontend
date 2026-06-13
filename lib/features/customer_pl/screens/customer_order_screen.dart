@@ -76,6 +76,282 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     }
     
     _loadLiveMitras();
+    Future.microtask(() => ref.read(orderProvider).fetchDraftOrders());
+  }
+
+  void _showDraftBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _buildDraftBottomSheet(),
+    );
+  }
+
+  Widget _buildDraftBottomSheet() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final prov = ref.watch(orderProvider);
+        final drafts = prov.draftOrders;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40, height: 5,
+                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.shoppingBag, color: primaryTeal),
+                    const SizedBox(width: 12),
+                    Text("Draft Pesanan", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900)),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: drafts.isEmpty 
+                  ? Center(child: Text("Keranjang kosong", style: GoogleFonts.montserrat(color: Colors.grey)))
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: drafts.length,
+                      itemBuilder: (context, index) {
+                        final draft = drafts[index];
+                        final mitraName = draft['mitra']?['name'] ?? 'Mitra';
+                        final date = draft['createdAt'] != null ? DateTime.parse(draft['createdAt']).toLocal().toString().split(' ')[0] : '';
+                        
+                        return Dismissible(
+                          key: Key(draft['order_number']),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(16)),
+                            child: const Icon(LucideIcons.trash2, color: Colors.red),
+                          ),
+                          onDismissed: (direction) {
+                            prov.deleteDraft(draft['order_number']);
+                          },
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              _resumeDraft(draft);
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.grey[200]!),
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40, height: 40,
+                                    decoration: BoxDecoration(color: accentGold.withValues(alpha: 0.1), shape: BoxShape.circle),
+                                    child: const Icon(LucideIcons.fileText, color: accentGold, size: 20),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(mitraName, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800)),
+                                        const SizedBox(height: 4),
+                                        Text("Draft: $date", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(LucideIcons.chevronRight, color: Colors.grey, size: 18),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    )
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  void _resumeDraft(Map<String, dynamic> draft) {
+    // 1. Ekstrak data
+    final draftItems = draft['items'] as List?;
+    if (draftItems == null || draftItems.isEmpty) return;
+    
+    final mitra = draft['mitra'];
+    if (mitra == null) return;
+
+    final String mitraIdStr = (draft['mitraId'] ?? draft['mitra_id']).toString();
+    final String districtName = mitra['district_name'] ?? '';
+    final String cityName = mitra['city_name'] ?? '';
+    final String districtCode = draft['district_code'] ?? 'NYJ';
+
+    // 2. Ambil harga terbaru mitra dari _mitras live data (jika ada)
+    final currentMitra = _mitras.firstWhere(
+      (m) => m['id'].toString() == mitraIdStr,
+      orElse: () => mitra,
+    );
+
+    List<Map<String, dynamic>> updatedItems = [];
+    double newTotalPrice = 0.0;
+    int newTotalItems = 0;
+
+    final List? liveItems = currentMitra['items'] as List?;
+    
+    for (var dItem in draftItems) {
+      // Cari item di live data untuk harga terbaru
+      final liveItem = liveItems?.firstWhere(
+        (i) => i['name'] == dItem['itemName'],
+        orElse: () => null
+      );
+      
+      bool isFast = draft['serviceType'] == 'SAME_DAY';
+      double pricePerUnit = double.tryParse(dItem['pricePerUnit']?.toString() ?? '0') ?? 0.0;
+      
+      // Update dengan harga baru jika ada
+      if (liveItem != null) {
+        double pReg = double.tryParse(liveItem['price_regular']?.toString() ?? liveItem['price']?.toString() ?? '0') ?? 0.0;
+        double? pFastRaw = double.tryParse(liveItem['price_fast']?.toString() ?? '');
+        double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
+        pricePerUnit = isFast ? pFast : pReg;
+      }
+      
+      final qty = int.tryParse(dItem['qty']?.toString() ?? '1') ?? 1;
+      updatedItems.add({
+        'name': dItem['itemName'],
+        'count': qty,
+        'unit': dItem['unit'],
+        'price': pricePerUnit,
+        'category': dItem['category'],
+      });
+      
+      newTotalPrice += (pricePerUnit * qty);
+      newTotalItems += qty;
+    }
+
+    final double lat = double.tryParse(draft['pickupLat']?.toString() ?? '0') ?? 0.0;
+    final double lng = double.tryParse(draft['pickupLng']?.toString() ?? '0') ?? 0.0;
+    final double mitraLat = NyutjiParser.toDouble(mitra['lat']);
+    final double mitraLng = NyutjiParser.toDouble(mitra['lng']);
+    final isPickup = draft['deliveryType'] == 'PICKUP';
+
+    Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
+      totalPrice: newTotalPrice,
+      totalItems: newTotalItems,
+      address: draft['address'] ?? '',
+      isPickup: isPickup,
+      mitraId: mitraIdStr,
+      mitraName: mitra['name'] ?? 'Mitra',
+      orderType: isPickup ? 'pickup' : 'drop',
+      speed: draft['serviceType'] == 'SAME_DAY' ? 'fast' : 'regular',
+      distance: NyutjiParser.toDouble(draft['distance']),
+      dropMethod: isPickup ? '' : (draft['deliveryType'] ?? 'SELF_DROP'),
+      selectedItemsList: updatedItems,
+      districtName: districtName,
+      districtCode: districtCode,
+      cityName: cityName,
+      lat: lat,
+      lng: lng,
+      mitraLat: mitraLat,
+      mitraLng: mitraLng,
+      pickupNote: draft['pickupNote'] ?? '',
+      mitraAddress: mitra['address'] ?? '',
+      mitraDistrict: districtName,
+    )));
+  }
+
+  Future<void> _handleSimpanDraft(AuthProvider auth) async {
+    final String addr = _pickupAddress;
+    final String note = _pickupNote;
+    final double lat = _selectedLat ?? 0.0;
+    final double lng = _selectedLng ?? 0.0;
+    
+    final currentMitra = _mitras.firstWhere(
+      (m) => m['id'].toString() == (_selectedMitra?['id']?.toString() ?? ''),
+      orElse: () => _selectedMitra ?? {},
+    );
+
+    List<Map<String, dynamic>> selectedItems = [];
+    final List? mItems = currentMitra['items'] as List?;
+    
+    if (mItems != null && mItems.isNotEmpty) {
+      _itemCounts.forEach((itemId, count) {
+        if (count > 0) {
+          var item = mItems.firstWhere(
+            (i) => i['id'].toString() == itemId.toString(), 
+            orElse: () => null
+          );
+          if (item != null) {
+            bool isFast = _serviceSpeed == 'fast';
+            double pReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
+            double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
+            double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
+            String cat = (item['category'] ?? '').toString().toLowerCase();
+            String unitDisplay = (cat == 'satuan' || cat == 'iron' || cat == 'dry clean') ? 'Pcs' : 'Kg';
+            
+            selectedItems.add({
+              'itemName': item['name'] ?? item['item_name'] ?? 'Item', 
+              'qty': count, 
+              'unit': unitDisplay,
+              'pricePerUnit': isFast ? pFast : pReg,
+              'category': item['category'] ?? 'Umum',
+              'subtotal': (isFast ? pFast : pReg) * count
+            });
+          }
+        }
+      });
+    }
+
+    String districtCode = 'NYJ'; 
+    if (_selectedMitra != null && _selectedMitra!['id'] != null) {
+      final mId = _selectedMitra!['id'].toString();
+      final parts = mId.split('-');
+      if (parts.length >= 2) districtCode = parts[1].toUpperCase();
+    }
+
+    final payload = {
+      'isDraft': true,
+      'mitraId': _selectedMitra!['id'],
+      'items': selectedItems,
+      'lat': lat,
+      'lng': lng,
+      'isFastTrack': _serviceSpeed == 'fast',
+      'delivery_type': widget.orderType == 'pickup' ? 'PICKUP' : _returnMethod,
+      'district_code': districtCode,
+      'address': addr,
+      'pickupNote': note,
+      'distance': (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
+      'servicePrice': _totalPrice,
+      'deliveryFee': 0, // Dihitung ulang nanti saat dibayar
+    };
+
+    final orderProv = ref.read(orderProvider);
+    final success = await orderProv.createOrder(payload);
+    
+    if (success) {
+      await orderProv.fetchDraftOrders();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Draft berhasil disimpan!'), backgroundColor: primaryTeal, behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 
   Future<void> _loadLiveMitras({String? forcedCity}) async {
@@ -553,14 +829,25 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
         Stack(
           alignment: Alignment.center,
           children: [
-            IconButton(icon: const Icon(LucideIcons.shoppingBag, color: Colors.white, size: 20), onPressed: () {}),
+            IconButton(
+              icon: const Icon(LucideIcons.shoppingBag, color: Colors.white, size: 20), 
+              onPressed: () {
+                _showDraftBottomSheet();
+              }
+            ),
             Positioned(
               right: 8, top: 8,
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle),
                 constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                child: Text('$_totalItems', style: const TextStyle(color: Colors.black, fontSize: 8, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final draftsCount = ref.watch(orderProvider).draftOrders.length;
+                    if (draftsCount == 0) return const SizedBox.shrink();
+                    return Text('$draftsCount', style: const TextStyle(color: Colors.black, fontSize: 8, fontWeight: FontWeight.bold), textAlign: TextAlign.center);
+                  }
+                ),
               ),
             )
           ],
@@ -1267,7 +1554,23 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                 ],
               ),
             ),
-            ElevatedButton(
+            Row(
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    if (_totalItems > 0 && _selectedMitra != null) {
+                      _handleSimpanDraft(auth);
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: primaryTeal, width: 2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15)
+                  ),
+                  child: Text("Simpan Draft ?", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: primaryTeal)),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
               onPressed: () {
                 if (_totalItems > 0 && _selectedMitra != null) {
                   final String addr = _pickupAddress;
