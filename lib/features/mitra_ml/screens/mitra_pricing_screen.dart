@@ -110,6 +110,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           "svc": i['name']?.toString() ?? "",
           "reg": i['price_regular']?.toString() ?? "0",
           "fast": i['price_fast']?.toString() ?? "0",
+          "category": i['category']?.toString() ?? "Layanan Kiloan",
         }).toList();
 
         satuanData = items
@@ -119,6 +120,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           "id": i['id'].toString(),
           "name": i['name']?.toString() ?? "",
           "price": i['price_regular']?.toString() ?? "0",
+          "category": i['category']?.toString() ?? "Pakaian Satuan",
         }).toList();
         
       });
@@ -202,7 +204,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           "name": item['svc'],
           "price_regular": cleanParse(item['reg']).toInt(),
           "price_fast": cleanParse(item['fast']).toInt(),
-          "category": "Kiloan"
+          "category": item['category'] ?? "Layanan Kiloan"
         });
       }
       
@@ -211,7 +213,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           "id": item['id'],
           "name": item['name'],
           "price_regular": cleanParse(item['price']).toInt(),
-          "category": "Satuan"
+          "category": item['category'] ?? "Pakaian Satuan"
         });
       }
 
@@ -232,6 +234,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           "svc": _newKiloanSvc.text,
           "reg": _newKiloanReg.text.replaceAll(RegExp(r'[^0-9]'), ""),
           "fast": _newKiloanFast.text.replaceAll(RegExp(r'[^0-9]'), ""),
+          "category": "Layanan Kiloan",
         });
         _newKiloanSvc.clear();
         _newKiloanReg.clear();
@@ -277,6 +280,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           "id": DateTime.now().millisecondsSinceEpoch.toString(),
           "name": _newSatuanName.text,
           "price": _newSatuanPrice.text.replaceAll(RegExp(r'[^0-9.]'), ""),
+          "category": "Pakaian Satuan",
         });
         _newSatuanName.clear();
         _newSatuanPrice.clear();
@@ -623,9 +627,9 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         setState(() {
           final newId = DateTime.now().millisecondsSinceEpoch.toString();
           if (isKiloan) {
-            kiloanData.add({"id": newId, "svc": "", "reg": "", "fast": ""});
+            kiloanData.add({"id": newId, "svc": "", "reg": "", "fast": "", "category": "Layanan Kiloan"});
           } else {
-            satuanData.add({"id": newId, "name": "", "price": ""});
+            satuanData.add({"id": newId, "name": "", "price": "", "category": "Pakaian Satuan"});
           }
           _selectedForEdit.add(newId);
         });
