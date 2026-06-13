@@ -1060,8 +1060,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                       child: Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
                     const SizedBox(width: 8),
-                    if (chunks.length > 1)
-                      Text("Slide untuk lainnya", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -1096,17 +1094,37 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                   children: pageItems.map((item) => isKiloan ? _buildKiloanRow(item as Map<String, dynamic>) : _buildSatuanRow(item as Map<String, dynamic>)).toList(),
                 ),
               ),
-              // INDIKATOR TITIK
+              // INDIKATOR TITIK DENGAN PANAH PAGINASI
               if (chunks.length > 1)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(chunks.length, (index) => Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      width: 6, height: 6,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withValues(alpha: 0.3)),
-                    )),
+                    children: [
+                      // Tombol Kiri
+                      IconButton(
+                        icon: const Icon(LucideIcons.chevronLeft, size: 20),
+                        color: currentPage > 0 ? primaryTeal : Colors.grey[300],
+                        onPressed: currentPage > 0 ? () => onPageChanged(currentPage - 1) : null,
+                      ),
+                      const SizedBox(width: 8),
+                      // Titik-titik Paginasi
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(chunks.length, (index) => Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: 6, height: 6,
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withValues(alpha: 0.3)),
+                        )),
+                      ),
+                      const SizedBox(width: 8),
+                      // Tombol Kanan
+                      IconButton(
+                        icon: const Icon(LucideIcons.chevronRight, size: 20),
+                        color: currentPage < chunks.length - 1 ? primaryTeal : Colors.grey[300],
+                        onPressed: currentPage < chunks.length - 1 ? () => onPageChanged(currentPage + 1) : null,
+                      ),
+                    ],
                   ),
                 ),
               const SizedBox(height: 8),
