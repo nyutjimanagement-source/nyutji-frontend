@@ -609,7 +609,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
                         ? _buildKiloanRow(id, item, editing)
                         : _buildSatuanRow(id, item, editing);
                     }),
-                    if (editing) _buildAddRowButton(isKiloan),
+                    if (editing) _buildAddRowButton(isKiloan, currentPage, totalPages, onPageChanged),
                   ],
                 ),
               ),
@@ -621,36 +621,70 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
-  Widget _buildAddRowButton(bool isKiloan) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          final newId = DateTime.now().millisecondsSinceEpoch.toString();
-          if (isKiloan) {
-            kiloanData.add({"id": newId, "svc": "", "reg": "", "fast": "", "category": "Layanan Kiloan"});
-          } else {
-            satuanData.add({"id": newId, "name": "", "price": "", "category": "Pakaian Satuan"});
-          }
-          _selectedForEdit.add(newId);
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: primaryTeal.withValues(alpha: 0.05),
-          border: Border(top: BorderSide(color: Colors.grey[100]!)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(LucideIcons.plusCircle, size: 16, color: primaryTeal),
-            const SizedBox(width: 8),
-            Text(
-              isKiloan ? "Tambah Layanan Baru" : "Tambah Barang Baru",
-              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
+  Widget _buildAddRowButton(bool isKiloan, int currentPage, int totalPages, Function(int) onPageChanged) {
+    return Container(
+      decoration: BoxDecoration(
+        color: primaryTeal.withValues(alpha: 0.05),
+        border: Border(top: BorderSide(color: Colors.grey[100]!)),
+      ),
+      child: Row(
+        children: [
+          // Tombol Paginasi Kiri
+          if (totalPages > 1)
+            IconButton(
+              icon: const Icon(LucideIcons.chevronLeft, size: 20),
+              color: currentPage > 0 ? primaryTeal : Colors.grey[400],
+              onPressed: currentPage > 0 ? () {
+                setState(() => _isSwipeForward = false);
+                onPageChanged(currentPage - 1);
+              } : null,
+            )
+          else
+            const SizedBox(width: 48), // Spacer jika tidak ada paginasi agar tetap seimbang
+
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  final newId = DateTime.now().millisecondsSinceEpoch.toString();
+                  if (isKiloan) {
+                    kiloanData.add({"id": newId, "svc": "", "reg": "", "fast": "", "category": "Layanan Kiloan"});
+                  } else {
+                    satuanData.add({"id": newId, "name": "", "price": "", "category": "Pakaian Satuan"});
+                  }
+                  _selectedForEdit.add(newId);
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.plusCircle, size: 16, color: primaryTeal),
+                    const SizedBox(width: 8),
+                    Text(
+                      isKiloan ? "Tambah Layanan Baru" : "Tambah Barang Baru",
+                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+
+          // Tombol Paginasi Kanan
+          if (totalPages > 1)
+            IconButton(
+              icon: const Icon(LucideIcons.chevronRight, size: 20),
+              color: currentPage < totalPages - 1 ? primaryTeal : Colors.grey[400],
+              onPressed: currentPage < totalPages - 1 ? () {
+                setState(() => _isSwipeForward = true);
+                onPageChanged(currentPage + 1);
+              } : null,
+            )
+          else
+            const SizedBox(width: 48), // Spacer
+        ],
       ),
     );
   }
