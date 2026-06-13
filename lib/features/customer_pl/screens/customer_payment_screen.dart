@@ -422,6 +422,72 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
     }
   }
 
+  Future<void> _handleSimpanDraft(int grandTotal) async {
+    if (_isSubmitting) return;
+
+    final auth = ref.read(authProvider);
+    final orderProv = ref.read(orderProvider);
+    setState(() => _isSubmitting = true);
+
+    try {
+      final items = widget.selectedItemsList.map((item) => {
+        'category': item['category'] ?? 'Umum',
+        'item_name': item['name'] ?? item['item_name'] ?? '',
+        'qty': item['count'] ?? item['qty'] ?? 1,
+        'unit': item['unit'] ?? 'pcs',
+        'price_per_unit': item['price'] ?? item['pricePerUnit'] ?? 0,
+        'notes': '',
+      }).toList();
+
+      final isFastTrack = widget.speed == 'fast';
+      final deliveryFee = (widget.isPickup || widget.dropMethod == 'courier') ? _dynamicCourierFee : 0;
+      final deliveryType = widget.isPickup 
+          ? 'PICKUP' 
+          : (widget.dropMethod == 'courier' ? 'SELF_DROP' : 'SELFDROP_SELFDELIVERY');
+
+      final payload = {
+        'isDraft': true,
+        'address': widget.address,
+        'pickupNote': widget.pickupNote,
+        'districtName': widget.districtName,
+        'cityName': widget.cityName.isNotEmpty ? widget.cityName : 'Tasikmalaya',
+        'items': items,
+        'lat': widget.lat != 0.0 ? widget.lat : (double.tryParse(auth.user?['lat']?.toString() ?? '') ?? 0.0),
+        'lng': widget.lng != 0.0 ? widget.lng : (double.tryParse(auth.user?['lng']?.toString() ?? '') ?? 0.0),
+        'is_fast_track': isFastTrack,
+        'isFastTrack': isFastTrack,
+        'service_type': isFastTrack ? 'SAME_DAY' : 'REGULER',
+        'serviceType': isFastTrack ? 'SAME_DAY' : 'REGULER',
+        'service_price': widget.totalPrice,
+        'servicePrice': widget.totalPrice,
+        'delivery_fee': deliveryFee,
+        'deliveryFee': deliveryFee,
+        'delivery_type': deliveryType,
+        'deliveryType': deliveryType,
+        'customer_id': auth.user?['identifier'],
+        'mitra_id': widget.mitraId,
+        'mitraId': widget.mitraId,
+        'distance': _calculatedDistance.isNaN ? 0.1 : _calculatedDistance,
+        'district_code': widget.districtCode,
+      };
+
+      final success = await orderProv.createOrder(payload);
+      if (!mounted) return;
+      if (success) {
+        await orderProv.fetchDraftOrders();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Draft berhasil disimpan!'), backgroundColor: primaryTeal, behavior: SnackBarBehavior.floating),
+        );
+      } else {
+        _showBeautifulNotif(orderProv.errorMessage ?? "Gagal menyimpan draft", false);
+      }
+    } catch (e) {
+      if (mounted) _showBeautifulNotif("Terjadi kesalahan: ${e.toString()}", false);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
   void _showMerpatiSuccess() {
     showGeneralDialog(
       context: context,
@@ -858,22 +924,38 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
           color: Colors.white,
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
         ),
-        child: ElevatedButton(
-          onPressed: _isSubmitting ? null : () => _handleConfirmOrder(grandTotal),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryTeal,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: primaryTeal.withValues(alpha: 0.6),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            elevation: 0,
-          ),
-          child: _isSubmitting
-              ? const SizedBox(
-                  height: 20, width: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                )
-              : Text("KONFIRMASI PESANAN", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        child: Row(
+          children: [
+            OutlinedButton(
+              onPressed: _isSubmitting ? null : () => _handleSimpanDraft(grandTotal),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: primaryTeal, width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              ),
+              child: Text("Simpan Draft ?", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: primaryTeal)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _isSubmitting ? null : () => _handleConfirmOrder(grandTotal),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryTeal,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: primaryTeal.withValues(alpha: 0.6),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  elevation: 0,
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20, width: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : Text("KONFIRMASI PESANAN", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              ),
+            ),
+          ],
         ),
       ),
     );

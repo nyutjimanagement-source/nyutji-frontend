@@ -279,82 +279,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     )));
   }
 
-  Future<void> _handleSimpanDraft(AuthProvider auth) async {
-    final String addr = _pickupAddress;
-    final String note = _pickupNote;
-    final double lat = _selectedLat ?? 0.0;
-    final double lng = _selectedLng ?? 0.0;
-    
-    final currentMitra = _mitras.firstWhere(
-      (m) => m['id'].toString() == (_selectedMitra?['id']?.toString() ?? ''),
-      orElse: () => _selectedMitra ?? {},
-    );
-
-    List<Map<String, dynamic>> selectedItems = [];
-    final List? mItems = currentMitra['items'] as List?;
-    
-    if (mItems != null && mItems.isNotEmpty) {
-      _itemCounts.forEach((itemId, count) {
-        if (count > 0) {
-          var item = mItems.firstWhere(
-            (i) => i['id'].toString() == itemId.toString(), 
-            orElse: () => null
-          );
-          if (item != null) {
-            bool isFast = _serviceSpeed == 'fast';
-            double pReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
-            double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
-            double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
-            String cat = (item['category'] ?? '').toString().toLowerCase();
-            String unitDisplay = (cat == 'satuan' || cat == 'iron' || cat == 'dry clean') ? 'Pcs' : 'Kg';
-            
-            selectedItems.add({
-              'itemName': item['name'] ?? item['item_name'] ?? 'Item', 
-              'qty': count, 
-              'unit': unitDisplay,
-              'pricePerUnit': isFast ? pFast : pReg,
-              'category': item['category'] ?? 'Umum',
-              'subtotal': (isFast ? pFast : pReg) * count
-            });
-          }
-        }
-      });
-    }
-
-    String districtCode = 'NYJ'; 
-    if (_selectedMitra != null && _selectedMitra!['id'] != null) {
-      final mId = _selectedMitra!['id'].toString();
-      final parts = mId.split('-');
-      if (parts.length >= 2) districtCode = parts[1].toUpperCase();
-    }
-
-    final payload = {
-      'isDraft': true,
-      'mitraId': _selectedMitra!['id'],
-      'items': selectedItems,
-      'lat': lat,
-      'lng': lng,
-      'isFastTrack': _serviceSpeed == 'fast',
-      'delivery_type': widget.orderType == 'pickup' ? 'PICKUP' : _returnMethod,
-      'district_code': districtCode,
-      'address': addr,
-      'pickupNote': note,
-      'distance': (_selectedMitra?['distance'] as num?)?.toDouble() ?? 0.1,
-      'servicePrice': _totalPrice,
-      'deliveryFee': 0, // Dihitung ulang nanti saat dibayar
-    };
-
-    final orderProv = ref.read(orderProvider);
-    final success = await orderProv.createOrder(payload);
-    
-    if (success) {
-      await orderProv.fetchDraftOrders();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('Draft berhasil disimpan!'), backgroundColor: primaryTeal, behavior: SnackBarBehavior.floating),
-      );
-    }
-  }
 
   Future<void> _loadLiveMitras({String? forcedCity}) async {
     // Naikkan generasi — request lama yang masih berjalan akan dibuang
@@ -1556,23 +1480,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                 ],
               ),
             ),
-            Row(
-              children: [
-                OutlinedButton(
-                  onPressed: () {
-                    if (_totalItems > 0 && _selectedMitra != null) {
-                      _handleSimpanDraft(auth);
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: primaryTeal, width: 2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15)
-                  ),
-                  child: Text("Simpan Draft ?", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: primaryTeal)),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
+            ElevatedButton(
               onPressed: () {
                 if (_totalItems > 0 && _selectedMitra != null) {
                   final String addr = _pickupAddress;
