@@ -351,7 +351,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       await orderProv.fetchDraftOrders();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Draft berhasil disimpan!'), backgroundColor: primaryTeal, behavior: SnackBarBehavior.floating),
+        SnackBar(content: const Text('Draft berhasil disimpan!'), backgroundColor: primaryTeal, behavior: SnackBarBehavior.floating),
       );
     }
   }
