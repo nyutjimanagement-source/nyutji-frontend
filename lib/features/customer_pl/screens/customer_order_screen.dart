@@ -14,6 +14,7 @@ import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../providers/order_provider.dart';
 
 class CustomerOrderScreen extends ConsumerStatefulWidget {
   final String orderType;
@@ -29,6 +30,7 @@ class CustomerOrderScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
+  static const Color accentGold = Color(0xFFF59E0B);
   String _pickupAddress = 'Jl. Kebayoran No 12, Jakarta';
   String _pickupNote = '';
   String _serviceSpeed = 'regular';
@@ -111,7 +113,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.shoppingBag, color: primaryTeal),
+                    Icon(LucideIcons.shoppingBag, color: primaryTeal),
                     const SizedBox(width: 12),
                     Text("Draft Pesanan", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w900)),
                   ],
@@ -253,7 +255,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     final isPickup = draft['deliveryType'] == 'PICKUP';
 
     Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
-      totalPrice: newTotalPrice,
+      totalPrice: newTotalPrice.toInt(),
       totalItems: newTotalItems,
       address: draft['address'] ?? '',
       isPickup: isPickup,
@@ -1563,7 +1565,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                     }
                   },
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: primaryTeal, width: 2),
+                    side: BorderSide(color: primaryTeal, width: 2),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15)
                   ),
@@ -1683,6 +1685,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
             ),
           ],
         ),
-    );
-  }
+      ],
+    ),
+  );
+}
 }
