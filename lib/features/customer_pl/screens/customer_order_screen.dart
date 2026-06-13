@@ -1108,13 +1108,18 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                         onPressed: currentPage > 0 ? () => onPageChanged(currentPage - 1) : null,
                       ),
                       const SizedBox(width: 8),
-                      // Titik-titik Paginasi
+                      // Titik-titik Paginasi Animasi (seperti di mitra_pricing_screen.dart)
                       Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: List.generate(chunks.length, (index) => Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: 6, height: 6,
-                          decoration: BoxDecoration(shape: BoxShape.circle, color: currentPage == index ? primaryTeal : primaryTeal.withValues(alpha: 0.3)),
+                        children: List.generate(chunks.length, (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: currentPage == index ? 12 : 6, 
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: currentPage == index ? primaryTeal : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         )),
                       ),
                       const SizedBox(width: 8),
