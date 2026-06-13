@@ -201,8 +201,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     if (mitra == null) return;
 
     final String mitraIdStr = (draft['mitraId'] ?? draft['mitra_id']).toString();
-    final String districtName = mitra['district_name'] ?? '';
-    final String cityName = mitra['city_name'] ?? '';
+    final String districtName = mitra['district_name'] ?? mitra['owner_district_name'] ?? '';
+    final String cityName = mitra['city_name'] ?? mitra['owner_city_name'] ?? '';
     final String districtCode = draft['district_code'] ?? 'NYJ';
 
     // 2. Ambil harga terbaru mitra dari _mitras live data (jika ada)
