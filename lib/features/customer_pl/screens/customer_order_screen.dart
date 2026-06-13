@@ -1593,8 +1593,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
             ),
           ],
         ),
-      ],
-    ),
-  );
-}
+    );
+  }
 }

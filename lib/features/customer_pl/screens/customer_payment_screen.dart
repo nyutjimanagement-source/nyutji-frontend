@@ -475,6 +475,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
       if (!mounted) return;
       if (success) {
         await orderProv.fetchDraftOrders();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('Draft berhasil disimpan!'), backgroundColor: primaryTeal, behavior: SnackBarBehavior.floating),
         );
