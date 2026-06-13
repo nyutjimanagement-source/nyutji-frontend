@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_util.dart';
@@ -18,6 +19,11 @@ import 'features/mitra_ml/screens/mitra_report_issue_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inisialisasi Database Lokal untuk Offline Queue
+  await Hive.initFlutter();
+  await Hive.openBox('offline_queue');
+
   // Inisialisasi locale Indonesia
   await initializeDateFormatting('id_ID', null);
   // Hanya gunakan font lokal dari assets/google_fonts/

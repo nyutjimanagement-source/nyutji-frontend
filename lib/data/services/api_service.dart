@@ -5,8 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/api_constants.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'retry_interceptor.dart';
+
 class ApiService {
   late final Dio _dio;
+
+  Dio get dio => _dio;
 
   static final ApiService _singleton = ApiService._internal();
 
@@ -22,6 +26,9 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
     ));
     
+    // Attach RetryInterceptor to handle Network Retries and Offline Queue
+    _dio.interceptors.add(RetryInterceptor(dio: _dio, maxRetries: 3));
+
     // Add Interceptors for automatic Auth Token handling
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {

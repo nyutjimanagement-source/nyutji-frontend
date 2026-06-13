@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../providers/connectivity_provider.dart';
+import '../../data/services/offline_queue_service.dart';
 
 class ConnectivityWrapper extends ConsumerWidget {
   final Widget child;
@@ -10,6 +11,21 @@ class ConnectivityWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Dengarkan perubahan koneksi untuk sinkronisasi antrean offline
+    ref.listen<AsyncValue<List<ConnectivityResult>>>(connectivityProvider, (previous, next) {
+      if (next is AsyncData) {
+        final results = next.value!;
+        final isOnline = !results.contains(ConnectivityResult.none) && results.isNotEmpty;
+        
+        final prevResults = previous?.value ?? [ConnectivityResult.none];
+        final wasOffline = prevResults.contains(ConnectivityResult.none) || prevResults.isEmpty;
+
+        if (wasOffline && isOnline) {
+          OfflineQueueService().syncQueue();
+        }
+      }
+    });
+
     final connectivityState = ref.watch(connectivityProvider);
 
     return Column(
