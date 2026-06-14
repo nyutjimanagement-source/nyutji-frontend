@@ -342,7 +342,7 @@ final auth = ref.watch(authProvider);
         final wallet = ref.watch(walletProvider);
         final orderProv = ref.watch(orderProvider);
 
-          final activeOrders = orderProv.activeOrders;
+          final activeOrders = orderProv.activeOrders.where((o) => (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase() != 'DRAFT').toList();
           final wipValue = _calculateWIP(activeOrders);
           final activeOrderCount = activeOrders.length;
           final bool hasOrder = activeOrderCount > 0;
@@ -538,7 +538,7 @@ final auth = ref.watch(authProvider);
     return Consumer(
       builder: (context, ref, _) {
 final orderProv = ref.watch(orderProvider);
-        final activeOrderCount = orderProv.activeOrders.length;
+        final activeOrderCount = orderProv.activeOrders.where((o) => (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase() != 'DRAFT').length;
 
         final List<Widget> primaryActions = [
           _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
