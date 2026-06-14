@@ -171,14 +171,16 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
         final wallet = ref.watch(walletProvider);
         final order = ref.watch(orderProvider);
 
-          final allOrders = [...order.activeOrders, ...order.historyOrders];
+          final activeOrdersFiltered = order.activeOrders.where((o) => (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase() != 'DRAFT').toList();
+          final historyOrdersFiltered = order.historyOrders.where((o) => (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase() != 'DRAFT').toList();
+          final allOrders = [...activeOrdersFiltered, ...historyOrdersFiltered];
           final isLoading = wallet.isLoading || order.isLoading;
           
           final double totalCashIn = _calculateTotalCash(wallet.mutasiList, 'CREDIT');
           final double totalCashOut = _calculateTotalCash(wallet.mutasiList, 'DEBIT');
-          final double wip = _calculateWIP(order.activeOrders);
+          final double wip = _calculateWIP(activeOrdersFiltered);
           final double totalKg = _calculateTotalKg(allOrders);
-          final double avgRating = _calculateAverageRating(order.historyOrders);
+          final double avgRating = _calculateAverageRating(historyOrdersFiltered);
           
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -186,7 +188,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
               children: [
                 _buildHeader(context, wallet.balance, isLoading),
                 const SizedBox(height: 16),
-                _buildRankAndQuickAction(context, avgRating, wallet, order.historyOrders),
+                _buildRankAndQuickAction(context, avgRating, wallet, historyOrdersFiltered),
                 const SizedBox(height: 16),
                 _buildWithdrawalStatusCard(wallet.withdrawalsList, isLoading),
                 const SizedBox(height: 24),
