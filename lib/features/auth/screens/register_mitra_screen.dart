@@ -256,7 +256,12 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 40),
+                    padding: EdgeInsets.only(
+                      left: 24,
+                      right: 24,
+                      top: 8,
+                      bottom: MediaQuery.of(context).padding.bottom + 16,
+                    ),
                     child: Column(
                       children: [
                         // Horizontal Tabs
@@ -270,96 +275,79 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                         const SizedBox(height: 24),
                         // Content
                         AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: _buildCurrentStepContent(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 16,
-          bottom: MediaQuery.of(context).padding.bottom + 16,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_currentStep > 0)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setState(() => _currentStep -= 1);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: const StadiumBorder(),
-                      side: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    child: Text(
-                      "KEMBALI",
-                      style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: const Color(0xFF4B5563)),
+                          duration: const Duration(milliseconds: 300),
+                          child: _buildCurrentStepContent(),
+                        ),
+                        SizedBox(height: _currentStep == 0 ? MediaQuery.of(context).size.height * 0.15 : 32),
+                        // Action Buttons
+                        Row(
+                          children: [
+                            if (_currentStep > 0)
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: OutlinedButton(
+                                    onPressed: () {
+                                      setState(() => _currentStep -= 1);
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      shape: const StadiumBorder(),
+                                      side: BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    child: Text(
+                                      "KEMBALI",
+                                      style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: const Color(0xFF4B5563)),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : () {
+                                  if (_currentStep == 0) {
+                                    if (nameController.text.isEmpty || ktpFile == null) {
+                                      NyutjiNotif.showError(context, "Nama dan KTP wajib diisi");
+                                      return;
+                                    }
+                                  } else if (_currentStep == 1) {
+                                    if (phoneController.text.isEmpty || passController.text.isEmpty || confirmPassController.text.isEmpty || businessAddressController.text.isEmpty) {
+                                      NyutjiNotif.showError(context, "Lengkapi data bisnis");
+                                      return;
+                                    }
+                                    if (passController.text != confirmPassController.text) {
+                                      NyutjiNotif.showError(context, "Kata Sandi dan Konfirmasi Kata Sandi tidak cocok");
+                                      return;
+                                    }
+                                  } else if (_currentStep == 2) {
+                                    _submitRegistration();
+                                    return;
+                                  }
+                                  setState(() => _currentStep += 1);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: const StadiumBorder(),
+                                  elevation: 0,
+                                ),
+                                child: _isLoading && _currentStep == 2
+                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                    : Text(
+                                        _currentStep == 2 ? "DAFTAR" : "LANJUT",
+                                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () {
-                  if (_currentStep == 0) {
-                    if (nameController.text.isEmpty || ktpFile == null) {
-                      NyutjiNotif.showError(context, "Nama dan KTP wajib diisi");
-                      return;
-                    }
-                  } else if (_currentStep == 1) {
-                    if (phoneController.text.isEmpty || passController.text.isEmpty || confirmPassController.text.isEmpty || businessAddressController.text.isEmpty) {
-                      NyutjiNotif.showError(context, "Lengkapi data bisnis");
-                      return;
-                    }
-                    if (passController.text != confirmPassController.text) {
-                      NyutjiNotif.showError(context, "Kata Sandi dan Konfirmasi Kata Sandi tidak cocok");
-                      return;
-                    }
-                  } else if (_currentStep == 2) {
-                    _submitRegistration();
-                    return;
-                  }
-                  setState(() => _currentStep += 1);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                ),
-                child: _isLoading && _currentStep == 2
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(
-                        _currentStep == 2 ? "DAFTAR" : "LANJUT",
-                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white),
-                      ),
-              ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
   }
 
   Widget _buildCurrentStepContent() {
