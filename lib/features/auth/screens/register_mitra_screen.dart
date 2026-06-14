@@ -253,15 +253,20 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                 decoration: const BoxDecoration(
                   color: Color(0xFFFDF0F0),
                 ),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                padding: EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  bottom: MediaQuery.of(context).padding.bottom + 4,
-                ),
-                child: Column(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                        child: IntrinsicHeight(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              left: 24,
+                              right: 24,
+                              bottom: MediaQuery.of(context).padding.bottom + 16,
+                            ),
+                            child: Column(
                   children: [
                     // Horizontal Tabs
                     Row(
@@ -277,6 +282,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                       duration: const Duration(milliseconds: 300),
                       child: _buildCurrentStepContent(),
                     ),
+                    const Spacer(),
                     const SizedBox(height: 32),
                     // Action Buttons
                     Row(
@@ -346,7 +352,9 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
               ),
             ),
           ),
-        ),
+        );
+      },
+    ),
       );
   }
 
