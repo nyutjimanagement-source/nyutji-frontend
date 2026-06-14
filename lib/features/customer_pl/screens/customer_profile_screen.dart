@@ -405,8 +405,10 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           )
         ],
       ),
-      child: ClipRRect(
+      child: Material(
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(24),
+        clipBehavior: Clip.antiAlias,
         child: Column(children: children),
       ),
     );
