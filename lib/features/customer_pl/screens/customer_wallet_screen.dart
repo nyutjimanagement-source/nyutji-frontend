@@ -540,7 +540,23 @@ class _HistoryRowItem extends ConsumerStatefulWidget {
 class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
   bool isExpanded = false;
 
-  void _showPowImage(BuildContext context, String imageUrl, String title) {
+  void _showPowImage(BuildContext context, String imageUrl, String title, Map<String, dynamic> order, dynamic proofData) {
+    final String orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
+    final String uploaderRole = (proofData['uploader_role'] ?? 'PL').toString();
+    final String uploaderLabel = uploaderRole == 'ML' ? 'Mitra Laundry'
+        : uploaderRole == 'KL' ? 'Kurir'
+        : 'Pelanggan';
+    String uploadedAt = '-';
+    try {
+      final dt = DateTime.tryParse(proofData['createdAt']?.toString() ?? '');
+      if (dt != null) {
+        final local = dt.toLocal();
+        final months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        uploadedAt = '${local.day} ${months[local.month - 1]}, '
+            '${local.hour.toString().padLeft(2,'0')}:${local.minute.toString().padLeft(2,'0')} WIB';
+      }
+    } catch (_) {}
+
     showDialog(
       context: context,
       barrierColor: Colors.black54,
@@ -579,28 +595,101 @@ class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
                     minScale: 0.8,
                     maxScale: 5.0,
                     child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          placeholder: (context, url) => const Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
-                          errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
+                        Positioned.fill(
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            placeholder: (context, url) => const SizedBox(
+                              height: 260,
+                              child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                            ),
+                            errorWidget: (context, url, error) => const SizedBox(
+                              height: 220,
+                              child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
+                            ),
+                          ),
                         ),
+                        // Watermark 1 — kiri atas
+                        Positioned(
+                          top: 40, left: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.38),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Watermark 2 — tengah
                         Positioned.fill(
                           child: IgnorePointer(
-                            child: Center(
+                            child: Align(
+                              alignment: const Alignment(0.2, 0.0),
                               child: Transform.rotate(
-                                angle: -0.5,
+                                angle: -0.785,
                                 child: Text(
                                   'Nyutji Management',
                                   style: GoogleFonts.montserrat(
-                                    fontSize: 18, fontWeight: FontWeight.w900,
-                                    color: Colors.white.withValues(alpha: 0.45),
-                                    letterSpacing: 1.2, shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white.withValues(alpha: 0.42),
+                                    letterSpacing: 1.2,
+                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                                   ),
                                 ),
                               ),
+                            ),
+                          ),
+                        ),
+                        // Watermark 3 — kanan bawah
+                        Positioned(
+                          bottom: 60, right: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.35),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Info overlay
+                        Positioned(
+                          bottom: 0, left: 0, right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                                Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                              ],
                             ),
                           ),
                         ),
@@ -807,7 +896,7 @@ class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
                 final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
                 
                 return GestureDetector(
-                  onTap: () => _showPowImage(context, imageUrl, pDef['title'].toString()),
+                  onTap: () => _showPowImage(context, imageUrl, pDef['title'].toString(), order, pData),
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
