@@ -581,7 +581,8 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
     final order = widget.order;
     final String s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
     final bool isFinished = s == 'DONE' || s == 'PAID';
-    final bool showExpanded = !isFinished || isExpanded;
+    final bool isDraft = s == 'DRAFT';
+    final bool showExpanded = (!isFinished && !isDraft) || isExpanded;
 
     final String rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
     final isFastTrack = (order['is_fast_track'] ?? false).toString() == 'true' || 
@@ -719,7 +720,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                       Text("EST. SELESAI", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.grey[400], letterSpacing: 0.5)),
                     ],
                   ),
-                  if (isFinished) ...[
+                  if (isFinished || isDraft) ...[
                     const SizedBox(width: 8),
                     IconButton(
                       icon: Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 20, color: const Color(0xFF403600).withValues(alpha: 0.5)),
@@ -828,19 +829,20 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    // PROGRESS HEADER
-                    Row(
-                      children: [
-                        Text("Progress Layanan", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600).withValues(alpha: 0.8))),
-                        const SizedBox(width: 12),
-                        const Expanded(child: Divider(color: Color(0xFFF3F0E9), thickness: 1)),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // PROGRESS ICONS (Mewah & Dinamis)
-                    Builder(
-                      builder: (context) {
+                    if (!isDraft) ...[
+                      const SizedBox(height: 24),
+                      // PROGRESS HEADER
+                      Row(
+                        children: [
+                          Text("Progress Layanan", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600).withValues(alpha: 0.8))),
+                          const SizedBox(width: 12),
+                          const Expanded(child: Divider(color: Color(0xFFF3F0E9), thickness: 1)),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // PROGRESS ICONS (Mewah & Dinamis)
+                      Builder(
+                        builder: (context) {
                         final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
                         final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
                         final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
@@ -975,6 +977,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                         );
                       },
                     ),
+                    ],
                   ],
                 ),
               ),
