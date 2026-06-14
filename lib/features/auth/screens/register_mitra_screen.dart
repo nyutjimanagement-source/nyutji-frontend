@@ -260,7 +260,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                       left: 24,
                       right: 24,
                       top: 8,
-                      bottom: MediaQuery.of(context).padding.bottom + 16,
+                      bottom: MediaQuery.of(context).padding.bottom + 4,
                     ),
                     child: Column(
                       children: [
@@ -278,7 +278,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                           duration: const Duration(milliseconds: 300),
                           child: _buildCurrentStepContent(),
                         ),
-                        SizedBox(height: _currentStep == 0 ? MediaQuery.of(context).size.height * 0.15 : 32),
+                        const SizedBox(height: 32),
                         // Action Buttons
                         Row(
                           children: [
