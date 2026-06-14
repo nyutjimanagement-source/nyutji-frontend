@@ -189,7 +189,11 @@ final auth = ref.watch(authProvider);
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
-            child: Column(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
               children: [
                 _buildExpandableAddressMenu(auth),
                 const Divider(height: 1),
@@ -234,6 +238,7 @@ return GestureDetector(
 })
               ],
             ),
+            ), // Closing Material
           ),
           const SizedBox(height: 40),
         ],
