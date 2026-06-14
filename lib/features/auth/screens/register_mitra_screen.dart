@@ -46,6 +46,8 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
   // Step 3: Segmen & Kategori
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
+  String? selectedWasherBrand;
+  final TextEditingController washerTypeController = TextEditingController();
   Map<String, List<dynamic>> groupedServices = {};
   Set<String> checkedCategories = {};
   Set<String> checkedServices = {};
@@ -151,6 +153,8 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
         'business_city_name': businessCity,
         'business_type': selectedSegment,
         'mitra_category': selectedCategory,
+        'washer_brand': selectedWasherBrand ?? '',
+        'washer_type': washerTypeController.text.trim(),
         'selected_services': checkedServices.toList().join(','),
       });
 
@@ -252,7 +256,11 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
                 child: Column(
                   children: [
                     // Horizontal Tabs
@@ -332,7 +340,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -413,6 +421,29 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
               selectedCategory == 'KECIL' ? "Kapasitas < 50 kg/hari" : selectedCategory == 'MENENGAH' ? "Kapasitas 50-200 kg/hari" : "Kapasitas > 200 kg/hari",
               style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
             ),
+          ),
+          const SizedBox(height: 20),
+          Text("Merk dan Type Mesin Cuci", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey[700])),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildChoiceChip('Samsung', 'Samsung', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+              _buildChoiceChip('LG', 'LG', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+              _buildChoiceChip('Sharp', 'Sharp', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+              _buildChoiceChip('Electrolux', 'Electrolux', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+              _buildChoiceChip('IPSO/Speed Queen', 'IPSO/Speed Queen', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+            ],
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _buildTextField(washerTypeController, "Type Washer", LucideIcons.settings),
+            ),
+            crossFadeState: selectedWasherBrand != null ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 300),
           ),
           const SizedBox(height: 20),
           Text("Daftar Layanan Tersedia:", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: primaryColor)),
