@@ -253,111 +253,114 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                 decoration: const BoxDecoration(
                   color: Color(0xFFFDF0F0),
                 ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                        child: IntrinsicHeight(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              left: 24,
-                              right: 24,
-                              bottom: MediaQuery.of(context).padding.bottom + 16,
-                            ),
-                            child: Column(
-                  children: [
-                    // Horizontal Tabs
-                    Row(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 40),
+                    child: Column(
                       children: [
-                        _buildTabItem("Info Pemilik", 0),
-                        _buildTabItem("Info Bisnis", 1),
-                        _buildTabItem("Segmen Usaha", 2),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Content
-                    AnimatedSwitcher(
+                        // Horizontal Tabs
+                        Row(
+                          children: [
+                            _buildTabItem("Info Pemilik", 0),
+                            _buildTabItem("Info Bisnis", 1),
+                            _buildTabItem("Segmen Usaha", 2),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        // Content
+                        AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: _buildCurrentStepContent(),
                     ),
-                    const Spacer(),
-                    const SizedBox(height: 32),
-                    // Action Buttons
-                    Row(
-                      children: [
-                        if (_currentStep > 0)
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  setState(() => _currentStep -= 1);
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: const StadiumBorder(),
-                                  side: BorderSide(color: Colors.grey[300]!),
-                                ),
-                                child: Text(
-                                  "KEMBALI",
-                                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: const Color(0xFF4B5563)),
-                                ),
-                              ),
-                            ),
-                          ),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : () {
-                              if (_currentStep == 0) {
-                                if (nameController.text.isEmpty || ktpFile == null) {
-                                  NyutjiNotif.showError(context, "Nama dan KTP wajib diisi");
-                                  return;
-                                }
-                              } else if (_currentStep == 1) {
-                                if (phoneController.text.isEmpty || passController.text.isEmpty || confirmPassController.text.isEmpty || businessAddressController.text.isEmpty) {
-                                  NyutjiNotif.showError(context, "Lengkapi data bisnis");
-                                  return;
-                                }
-                                if (passController.text != confirmPassController.text) {
-                                  NyutjiNotif.showError(context, "Kata Sandi dan Konfirmasi Kata Sandi tidak cocok");
-                                  return;
-                                }
-                              } else if (_currentStep == 2) {
-                                _submitRegistration();
-                                return;
-                              }
-                              setState(() => _currentStep += 1);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: const StadiumBorder(),
-                              elevation: 0,
-                            ),
-                            child: _isLoading && _currentStep == 2
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : Text(
-                                    _currentStep == 2 ? "DAFTAR" : "LANJUT",
-                                    style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white),
-                                  ),
-                          ),
-                        ),
-                      ],
                     ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
             ),
           ),
-        );
-      },
-    ),
-  ),
-),
-);
+        ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 16,
+          bottom: MediaQuery.of(context).padding.bottom + 16,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_currentStep > 0)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() => _currentStep -= 1);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: const StadiumBorder(),
+                      side: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    child: Text(
+                      "KEMBALI",
+                      style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: const Color(0xFF4B5563)),
+                    ),
+                  ),
+                ),
+              ),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : () {
+                  if (_currentStep == 0) {
+                    if (nameController.text.isEmpty || ktpFile == null) {
+                      NyutjiNotif.showError(context, "Nama dan KTP wajib diisi");
+                      return;
+                    }
+                  } else if (_currentStep == 1) {
+                    if (phoneController.text.isEmpty || passController.text.isEmpty || confirmPassController.text.isEmpty || businessAddressController.text.isEmpty) {
+                      NyutjiNotif.showError(context, "Lengkapi data bisnis");
+                      return;
+                    }
+                    if (passController.text != confirmPassController.text) {
+                      NyutjiNotif.showError(context, "Kata Sandi dan Konfirmasi Kata Sandi tidak cocok");
+                      return;
+                    }
+                  } else if (_currentStep == 2) {
+                    _submitRegistration();
+                    return;
+                  }
+                  setState(() => _currentStep += 1);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: const StadiumBorder(),
+                  elevation: 0,
+                ),
+                child: _isLoading && _currentStep == 2
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        _currentStep == 2 ? "DAFTAR" : "LANJUT",
+                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildCurrentStepContent() {
