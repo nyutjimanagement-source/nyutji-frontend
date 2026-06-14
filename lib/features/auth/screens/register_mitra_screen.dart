@@ -355,7 +355,9 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
         );
       },
     ),
-      );
+  ),
+),
+);
   }
 
   Widget _buildCurrentStepContent() {
