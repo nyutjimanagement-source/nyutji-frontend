@@ -273,7 +273,6 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                       duration: const Duration(milliseconds: 300),
                       child: _buildCurrentStepContent(),
                     ),
-                    ),
                   ],
                 ),
               ),
