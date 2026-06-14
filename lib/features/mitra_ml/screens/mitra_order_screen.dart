@@ -356,6 +356,7 @@ final orderProv = ref.watch(orderProvider);
 
           final filtered = baseOrders.where((o) {
             final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+            if (status == 'DRAFT') return false;
             final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
             final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
             if (currentFilter == "Baru") return status == 'SEARCHING' || status == 'WAITING_DROPOFF';
@@ -443,6 +444,7 @@ final orderProv = ref.watch(orderProvider);
                     final allList = [...orderProv.activeOrders, ...orderProv.historyOrders];
                     for (var o in allList) {
                       final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+                      if (s == 'DRAFT') continue;
                       final isFast = o['is_fast_track'] == true || o['is_fast_track'] == 1 || o['isFastTrack'] == true;
                       final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
                       
@@ -612,6 +614,8 @@ final orderProv = ref.watch(orderProvider);
       final serviceType = (o['service_type'] ?? o['serviceType'] ?? '').toString().toUpperCase();
       final status = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
       
+      if (status == 'DRAFT') continue;
+
       // Same Day
       if ((isFast || serviceType.contains('SAME')) && status != 'DONE' && status != 'PAID') {
         totalSameDay += price;
