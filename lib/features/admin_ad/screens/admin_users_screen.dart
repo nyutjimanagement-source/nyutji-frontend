@@ -81,7 +81,6 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
     return Container(
       color: bgColor,
       child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -131,15 +130,18 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                 Text("Manajemen Users", style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                 Text("Kelola PL, ML, KL & Sistem", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withValues(alpha: 0.7))),
                 const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-                  child: Row(
-                    children: [
-                      const Icon(LucideIcons.search, color: Colors.white70, size: 18),
-                      const SizedBox(width: 12),
-                      Text("Cari ID/Nama User...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white70)),
-                    ],
+                GestureDetector(
+                  onTap: () => _showUserListSheet(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.search, color: Colors.white70, size: 18),
+                        const SizedBox(width: 12),
+                        Text("Cari ID/Nama User...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.white70)),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -164,8 +166,212 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          _buildActionBtn("Reset\nPassword", LucideIcons.key, Colors.blue),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _showResetPasswordSheet(context),
+              child: _buildActionBtn("Reset\nPassword", LucideIcons.key, Colors.blue, noExpanded: true),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showResetPasswordSheet(BuildContext context) {
+    final auth = ref.read(authProvider);
+    auth.fetchAllUsers();
+    
+    String selectedIdentifier = "";
+    String selectedName = "";
+    String searchQuery = "";
+    final TextEditingController passwordController = TextEditingController(text: "Nyutji123!");
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sbContext, setModalState) {
+          return Container(
+            height: MediaQuery.of(sbContext).size.height * 0.9,
+            decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(sbContext).viewInsets.bottom),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10))),
+                
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: Colors.blue[50], shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.key, color: Colors.blue, size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Reset Password", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkGray)),
+                          Text("Paksa setel ulang sandi user", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Divider(),
+
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("1. Pilih Target User", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkGray)),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
+                          child: TextField(
+                            onChanged: (val) => setModalState(() => searchQuery = val.toLowerCase()),
+                            decoration: InputDecoration(
+                              icon: const Icon(LucideIcons.search, size: 18, color: Colors.grey),
+                              hintText: "Cari Nama atau ID User...",
+                              hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey),
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: Consumer(
+                            builder: (context, ref, _) {
+                              final authData = ref.watch(authProvider);
+                              if (authData.allUsers.isEmpty && authData.isLoading) {
+                                return const Center(child: CircularProgressIndicator(color: Colors.blue));
+                              }
+                              
+                              final filtered = authData.allUsers.where((u) {
+                                final name = (u['name'] ?? '').toString().toLowerCase();
+                                final ident = (u['identifier'] ?? '').toString().toLowerCase();
+                                return name.contains(searchQuery) || ident.contains(searchQuery);
+                              }).toList();
+
+                              if (filtered.isEmpty) {
+                                return Center(child: Text("Data tidak ditemukan", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey)));
+                              }
+
+                              return ListView.separated(
+                                padding: EdgeInsets.zero,
+                                itemCount: filtered.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                                itemBuilder: (context, index) {
+                                  final u = filtered[index];
+                                  final ident = u['identifier']?.toString() ?? '';
+                                  final name = u['name'] ?? 'No Name';
+                                  final role = u['role'] ?? '-';
+                                  final isSelected = selectedIdentifier == ident;
+
+                                  Color roleColor = Colors.teal;
+                                  if (role == 'ML') roleColor = Colors.blue;
+                                  if (role == 'KL') roleColor = Colors.orange;
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setModalState(() {
+                                        selectedIdentifier = ident;
+                                        selectedName = name;
+                                      });
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? Colors.blue.withOpacity(0.05) : Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: isSelected ? Colors.blue : Colors.grey[200]!),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 32, height: 32,
+                                            decoration: BoxDecoration(color: roleColor.withOpacity(0.1), shape: BoxShape.circle),
+                                            child: Center(child: Text(role, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: roleColor))),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(name, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkGray)),
+                                                Text(ident, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600])),
+                                              ],
+                                            ),
+                                          ),
+                                          if (isSelected)
+                                            const Icon(LucideIcons.checkCircle2, color: Colors.blue, size: 20),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text("2. Sandi Baru", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkGray)),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: passwordController,
+                          style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: darkGray),
+                          decoration: InputDecoration(
+                            hintText: "Nyutji123!",
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey[200]!)),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.blue, width: 2)),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text("Secara bawaan diisi 'Nyutji123!' tapi bisa Anda ganti dengan kata sandi lain jika perlu.", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              elevation: 0,
+                            ),
+                            onPressed: (selectedIdentifier.isEmpty || passwordController.text.isEmpty) ? null : () async {
+                               final newPassword = passwordController.text.trim();
+                               if (newPassword.length < 6) {
+                                 NyutjiNotif.showError(context, "Sandi minimal 6 karakter!");
+                                 return;
+                               }
+
+                               final success = await auth.forceResetPassword(selectedIdentifier, newPassword);
+                               if (success) {
+                                 Navigator.pop(sbContext);
+                                 NyutjiNotif.showSuccess(context, "Berhasil mereset sandi $selectedName menjadi $newPassword");
+                               } else {
+                                 NyutjiNotif.showError(context, "Gagal: ${auth.lastErrorMessage ?? 'Coba lagi'}");
+                               }
+                            },
+                            child: Text("Reset Password", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -432,101 +638,186 @@ final auth = ref.watch(authProvider);
 
   void _showUserListSheet(BuildContext context) {
     final auth = ref.read(authProvider);
-    
-    // Trigger fetch data
     auth.fetchAllUsers();
+    
+    String searchQuery = "";
+    String selectedRole = "SEMUA";
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  const Icon(LucideIcons.users, color: darkGray),
-                  const SizedBox(width: 12),
-                  Text("Daftar Anggota Ekosistem", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: darkGray)),
-                ],
-              ),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sbContext, setModalState) {
+          return Container(
+            height: MediaQuery.of(sbContext).size.height * 0.85,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
             ),
-            Expanded(
-              child: Consumer(
-                builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-                  if (auth.allUsers.isEmpty && auth.isLoading) {
-                    return const Center(child: CircularProgressIndicator(color: primaryTeal));
-                  }
-                  
-                  if (auth.allUsers.isEmpty) {
-                    return Center(child: Text("Data user tidak ditemukan", style: GoogleFonts.montserrat(color: Colors.grey)));
-                  }
-
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: auth.allUsers.length,
-                    separatorBuilder: (context, index) => Divider(color: Colors.grey[100]),
-                    itemBuilder: (context, index) {
-                      final u = auth.allUsers[index];
-                      final name = u['name'] ?? 'No Name';
-                      final role = u['role'] ?? '-';
-                      final district = u['district']?['name'] ?? 'Luar Area';
-                      final identifier = u['identifier'] ?? '-';
-                      final status = u['registration_status'] ?? 'PENDING';
-                      
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10))),
+                
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: Colors.blue[50], shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.users, color: Colors.blue, size: 22),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 32, height: 32,
-                              decoration: BoxDecoration(
-                                color: role == 'ML' ? Colors.blue.withOpacity(0.1) : (role == 'KL' ? Colors.orange.withOpacity(0.1) : Colors.teal.withOpacity(0.1)),
-                                shape: BoxShape.circle
-                              ),
-                              child: Center(child: Text(role, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: role == 'ML' ? Colors.blue : (role == 'KL' ? Colors.orange : Colors.teal)))),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
-                                  Text("$identifier | $district", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: status == 'APPROVED' ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6)
-                              ),
-                              child: Text(
-                                status, 
-                                style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: status == 'APPROVED' ? Colors.green : Colors.red)
-                              ),
-                            ),
+                            Text("Daftar Anggota", style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: darkGray)),
+                            Text("Cari dan pantau ekosistem Nyutji", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey)),
                           ],
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),
+                        child: TextField(
+                          onChanged: (val) => setModalState(() => searchQuery = val.toLowerCase()),
+                          decoration: InputDecoration(
+                            icon: const Icon(LucideIcons.search, size: 18, color: Colors.grey),
+                            hintText: "Cari Nama atau ID User...",
+                            hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: ["SEMUA", "PL", "ML", "KL"].map((role) {
+                            final isSelected = selectedRole == role;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text(role, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.grey)),
+                                selected: isSelected,
+                                selectedColor: Colors.blue,
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: isSelected ? Colors.blue : Colors.grey[200]!)),
+                                onSelected: (val) => setModalState(() => selectedRole = role),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final authData = ref.watch(authProvider);
+                      if (authData.allUsers.isEmpty && authData.isLoading) {
+                        return const Center(child: CircularProgressIndicator(color: Colors.blue));
+                      }
+                      
+                      final filtered = authData.allUsers.where((u) {
+                        final name = (u['name'] ?? '').toString().toLowerCase();
+                        final ident = (u['identifier'] ?? '').toString().toLowerCase();
+                        final role = u['role'] ?? '';
+                        final matchSearch = name.contains(searchQuery) || ident.contains(searchQuery);
+                        final matchRole = selectedRole == "SEMUA" || role == selectedRole;
+                        return matchSearch && matchRole;
+                      }).toList();
+
+                      if (filtered.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(LucideIcons.userX, size: 64, color: Colors.grey[200]),
+                            const SizedBox(height: 16),
+                            Text("Data tidak ditemukan", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.grey)),
+                          ],
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: filtered.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final u = filtered[index];
+                          final name = u['name'] ?? 'No Name';
+                          final role = u['role'] ?? '-';
+                          final district = u['district']?['name'] ?? 'Luar Area';
+                          final identifier = u['identifier'] ?? '-';
+                          final status = u['registration_status'] ?? 'PENDING';
+                          
+                          Color roleColor = Colors.teal;
+                          if (role == 'ML') roleColor = Colors.blue;
+                          if (role == 'KL') roleColor = Colors.orange;
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.grey[100]!),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40, height: 40,
+                                  decoration: BoxDecoration(
+                                    color: roleColor.withOpacity(0.1),
+                                    shape: BoxShape.circle
+                                  ),
+                                  child: Center(child: Text(role, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: roleColor))),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
+                                      const SizedBox(height: 4),
+                                      Text("$identifier | $district", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: status == 'APPROVED' ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8)
+                                  ),
+                                  child: Text(
+                                    status, 
+                                    style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: status == 'APPROVED' ? Colors.green : Colors.red)
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        }
       ),
     );
   }

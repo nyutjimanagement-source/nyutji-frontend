@@ -99,6 +99,14 @@ class ApiService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> resetUserPassword(String targetIdentifier, String newPassword) async {
+    final response = await _dio.post("/admin/users/reset-password", data: {
+      'target_identifier': targetIdentifier,
+      'new_password': newPassword
+    });
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> processApproval(dynamic targetIdentifier, String action) async {
     // action: 'APPROVED' or 'REJECTED'
     final response = await _dio.post("/approvals/process", data: {

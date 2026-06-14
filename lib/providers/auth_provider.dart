@@ -611,6 +611,32 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> forceResetPassword(String targetIdentifier, String newPassword) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final res = await ApiService().resetUserPassword(targetIdentifier, newPassword);
+      _isLoading = false;
+      notifyListeners();
+      return res['status'] == 'success';
+    } catch (e) {
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map) {
+          _lastErrorMessage = data['message']?.toString() ?? data['error']?.toString() ?? e.message;
+        } else {
+          _lastErrorMessage = e.message;
+        }
+      } else {
+        _lastErrorMessage = e.toString();
+      }
+      debugPrint("Force Reset Password Error: $e");
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
 
 final authProvider = ChangeNotifierProvider<AuthProvider>((ref) => AuthProvider());
