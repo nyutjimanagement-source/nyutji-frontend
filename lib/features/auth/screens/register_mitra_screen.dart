@@ -259,7 +259,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                 padding: EdgeInsets.only(
                   left: 24,
                   right: 24,
-                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                  bottom: MediaQuery.of(context).padding.bottom + 4,
                 ),
                 child: Column(
                   children: [
@@ -340,7 +340,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
