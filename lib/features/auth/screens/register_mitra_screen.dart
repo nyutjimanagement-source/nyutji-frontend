@@ -389,13 +389,10 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
         children: [
           Text("Segmen Usaha", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey[700])),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: _buildChoiceChip('PRIBADI', 'Pribadi', selectedSegment, (v) => setState(() => selectedSegment = v))),
-              const SizedBox(width: 8),
-              Expanded(child: _buildChoiceChip('BADAN', 'Badan Usaha', selectedSegment, (v) => setState(() => selectedSegment = v))),
-            ],
-          ),
+          _buildGridChoices([
+            _buildChoiceChip('PRIBADI', 'Pribadi', selectedSegment, (v) => setState(() => selectedSegment = v)),
+            _buildChoiceChip('BADAN', 'Badan Usaha', selectedSegment, (v) => setState(() => selectedSegment = v)),
+          ]),
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
@@ -406,15 +403,11 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
           const SizedBox(height: 20),
           Text("Kategori Mitra", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey[700])),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildChoiceChip('KECIL', 'Kecil', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
-              _buildChoiceChip('MENENGAH', 'Menengah', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
-              _buildChoiceChip('BESAR', 'Besar', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
-            ],
-          ),
+          _buildGridChoices([
+            _buildChoiceChip('KECIL', 'Kecil', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
+            _buildChoiceChip('MENENGAH', 'Menengah', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
+            _buildChoiceChip('BESAR', 'Besar', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
+          ]),
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
@@ -425,17 +418,13 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
           const SizedBox(height: 20),
           Text("Merk dan Type Mesin Cuci", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey[700])),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildChoiceChip('Samsung', 'Samsung', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
-              _buildChoiceChip('LG', 'LG', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
-              _buildChoiceChip('Sharp', 'Sharp', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
-              _buildChoiceChip('Electrolux', 'Electrolux', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
-              _buildChoiceChip('IPSO/Speed Queen', 'IPSO/Speed Queen', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
-            ],
-          ),
+          _buildGridChoices([
+            _buildChoiceChip('Samsung', 'Samsung', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+            _buildChoiceChip('LG', 'LG', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+            _buildChoiceChip('Sharp', 'Sharp', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+            _buildChoiceChip('Electrolux', 'Electrolux', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+            _buildChoiceChip('IPSO/Speed Queen', 'IPSO/Speed Queen', selectedWasherBrand ?? '', (v) => setState(() => selectedWasherBrand = v)),
+          ]),
           AnimatedCrossFade(
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Padding(
@@ -721,10 +710,27 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
     );
   }
 
+  Widget _buildGridChoices(List<Widget> choices) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth = (constraints.maxWidth - 8) / 2;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: choices.map((c) => SizedBox(width: itemWidth, child: c)).toList(),
+        );
+      },
+    );
+  }
+
   Widget _buildChoiceChip(String value, String label, String groupValue, Function(String) onSelected) {
     final isSelected = value == groupValue;
     return ChoiceChip(
-      label: Text(label),
+      label: Container(
+        width: double.infinity,
+        alignment: Alignment.centerLeft,
+        child: Text(label),
+      ),
       selected: isSelected,
       onSelected: (b) {
         if (b) onSelected(value);
