@@ -700,7 +700,7 @@ final orderProv = ref.watch(orderProvider);
               child: Icon(icon, size: 12, color: color),
             ),
             const SizedBox(width: 4),
-            Text(label, style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600)),
+            Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
           ],
         ),
         const SizedBox(height: 6),
@@ -1039,7 +1039,7 @@ final orderProv = ref.watch(orderProvider);
                                     Text(
                                       "Jemput (Pickup)",
                                       style: GoogleFonts.montserrat(
-                                        fontSize: 12,
+                                        fontSize: 13,
                                         fontWeight: _tabController.index == 0 ? FontWeight.w800 : FontWeight.w600,
                                         color: _tabController.index == 0 ? primaryTeal : textGrey,
                                       ),
@@ -1071,7 +1071,7 @@ final orderProv = ref.watch(orderProvider);
                                     Text(
                                       "Antar (Delivery)",
                                       style: GoogleFonts.montserrat(
-                                        fontSize: 12,
+                                        fontSize: 13,
                                         fontWeight: _tabController.index == 1 ? FontWeight.w800 : FontWeight.w600,
                                         color: _tabController.index == 1 ? primaryTeal : textGrey,
                                       ),
@@ -1133,7 +1133,7 @@ final orderProv = ref.watch(orderProvider);
                       Text(
                         "Tidak ada antrean tugas",
                         style: GoogleFonts.montserrat(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: textGrey,
                           fontWeight: FontWeight.w600,
                         ),
