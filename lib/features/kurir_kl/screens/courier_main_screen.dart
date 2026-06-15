@@ -70,12 +70,12 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   bool _isUploading = false;
   String _gpsLocationText = "Mendeteksi GPS...";
 
-  // Enterprise/Super-App Colors for Courier Redesign
-  final Color primaryTeal = const Color(0xFF44484B); // Very dark slate grey
-  final Color accentGreen = const Color(0xFF71797E); // Slate grey
-  final Color bgColor = const Color(0xFFE3F2FD); // Light blue 50
-  final Color darkText = const Color(0xFF44484B);
-  final Color textGrey = const Color(0xFF889197);
+  // Enterprise/Super-App Colors for Courier
+  final Color primaryTeal = const Color(0xFF286B6A);
+  final Color accentGreen = const Color(0xFF10B981);
+  final Color bgColor = const Color(0xFFF3F4F6); // Cooler gray-white
+  final Color darkText = const Color(0xFF111827);
+  final Color textGrey = const Color(0xFF6B7280);
 
   final Map<String, dynamic> t = {
     'id': {
@@ -735,7 +735,7 @@ final orderProv = ref.watch(orderProvider);
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
-                BoxShadow(color: primaryTeal.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
+                BoxShadow(color: const Color(0xFF286B6A).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
               ],
             ),
             child: Column(
@@ -997,7 +997,7 @@ final orderProv = ref.watch(orderProvider);
               height: 52,
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: const Color(0xFFCCD9E3), // from palette
+                color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(16),
               ),
               child: LayoutBuilder(
