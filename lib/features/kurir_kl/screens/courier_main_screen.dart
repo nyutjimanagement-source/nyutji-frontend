@@ -89,7 +89,8 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
       'history': 'Histori',
       'wallet': 'Dompet',
       'profile': 'Profile',
-      'current_tasks': 'ANTREAN TUGAS',
+      'available_orders': 'ORDER TERSEDIA',
+      'current_tasks': 'Antrean Tugas',
       'acc_settings': 'Pengaturan Akun',
       'logout_text': 'Keluar Server',
     },
@@ -971,23 +972,7 @@ final orderProv = ref.watch(orderProvider);
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(currentT['current_tasks'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 1.0)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
-                  child: Row(
-                    children: [
-                      const Icon(LucideIcons.filter, size: 12),
-                      const SizedBox(width: 4),
-                      Text("Filter", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                )
-              ],
-            ),
+            child: Text(currentT['current_tasks'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 1.0)),
           ),
           const SizedBox(height: 12),
           
