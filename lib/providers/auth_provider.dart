@@ -5,8 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../core/utils/formatters.dart';
 import '../data/services/api_service.dart';
+import '../../main.dart'; // Import navigatorKey
 
-class AuthProvider with ChangeNotifier {
+class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   String? _token;
   String? _role;
   bool _isLoading = false;
@@ -15,6 +16,47 @@ class AuthProvider with ChangeNotifier {
   List<dynamic> _pendingApprovals = [];
   List<dynamic> _allUsers = [];
   String? _lastErrorMessage;
+
+  AuthProvider() {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      _saveLastActiveTime();
+    } else if (state == AppLifecycleState.resumed) {
+      _checkAutoLogout();
+    }
+  }
+
+  Future<void> _saveLastActiveTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('nyutji_last_active', DateTime.now().millisecondsSinceEpoch);
+  }
+
+  Future<void> _checkAutoLogout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastActive = prefs.getInt('nyutji_last_active');
+    
+    if (lastActive != null && _token != null) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final diff = now - lastActive;
+      final twoHoursInMs = 2 * 60 * 60 * 1000;
+
+      if (diff > twoHoursInMs) {
+        debugPrint("User inactive for > 2 hours. Auto logging out.");
+        await logout();
+        navigatorKey.currentState?.pushReplacementNamed('/login');
+      }
+    }
+  }
 
   Map<String, dynamic>? _homeAddress;
   List<dynamic> _addressHistory = [];

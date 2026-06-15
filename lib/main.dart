@@ -31,6 +31,8 @@ void main() async {
   runApp(const ProviderScope(child: NyutjiApp()));
 }
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class NyutjiApp extends ConsumerWidget {
   const NyutjiApp({super.key});
 
@@ -40,6 +42,7 @@ class NyutjiApp extends ConsumerWidget {
     MaterialTheme theme = MaterialTheme(textTheme);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Nyutji Laundry',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.light,
