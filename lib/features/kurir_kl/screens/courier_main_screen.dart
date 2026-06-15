@@ -70,12 +70,13 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   bool _isUploading = false;
   String _gpsLocationText = "Mendeteksi GPS...";
 
-  // Enterprise/Super-App Colors for Courier
-  final Color primaryTeal = const Color(0xFF286B6A);
-  final Color accentGreen = const Color(0xFF10B981);
-  final Color bgColor = const Color(0xFFF3F4F6); // Cooler gray-white
-  final Color darkText = const Color(0xFF111827);
-  final Color textGrey = const Color(0xFF6B7280);
+  // Clean Emerald Glass Palette
+  final Color primaryTeal = const Color(0xFF0F766E); // Deep Emerald Teal
+  final Color accentGreen = const Color(0xFF10B981); // Bright Emerald
+  final Color bgColor = const Color(0xFFF9FAFB); // Off-White
+  final Color darkText = const Color(0xFF111827); // Almost Black
+  final Color textGrey = const Color(0xFF6B7280); // Muted Grey
+  final Color amberGold = const Color(0xFFF59E0B); // Amber/Gold for actions
 
   final Map<String, dynamic> t = {
     'id': {
@@ -660,8 +661,8 @@ final orderProv = ref.watch(orderProvider);
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey[200]!),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+              border: Border.all(color: primaryTeal.withValues(alpha: 0.05)),
+              boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.06), blurRadius: 24, offset: const Offset(0, 8))],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -730,12 +731,12 @@ final orderProv = ref.watch(orderProvider);
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               gradient: const LinearGradient(
-                colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+                colors: [Color(0xFF064E3B), Color(0xFF065F46), Color(0xFF047857)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF286B6A).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
+                BoxShadow(color: const Color(0xFF047857).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 10)),
               ],
             ),
             child: Column(
@@ -762,7 +763,7 @@ final orderProv = ref.watch(orderProvider);
                             Text("ORDER TERSEDIA",
                               style: GoogleFonts.montserrat(
                                 fontSize: 11, fontWeight: FontWeight.w900,
-                                color: const Color(0xFFFFD700), letterSpacing: 1.5,
+                                color: amberGold, letterSpacing: 1.5,
                               ),
                             ),
                             Text(
@@ -845,7 +846,7 @@ final orderProv = ref.watch(orderProvider);
                                 Text(fmt.format(price),
                                   style: GoogleFonts.montserrat(
                                     fontSize: isTop ? 22 : 18, fontWeight: FontWeight.w900,
-                                    color: isTop ? const Color(0xFFFFD700) : Colors.white,
+                                    color: isTop ? amberGold : Colors.white,
                                   ),
                                 ),
                                 const Spacer(),
@@ -921,10 +922,10 @@ final orderProv = ref.watch(orderProvider);
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                                     decoration: BoxDecoration(
-                                      gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)]),
+                                      gradient: LinearGradient(colors: [amberGold, const Color(0xFFD97706)]),
                                       borderRadius: BorderRadius.circular(10),
                                       boxShadow: [
-                                        BoxShadow(color: const Color(0xFF10B981).withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
+                                        BoxShadow(color: amberGold.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
                                       ],
                                     ),
                                     child: Text("AMBIL",
@@ -1192,8 +1193,8 @@ final orderProv = ref.watch(orderProvider);
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10)],
+        border: Border.all(color: primaryTeal.withValues(alpha: 0.05)),
+        boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.08), blurRadius: 24, offset: const Offset(0, 8))],
       ),
       child: IntrinsicHeight(
         child: Row(
@@ -1231,7 +1232,7 @@ final orderProv = ref.watch(orderProvider);
                         Text(customerName, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
                         Text(
                           NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
-                          style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 13, color: primaryTeal),
+                          style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 16, color: amberGold),
                         ),
                       ],
                     ),
