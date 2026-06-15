@@ -741,29 +741,63 @@ final orderProv = ref.watch(orderProvider);
   Widget _buildBottomNav(Color activeColor) {
     return Container(
       decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))]),
-      child: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(LucideIcons.layoutDashboard, size: 20), activeIcon: Icon(LucideIcons.layoutDashboard, size: 20), label: "Beranda"),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.clipboardList, size: 20), activeIcon: Icon(LucideIcons.clipboardList, size: 20), label: "Pesanan"),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.wallet, size: 20), activeIcon: Icon(LucideIcons.wallet, size: 20), label: "Dompet"),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.store, size: 20), activeIcon: Icon(LucideIcons.store, size: 20), label: "Toko"),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: activeColor,
-        unselectedItemColor: textGrey.withValues(alpha: 0.6),
-        showUnselectedLabels: true,
-        onTap: (index) {
-          if (index == 0 && _selectedIndex == 0) {
-            setState(() => _homeSubPage = "main");
-          }
-          _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-        },
-        backgroundColor: Colors.white,
-        elevation: 0,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
-        unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final tabWidth = constraints.maxWidth / 4;
+          return Stack(
+            children: [
+              BottomNavigationBar(
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.layoutDashboard, size: 20), activeIcon: Icon(LucideIcons.layoutDashboard, size: 20), label: "Beranda"),
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.clipboardList, size: 20), activeIcon: Icon(LucideIcons.clipboardList, size: 20), label: "Pesanan"),
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.wallet, size: 20), activeIcon: Icon(LucideIcons.wallet, size: 20), label: "Dompet"),
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.store, size: 20), activeIcon: Icon(LucideIcons.store, size: 20), label: "Toko"),
+                ],
+                currentIndex: _selectedIndex,
+                selectedItemColor: activeColor,
+                unselectedItemColor: textGrey.withValues(alpha: 0.6),
+                showUnselectedLabels: true,
+                onTap: (index) {
+                  if (index == 0 && _selectedIndex == 0) {
+                    setState(() => _homeSubPage = "main");
+                  }
+                  _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                },
+                backgroundColor: Colors.white,
+                elevation: 0,
+                type: BottomNavigationBarType.fixed,
+                selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
+                unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                top: 0,
+                left: (tabWidth * _selectedIndex) + (tabWidth / 2) - 30,
+                child: Container(
+                  height: 3,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: activeColor,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(3),
+                      bottomRight: Radius.circular(3),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: activeColor.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      )
+                    ]
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
       ),
     );
   }
+
 }

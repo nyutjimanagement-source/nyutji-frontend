@@ -941,26 +941,59 @@ return GestureDetector(
   Widget _buildAdminNavbar() {
     return Container(
       decoration: BoxDecoration(color: darkGray, border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05)))),
-      child: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(LucideIcons.barChart, size: 18), label: "Beranda"),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.brain, size: 18), label: "AI Opini"),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.alertCircle, size: 18), label: "Kendala"),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.users, size: 18), label: "Users"),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.terminal, size: 18), label: "Sistem"),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: accentGold,
-        unselectedItemColor: Colors.grey[500],
-        showUnselectedLabels: true,
-        onTap: (index) {
-          _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-        },
-        backgroundColor: darkGray,
-        elevation: 0,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
-        unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final tabWidth = constraints.maxWidth / 5;
+          return Stack(
+            children: [
+              BottomNavigationBar(
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.barChart, size: 18), activeIcon: Icon(LucideIcons.barChart, size: 18), label: "Beranda"),
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.brain, size: 18), activeIcon: Icon(LucideIcons.brain, size: 18), label: "AI Opini"),
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.alertCircle, size: 18), activeIcon: Icon(LucideIcons.alertCircle, size: 18), label: "Kendala"),
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.users, size: 18), activeIcon: Icon(LucideIcons.users, size: 18), label: "Users"),
+                  BottomNavigationBarItem(icon: Icon(LucideIcons.terminal, size: 18), activeIcon: Icon(LucideIcons.terminal, size: 18), label: "Sistem"),
+                ],
+                currentIndex: _selectedIndex,
+                selectedItemColor: accentGold,
+                unselectedItemColor: Colors.grey[500],
+                showUnselectedLabels: true,
+                onTap: (index) {
+                  _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                },
+                backgroundColor: darkGray,
+                elevation: 0,
+                type: BottomNavigationBarType.fixed,
+                selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
+                unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                top: 0,
+                left: (tabWidth * _selectedIndex) + (tabWidth / 2) - 30,
+                child: Container(
+                  height: 3,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: accentGold,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(3),
+                      bottomRight: Radius.circular(3),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentGold.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      )
+                    ]
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
       ),
     );
   }

@@ -1406,30 +1406,63 @@ final orderProv = ref.watch(orderProvider);
         border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
       ),
-      child: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: const Icon(LucideIcons.clipboardList, size: 22), activeIcon: const Icon(LucideIcons.clipboardList, size: 22), label: currentT['home']),
-          BottomNavigationBarItem(icon: const Icon(LucideIcons.history, size: 22), activeIcon: const Icon(LucideIcons.history, size: 22), label: currentT['history']),
-          BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
-          BottomNavigationBarItem(icon: const Icon(LucideIcons.user, size: 22), activeIcon: const Icon(LucideIcons.user, size: 22), label: currentT['profile']),
-        ],
-        currentIndex: _selectedNavIndex,
-        selectedItemColor: primaryTeal,
-        unselectedItemColor: textGrey.withValues(alpha: 0.6),
-        showUnselectedLabels: true,
-        onTap: (index) {
-          if (!isOnline && index != 0) return; // Disable other tabs when offline
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOutQuint,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final tabWidth = constraints.maxWidth / 4;
+          return Stack(
+            children: [
+              BottomNavigationBar(
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(icon: const Icon(LucideIcons.clipboardList, size: 22), activeIcon: const Icon(LucideIcons.clipboardList, size: 22), label: currentT['home']),
+                  BottomNavigationBarItem(icon: const Icon(LucideIcons.history, size: 22), activeIcon: const Icon(LucideIcons.history, size: 22), label: currentT['history']),
+                  BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
+                  BottomNavigationBarItem(icon: const Icon(LucideIcons.user, size: 22), activeIcon: const Icon(LucideIcons.user, size: 22), label: currentT['profile']),
+                ],
+                currentIndex: _selectedNavIndex,
+                selectedItemColor: primaryTeal,
+                unselectedItemColor: textGrey.withValues(alpha: 0.6),
+                showUnselectedLabels: true,
+                onTap: (index) {
+                  if (!isOnline && index != 0) return; // Disable other tabs when offline
+                  _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOutQuint,
+                  );
+                },
+                backgroundColor: Colors.white,
+                elevation: 0,
+                type: BottomNavigationBarType.fixed,
+                selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
+                unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOutQuint,
+                top: 0,
+                left: (tabWidth * _selectedNavIndex) + (tabWidth / 2) - 30,
+                child: Container(
+                  height: 3,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: primaryTeal,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(3),
+                      bottomRight: Radius.circular(3),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryTeal.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      )
+                    ]
+                  ),
+                ),
+              ),
+            ],
           );
-        },
-        backgroundColor: Colors.white,
-        elevation: 0,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
-        unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+        }
       ),
     );
   }
@@ -1470,4 +1503,5 @@ final orderProv = ref.watch(orderProvider);
       child: Divider(height: 1, color: primaryTeal.withValues(alpha: 0.1)),
     );
   }
+
 }

@@ -15,7 +15,7 @@ import 'features/mitra_ml/screens/mitra_order_screen.dart';
 import 'features/mitra_ml/screens/mitra_home_screen.dart';
 import 'features/kurir_kl/screens/courier_main_screen.dart';
 import 'features/admin_ad/screens/admin_main_screen.dart';
-import 'features/mitra_ml/screens/mitra_report_issue_screen.dart';
+import 'features/mitra_ml/screens/mitra_kendala_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,7 +86,7 @@ class NyutjiApp extends ConsumerWidget {
               page = const AdminMainScreen();
               break;
             case '/mitra_report_issue':
-              page = const MitraReportIssueScreen();
+              page = const MitraKendalaScreen();
               break;
             default:
               page = const SplashScreen();

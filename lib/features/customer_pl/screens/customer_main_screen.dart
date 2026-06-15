@@ -97,39 +97,56 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
             ),
           ],
         ),
-        child: BottomNavigationBar(
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: const Icon(LucideIcons.home, size: 22),
-              activeIcon: const Icon(LucideIcons.home, size: 22),
-              label: currentT['home'],
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(LucideIcons.package, size: 22),
-              activeIcon: const Icon(LucideIcons.package, size: 22),
-              label: currentT['status'],
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(LucideIcons.wallet, size: 22),
-              activeIcon: const Icon(LucideIcons.wallet, size: 22),
-              label: currentT['wallet'],
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(LucideIcons.user, size: 22),
-              activeIcon: const Icon(LucideIcons.user, size: 22),
-              label: currentT['profile'],
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: NyutjiTheme.plPrimary,
-          unselectedItemColor: NyutjiTheme.textGrey.withValues(alpha: 0.5),
-          showUnselectedLabels: true,
-          onTap: _onItemTapped,
-          backgroundColor: const Color(0xFFFFF9ED),
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: NyutjiTheme.body(NyutjiTheme.plPrimary).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
-          unselectedLabelStyle: NyutjiTheme.body(NyutjiTheme.textGrey).copyWith(fontSize: 10),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final tabWidth = constraints.maxWidth / 4;
+            return Stack(
+              children: [
+                BottomNavigationBar(
+                  items: <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(icon: const Icon(LucideIcons.home, size: 22), activeIcon: const Icon(LucideIcons.home, size: 22), label: currentT['home']),
+                    BottomNavigationBarItem(icon: const Icon(LucideIcons.package, size: 22), activeIcon: const Icon(LucideIcons.package, size: 22), label: currentT['status']),
+                    BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
+                    BottomNavigationBarItem(icon: const Icon(LucideIcons.user, size: 22), activeIcon: const Icon(LucideIcons.user, size: 22), label: currentT['profile']),
+                  ],
+                  currentIndex: _selectedIndex,
+                  selectedItemColor: NyutjiTheme.plPrimary,
+                  unselectedItemColor: NyutjiTheme.textGrey.withValues(alpha: 0.5),
+                  showUnselectedLabels: true,
+                  onTap: _onItemTapped,
+                  backgroundColor: const Color(0xFFFFF9ED),
+                  elevation: 0,
+                  type: BottomNavigationBarType.fixed,
+                  selectedLabelStyle: NyutjiTheme.body(NyutjiTheme.plPrimary).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: NyutjiTheme.body(NyutjiTheme.textGrey).copyWith(fontSize: 10),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  top: 0,
+                  left: (tabWidth * _selectedIndex) + (tabWidth / 2) - 30,
+                  child: Container(
+                    height: 3,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: NyutjiTheme.plPrimary,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(3),
+                        bottomRight: Radius.circular(3),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: NyutjiTheme.plPrimary.withValues(alpha: 0.5),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        )
+                      ]
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
         ),
       ),
     );
