@@ -9,6 +9,7 @@ import '../../../providers/scheduler_provider.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class CustomerSchedulerScreen extends ConsumerStatefulWidget {
   const CustomerSchedulerScreen({super.key});
@@ -512,7 +513,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
         title: Text("Jadwal Assistent Nyutji", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
       ),
       body: isLoading && schedules.isEmpty
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFDAC66F)))
+          ? _buildShimmerLoading()
           : schedules.isEmpty
               ? _buildEmptyState()
               : ListView.builder(
@@ -526,6 +527,49 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
         backgroundColor: const Color(0xFF286B6A),
         child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
       ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 3,
+      itemBuilder: (ctx, idx) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const ShimmerLoading(width: 60, height: 20),
+                  const ShimmerLoading(width: 24, height: 24, borderRadius: 12),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const ShimmerLoading(width: 150, height: 20),
+              const SizedBox(height: 8),
+              const ShimmerLoading(width: 100, height: 16),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Expanded(child: ShimmerLoading(height: 50, borderRadius: 12)),
+                  const SizedBox(width: 12),
+                  const Expanded(child: ShimmerLoading(height: 50, borderRadius: 12)),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
