@@ -605,12 +605,17 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                 onSelected: (value) async {
                   if (value == 'edit') {
                     // TODO: handle edit
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur Edit akan segera hadir!")));
+                    if (mounted) {
+                      NyutjiNotif.showInfo(context, "Fitur Edit akan segera hadir!");
+                    }
                   } else if (value == 'delete') {
                     try {
                       final api = ApiService();
                       await api.deleteRescheduler(schedule['id'].toString());
                       _fetchData();
+                      if (mounted) {
+                        NyutjiNotif.showSuccess(context, "Jadwal berhasil dihapus");
+                      }
                     } catch (e) {
                       if (mounted) {
                         NyutjiNotif.showError(context, "Gagal menghapus jadwal");
@@ -646,32 +651,24 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
           const SizedBox(height: 8),
           Text(schedule['name'] ?? '', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _buildInfoBadge(LucideIcons.repeat, schedule['interval'] ?? '')),
-              const SizedBox(width: 8),
-              Expanded(child: _buildInfoBadge(LucideIcons.store, mitraName)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(child: _buildInfoBadge(LucideIcons.calendar, DateFormat('dd MMM yyyy', 'id_ID').format(date))),
-              const SizedBox(width: 8),
-              Expanded(child: _buildInfoBadge(LucideIcons.wallet, schedule['payment_method'] ?? '')),
-            ],
-          ),
-          const Divider(height: 24, color: Color(0xFFE3DCCF)),
+          _buildSimpleRow(LucideIcons.repeat, "Periode Jadwal", schedule['interval'] ?? ''),
+          const SizedBox(height: 12),
+          _buildSimpleRow(LucideIcons.store, "Mitra Laundry", mitraName),
+          const Divider(height: 32, color: Color(0xFFE3DCCF)),
+          _buildSimpleRow(LucideIcons.calendar, "Efektif Jadwal", DateFormat('dd MMM yyyy', 'id_ID').format(date)),
+          const SizedBox(height: 12),
+          _buildSimpleRow(LucideIcons.wallet, "Metode Pembayaran", schedule['payment_method'] ?? ''),
+          const Divider(height: 32, color: Color(0xFFE3DCCF)),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(LucideIcons.mapPin, size: 16, color: Colors.grey),
+              const Icon(LucideIcons.truck, size: 16, color: Colors.grey),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(schedule['service_type'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.grey[800])),
+                    Text(schedule['service_type'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF403600))),
                     const SizedBox(height: 4),
                     Text(schedule['pickup_address'] ?? '-', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey[600])),
                   ],
@@ -684,30 +681,19 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
     );
   }
 
-  Widget _buildInfoBadge(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF9ED),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE3DCCF)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(icon, size: 14, color: const Color(0xFF403600)),
+  Widget _buildSimpleRow(IconData icon, String title, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            "$title : $value",
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF403600)),
           ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF403600)),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
