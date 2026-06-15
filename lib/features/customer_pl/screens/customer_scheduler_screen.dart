@@ -544,26 +544,26 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey[200]!),
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const ShimmerLoading(width: 60, height: 20),
-                  const ShimmerLoading(width: 24, height: 24, borderRadius: 12),
+                  ShimmerLoading(width: 60, height: 20),
+                  ShimmerLoading(width: 24, height: 24, borderRadius: 12),
                 ],
               ),
-              const SizedBox(height: 12),
-              const ShimmerLoading(width: 150, height: 20),
-              const SizedBox(height: 8),
-              const ShimmerLoading(width: 100, height: 16),
-              const SizedBox(height: 16),
+              SizedBox(height: 12),
+              ShimmerLoading(width: 150, height: 20),
+              SizedBox(height: 8),
+              ShimmerLoading(width: 100, height: 16),
+              SizedBox(height: 16),
               Row(
                 children: [
-                  const Expanded(child: ShimmerLoading(height: 50, borderRadius: 12)),
-                  const SizedBox(width: 12),
-                  const Expanded(child: ShimmerLoading(height: 50, borderRadius: 12)),
+                  Expanded(child: ShimmerLoading(height: 50, borderRadius: 12)),
+                  SizedBox(width: 12),
+                  Expanded(child: ShimmerLoading(height: 50, borderRadius: 12)),
                 ],
               ),
             ],
