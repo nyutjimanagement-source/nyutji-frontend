@@ -139,7 +139,56 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                           
                           const SizedBox(height: 20),
 
-                          // 3. Memilih Mitra
+                          // 3. Efektif Jadwal
+                          _buildLabel("Mulai Efektif Pada"),
+                          GestureDetector(
+                            onTap: () async {
+                              FocusScope.of(context).unfocus();
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                                builder: (context, child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      colorScheme: const ColorScheme.light(
+                                        primary: Color(0xFF403600), // header background color
+                                        onPrimary: Colors.white, // header text color
+                                        onSurface: Colors.black87, // body text color
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+                              if (picked != null) {
+                                setModalState(() => selectedDate = picked);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(LucideIcons.calendarDays, color: Colors.grey, size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    DateFormat('EEEE, dd MMM yyyy', 'id_ID').format(selectedDate),
+                                    style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF403600)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // 4. Memilih Mitra
                           _buildLabel("Pilih Mitra Laundry"),
                           Autocomplete<Map<String, dynamic>>(
                             optionsBuilder: (TextEditingValue textEditingValue) async {
@@ -192,55 +241,6 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                                 ),
                               );
                             },
-                          ),
-                          
-                          const SizedBox(height: 20),
-
-                          // 4. Efektif Jadwal
-                          _buildLabel("Mulai Efektif Pada"),
-                          GestureDetector(
-                            onTap: () async {
-                              FocusScope.of(context).unfocus();
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: selectedDate,
-                                firstDate: DateTime.now(),
-                                lastDate: DateTime.now().add(const Duration(days: 365)),
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: const ColorScheme.light(
-                                        primary: Color(0xFF403600), // header background color
-                                        onPrimary: Colors.white, // header text color
-                                        onSurface: Colors.black87, // body text color
-                                      ),
-                                    ),
-                                    child: child!,
-                                  );
-                                },
-                              );
-                              if (picked != null) {
-                                setModalState(() => selectedDate = picked);
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.grey[200]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(LucideIcons.calendarDays, color: Colors.grey, size: 20),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    DateFormat('EEEE, dd MMM yyyy', 'id_ID').format(selectedDate),
-                                    style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF403600)),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
 
                           const SizedBox(height: 20),
@@ -604,7 +604,6 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 onSelected: (value) async {
                   if (value == 'edit') {
-                    // TODO: handle edit
                     if (mounted) {
                       NyutjiNotif.showInfo(context, "Fitur Edit akan segera hadir!");
                     }
