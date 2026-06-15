@@ -142,12 +142,20 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                           // 3. Memilih Mitra
                           _buildLabel("Pilih Mitra Laundry"),
                           Autocomplete<Map<String, dynamic>>(
-                            optionsBuilder: (TextEditingValue textEditingValue) {
-                              if (textEditingValue.text.isEmpty) return const Iterable<Map<String, dynamic>>.empty();
-                              return _availableMitras.where((m) {
-                                final name = (m['name'] ?? m['brand_name'] ?? '').toString().toLowerCase();
-                                return name.contains(textEditingValue.text.toLowerCase());
-                              });
+                            optionsBuilder: (TextEditingValue textEditingValue) async {
+                              if (textEditingValue.text.isEmpty) {
+                                return _availableMitras;
+                              }
+                              try {
+                                final api = ApiService();
+                                final results = await api.searchMitras(textEditingValue.text);
+                                return List<Map<String, dynamic>>.from(results);
+                              } catch (e) {
+                                return _availableMitras.where((m) {
+                                  final name = (m['name'] ?? m['brand_name'] ?? '').toString().toLowerCase();
+                                  return name.contains(textEditingValue.text.toLowerCase());
+                                });
+                              }
                             },
                             displayStringForOption: (option) => (option['name'] ?? option['brand_name'] ?? '').toString(),
                             onSelected: (option) {
