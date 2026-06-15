@@ -200,6 +200,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                           _buildLabel("Mulai Efektif Pada"),
                           GestureDetector(
                             onTap: () async {
+                              FocusScope.of(context).unfocus();
                               final picked = await showDatePicker(
                                 context: context,
                                 initialDate: selectedDate,
@@ -606,17 +607,17 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildInfoBadge(LucideIcons.repeat, schedule['interval'] ?? ''),
+              Expanded(child: _buildInfoBadge(LucideIcons.repeat, schedule['interval'] ?? '')),
               const SizedBox(width: 8),
-              _buildInfoBadge(LucideIcons.store, mitraName),
+              Expanded(child: _buildInfoBadge(LucideIcons.store, mitraName)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              _buildInfoBadge(LucideIcons.calendar, DateFormat('dd MMM yyyy', 'id_ID').format(date)),
+              Expanded(child: _buildInfoBadge(LucideIcons.calendar, DateFormat('dd MMM yyyy', 'id_ID').format(date))),
               const SizedBox(width: 8),
-              _buildInfoBadge(LucideIcons.wallet, schedule['payment_method'] ?? ''),
+              Expanded(child: _buildInfoBadge(LucideIcons.wallet, schedule['payment_method'] ?? '')),
             ],
           ),
           const Divider(height: 32, color: Color(0xFFE3DCCF)),
