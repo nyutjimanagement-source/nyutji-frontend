@@ -396,4 +396,14 @@ class ApiService {
     final response = await _dio.get("/reschedulers");
     return response.data['data'] ?? [];
   }
+
+  Future<Map<String, dynamic>> updateRescheduler(String id, Map<String, dynamic> data) async {
+    final response = await _dio.put("/reschedulers/$id", data: data);
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> deleteRescheduler(String id) async {
+    final response = await _dio.delete("/reschedulers/$id");
+    return response.data;
+  }
 }
