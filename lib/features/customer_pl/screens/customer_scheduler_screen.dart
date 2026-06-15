@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../../providers/scheduler_provider.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
@@ -16,33 +17,14 @@ class CustomerSchedulerScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScreen> {
-  final List<Map<String, dynamic>> _schedules = [];
-  List<Map<String, dynamic>> _availableMitras = [];
   @override
   void initState() {
     super.initState();
-    _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    final auth = ref.read(authProvider);
-    final city = auth.user?['city_name'] ?? 'Tangerang Selatan';
-    
-    try {
-      final api = ApiService();
-      final data = await api.getRecommendedMitras(cityName: city);
-      final schedules = await api.getCustomerSchedules();
-      
-      if (mounted) {
-        setState(() {
-          _availableMitras = List<Map<String, dynamic>>.from(data);
-          _schedules.clear();
-          _schedules.addAll(List<Map<String, dynamic>>.from(schedules));
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching scheduler data: $e');
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = ref.read(authProvider);
+      final city = auth.user?['city_name'] ?? 'Tangerang Selatan';
+      ref.read(schedulerProvider.notifier).fetchSchedules(cityName: city);
+    });
   }
 
   void _showAddScheduleSheet() {
@@ -192,15 +174,16 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                           _buildLabel("Pilih Mitra Laundry"),
                           Autocomplete<Map<String, dynamic>>(
                             optionsBuilder: (TextEditingValue textEditingValue) async {
+                              final availableMitras = ref.read(schedulerProvider).availableMitras;
                               if (textEditingValue.text.isEmpty) {
-                                return _availableMitras;
+                                return availableMitras;
                               }
                               try {
                                 final api = ApiService();
                                 final results = await api.searchMitras(textEditingValue.text);
                                 return List<Map<String, dynamic>>.from(results);
                               } catch (e) {
-                                return _availableMitras.where((m) {
+                                return availableMitras.where((m) {
                                   final name = (m['name'] ?? m['brand_name'] ?? '').toString().toLowerCase();
                                   return name.contains(textEditingValue.text.toLowerCase());
                                 });
@@ -403,12 +386,10 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
     );
 
     try {
-      final api = ApiService();
-      await api.createRescheduler(data);
+      await ref.read(schedulerProvider.notifier).createSchedule(data);
       
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        _fetchData(); // Refresh list
 
         if (data['status'] == 'DRAFT') {
           NyutjiNotif.showInfo(context, "Jadwal disimpan sebagai Draft");
@@ -517,6 +498,10 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
 
   @override
   Widget build(BuildContext context) {
+    final scheduler = ref.watch(schedulerProvider);
+    final schedules = scheduler.schedules;
+    final isLoading = scheduler.isLoading;
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFF9ED),
       appBar: AppBar(
@@ -526,14 +511,16 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
         leading: IconButton(icon: const Icon(LucideIcons.chevronLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
         title: Text("Jadwal Assistent Nyutji", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
       ),
-      body: _schedules.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              physics: const BouncingScrollPhysics(),
-              itemCount: _schedules.length,
-              itemBuilder: (ctx, idx) => _buildScheduleCard(_schedules[idx]),
-            ),
+      body: isLoading && schedules.isEmpty
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFDAC66F)))
+          : schedules.isEmpty
+              ? _buildEmptyState()
+              : ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: schedules.length,
+                  itemBuilder: (ctx, idx) => _buildScheduleCard(schedules[idx]),
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddScheduleSheet,
         backgroundColor: const Color(0xFF286B6A),
@@ -609,9 +596,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                     }
                   } else if (value == 'delete') {
                     try {
-                      final api = ApiService();
-                      await api.deleteRescheduler(schedule['id'].toString());
-                      _fetchData();
+                      await ref.read(schedulerProvider.notifier).deleteSchedule(schedule['id'].toString());
                       if (mounted) {
                         NyutjiNotif.showSuccess(context, "Jadwal berhasil dihapus");
                       }
