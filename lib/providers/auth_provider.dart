@@ -228,6 +228,9 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     await prefs.remove('token');
     await prefs.remove('role');
     await prefs.remove('user_data');
+    await prefs.remove('nyutji_cached_schedules');
+    await prefs.remove('nyutji_seen_orders');
+    await prefs.remove('nyutji_last_active');
     
     _token = null;
     _role = null;

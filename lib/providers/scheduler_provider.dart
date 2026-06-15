@@ -108,4 +108,4 @@ class SchedulerProvider extends ChangeNotifier {
   }
 }
 
-final schedulerProvider = ChangeNotifierProvider<SchedulerProvider>((ref) => SchedulerProvider());
+final schedulerProvider = ChangeNotifierProvider.autoDispose<SchedulerProvider>((ref) => SchedulerProvider());
