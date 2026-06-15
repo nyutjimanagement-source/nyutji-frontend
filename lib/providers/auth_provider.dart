@@ -48,7 +48,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (lastActive != null && _token != null) {
       final now = DateTime.now().millisecondsSinceEpoch;
       final diff = now - lastActive;
-      final twoHoursInMs = 2 * 60 * 60 * 1000;
+      const twoHoursInMs = 2 * 60 * 60 * 1000;
 
       if (diff > twoHoursInMs) {
         debugPrint("User inactive for > 2 hours. Auto logging out.");
