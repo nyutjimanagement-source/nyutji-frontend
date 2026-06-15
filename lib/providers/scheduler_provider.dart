@@ -8,11 +8,11 @@ class SchedulerProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  List<dynamic> _schedules = [];
-  List<dynamic> get schedules => _schedules;
+  List<Map<String, dynamic>> _schedules = [];
+  List<Map<String, dynamic>> get schedules => _schedules;
 
-  List<dynamic> _availableMitras = [];
-  List<dynamic> get availableMitras => _availableMitras;
+  List<Map<String, dynamic>> _availableMitras = [];
+  List<Map<String, dynamic>> get availableMitras => _availableMitras;
 
   final ApiService _api = ApiService();
   static const String _cacheKey = 'nyutji_cached_schedules';
@@ -26,7 +26,8 @@ class SchedulerProvider extends ChangeNotifier {
     final cachedData = prefs.getString(_cacheKey);
     if (cachedData != null) {
       try {
-        _schedules = json.decode(cachedData);
+        final decoded = json.decode(cachedData) as List;
+        _schedules = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         notifyListeners();
       } catch (e) {
         debugPrint("Error loading cached schedules: $e");
@@ -42,10 +43,10 @@ class SchedulerProvider extends ChangeNotifier {
 
     try {
       final mitras = await _api.getRecommendedMitras(cityName: cityName);
-      _availableMitras = mitras;
+      _availableMitras = mitras.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       
       final schedulesData = await _api.getCustomerSchedules();
-      _schedules = schedulesData;
+      _schedules = schedulesData.map((e) => Map<String, dynamic>.from(e as Map)).toList();
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(_schedules));
@@ -92,7 +93,6 @@ class SchedulerProvider extends ChangeNotifier {
 
   Future<void> deleteSchedule(String id) async {
     // Optimistic UI Update
-    final backupSchedules = List<dynamic>.from(_schedules);
     _schedules.removeWhere((s) => s['id'].toString() == id);
     notifyListeners();
 
