@@ -385,4 +385,15 @@ class ApiService {
     final response = await _dio.post("/orders/$orderId/proof", data: formData);
     return response.data;
   }
+
+  // --- RESCHEDULER ENDPOINTS ---
+  Future<Map<String, dynamic>> createRescheduler(Map<String, dynamic> data) async {
+    final response = await _dio.post("/reschedulers", data: data);
+    return response.data;
+  }
+
+  Future<List<dynamic>> getCustomerSchedules() async {
+    final response = await _dio.get("/reschedulers");
+    return response.data['data'] ?? [];
+  }
 }

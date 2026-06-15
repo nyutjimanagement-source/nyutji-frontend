@@ -21,23 +21,27 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
   @override
   void initState() {
     super.initState();
-    _fetchMitras();
+    _fetchData();
   }
 
-  Future<void> _fetchMitras() async {
+  Future<void> _fetchData() async {
     final auth = ref.read(authProvider);
     final city = auth.user?['city_name'] ?? 'Tangerang Selatan';
     
     try {
       final api = ApiService();
       final data = await api.getRecommendedMitras(cityName: city);
+      final schedules = await api.getCustomerSchedules();
+      
       if (mounted) {
         setState(() {
           _availableMitras = List<Map<String, dynamic>>.from(data);
+          _schedules.clear();
+          _schedules.addAll(List<Map<String, dynamic>>.from(schedules));
         });
       }
     } catch (e) {
-      // Handle error implicitly by keeping available Mitras empty
+      debugPrint('Error fetching scheduler data: $e');
     }
   }
 
@@ -315,12 +319,12 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                             _saveSchedule({
                               'name': nameController.text,
                               'interval': selectedInterval,
-                              'mitra': selectedMitra != null ? (selectedMitra!['name'] ?? selectedMitra!['brand_name']) : 'Belum Dipilih',
-                              'date': selectedDate,
-                              'service': selectedService,
-                              'payment': selectedPayment,
-                              'pickup': selectedService == 'Antar-Jemput Kurir' ? pickupController.text : '-',
-                              'drop': selectedService == 'Antar-Jemput Kurir' ? dropController.text : '-',
+                              'mitra_identifier': selectedMitra?['identifier'] ?? selectedMitra?['id'] ?? '-',
+                              'start_date': selectedDate.toIso8601String(),
+                              'service_type': selectedService,
+                              'payment_method': selectedPayment,
+                              'pickup_address': selectedService == 'Antar-Jemput Kurir' ? pickupController.text : '-',
+                              'drop_address': selectedService == 'Antar-Jemput Kurir' ? dropController.text : '-',
                               'status': 'DRAFT',
                             });
                             Navigator.pop(ctx);
@@ -351,12 +355,12 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                             _saveSchedule({
                               'name': nameController.text,
                               'interval': selectedInterval,
-                              'mitra': selectedMitra != null ? (selectedMitra!['name'] ?? selectedMitra!['brand_name']) : '-',
-                              'date': selectedDate,
-                              'service': selectedService,
-                              'payment': selectedPayment,
-                              'pickup': selectedService == 'Antar-Jemput Kurir' ? pickupController.text : '-',
-                              'drop': selectedService == 'Antar-Jemput Kurir' ? dropController.text : '-',
+                              'mitra_identifier': selectedMitra?['identifier'] ?? selectedMitra?['id'] ?? '-',
+                              'start_date': selectedDate.toIso8601String(),
+                              'service_type': selectedService,
+                              'payment_method': selectedPayment,
+                              'pickup_address': selectedService == 'Antar-Jemput Kurir' ? pickupController.text : '-',
+                              'drop_address': selectedService == 'Antar-Jemput Kurir' ? dropController.text : '-',
                               'status': 'ACTIVE',
                             });
                             Navigator.pop(ctx);
@@ -381,14 +385,33 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
     );
   }
 
-  void _saveSchedule(Map<String, dynamic> data) {
-    setState(() {
-      _schedules.insert(0, data);
-    });
-    if (data['status'] == 'DRAFT') {
-      NyutjiNotif.showInfo(context, "Jadwal disimpan sebagai Draft");
-    } else {
-      NyutjiNotif.showSuccess(context, "Jadwal Otomatis Berhasil Diaktifkan!");
+  Future<void> _saveSchedule(Map<String, dynamic> data) async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: Color(0xFFDAC66F))),
+    );
+
+    try {
+      final api = ApiService();
+      await api.createRescheduler(data);
+      
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        _fetchData(); // Refresh list
+
+        if (data['status'] == 'DRAFT') {
+          NyutjiNotif.showInfo(context, "Jadwal disimpan sebagai Draft");
+        } else {
+          NyutjiNotif.showSuccess(context, "Jadwal Otomatis Berhasil Diaktifkan!");
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        NyutjiNotif.showError(context, "Gagal menyimpan jadwal: $e");
+      }
     }
   }
 
@@ -502,11 +525,10 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
               itemCount: _schedules.length,
               itemBuilder: (ctx, idx) => _buildScheduleCard(_schedules[idx]),
             ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _showAddScheduleSheet,
         backgroundColor: const Color(0xFF286B6A),
-        icon: const Icon(LucideIcons.plus, color: Colors.white),
-        label: Text("Tambah Jadwal", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
+        child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
       ),
     );
   }
@@ -539,7 +561,8 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
 
   Widget _buildScheduleCard(Map<String, dynamic> schedule) {
     final bool isActive = schedule['status'] == 'ACTIVE';
-    final date = schedule['date'] as DateTime;
+    final date = DateTime.tryParse(schedule['start_date']?.toString() ?? '') ?? DateTime.now();
+    final mitraName = schedule['mitra'] != null ? (schedule['mitra']['brand_name'] ?? schedule['mitra']['name'] ?? '-') : '-';
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -571,13 +594,13 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
             ],
           ),
           const SizedBox(height: 12),
-          Text(schedule['name'], style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
+          Text(schedule['name'] ?? '', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildInfoBadge(LucideIcons.repeat, schedule['interval']),
+              _buildInfoBadge(LucideIcons.repeat, schedule['interval'] ?? ''),
               const SizedBox(width: 8),
-              _buildInfoBadge(LucideIcons.store, schedule['mitra']),
+              _buildInfoBadge(LucideIcons.store, mitraName),
             ],
           ),
           const SizedBox(height: 8),
@@ -585,7 +608,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
             children: [
               _buildInfoBadge(LucideIcons.calendar, DateFormat('dd MMM yyyy', 'id_ID').format(date)),
               const SizedBox(width: 8),
-              _buildInfoBadge(LucideIcons.wallet, schedule['payment']),
+              _buildInfoBadge(LucideIcons.wallet, schedule['payment_method'] ?? ''),
             ],
           ),
           const Divider(height: 32, color: Color(0xFFE3DCCF)),
@@ -594,7 +617,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
               const Icon(LucideIcons.truck, size: 14, color: Colors.grey),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(schedule['service'], style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey[600])),
+                child: Text(schedule['service_type'] ?? '', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey[600])),
               ),
               if (isActive)
                 Switch(

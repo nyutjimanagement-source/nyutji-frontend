@@ -112,6 +112,7 @@ class _AdminIssuesScreenState extends ConsumerState<AdminIssuesScreen> with Tick
       
       // LOGIKA JENIUS: Auto-fit peta agar SEMUA Mitra (termasuk Bandung) terlihat
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return; // Prevent exception if disposed
         if (mitras.length > 1) {
           final bounds = LatLngBounds.fromPoints(
             mitras.map((m) => LatLng(
@@ -120,7 +121,11 @@ class _AdminIssuesScreenState extends ConsumerState<AdminIssuesScreen> with Tick
             )).toList()
           );
           // Tambahkan padding agar tidak mepet ke pinggir layar (Mewah)
-          _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
+          try {
+            _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
+          } catch (e) {
+            debugPrint('[MAP] Cannot fit camera: $e');
+          }
         }
       });
     }
