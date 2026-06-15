@@ -70,12 +70,12 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   bool _isUploading = false;
   String _gpsLocationText = "Mendeteksi GPS...";
 
-  // Enterprise/Super-App Colors for Courier
-  final Color primaryTeal = const Color(0xFF286B6A);
-  final Color accentGreen = const Color(0xFF10B981);
-  final Color bgColor = const Color(0xFFF3F4F6); // Cooler gray-white
-  final Color darkText = const Color(0xFF111827);
-  final Color textGrey = const Color(0xFF6B7280);
+  // Enterprise/Super-App Colors for Courier Redesign
+  final Color primaryTeal = const Color(0xFF44484B); // Very dark slate grey
+  final Color accentGreen = const Color(0xFF71797E); // Slate grey
+  final Color bgColor = const Color(0xFFE3F2FD); // Light blue 50
+  final Color darkText = const Color(0xFF44484B);
+  final Color textGrey = const Color(0xFF889197);
 
   final Map<String, dynamic> t = {
     'id': {
@@ -735,7 +735,7 @@ final orderProv = ref.watch(orderProvider);
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF286B6A).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
+                BoxShadow(color: primaryTeal.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
               ],
             ),
             child: Column(
@@ -994,101 +994,103 @@ final orderProv = ref.watch(orderProvider);
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
-              height: 48,
+              height: 52,
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(14),
+                color: const Color(0xFFCCD9E3), // from palette
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _tabController.index = 0);
-                        _tabController.animateTo(0);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        decoration: BoxDecoration(
-                          color: _tabController.index == 0 
-                              ? const Color(0xFF286B6A).withValues(alpha: 0.1) 
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: _tabController.index == 0 ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))] : [],
-                        ),
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (_tabController.index == 0) ...[
-                                Icon(LucideIcons.arrowDownToLine, size: 14, color: primaryTeal),
-                                const SizedBox(width: 8),
-                              ],
-                              Text(
-                                "Jemput (Pickup)",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 12,
-                                  fontWeight: _tabController.index == 0 ? FontWeight.w800 : FontWeight.w600,
-                                  color: _tabController.index == 0 ? primaryTeal : textGrey,
-                                ),
-                              ),
-                              if (pickupCount > 0)
-                                Container(
-                                  margin: const EdgeInsets.only(left: 4, bottom: 8),
-                                  width: 6, height: 6,
-                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                ),
-                            ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final halfWidth = constraints.maxWidth / 2;
+                  return Stack(
+                    children: [
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                        left: _tabController.index == 0 ? 0 : halfWidth,
+                        right: _tabController.index == 0 ? halfWidth : 0,
+                        top: 0,
+                        bottom: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _tabController.index = 1);
-                        _tabController.animateTo(1);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        decoration: BoxDecoration(
-                          color: _tabController.index == 1 
-                              ? const Color(0xFF286B6A).withValues(alpha: 0.1) 
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: _tabController.index == 1 ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))] : [],
-                        ),
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (_tabController.index == 1) ...[
-                                Icon(LucideIcons.send, size: 14, color: primaryTeal),
-                                const SizedBox(width: 8),
-                              ],
-                              Text(
-                                "Antar (Delivery)",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 12,
-                                  fontWeight: _tabController.index == 1 ? FontWeight.w800 : FontWeight.w600,
-                                  color: _tabController.index == 1 ? primaryTeal : textGrey,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                setState(() => _tabController.index = 0);
+                                _tabController.animateTo(0);
+                              },
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(LucideIcons.arrowDownToLine, size: 14, color: _tabController.index == 0 ? primaryTeal : textGrey),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Jemput (Pickup)",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: _tabController.index == 0 ? FontWeight.w800 : FontWeight.w600,
+                                        color: _tabController.index == 0 ? primaryTeal : textGrey,
+                                      ),
+                                    ),
+                                    if (pickupCount > 0)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 4, bottom: 8),
+                                        width: 6, height: 6,
+                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                      ),
+                                  ],
                                 ),
                               ),
-                              if (deliveryCount > 0)
-                                Container(
-                                  margin: const EdgeInsets.only(left: 4, bottom: 8),
-                                  width: 6, height: 6,
-                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                ),
-                            ],
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                setState(() => _tabController.index = 1);
+                                _tabController.animateTo(1);
+                              },
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(LucideIcons.send, size: 14, color: _tabController.index == 1 ? primaryTeal : textGrey),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Antar (Delivery)",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: _tabController.index == 1 ? FontWeight.w800 : FontWeight.w600,
+                                        color: _tabController.index == 1 ? primaryTeal : textGrey,
+                                      ),
+                                    ),
+                                    if (deliveryCount > 0)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 4, bottom: 8),
+                                        width: 6, height: 6,
+                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                }
               ),
             ),
           ),
