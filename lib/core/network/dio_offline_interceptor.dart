@@ -8,11 +8,16 @@ class DioOfflineInterceptor extends Interceptor {
     final connectivityResult = await Connectivity().checkConnectivity();
     
     // Periksa apakah list connectivityResult mengandung 'none'
-    // connectivityResult sekarang return List<ConnectivityResult> di connectivity_plus >= 6.0
     final isOffline = connectivityResult.contains(ConnectivityResult.none) || connectivityResult.isEmpty;
+    
+    // Rute yang dilarang diantrekan saat offline
+    final skipQueuePaths = ['/login', 'login'];
 
     if (isOffline) {
-      if (options.method.toUpperCase() != 'GET') {
+      // Jika request adalah GET atau termasuk dalam skip list, lempar koneksi error
+      final isSkipPath = skipQueuePaths.any((path) => options.path.contains(path));
+      
+      if (options.method.toUpperCase() != 'GET' && !isSkipPath) {
         // Simpan ke offline queue
         await OfflineQueueDB.addRequest({
           'path': options.path,

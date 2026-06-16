@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/api_constants.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'retry_interceptor.dart';
+import '../../core/network/dio_offline_interceptor.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -26,8 +26,33 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
     ));
     
-    // Attach RetryInterceptor to handle Network Retries and Offline Queue
-    _dio.interceptors.add(RetryInterceptor(dio: _dio, maxRetries: 3));
+    // Add Retry Mechanism (Khusus GET)
+    _dio.interceptors.add(InterceptorsWrapper(
+      onError: (DioException e, handler) async {
+        if (e.requestOptions.method.toUpperCase() == 'GET' && 
+           (e.type == DioExceptionType.connectionTimeout || 
+            e.type == DioExceptionType.receiveTimeout || 
+            e.type == DioExceptionType.connectionError)) {
+          
+          int retryCount = e.requestOptions.extra['retry_count'] ?? 0;
+          if (retryCount < 3) {
+            e.requestOptions.extra['retry_count'] = retryCount + 1;
+            try {
+              await Future.delayed(Duration(seconds: retryCount + 1));
+              final newDio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
+              final response = await newDio.fetch(e.requestOptions);
+              return handler.resolve(response);
+            } catch (retryError) {
+              // Lanjut throw
+            }
+          }
+        }
+        return handler.next(e);
+      }
+    ));
+
+    // Offline Interceptor untuk Queue Mechanism
+    _dio.interceptors.add(DioOfflineInterceptor());
 
     // Add Interceptors for automatic Auth Token handling
     _dio.interceptors.add(InterceptorsWrapper(
