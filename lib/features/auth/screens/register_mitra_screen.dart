@@ -46,6 +46,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
   // Step 3: Segmen & Kategori
   String selectedSegment = 'PRIBADI';
   String selectedCategory = 'KECIL';
+  String selectedOperationalHours = '10 Jam';
   String? selectedWasherBrand;
   final TextEditingController washerTypeController = TextEditingController();
   Map<String, List<dynamic>> groupedServices = {};
@@ -153,6 +154,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
         'business_city_name': businessCity,
         'business_type': selectedSegment,
         'mitra_category': selectedCategory,
+        'membership_tier': selectedOperationalHours,
         'washer_brand': selectedWasherBrand ?? '',
         'washer_type': washerTypeController.text.trim(),
         'selected_services': checkedServices.toList().join(','),
@@ -381,6 +383,18 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
           _buildPasswordField(passController, "Kata Sandi", _obscurePassword, () => setState(() => _obscurePassword = !_obscurePassword)),
           const SizedBox(height: 16),
           _buildPasswordField(confirmPassController, "Konfirmasi Kata Sandi", _obscureConfirmPassword, () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword)),
+          const SizedBox(height: 20),
+          Text("Jam Operasional", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey[700])),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: _buildChoiceChipCenter('10 Jam', '10 Jam', selectedOperationalHours, (v) => setState(() => selectedOperationalHours = v))),
+              const SizedBox(width: 8),
+              Expanded(child: _buildChoiceChipCenter('12 Jam', '12 Jam', selectedOperationalHours, (v) => setState(() => selectedOperationalHours = v))),
+              const SizedBox(width: 8),
+              Expanded(child: _buildChoiceChipCenter('24 Jam', '24 Jam', selectedOperationalHours, (v) => setState(() => selectedOperationalHours = v))),
+            ],
+          ),
         ],
       );
     } else {
@@ -739,6 +753,32 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
         color: isSelected ? Colors.white : Colors.grey[700],
         fontSize: 13,
+      ),
+      backgroundColor: Colors.white,
+      selectedColor: primaryColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: isSelected ? primaryColor : Colors.grey[300]!),
+      ),
+    );
+  }
+
+  Widget _buildChoiceChipCenter(String value, String label, String groupValue, Function(String) onSelected) {
+    final isSelected = value == groupValue;
+    return ChoiceChip(
+      label: Container(
+        width: double.infinity,
+        alignment: Alignment.center,
+        child: Text(label),
+      ),
+      selected: isSelected,
+      onSelected: (b) {
+        if (b) onSelected(value);
+      },
+      labelStyle: GoogleFonts.montserrat(
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+        color: isSelected ? Colors.white : Colors.grey[700],
+        fontSize: 12,
       ),
       backgroundColor: Colors.white,
       selectedColor: primaryColor,
