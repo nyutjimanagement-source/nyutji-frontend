@@ -257,7 +257,7 @@ return GestureDetector(
               children: [
                 const Icon(LucideIcons.mapPin, size: 20, color: darkText),
                 const SizedBox(width: 12),
-                Text("Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
                 const Spacer(),
                 Icon(_isAddressExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
               ],
@@ -386,7 +386,7 @@ final auth = ref.watch(authProvider);
                   children: [
                     const Icon(LucideIcons.users, size: 18, color: darkText),
                     const SizedBox(width: 12),
-                    Text("Kelola Kurir Laundry", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                    Text("Kelola Kurir Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
                     if (pendingUsers.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Container(
@@ -456,7 +456,7 @@ final auth = ref.watch(authProvider);
               children: [
                 const Icon(LucideIcons.settings, size: 18, color: darkText),
                 const SizedBox(width: 12),
-                Text("Pengaturan Akun", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Pengaturan Akun", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
                 const Spacer(),
                 Icon(_isAccountExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
               ],
@@ -862,7 +862,10 @@ final auth = ref.watch(authProvider);
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const NyutjiLocationPicker(),
+      builder: (context) => NyutjiLocationPicker(
+        initialLat: _selectedLat,
+        initialLng: _selectedLng,
+      ),
     );
 
     if (result != null) {
@@ -915,7 +918,7 @@ final auth = ref.watch(authProvider);
         children: [
           Icon(icon, size: 18, color: isLogout ? Colors.red : darkText),
           const SizedBox(width: 12),
-          Text(title, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: isLogout ? Colors.red : darkText)),
+          Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isLogout ? Colors.red : darkText)),
           const Spacer(),
           Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey[400]),
         ],

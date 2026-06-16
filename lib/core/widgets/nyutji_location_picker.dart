@@ -32,7 +32,9 @@ class NyutjiLocationResult {
 }
 
 class NyutjiLocationPicker extends ConsumerStatefulWidget {
-  const NyutjiLocationPicker({super.key});
+  final double? initialLat;
+  final double? initialLng;
+  const NyutjiLocationPicker({super.key, this.initialLat, this.initialLng});
 
   @override ConsumerState<NyutjiLocationPicker> createState() => _NyutjiLocationPickerState();
 }
@@ -60,7 +62,14 @@ class _NyutjiLocationPickerState extends ConsumerState<NyutjiLocationPicker> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    if (widget.initialLat != null && widget.initialLng != null && widget.initialLat != 0.0) {
+      _currentLatLng = LatLng(widget.initialLat!, widget.initialLng!);
+      _hasValidLocation = true;
+      _isLoading = false;
+      _reverseGeocode(_currentLatLng);
+    } else {
+      _getCurrentLocation();
+    }
   }
 
   @override
