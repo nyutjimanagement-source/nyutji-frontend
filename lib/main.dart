@@ -16,6 +16,7 @@ import 'features/mitra_ml/screens/mitra_home_screen.dart';
 import 'features/kurir_kl/screens/courier_main_screen.dart';
 import 'features/admin_ad/screens/admin_main_screen.dart';
 import 'features/mitra_ml/screens/mitra_kendala_screen.dart';
+import 'core/network/background_sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,9 @@ void main() async {
   // Inisialisasi Database Lokal untuk Offline Queue
   await Hive.initFlutter();
   await Hive.openBox('offline_queue');
+  
+  // Inisialisasi Background Sync
+  BackgroundSyncService.initialize();
 
   // Inisialisasi locale Indonesia
   await initializeDateFormatting('id_ID', null);

@@ -9,6 +9,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/network/api_service.dart';
 
 class RegisterMitraScreen extends ConsumerStatefulWidget {
   const RegisterMitraScreen({super.key});
@@ -77,7 +78,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
     final phone = phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (phone.isEmpty) return;
     try {
-      final dio = Dio();
+      final dio = ref.read(apiServiceProvider);
       final response = await dio.post('${ApiConstants.baseUrl}/check-phone', data: {'phone_number': phone});
       if (response.data['success'] && response.data['exists']) {
         if (!mounted) return;
@@ -92,7 +93,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
   Future<void> _fetchServices() async {
     setState(() => _isLoadingServices = true);
     try {
-      final dio = Dio();
+      final dio = ref.read(apiServiceProvider);
       final response = await dio.get('${ApiConstants.baseUrl}/services/dlaundry', queryParameters: {
         'category': selectedCategory
       });
@@ -166,7 +167,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
 
     setState(() => _isLoading = true);
     try {
-      final dio = Dio();
+      final dio = ref.read(apiServiceProvider);
       final formData = FormData.fromMap({
         'name': nameController.text.trim(),
         'owner_identity': identityController.text.trim(),
