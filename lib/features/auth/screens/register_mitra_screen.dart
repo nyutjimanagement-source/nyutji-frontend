@@ -449,7 +449,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
             duration: const Duration(milliseconds: 300),
           ),
           const SizedBox(height: 20),
-          Text("Daftar Layanan Tersedia:", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: primaryColor)),
+          Text("Daftar Layanan Tersedia:", style: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey[700])),
           const SizedBox(height: 8),
           _isLoadingServices
               ? const Center(child: CircularProgressIndicator(color: primaryColor))
