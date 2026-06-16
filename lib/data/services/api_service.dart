@@ -64,7 +64,12 @@ class ApiService {
       'identifier': identifier, 
       'password': password
     });
-    return response.data;
+    
+    if (response.data is String) {
+      throw Exception("Gangguan jaringan (kemungkinan koneksi terhalang Wi-Fi/paket data tidak stabil).");
+    }
+    
+    return response.data as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {

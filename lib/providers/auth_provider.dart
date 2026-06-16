@@ -340,10 +340,15 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
             _lastErrorMessage = data['message']?.toString() ?? e.message;
           } else {
             _lastErrorMessage = e.message;
-          }
         }
       } else {
-        _lastErrorMessage = e.toString();
+        String msg = e.toString();
+        if (msg.contains("Exception: ")) {
+          msg = msg.replaceAll("Exception: ", "");
+        } else if (msg.contains("TypeError") || msg.contains("subtype")) {
+          msg = "Gangguan koneksi/sistem. Pastikan sinyal stabil.";
+        }
+        _lastErrorMessage = msg;
       }
       notifyListeners();
       debugPrint("Login Error: $e");
