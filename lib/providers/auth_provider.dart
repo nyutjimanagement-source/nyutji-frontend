@@ -340,6 +340,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
             _lastErrorMessage = data['message']?.toString() ?? e.message;
           } else {
             _lastErrorMessage = e.message;
+          }
         }
       } else {
         String msg = e.toString();
