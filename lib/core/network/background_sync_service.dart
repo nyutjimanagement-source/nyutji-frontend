@@ -44,7 +44,7 @@ class BackgroundSyncService {
       
       for (int i = 0; i < requests.length; i++) {
         final req = requests[i];
-        final hiveIndex = req['hive_index'];
+
         final path = req['path'];
         final method = req['method'];
         final data = req['data'];

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../providers/connectivity_provider.dart';
-import '../../data/services/offline_queue_service.dart';
 
 class ConnectivityWrapper extends ConsumerWidget {
   final Widget child;
@@ -21,7 +20,8 @@ class ConnectivityWrapper extends ConsumerWidget {
         final wasOffline = prevResults.contains(ConnectivityResult.none) || prevResults.isEmpty;
 
         if (wasOffline && isOnline) {
-          OfflineQueueService().syncQueue();
+          // BackgroundSyncService sudah otomatis menangani sync secara global.
+          // Tidak perlu trigger manual di sini lagi.
         }
       }
     });
