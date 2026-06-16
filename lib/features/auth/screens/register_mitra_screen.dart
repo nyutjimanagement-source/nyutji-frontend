@@ -37,6 +37,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
   // Step 2: Info Bisnis
   final TextEditingController businessNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final FocusNode _phoneFocusNode = FocusNode();
   final TextEditingController passController = TextEditingController();
   final TextEditingController confirmPassController = TextEditingController();
   final TextEditingController businessAddressController = TextEditingController();
@@ -59,6 +60,33 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
   void initState() {
     super.initState();
     _fetchServices();
+    _phoneFocusNode.addListener(() {
+      if (!_phoneFocusNode.hasFocus && phoneController.text.isNotEmpty) {
+        _checkPhoneNumber();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _phoneFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkPhoneNumber() async {
+    final phone = phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (phone.isEmpty) return;
+    try {
+      final dio = Dio();
+      final response = await dio.post('${ApiConstants.baseUrl}/check-phone', data: {'phone_number': phone});
+      if (response.data['success'] && response.data['exists']) {
+        if (!mounted) return;
+        NyutjiNotif.showError(context, "Nomor handphone ini sudah terdaftar. Silakan gunakan nomor lain.");
+        phoneController.clear();
+      }
+    } catch (e) {
+      debugPrint("Gagal check phone: $e");
+    }
   }
 
   Future<void> _fetchServices() async {
@@ -378,7 +406,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
           const SizedBox(height: 16),
           _buildLocationField(businessAddressController, "Lokasi Wilayah Operasional", false),
           const SizedBox(height: 16),
-          _buildTextField(phoneController, "Nomor Handphone Bisnis", LucideIcons.phone, isNumber: true),
+          _buildTextField(phoneController, "Nomor Handphone Bisnis", LucideIcons.phone, isNumber: true, focusNode: _phoneFocusNode),
           const SizedBox(height: 16),
           _buildPasswordField(passController, "Kata Sandi", _obscurePassword, () => setState(() => _obscurePassword = !_obscurePassword)),
           const SizedBox(height: 16),
@@ -614,9 +642,10 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isNumber = false, bool isEmail = false}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isNumber = false, bool isEmail = false, FocusNode? focusNode}) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: isNumber ? TextInputType.number : (isEmail ? TextInputType.emailAddress : TextInputType.text),
       style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
