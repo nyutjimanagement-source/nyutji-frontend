@@ -282,7 +282,7 @@ return GestureDetector(
                           Text("Alamat Lengkap", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
                           InkWell(
                             onTap: () => _showLocationPicker(auth),
-                            child: Text("Ubah Alamat ?", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue)),
+                            child: Text("Ubah Alamat ?", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue)),
                           ),
                         ],
                       ),
