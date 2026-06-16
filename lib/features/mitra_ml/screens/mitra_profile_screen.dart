@@ -279,7 +279,7 @@ return GestureDetector(
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Alamat Lengkap", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                          Text("Alamat Lengkap", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
                           InkWell(
                             onTap: () => _showLocationPicker(auth),
                             child: Text("Ubah Alamat ?", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue)),
@@ -307,7 +307,7 @@ return GestureDetector(
                               ),
                             ),
                       const SizedBox(height: 16),
-                      Text("Kecamatan dan Kab/Kota", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      Text("Kecamatan dan Kab/Kota", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
                       const SizedBox(height: 8),
                       auth.isLoading 
                           ? const ShimmerLoading(height: 50, borderRadius: 12)
@@ -324,7 +324,7 @@ return GestureDetector(
                               ),
                             ),
                       const SizedBox(height: 16),
-                      Text("Latitude / Longitude", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      Text("Latitude / Longitude", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
                       const SizedBox(height: 8),
                       auth.isLoading 
                           ? const ShimmerLoading(height: 50, borderRadius: 12)
@@ -417,12 +417,12 @@ final auth = ref.watch(authProvider);
                             ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)),
                             const SizedBox(height: 12),
                           ],
-                          Text("Daftar Anggota Aktif (${activeCouriers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
+                          Text("Daftar Anggota Aktif (${activeCouriers.length})", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
                           const SizedBox(height: 8),
                           if (activeCouriers.isEmpty)
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text("Belum ada anggota kurir", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontStyle: FontStyle.italic)),
+                              child: Text("Belum ada anggota kurir", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontStyle: FontStyle.italic)),
                             )
                           else
                             ...activeCouriers.map((u) => _buildCompactActiveCard(u)),
@@ -545,7 +545,7 @@ final auth = ref.watch(authProvider);
                               children: [
                                 const Icon(LucideIcons.info, size: 14, color: Colors.blue),
                                 const SizedBox(width: 8),
-                                Text("Catatan Penting:", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue)),
+                                Text("Catatan Penting:", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue)),
                               ],
                             ),
                             const SizedBox(height: 6),
@@ -589,8 +589,8 @@ final auth = ref.watch(authProvider);
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("• ", style: TextStyle(fontSize: 12, color: Colors.blue)),
-          Expanded(child: Text(text, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.blueGrey))),
+          const Text("• ", style: TextStyle(fontSize: 13, color: Colors.blue)),
+          Expanded(child: Text(text, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.blueGrey))),
         ],
       ),
     );
@@ -600,7 +600,7 @@ final auth = ref.watch(authProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: textGrey)),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textGrey)),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
@@ -616,7 +616,7 @@ final auth = ref.watch(authProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: darkText)),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -641,7 +641,7 @@ final auth = ref.watch(authProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w700, color: darkText)),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
