@@ -158,11 +158,13 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const AiCameraScreen()));
-            },
-            child: _buildActionBtn("Kamera\nAI", LucideIcons.camera, Colors.orange),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AiCameraScreen()));
+              },
+              child: _buildActionBtn("Kamera\nAI", LucideIcons.camera, Colors.orange, noExpanded: true),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

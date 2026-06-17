@@ -163,15 +163,34 @@ class _AiCameraScreenState extends ConsumerState<AiCameraScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const CircularProgressIndicator(color: primaryColor),
-                              const SizedBox(height: 16),
-                              Text(
-                                "AI Sedang Menganalisis...",
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                          TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0.0, end: 0.95),
+                            duration: const Duration(seconds: 4),
+                            builder: (context, value, _) {
+                              return Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                                    child: LinearProgressIndicator(
+                                      value: value,
+                                      color: primaryColor,
+                                      backgroundColor: Colors.white30,
+                                      minHeight: 8,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "AI Sedang Menganalisis... ${(value * 100).toInt()}%",
+                                    style: GoogleFonts.montserrat(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
                             ],
                           ),
                         ),
@@ -221,7 +240,7 @@ class _AiCameraScreenState extends ConsumerState<AiCameraScreen> {
                   onPressed: _isProcessing ? null : _takePhoto,
                   icon: const Icon(LucideIcons.camera, color: Colors.white),
                   label: Text(
-                    _imageFile == null ? "Mulai Pindai" : "Pindai Ulang",
+                    _imageFile == null ? "Ambil Foto Nyutjian" : "Pindai Ulang",
                     style: GoogleFonts.montserrat(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
