@@ -1324,6 +1324,25 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                     child: Image.file(_orderImage!, height: 180, width: double.infinity, fit: BoxFit.cover),
                   ),
                   Positioned(
+                    bottom: 16,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(LucideIcons.sparkles, color: Color(0xFFDAC66F), size: 16),
+                          const SizedBox(width: 6),
+                          Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
                     top: 8,
                     right: 8,
                     child: GestureDetector(
