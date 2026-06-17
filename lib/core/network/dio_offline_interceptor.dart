@@ -16,6 +16,12 @@ class DioOfflineInterceptor extends Interceptor {
       final isSkipPath = skipQueuePaths.any((path) => options.path.contains(path));
 
       if (options.method.toUpperCase() != 'GET' && !isSkipPath) {
+        // Jangan masukkan ke antrean offline jika datanya adalah FormData (file upload)
+        // Hive tidak bisa menyimpan tipe FormData. Biarkan request gagal secara normal.
+        if (options.data is FormData) {
+          return handler.next(err);
+        }
+
         // Simpan ke offline queue
         await OfflineQueueDB.addRequest({
           'path': options.path,
