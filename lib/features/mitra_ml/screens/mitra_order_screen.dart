@@ -1432,7 +1432,7 @@ final orderProv = ref.watch(orderProvider);
             ),
           ),
           const SizedBox(height: 8),
-          Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+          Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
         ],
       ),
     );
