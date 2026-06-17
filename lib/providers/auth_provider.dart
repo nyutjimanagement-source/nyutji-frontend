@@ -442,7 +442,8 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       _safeNotifyListeners();
       return data;
     } catch (e) {
-      debugPrint("Fetch Approvals Error: $e");
+      // Tidak perlu di-print terus-menerus karena dipanggil setiap 5 detik
+      // debugPrint("Fetch Approvals Error: $e");
       return [];
     }
   }
