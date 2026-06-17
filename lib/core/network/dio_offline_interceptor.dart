@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'offline_queue_db.dart';
 
 class DioOfflineInterceptor extends Interceptor {
+  const DioOfflineInterceptor();
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     // Tangkap error jika tidak ada koneksi

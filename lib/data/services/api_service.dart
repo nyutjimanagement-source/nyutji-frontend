@@ -67,7 +67,7 @@ class ApiService {
     ));
 
     // 3. Offline Interceptor (Opsional, ditempatkan terakhir)
-    _dio.interceptors.add(DioOfflineInterceptor());
+    _dio.interceptors.add(const DioOfflineInterceptor());
   }
   
   // --- SYSTEM STATUS ---
