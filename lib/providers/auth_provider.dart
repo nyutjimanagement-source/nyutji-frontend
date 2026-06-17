@@ -21,10 +21,19 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
   }
 
+  bool _isDisposed = false;
+
   @override
   void dispose() {
+    _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   @override
@@ -89,7 +98,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         _couriers = all.where((u) => u['role']?.toString().toUpperCase() == 'KL').toList();
       }
       debugPrint("Fetched ${_couriers.length} couriers from database");
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       debugPrint("Gagal fetch kurir: $e");
     }
@@ -100,7 +109,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       final all = await ApiService().getPublicMitras();
       _mitras = all;
       debugPrint("Fetched ${_mitras.length} mitras from database");
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       debugPrint("Gagal fetch mitra: $e");
     }
@@ -154,7 +163,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     final key = _user?['identifier'] ?? _user?['email'] ?? 'unknown';
     await prefs.setString('home_address_$key', jsonEncode(addr));
-    notifyListeners();
+    _safeNotifyListeners();
     return true;
   }
 
@@ -167,12 +176,12 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('address_history_${_user?['email']}', jsonEncode(_addressHistory));
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void setLanguage(String newLang) {
     _lang = newLang;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<bool> checkAuthStatus() async {
@@ -214,7 +223,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         _temporaryLocalPhoto = prefs.getString('local_photo_${_user!['email']}');
       }
 
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     }
     return false;
@@ -236,20 +245,20 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     _role = null;
     _homeAddress = null;
     _addressHistory = [];
-    notifyListeners();
+    _safeNotifyListeners();
 
     // Hapus data detail setelah jeda singkat agar navigasi smooth
     Future.delayed(const Duration(milliseconds: 500), () {
       _user = null;
       _temporaryLocalPhoto = null;
       _temporaryWebBytes = null;
-      notifyListeners();
+      _safeNotifyListeners();
     });
   }
 
   Future<bool> login(String identifier, String password) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     String realIdentifier = identifier.trim();
     if (realIdentifier.isEmpty) {
@@ -323,7 +332,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         }
 
         _isLoading = false;
-        notifyListeners();
+        _safeNotifyListeners();
         return true;
       }
     } catch (e) {
@@ -351,7 +360,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         }
         _lastErrorMessage = msg;
       }
-      notifyListeners();
+      _safeNotifyListeners();
       debugPrint("Login Error: $e");
     }
     return false;
@@ -360,20 +369,20 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   // Versi trial: Mengirim data Kecamatan manual dan Referensi Mitra
   Future<String?> register(Map<String, dynamic> regData) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final response = await ApiService().register(regData);
       
       if (response['message'] != null) {
         _isLoading = false; 
-        notifyListeners();
+        _safeNotifyListeners();
         return null; // Success
       }
     } on DioException catch (e) {
       debugPrint("Register Error: ${e.response?.data}");
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       
       final data = e.response?.data;
       String rawError = 'Gagal menghubungi server';
@@ -418,7 +427,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) {
       debugPrint("Register Error: $e");
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return 'Terjadi kesalahan sistem. Silakan coba lagi.';
     }
 
@@ -430,7 +439,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     try {
       final data = await ApiService().getPendingApprovals();
       _pendingApprovals = data;
-      notifyListeners();
+      _safeNotifyListeners();
       return data;
     } catch (e) {
       debugPrint("Fetch Approvals Error: $e");
@@ -454,7 +463,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     try {
       final data = await ApiService().getAllUsers();
       _allUsers = data;
-      notifyListeners();
+      _safeNotifyListeners();
       return data;
     } catch (e) {
       debugPrint("Fetch All Users Error: $e");
@@ -464,42 +473,42 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<bool> approveUser(dynamic identifier, String action) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       final res = await ApiService().processApproval(identifier, action);
       if (res['status'] == 'success') {
         // Hapus dari list pending lokal
         _pendingApprovals.removeWhere((u) => u['identifier'] == identifier);
         _isLoading = false;
-        notifyListeners();
+        _safeNotifyListeners();
         return true;
       }
     } catch (e) {
       debugPrint("Approve Error: $e");
     }
     _isLoading = false;
-    notifyListeners();
+    _safeNotifyListeners();
     return false;
   }
 
   Future<bool> bulkDeleteUsers(List<dynamic> identifiers) async {
     try {
       _isLoading = true;
-      notifyListeners();
+      _safeNotifyListeners();
       
       final res = await ApiService().bulkDeleteUsers(identifiers);
       if (res['status'] == 'success') {
         // Hapus dari list lokal agar UI update otomatis menggunakan identifier
         _allUsers.removeWhere((u) => identifiers.contains(u['identifier']));
         _isLoading = false;
-        notifyListeners();
+        _safeNotifyListeners();
         return true;
       }
     } catch (e) {
       debugPrint("Bulk Delete Error: $e");
     }
     _isLoading = false;
-    notifyListeners();
+    _safeNotifyListeners();
     return false;
   }
 
@@ -518,7 +527,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final res = await ApiService().uploadProfilePhoto(fileSource);
@@ -537,7 +546,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           
           await prefs.setString('user_data', jsonEncode(_user));
           
-          notifyListeners();
+          _safeNotifyListeners();
         }
         return true;
       }
@@ -592,7 +601,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           await prefs.setString('token', _token!);
         }
 
-        notifyListeners();
+        _safeNotifyListeners();
         return true;
       }
     } catch (e) {
@@ -603,7 +612,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       final res = await ApiService().updateProfile(data);
       if (res['message'] != null) {
@@ -613,7 +622,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           await prefs.setString('user_data', jsonEncode(_user));
         }
         _isLoading = false;
-        notifyListeners();
+        _safeNotifyListeners();
         return true;
       }
     } catch (e) {
@@ -644,32 +653,32 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       debugPrint("Update Profile Error: $e");
     }
     _isLoading = false;
-    notifyListeners();
+    _safeNotifyListeners();
     return false;
   }
   Future<bool> forceTopup(double amount, String targetIdentifier) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       final res = await ApiService().forceTopup(amount, targetIdentifier: targetIdentifier);
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return res['message'] != null;
     } catch (e) {
       debugPrint("Force Topup Error: $e");
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
 
   Future<bool> forceResetPassword(String targetIdentifier, String newPassword) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       final res = await ApiService().resetUserPassword(targetIdentifier, newPassword);
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return res['status'] == 'success';
     } catch (e) {
       if (e is DioException) {
@@ -684,7 +693,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       }
       debugPrint("Force Reset Password Error: $e");
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }

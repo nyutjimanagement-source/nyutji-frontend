@@ -7,6 +7,20 @@ import '../data/services/api_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class OrderProvider extends ChangeNotifier {
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      _safeNotifyListeners();
+    }
+  }
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -94,7 +108,7 @@ class OrderProvider extends ChangeNotifier {
       }
 
       _notifCountPL = unseenCount;
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       debugPrint("Error checking PL notifications: $e");
     }
@@ -117,7 +131,7 @@ class OrderProvider extends ChangeNotifier {
 
       await prefs.setStringList(_seenOrdersKey, newSeenData);
       _notifCountPL = 0;
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       debugPrint("Error marking PL orders as seen: $e");
     }
@@ -127,20 +141,20 @@ class OrderProvider extends ChangeNotifier {
     if (role == 'PL') _notifCountPL++;
     if (role == 'ML') _notifCountML++;
     if (role == 'KL') _notifCountKL++;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void resetNotif(String role) {
     if (role == 'PL') _notifCountPL = 0;
     if (role == 'ML') _notifCountML = 0;
     if (role == 'KL') _notifCountKL = 0;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> fetchOrders() async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final List<dynamic> orders = await _api.getOrders();
@@ -194,7 +208,7 @@ class OrderProvider extends ChangeNotifier {
       }
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -202,7 +216,7 @@ class OrderProvider extends ChangeNotifier {
     try {
       final List<dynamic> mitras = await _api.getRecommendedMitras(cityName: cityName);
       _recommendedMitras = mitras.take(5).toList();
-      notifyListeners();
+      _safeNotifyListeners();
 
       // Fetch items proactively to populate services_text for search accuracy
       for (var m in _recommendedMitras) {
@@ -211,7 +225,7 @@ class OrderProvider extends ChangeNotifier {
             final items = await _api.getMitraItems(m['id']);
             if (items.isNotEmpty) {
               m['services_text'] = items.map((i) => i['name'] ?? '').join(' ');
-              notifyListeners();
+              _safeNotifyListeners();
             }
           } catch (e) {
             debugPrint("Error fetching items for mitra ${m['id']}: $e");
@@ -220,19 +234,19 @@ class OrderProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint("Error fetching mitras: $e");
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> searchGlobal(String query) async {
     if (query.trim().isEmpty) {
       _searchedMitras = [];
-      notifyListeners();
+      _safeNotifyListeners();
       return;
     }
     
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final List<dynamic> results = await _api.searchMitras(query);
@@ -242,14 +256,14 @@ class OrderProvider extends ChangeNotifier {
       _searchedMitras = [];
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> fetchAdminOrders() async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       final List<dynamic> orders = await _api.getAdminOrders();
       // TANPA FILTER SESUAI INSTRUKSI JENDERAL: Tarik Semua order_number
@@ -260,7 +274,7 @@ class OrderProvider extends ChangeNotifier {
       debugPrint("Nyutji Admin Data Error: $e");
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -281,7 +295,7 @@ class OrderProvider extends ChangeNotifier {
       debugPrint('[fetchAvailableOrders] Endpoint belum aktif, gunakan dummy: $e');
       _availableOrders = []; // kosongkan agar dummy di UI tetap tampil
     }
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   // Map Status String ke Progress Int (0-8)
@@ -302,13 +316,13 @@ class OrderProvider extends ChangeNotifier {
     _trackingOrder = Map<String, dynamic>.from(order);
     // Pastikan field progress ada untuk UI
     _trackingOrder!['progress'] = getProgressFromStatus(_trackingOrder!['order_status'] ?? _trackingOrder!['status'] ?? '');
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void clearTracking() {
     _trackingTimer?.cancel();
     _trackingOrder = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   @override
@@ -320,7 +334,7 @@ class OrderProvider extends ChangeNotifier {
   Future<bool> createOrder(Map<String, dynamic> data) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.createOrder(data);
       await fetchOrders(); 
@@ -337,12 +351,12 @@ class OrderProvider extends ChangeNotifier {
         _errorMessage = msg ?? detail ?? 'Gagal menghubungi server (${e.response?.statusCode}).';
       }
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     } catch (e) {
       _errorMessage = 'Terjadi kesalahan: ${e.toString()}';
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
@@ -351,7 +365,7 @@ class OrderProvider extends ChangeNotifier {
     try {
       final response = await _api.getDraftOrders();
       _draftOrders = response['data'] ?? [];
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       debugPrint("Error fetching drafts: $e");
     }
@@ -359,16 +373,16 @@ class OrderProvider extends ChangeNotifier {
 
   Future<bool> deleteDraft(String orderId) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.deleteDraftOrder(orderId);
       _draftOrders.removeWhere((o) => (o['orderNumber'] ?? o['order_number'] ?? o['id']).toString() == orderId);
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       debugPrint("Error deleting draft: $e");
       return false;
     }
@@ -377,7 +391,7 @@ class OrderProvider extends ChangeNotifier {
   Future<bool> acceptOrder(String orderId) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.acceptOrder(orderId);
       // Refresh data
@@ -386,17 +400,17 @@ class OrderProvider extends ChangeNotifier {
       // Gunakan order_number sebagai prioritas identitas pesanan
       _availableOrders.removeWhere((o) => (o['order_number'] ?? o['id']) == orderId);
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
       _errorMessage = e.response?.data?['message'] ?? 'Gagal mengambil order';
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
@@ -404,23 +418,23 @@ class OrderProvider extends ChangeNotifier {
   Future<bool> assignCourier(String orderId, dynamic courierId) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.assignCourier(orderId, courierId);
       // Refresh data agar status berubah di UI
       await fetchOrders();
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
       _errorMessage = e.response?.data?['message'] ?? 'Gagal menunjuk kurir';
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
@@ -428,22 +442,22 @@ class OrderProvider extends ChangeNotifier {
   Future<bool> updateOrderStatus(String orderId, String status) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.updateOrderStatus(orderId, status);
       await fetchOrders();
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
       _errorMessage = e.response?.data?['message'] ?? 'Gagal update status';
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
@@ -451,22 +465,22 @@ class OrderProvider extends ChangeNotifier {
   Future<bool> submitReview(String orderId, int ratingMitra, int ratingCourier, String comment) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.submitReview(orderId, ratingMitra, ratingCourier, comment);
       await fetchOrders();
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
       _errorMessage = e.response?.data?['message'] ?? 'Gagal menyimpan ulasan';
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
@@ -474,39 +488,39 @@ class OrderProvider extends ChangeNotifier {
   Future<bool> uploadPOWImage(String orderId, XFile image, String step) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.uploadPOWImage(orderId, image, step);
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
       _errorMessage = e.response?.data?['message'] ?? 'Gagal upload foto POW';
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     } catch (e) {
       debugPrint("Error uploading POW: $e");
       _errorMessage = "Terjadi kesalahan saat upload foto";
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
 
   Future<bool> uploadOrderAttachment(String orderId, dynamic file, String step, String customFileName) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.uploadOrderAttachment(orderId, file, step, customFileName);
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } catch (e) {
       debugPrint("Error uploading attachment: $e");
       _errorMessage = "Gagal upload foto";
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }

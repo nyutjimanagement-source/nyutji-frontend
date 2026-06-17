@@ -19,12 +19,26 @@ class WalletProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool _isDisposed = false;
+
   final ApiService _api = ApiService();
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   Future<void> fetchWallet() async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final data = await _api.getWalletData();
@@ -40,13 +54,13 @@ class WalletProvider extends ChangeNotifier {
       _withdrawalsList = [];
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<bool> requestTopup(double amount) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.requestTopupMember(amount);
       await fetchWallet();
@@ -54,14 +68,14 @@ class WalletProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = "Gagal memproses Top Up";
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
 
   Future<bool> forceTopup(double amount) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.forceTopup(amount);
       await fetchWallet();
@@ -69,7 +83,7 @@ class WalletProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = "Gagal memproses Force Top Up";
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
@@ -77,12 +91,12 @@ class WalletProvider extends ChangeNotifier {
   Future<bool> requestWithdraw(double amount, String pin) async {
     if (amount > _balance) {
       _errorMessage = "Saldo tidak mencukupi";
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
     
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.requestWithdraw(amount, pin);
       await fetchWallet();
@@ -90,19 +104,19 @@ class WalletProvider extends ChangeNotifier {
     } on DioException catch (e) {
       _errorMessage = e.response?.data?['message'] ?? "Gagal memproses Penarikan";
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     } catch (e) {
       _errorMessage = "Gagal memproses Penarikan";
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
 
   Future<bool> updatePin(String pin) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       await _api.updateWalletPin(pin);
       return true;
@@ -111,7 +125,7 @@ class WalletProvider extends ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 }
