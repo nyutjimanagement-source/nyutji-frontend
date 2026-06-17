@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,6 +40,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   
   // STATE UNTUK PESANAN (Item ID/Identifier -> Count)
   final Map<dynamic, int> _itemCounts = {};
+  File? _orderImage;
   
   // STATE UNTUK MAPS & LOKASI
   double? _selectedLat;
@@ -79,6 +82,71 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     
     _loadLiveMitras();
     Future.microtask(() => ref.read(orderProvider).fetchDraftOrders());
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: source, imageQuality: 70);
+      if (pickedFile != null) {
+        setState(() {
+          _orderImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      NyutjiNotif.showError(context, "Gagal mengambil foto: $e");
+    }
+  }
+
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text("Unggah Foto", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF403600)), textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+              icon: const Icon(LucideIcons.camera, color: Colors.white),
+              label: Text("Ambil Foto Pakaian", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDAC66F),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+              icon: const Icon(LucideIcons.image, color: Color(0xFF403600)),
+              label: Text("Pilih dari Galeri", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF403600))),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: const BorderSide(color: Color(0xFFDAC66F), width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showDraftBottomSheet() {
@@ -1229,7 +1297,47 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
 
     return Column(
       children: [
-        if (kiloanItems.isNotEmpty) _buildPaginatedTable(kiloanItems, "Laundry Kiloan", LucideIcons.layers, true, _kiloanPage, (idx) => setState(() => _kiloanPage = idx)),
+        if (kiloanItems.isNotEmpty) ...[
+          _buildPaginatedTable(
+            kiloanItems, 
+            "Laundry Kiloan", 
+            LucideIcons.layers, 
+            true, 
+            _kiloanPage, 
+            (idx) => setState(() => _kiloanPage = idx),
+            actionWidget: GestureDetector(
+              onTap: _showImageSourceSheet,
+              child: Text(
+                "Unggah Foto", 
+                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFFDAC66F), decoration: TextDecoration.underline, decorationColor: const Color(0xFFDAC66F)),
+              ),
+            ),
+          ),
+          if (_orderImage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.file(_orderImage!, height: 180, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _orderImage = null),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
         const SizedBox(height: 24),
         if (satuanItems.isNotEmpty) _buildPaginatedTable(satuanItems, "Laundry Satuan / Meteran", LucideIcons.shirt, false, _satuanPage, (idx) => setState(() => _satuanPage = idx)),
         const SizedBox(height: 24),
@@ -1237,7 +1345,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     );
   }
 
-  Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan, int currentPage, Function(int) onPageChanged) {
+  Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan, int currentPage, Function(int) onPageChanged, {Widget? actionWidget}) {
     const int perPage = 5;
     List<List<dynamic>> chunks = [];
     for (var i = 0; i < items.length; i += perPage) {
@@ -1273,6 +1381,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                     Expanded(
                       child: Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
+                    if (actionWidget != null) actionWidget,
                     const SizedBox(width: 8),
                   ],
                 ),
