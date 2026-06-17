@@ -845,18 +845,16 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                         builder: (context) {
                         final s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
                         final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString().toUpperCase();
-                        final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+                        final orderType = (order['orderType'] ?? order['order_type'] ?? '').toString().toLowerCase();
                         
-                        // LOGIKA AKTIVASI STEP
-                        bool isStep2 = ['WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s) ||
-                            (isSelfDrop && s == 'WAITING_DROPOFF');
-                        bool isStep3 = ['WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
-                        bool isStep4 = ['PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
-                        bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
-                        bool isStep6 = ['DONE', 'PAID'].contains(s);
-
-                        final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
-                            (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
+                        bool hasPickup = orderType == 'pickup';
+                        bool hasDelivery = rawDel.contains('DELIVERY') || (rawDel.isEmpty && hasPickup); // Default to delivery if empty
+                        if (rawDel == 'SELFDROP_SELFDELIVERY' || rawDel.contains('SELFDELIVERY') || rawDel == 'SELF_SERVICE') {
+                          hasDelivery = false;
+                        }
+                        if (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0) {
+                          hasDelivery = false;
+                        }
 
                         // Deteksi apakah pesanan premium (Cuci Sepatu, Dry Clean, Pakaian Bayi, Cuci Khusus)
                         bool isPremium = false;
@@ -886,70 +884,50 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                                     textToScan.contains('stroller') || 
                                     textToScan.contains('cuci khusus');
 
-                        if (isPremium) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  _buildModernProgress("Diterima", LucideIcons.packageCheck, true, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Diterima")),
-                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci")),
-                                  _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing")),
-                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai")),
-                                ],
-                              ),
-                              if (s == 'DONE') ...[
-                                const SizedBox(height: 20),
-                                const Divider(color: Color(0xFFF3F0E9), thickness: 1),
-                                const SizedBox(height: 12),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => CustomerReviewScreen(order: order),
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(LucideIcons.checkSquare, size: 18),
-                                  label: Text("Selesai Diterima", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF403600),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                ),
-                              ]
-                            ],
-                          );
+                        // LOGIKA AKTIVASI STEP
+                        bool isStep1 = ['SEARCHING', 'WAITING_PICKUP', 'PICKING_UP', 'ARRIVED', 'WEIGHING', 'WASH_START', 'IN_PROGRESS', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
+                        bool isStep2 = ['WEIGHING', 'WASH_START', 'IN_PROGRESS', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s) || (s == 'WAITING_DROPOFF');
+                        bool isStep3 = ['WASH_START', 'IN_PROGRESS', 'IRONING', 'PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
+                        bool isStep4 = ['PACKING', 'DELIVERING', 'DONE', 'PAID'].contains(s);
+                        bool isStep5 = ['DELIVERING', 'DONE', 'PAID'].contains(s);
+                        bool isStep6 = ['DONE', 'PAID'].contains(s);
+
+                        List<Widget> progressWidgets = [];
+
+                        // 1. JEMPUT (Optional)
+                        if (hasPickup) {
+                          progressWidgets.add(Expanded(child: _buildModernProgress("Jemput", LucideIcons.truck, isStep1)));
                         }
+
+                        // 2. TIMBANG / DITERIMA
+                        if (isPremium) {
+                          progressWidgets.add(Expanded(child: _buildModernProgress("Diterima", LucideIcons.packageCheck, isStep2, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Diterima"))));
+                        } else {
+                          progressWidgets.add(Expanded(child: _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Timbang"))));
+                        }
+
+                        // 3. CUCI
+                        progressWidgets.add(Expanded(child: _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci"))));
+
+                        // 4. PACKING
+                        progressWidgets.add(Expanded(child: _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing"))));
+
+                        // 5. KIRIM (Optional)
+                        if (hasDelivery) {
+                          progressWidgets.add(Expanded(child: _buildModernProgress("Kirim", LucideIcons.navigation, isStep5, onTap: () => _showPowDialog(order['proofs'], ['DELIVERING'], "Kirim"))));
+                        }
+
+                        // 6. SELESAI
+                        progressWidgets.add(Expanded(child: _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai"))));
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (isSelfDropPickup)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Timbang")),
-                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci")),
-                                  _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing")),
-                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai")),
-                                ],
-                              )
-                            else
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildModernProgress("Timbang", 'assets/icons/scale.png', isStep2, onTap: () => _showPowDialog(order['proofs'], ['WEIGHING'], "Timbang")),
-                                  _buildModernProgress("Cuci", LucideIcons.droplets, isStep3, onTap: () => _showPowDialog(order['proofs'], ['WASH_START', 'IN_PROGRESS', 'IRONING'], "Cuci")),
-                                  _buildModernProgress("Packing", LucideIcons.package, isStep4, onTap: () => _showPowDialog(order['proofs'], ['PACKING'], "Packing")),
-                                  _buildModernProgress("Kirim", LucideIcons.navigation, isStep5, onTap: () => _showPowDialog(order['proofs'], ['DELIVERING'], "Kirim")),
-                                  _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6),
-                                ],
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: progressWidgets,
+                            ),
                             if (s == 'DONE') ...[
                               const SizedBox(height: 20),
                               const Divider(color: Color(0xFFF3F0E9), thickness: 1),
@@ -994,12 +972,12 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
 
     Widget iconWidget;
     if (icon is IconData) {
-      iconWidget = Icon(icon, size: 18, color: iconColor);
+      iconWidget = Icon(icon, size: 16, color: iconColor);
     } else if (icon is String) {
       iconWidget = Image.asset(
         icon,
-        width: 18,
-        height: 18,
+        width: 16,
+        height: 16,
         color: iconColor,
       );
     } else {
@@ -1009,7 +987,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
     Widget content = Column(
       children: [
         Container(
-          width: 44, height: 44,
+          width: 38, height: 38,
           decoration: BoxDecoration(
             color: isActive ? activeColor : Colors.white,
             shape: BoxShape.circle,
@@ -1018,8 +996,8 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
           ),
           child: Center(child: iconWidget),
         ),
-        const SizedBox(height: 8),
-        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+        const SizedBox(height: 6),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
       ],
     );
 
