@@ -34,20 +34,30 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   static const Color accentGold = Color(0xFFF59E0B);
   static const Color darkBg = Color(0xFF111827);
   
+  final PageController _kiloanController = PageController();
+  final PageController _satuanController = PageController();
+  int _kiloanPage = 0;
+  int _satuanPage = 0;
+  
+  bool _isSwipeForward = true;
+  bool _isEditingKiloan = false;
+  bool _isEditingSatuan = false;
   bool _isInitialLoading = true;
   bool _isSaving = false;
-  String? _currentMitraKey;
 
-  // Dynamic States
-  Map<String, List<Map<String, String>>> _groupedData = {};
-  Map<String, PageController> _pageControllers = {};
-  Map<String, int> _pages = {};
-  Map<String, bool> _editModes = {};
-  Map<String, bool> _swipeForward = {};
-  
+  final TextEditingController _newKiloanSvc = TextEditingController();
+  final TextEditingController _newKiloanReg = TextEditingController();
+  final TextEditingController _newKiloanFast = TextEditingController();
+  final TextEditingController _newSatuanName = TextEditingController();
+  final TextEditingController _newSatuanPrice = TextEditingController();
+
   final Set<String> _selectedForEdit = {};
   final Map<String, TextEditingController> _editControllers = {};
   final Map<String, int> _selectedItems = {};
+
+  late List<Map<String, String>> kiloanData;
+  late List<Map<String, String>> satuanData;
+  String? _currentMitraKey;
 
   @override
   void initState() {
@@ -59,66 +69,60 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    for (var ctrl in _pageControllers.values) {
-      ctrl.dispose();
-    }
-    for (var ctrl in _editControllers.values) {
-      ctrl.dispose();
-    }
-    super.dispose();
-  }
-
   Future<void> _loadPricingFromApi() async {
     setState(() => _isInitialLoading = true);
     try {
       final auth = ref.read(authProvider);
+      // Deteksi MitraId: Prioritas identifier user, fallback ke mitra_id (untuk Admin/Kurir view)
       final mitraId = auth.user?['identifier'] ?? '0000';
-      if (mitraId == null) return;
+      if (mitraId == null) {
+        debugPrint("Error: MitraId tidak ditemukan di AuthProvider");
+        return;
+      }
 
       final api = ApiService();
       final items = await api.getMitraItems(mitraId);
 
+      // FIX: Selalu update data walaupun kosong agar 'hantu' hilang jika dihapus di backend
       setState(() {
-        _groupedData.clear();
-        _pageControllers.clear();
-        _pages.clear();
-        _editModes.clear();
-        _swipeForward.clear();
-
         int parseSafe(dynamic val) {
           if (val == null) return 0;
+          // Genius Fix: Tangani kemungkinan "4000.00" dari database
           String s = val.toString();
           if (s.contains('.')) {
+            // Jika ada titik, kita cek: apakah itu desimal (di akhir) atau ribuan?
+            // Cara paling aman: parse ke double dulu, lalu buang desimalnya
             double? d = double.tryParse(s);
             if (d != null) return d.toInt();
+            
+            // Jika double gagal (mungkin karena ada titik ribuan), buang semua titiknya
             s = s.replaceAll('.', '');
           }
           return int.tryParse(s.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
         }
 
-        for (var i in items) {
-          if (parseSafe(i['price_regular']) >= 10000000) continue;
-          
-          String cat = i['category']?.toString() ?? "Lainnya";
-          
-          if (!_groupedData.containsKey(cat)) {
-            _groupedData[cat] = [];
-            _pageControllers[cat] = PageController();
-            _pages[cat] = 0;
-            _editModes[cat] = false;
-            _swipeForward[cat] = true;
-          }
-          
-          _groupedData[cat]!.add({
-            "id": i['id'].toString(),
-            "svc": i['name']?.toString() ?? "",
-            "reg": i['price_regular']?.toString() ?? "0",
-            "fast": i['price_fast']?.toString() ?? "0",
-            "category": cat,
-          });
-        }
+        // FILTER DIPERBAIKI: Gunakan limit 10 Juta (sama dengan validasi simpan) agar tidak ada item tersembunyi
+        kiloanData = items
+          .where((i) => i['category'] == 'Kiloan' || i['category'] == 'Layanan Kiloan')
+          .where((i) => parseSafe(i['price_regular']) < 10000000)
+          .map<Map<String, String>>((i) => {
+          "id": i['id'].toString(),
+          "svc": i['name']?.toString() ?? "",
+          "reg": i['price_regular']?.toString() ?? "0",
+          "fast": i['price_fast']?.toString() ?? "0",
+          "category": i['category']?.toString() ?? "Layanan Kiloan",
+        }).toList();
+
+        satuanData = items
+          .where((i) => i['category'] != 'Kiloan' && i['category'] != 'Layanan Kiloan')
+          .where((i) => parseSafe(i['price_regular']) < 10000000)
+          .map<Map<String, String>>((i) => {
+          "id": i['id'].toString(),
+          "name": i['name']?.toString() ?? "",
+          "price": i['price_regular']?.toString() ?? "0",
+          "category": i['category']?.toString() ?? "Pakaian Satuan",
+        }).toList();
+        
       });
     } catch (e) {
       debugPrint("Gagal mengambil data dari API: $e");
@@ -130,29 +134,37 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   void _initializeData(String mitraKey) {
     if (_currentMitraKey == mitraKey) return; 
     _currentMitraKey = mitraKey;
-    _groupedData.clear();
+    
+    // JANGAN PAKAI DUMMY (Hantu)! Inisialisasi kosong dan ambil langsung dari Database
+    kiloanData = [];
+    satuanData = [];
     _isInitialLoading = true;
+    
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadPricingFromApi());
   }
 
-  bool _isKiloanCategory(String cat) {
-    return cat.toLowerCase().contains("kiloan");
-  }
+  // _formatPrice LOKAL DIHAPUS - SEKARANG PAKE Formatters.formatPrice UNTUK DISPLAY TAPI RAW UNTUK EDIT
 
   Future<void> _syncPricingToBackend() async {
     setState(() => _isSaving = true);
     try {
       final auth = ref.read(authProvider);
       final mitraId = auth.user?['identifier']; 
-      if (mitraId == null) throw "ID Mitra tidak ditemukan.";
+      if (mitraId == null) {
+        throw "ID Mitra (Identifier) tidak ditemukan. Pastikan Anda sudah Login dengan benar.";
+      }
 
       final api = ApiService();
-      const maxPrice = 10000000;
+      // VALIDASI CERDAS: Cek apakah ada harga yang tidak masuk akal (Terlalu Mahal)
+      const maxPrice = 10000000; // Batas 10 Juta
       bool tooExpensive = false;
 
+      // Fungsi pembantu untuk membersihkan string dari karakter non-angka
       int cleanParse(dynamic val) {
         if (val == null) return 0;
         String s = val.toString();
+        // Jika input dari UI (biasanya ada titik ribuan), buang titiknya
+        // Tapi jika ada desimal ".00" dari DB, kita handle secara double
         if (s.contains('.')) {
           double? d = double.tryParse(s);
           if (d != null) return d.toInt();
@@ -161,32 +173,48 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         return int.tryParse(s.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
       }
 
-      List<Map<String, dynamic>> payload = [];
-
-      for (var cat in _groupedData.keys) {
-        for (var item in _groupedData[cat]!) {
-          int reg = cleanParse(item['reg']);
-          int fast = cleanParse(item['fast']);
-          
-          if (reg > maxPrice || fast > maxPrice) {
+      for (var item in kiloanData) {
+        if (cleanParse(item['reg']) > maxPrice || cleanParse(item['fast']) > maxPrice) {
+          tooExpensive = true;
+          break;
+        }
+      }
+      
+      if (!tooExpensive) {
+        for (var item in satuanData) {
+          if (cleanParse(item['price']) > maxPrice) {
             tooExpensive = true;
             break;
           }
-          
-          payload.add({
-            "id": item['id'],
-            "name": item['svc'],
-            "price_regular": reg,
-            "price_fast": fast,
-            "category": item['category'] ?? cat
-          });
         }
-        if (tooExpensive) break;
       }
 
       if (tooExpensive) {
-        if (mounted) NyutjiNotif.showError(context, "Harga Terlalu Mahal! Maksimal Rp 10.000.000");
+        if (mounted) {
+          NyutjiNotif.showError(context, "Harga Terlalu Mahal! Maksimal Rp 10.000.000");
+        }
         return;
+      }
+
+      List<Map<String, dynamic>> payload = [];
+      
+      for (var item in kiloanData) {
+        payload.add({
+          "id": item['id'],
+          "name": item['svc'],
+          "price_regular": cleanParse(item['reg']).toInt(),
+          "price_fast": cleanParse(item['fast']).toInt(),
+          "category": item['category'] ?? "Layanan Kiloan"
+        });
+      }
+      
+      for (var item in satuanData) {
+        payload.add({
+          "id": item['id'],
+          "name": item['name'],
+          "price_regular": cleanParse(item['price']).toInt(),
+          "category": item['category'] ?? "Pakaian Satuan"
+        });
       }
 
       await api.updateMitraPricing(mitraId, payload);
@@ -198,32 +226,89 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     }
   }
 
-  void _saveCategory(String category) async {
+  void _saveKiloan() async {
     setState(() {
+      if (_newKiloanSvc.text.isNotEmpty) {
+        kiloanData.insert(0, {
+          "id": DateTime.now().millisecondsSinceEpoch.toString(),
+          "svc": _newKiloanSvc.text,
+          "reg": _newKiloanReg.text.replaceAll(RegExp(r'[^0-9]'), ""),
+          "fast": _newKiloanFast.text.replaceAll(RegExp(r'[^0-9]'), ""),
+          "category": "Layanan Kiloan",
+        });
+        _newKiloanSvc.clear();
+        _newKiloanReg.clear();
+        _newKiloanFast.clear();
+      }
+      
       List<String> idsToRemove = [];
-      for (int index = 0; index < _groupedData[category]!.length; index++) {
-        final item = _groupedData[category]![index];
-        final id = item['id']!;
+      for (int index = 0; index < kiloanData.length; index++) {
+        final String id = kiloanData[index]['id']!;
         if (!_selectedForEdit.contains(id)) continue;
 
         final ctrlName = _editControllers["$id-1"];
         final ctrlReg = _editControllers["$id-2"];
         final ctrlFast = _editControllers["$id-3"];
 
-        if (ctrlName != null && ctrlName.text.isEmpty) {
-          idsToRemove.add(id);
-        } else {
-          item['svc'] = ctrlName?.text ?? item['svc']!;
-          if (ctrlReg != null) item['reg'] = ctrlReg.text.replaceAll(RegExp(r'[^0-9]'), "");
-          if (ctrlFast != null) item['fast'] = ctrlFast.text.replaceAll(RegExp(r'[^0-9]'), "");
+        if (ctrlName != null) {
+          if (ctrlName.text.trim().isEmpty) {
+            idsToRemove.add(id);
+          } else {
+            kiloanData[index]['svc'] = ctrlName.text;
+            if (ctrlReg != null) kiloanData[index]['reg'] = ctrlReg.text.replaceAll(RegExp(r'[^0-9]'), "");
+            if (ctrlFast != null) kiloanData[index]['fast'] = ctrlFast.text.replaceAll(RegExp(r'[^0-9]'), "");
+          }
+        }
+      }
+      
+      for (var id in idsToRemove) {
+        kiloanData.removeWhere((item) => item['id'] == id);
+      }
+      
+      _isEditingKiloan = false;
+      _selectedForEdit.clear();
+      _editControllers.forEach((k, v) => v.dispose());
+      _editControllers.clear();
+    });
+    await _syncPricingToBackend();
+  }
+
+  void _saveSatuan() async {
+    setState(() {
+      if (_newSatuanName.text.isNotEmpty) {
+        satuanData.insert(0, {
+          "id": DateTime.now().millisecondsSinceEpoch.toString(),
+          "name": _newSatuanName.text,
+          "price": _newSatuanPrice.text.replaceAll(RegExp(r'[^0-9.]'), ""),
+          "category": "Pakaian Satuan",
+        });
+        _newSatuanName.clear();
+        _newSatuanPrice.clear();
+      }
+
+      List<String> idsToRemove = [];
+      for (int index = 0; index < satuanData.length; index++) {
+        final String id = satuanData[index]['id']!;
+        if (!_selectedForEdit.contains(id)) continue;
+
+        final ctrlName = _editControllers["$id-1"];
+        final ctrlPrice = _editControllers["$id-2"];
+
+        if (ctrlName != null) {
+          if (ctrlName.text.trim().isEmpty) {
+            idsToRemove.add(id);
+          } else {
+            satuanData[index]['name'] = ctrlName.text;
+            if (ctrlPrice != null) satuanData[index]['price'] = ctrlPrice.text.replaceAll(RegExp(r'[^0-9]'), "");
+          }
         }
       }
 
       for (var id in idsToRemove) {
-        _groupedData[category]!.removeWhere((item) => item['id'] == id);
+        satuanData.removeWhere((item) => item['id'] == id);
       }
 
-      _editModes[category] = false;
+      _isEditingSatuan = false;
       _selectedForEdit.clear();
       _editControllers.forEach((k, v) => v.dispose());
       _editControllers.clear();
@@ -268,23 +353,61 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
               else
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ..._groupedData.keys.where((k) => _groupedData[k]!.isNotEmpty || _editModes[k] == true).map((category) {
-                          return _buildCategorySection(category);
-                        }),
-                        const SizedBox(height: 32),
-                        _buildActionButtons(),
-                        if (widget.isSelectionMode) _buildSelectionConfirmButton(),
-                        const SizedBox(height: 40),
-                      ],
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader("Laundry Kiloan", LucideIcons.layers, isEditing: _isEditingKiloan, 
+                            onEdit: () {
+                              setState(() => _isEditingKiloan = true);
+                            },
+                            onSave: () {
+                              _saveKiloan();
+                            },
+                            onCancel: () {
+                              setState(() {
+                                _isEditingKiloan = false;
+                                _selectedForEdit.clear();
+                              });
+                            }
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTableWrapper(_kiloanController, _kiloanPage, (idx) {
+                            setState(() => _kiloanPage = idx);
+                          }, kiloanData, true),
+                          _buildPageIndicator(_kiloanPage, (kiloanData.length / (_isEditingKiloan ? 4 : 5)).ceil()),
+                          const SizedBox(height: 24),
+                          
+                          _buildSectionHeader("Laundry Satuan", LucideIcons.shirt, hasSearch: true, isEditing: _isEditingSatuan, 
+                            onEdit: () {
+                              setState(() => _isEditingSatuan = true);
+                            },
+                            onSave: () {
+                              _saveSatuan();
+                            },
+                            onCancel: () {
+                              setState(() {
+                                _isEditingSatuan = false;
+                                _selectedForEdit.clear();
+                              });
+                            }
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTableWrapper(_satuanController, _satuanPage, (idx) {
+                            setState(() => _satuanPage = idx);
+                          }, satuanData, false),
+                          _buildPageIndicator(_satuanPage, (satuanData.length / (_isEditingSatuan ? 4 : 5)).ceil()),
+                          const SizedBox(height: 32),
+                          
+                          _buildActionButtons(),
+                          if (widget.isSelectionMode) _buildSelectionConfirmButton(),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
                     ),
-                  ),
-                )
-            ],
-          ),
+                  )
+                ],
+              ),
         ),
         if (_isSaving)
           Container(
@@ -293,43 +416,6 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
               child: CircularProgressIndicator(color: primaryTeal),
             ),
           ),
-      ],
-    );
-  }
-
-  Widget _buildCategorySection(String category) {
-    bool isKiloan = _isKiloanCategory(category);
-    bool isEditing = _editModes[category] ?? false;
-    List<Map<String, String>> data = _groupedData[category] ?? [];
-    int currentPage = _pages[category] ?? 0;
-    PageController controller = _pageControllers[category] ?? PageController();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(
-          category, 
-          isKiloan ? LucideIcons.layers : LucideIcons.shirt, 
-          isEditing: isEditing, 
-          onEdit: () {
-            setState(() => _editModes[category] = true);
-          },
-          onSave: () {
-            _saveCategory(category);
-          },
-          onCancel: () {
-            setState(() {
-              _editModes[category] = false;
-              _selectedForEdit.clear();
-            });
-          }
-        ),
-        const SizedBox(height: 12),
-        _buildTableWrapper(category, controller, currentPage, (idx) {
-          setState(() => _pages[category] = idx);
-        }, data, isKiloan),
-        _buildPageIndicator(currentPage, (data.length / (isEditing ? 4 : 5)).ceil()),
-        const SizedBox(height: 24),
       ],
     );
   }
@@ -382,7 +468,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon, {bool isEditing = false, VoidCallback? onEdit, VoidCallback? onSave, VoidCallback? onCancel}) {
+  Widget _buildSectionHeader(String title, IconData icon, {bool hasSearch = false, bool isEditing = false, VoidCallback? onEdit, VoidCallback? onSave, VoidCallback? onCancel}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -391,6 +477,23 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
             Icon(icon, size: 18, color: primaryTeal),
             const SizedBox(width: 8),
             Text(title, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkBg)),
+            if (title == "Laundry Satuan") ...[
+              const SizedBox(width: 6),
+              Tooltip(
+                message: "Untuk jenis Laundry per Meter atau per M2, bisa ditulis untuk Jenis Service. Contoh: Gordyn per Meter",
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: darkBg, borderRadius: BorderRadius.circular(8)),
+                textStyle: GoogleFonts.montserrat(fontSize: 10, color: Colors.white),
+                showDuration: const Duration(seconds: 4),
+                triggerMode: TooltipTriggerMode.tap,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.grey[400]!)),
+                  child: Icon(LucideIcons.info, size: 14, color: Colors.grey[600]),
+                ),
+              )
+            ]
           ],
         ),
         if (!widget.isReadOnly)
@@ -437,8 +540,8 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
-  Widget _buildTableWrapper(String category, PageController controller, int currentPage, Function(int) onPageChanged, List<Map<String, String>> data, bool isKiloan) {
-    bool editing = _editModes[category] ?? false;
+  Widget _buildTableWrapper(PageController controller, int currentPage, Function(int) onPageChanged, List<Map<String, String>> data, bool isKiloan) {
+    bool editing = isKiloan ? _isEditingKiloan : _isEditingSatuan;
     int itemsPerPage = editing ? 4 : 5;
     int totalPages = (data.length / itemsPerPage).ceil();
     if (totalPages == 0) totalPages = 1;
@@ -452,12 +555,12 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! < 0) {
           if (currentPage < totalPages - 1) {
-            setState(() => _swipeForward[category] = true);
+            setState(() => _isSwipeForward = true);
             onPageChanged(currentPage + 1);
           }
         } else if (details.primaryVelocity! > 0) {
           if (currentPage > 0) {
-            setState(() => _swipeForward[category] = false);
+            setState(() => _isSwipeForward = false);
             onPageChanged(currentPage - 1);
           }
         }
@@ -477,15 +580,17 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Regular", "Fast Track"] : ["", "Service", "Harga"], editing),
+              
+              // ANIMATED SWITCHER FOR SMOOTH SWIPE
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 350),
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeInCubic,
                 transitionBuilder: (Widget child, Animation<double> animation) {
-                  bool isFwd = _swipeForward[category] ?? true;
-                  final offset = isFwd 
+                  final offset = _isSwipeForward 
                     ? (child.key == ValueKey(currentPage) ? const Offset(0.2, 0) : const Offset(-0.2, 0))
                     : (child.key == ValueKey(currentPage) ? const Offset(-0.2, 0) : const Offset(0.2, 0));
+                    
                   return FadeTransition(
                     opacity: animation,
                     child: SlideTransition(
@@ -500,9 +605,11 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
                   children: [
                     ...pageData.map((item) {
                       String id = item['id']?.toString() ?? "";
-                      return _buildDynamicRow(category, id, item, editing, isKiloan);
+                      return isKiloan 
+                        ? _buildKiloanRow(id, item, editing)
+                        : _buildSatuanRow(id, item, editing);
                     }),
-                    if (editing) _buildAddRowButton(category, isKiloan, currentPage, totalPages, onPageChanged),
+                    if (editing) _buildAddRowButton(isKiloan, currentPage, totalPages, onPageChanged),
                   ],
                 ),
               ),
@@ -514,7 +621,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
-  Widget _buildAddRowButton(String category, bool isKiloan, int currentPage, int totalPages, Function(int) onPageChanged) {
+  Widget _buildAddRowButton(bool isKiloan, int currentPage, int totalPages, Function(int) onPageChanged) {
     return Container(
       decoration: BoxDecoration(
         color: primaryTeal.withValues(alpha: 0.05),
@@ -522,31 +629,29 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
       ),
       child: Row(
         children: [
+          // Tombol Paginasi Kiri
           if (totalPages > 1)
             IconButton(
               icon: const Icon(LucideIcons.chevronLeft, size: 20),
               color: currentPage > 0 ? primaryTeal : Colors.grey[400],
               onPressed: currentPage > 0 ? () {
-                setState(() => _swipeForward[category] = false);
+                setState(() => _isSwipeForward = false);
                 onPageChanged(currentPage - 1);
               } : null,
             )
           else
-            const SizedBox(width: 48),
+            const SizedBox(width: 48), // Spacer jika tidak ada paginasi agar tetap seimbang
 
           Expanded(
             child: InkWell(
               onTap: () {
                 setState(() {
                   final newId = DateTime.now().millisecondsSinceEpoch.toString();
-                  if (_groupedData[category] == null) _groupedData[category] = [];
-                  _groupedData[category]!.add({
-                    "id": newId, 
-                    "svc": "", 
-                    "reg": "", 
-                    "fast": "", 
-                    "category": category
-                  });
+                  if (isKiloan) {
+                    kiloanData.add({"id": newId, "svc": "", "reg": "", "fast": "", "category": "Layanan Kiloan"});
+                  } else {
+                    satuanData.add({"id": newId, "name": "", "price": "", "category": "Pakaian Satuan"});
+                  }
                   _selectedForEdit.add(newId);
                 });
               },
@@ -558,7 +663,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
                     const Icon(LucideIcons.plusCircle, size: 16, color: primaryTeal),
                     const SizedBox(width: 8),
                     Text(
-                      "Tambah Baru",
+                      isKiloan ? "Tambah Layanan Baru" : "Tambah Barang Baru",
                       style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
                     ),
                   ],
@@ -567,17 +672,18 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
             ),
           ),
 
+          // Tombol Paginasi Kanan
           if (totalPages > 1)
             IconButton(
               icon: const Icon(LucideIcons.chevronRight, size: 20),
               color: currentPage < totalPages - 1 ? primaryTeal : Colors.grey[400],
               onPressed: currentPage < totalPages - 1 ? () {
-                setState(() => _swipeForward[category] = true);
+                setState(() => _isSwipeForward = true);
                 onPageChanged(currentPage + 1);
               } : null,
             )
           else
-            const SizedBox(width: 48),
+            const SizedBox(width: 48), // Spacer
         ],
       ),
     );
@@ -592,7 +698,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           bool isCheck = t == "";
           if (isCheck && !widget.isSelectionMode && !editing) return const SizedBox.shrink();
           return Expanded(
-            flex: isCheck ? 0 : (t == "Service" ? 2 : 1),
+            flex: isCheck ? 0 : (t == "Service" || t == "Service" ? 2 : 1),
             child: SizedBox(
               width: isCheck ? 30 : null,
               child: Text(
@@ -614,6 +720,9 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         controller: ctrl,
         textAlign: isCenter ? TextAlign.center : TextAlign.left,
         autofocus: isAuto,
+        onChanged: (v) {
+          // FORMAT OTOMATIS SAAT NGETIK DIHAPUS BIAR GAK BUG
+        },
         keyboardType: isCenter ? TextInputType.number : TextInputType.text,
         style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold),
         decoration: InputDecoration(
@@ -630,13 +739,15 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   TextEditingController _getEditController(String id, int subId, String initialText) {
     String key = "$id-$subId";
     if (!_editControllers.containsKey(key)) {
+      // JANGAN DI-FORMAT PAS EDIT (BIAR RAW ANGKA SAJA)
+      // subId 1 adalah NAMA, subId > 1 adalah HARGA
       String text = (subId > 1) ? initialText.replaceAll(RegExp(r'[^0-9]'), '') : initialText;
       _editControllers[key] = TextEditingController(text: text);
     }
     return _editControllers[key]!;
   }
 
-  Widget _buildDynamicRow(String category, String id, Map<String, String> item, bool editing, bool isKiloan) {
+  Widget _buildKiloanRow(String id, Map<String, String> item, bool editing) {
     bool isSelected = (_selectedItems[id] ?? 0) > 0;
     bool isBeingEdited = _selectedForEdit.contains(id);
     bool canDelete = editing && !isBeingEdited;
@@ -655,8 +766,11 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
                 onChanged: (v) {
                   setState(() {
                     if (editing) {
-                      if (v!) _selectedForEdit.add(id);
-                      else _selectedForEdit.remove(id);
+                      if (v!) {
+                        _selectedForEdit.add(id);
+                      } else {
+                        _selectedForEdit.remove(id);
+                      }
                     } else {
                       _selectedItems[id] = v! ? 1 : 0;
                     }
@@ -671,13 +785,11 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           const SizedBox(width: 4),
           Expanded(child: isBeingEdited 
             ? _buildSmallField(_getEditController(id, 2, item['reg']!), "", isCenter: true)
-            : Text("Rp ${Formatters.formatPrice(item['reg']!)}", textAlign: isKiloan ? TextAlign.center : TextAlign.left, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: isKiloan ? 11 : 12, fontWeight: FontWeight.w800, color: primaryTeal))),
-          if (isKiloan) ...[
-            const SizedBox(width: 4),
-            Expanded(child: isBeingEdited
-              ? _buildSmallField(_getEditController(id, 3, item['fast']!), "", isCenter: true)
-              : Text("Rp ${Formatters.formatPrice(item['fast']!)}", textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: accentGold))),
-          ]
+            : Text("Rp ${Formatters.formatPrice(item['reg']!)}", textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: primaryTeal))),
+          const SizedBox(width: 4),
+          Expanded(child: isBeingEdited
+            ? _buildSmallField(_getEditController(id, 3, item['fast']!), "", isCenter: true)
+            : Text("Rp ${Formatters.formatPrice(item['fast']!)}", textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: accentGold))),
         ],
       ),
     );
@@ -685,11 +797,11 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     if (!canDelete) return rowContent;
 
     return Dismissible(
-      key: ValueKey("row-$id"),
+      key: ValueKey("kiloan-$id"),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
         setState(() {
-          _groupedData[category]!.removeWhere((element) => element['id'] == id);
+          kiloanData.removeWhere((element) => element['id'] == id);
           _selectedForEdit.remove(id);
           _selectedItems.remove(id);
         });
@@ -701,7 +813,87 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Dihapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+            Text("Daftar Harga Dihapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+            const SizedBox(width: 8),
+            const Icon(LucideIcons.trash2, color: Colors.white),
+          ],
+        ),
+      ),
+      child: rowContent,
+    );
+  }
+
+  Widget _buildSatuanRow(String id, Map<String, String> item, bool editing) {
+    bool isSelected = (_selectedItems[id] ?? 0) > 0;
+    bool isBeingEdited = _selectedForEdit.contains(id);
+    bool canDelete = editing && !isBeingEdited;
+
+    Widget rowContent = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
+      child: Row(
+        children: [
+          if (widget.isSelectionMode || editing)
+            SizedBox(
+              width: 30,
+              child: Checkbox(
+                value: editing ? isBeingEdited : isSelected,
+                activeColor: primaryTeal,
+                onChanged: (v) {
+                  setState(() {
+                    if (editing) {
+                      if (v!) {
+                        _selectedForEdit.add(id);
+                      } else {
+                        _selectedForEdit.remove(id);
+                      }
+                    } else {
+                      _selectedItems[id] = v! ? 1 : 0;
+                    }
+                  });
+                },
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
+            ),
+          Expanded(flex: 2, child: isBeingEdited
+            ? _buildSmallField(_getEditController(id, 1, item['name']!), "", isAuto: true)
+            : Text(item['name']!, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: darkBg))),
+          const SizedBox(width: 8),
+          Expanded(
+            child: isBeingEdited
+            ? _buildSmallField(_getEditController(id, 2, item['price']!), "", isCenter: true)
+            : Text(
+                "Rp ${Formatters.formatPrice(item['price']!)}", 
+                textAlign: TextAlign.left,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: primaryTeal)
+              )
+          ),
+        ],
+      ),
+    );
+
+    if (!canDelete) return rowContent;
+
+    return Dismissible(
+      key: ValueKey("satuan-$id"),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        setState(() {
+          satuanData.removeWhere((element) => element['id'] == id);
+          _selectedForEdit.remove(id);
+          _selectedItems.remove(id);
+        });
+      },
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Daftar Harga Dihapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
             const SizedBox(width: 8),
             const Icon(LucideIcons.trash2, color: Colors.white),
           ],
@@ -761,6 +953,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
       ),
     );
   }
+
 
   Widget _buildSelectionConfirmButton() {
     int total = _selectedItems.values.where((v) => v > 0).length;
