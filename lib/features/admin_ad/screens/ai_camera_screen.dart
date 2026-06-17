@@ -7,7 +7,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:dio/dio.dart';
 import '../../../core/network/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
-import '../../../core/constants/colors.dart'; // Sesuaikan jika ada, kita asumsikan primaryColor ada
 
 const Color primaryColor = Color(0xFF00B4D8);
 
@@ -57,7 +56,7 @@ class _AiCameraScreenState extends ConsumerState<AiCameraScreen> {
 
       // Menggunakan Base URL FastAPI yang sementara kita mock di localhost port 8001
       // Idealnya ini ditaruh di api_constants, tapi karena tahap awal kita hardcode sementara
-      final String aiEndpoint = "http://10.0.2.2:8001/api/ai/detect";
+      const String aiEndpoint = "http://10.0.2.2:8001/api/ai/detect";
 
       final response = await dio.post(
         aiEndpoint, 
@@ -70,6 +69,8 @@ class _AiCameraScreenState extends ConsumerState<AiCameraScreen> {
           }
         ),
       );
+
+      if (!mounted) return;
 
       // Check jika request masuk offline queue (intercepted)
       if (response.data is Map && response.data['queued'] == true) {
@@ -125,7 +126,7 @@ class _AiCameraScreenState extends ConsumerState<AiCameraScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     )
@@ -158,7 +159,7 @@ class _AiCameraScreenState extends ConsumerState<AiCameraScreen> {
                       // Overlay Processing
                       if (_isProcessing)
                         Container(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -187,14 +188,14 @@ class _AiCameraScreenState extends ConsumerState<AiCameraScreen> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                    colors: [primaryColor, primaryColor.withValues(alpha: 0.8)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryColor.withOpacity(0.3),
+                      color: primaryColor.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     )
