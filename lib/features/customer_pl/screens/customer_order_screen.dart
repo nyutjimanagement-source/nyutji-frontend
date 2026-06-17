@@ -102,51 +102,34 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   void _showImageSourceSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text("Unggah Foto", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF403600)), textAlign: TextAlign.center),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.camera);
-              },
-              icon: const Icon(LucideIcons.camera, color: Colors.white),
-              label: Text("Ambil Foto Pakaian", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFDAC66F),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        final bottomPadding = MediaQuery.of(ctx).padding.bottom;
+        return Container(
+          padding: EdgeInsets.only(bottom: bottomPadding > 0 ? bottomPadding : 16),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(LucideIcons.camera, color: Color(0xFF403600)),
+                title: Text("Ambil Foto Pakaian", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.black)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.camera);
+                },
               ),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.gallery);
-              },
-              icon: const Icon(LucideIcons.image, color: Color(0xFF403600)),
-              label: Text("Pilih dari Galeri", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF403600))),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: Color(0xFFDAC66F), width: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ListTile(
+                leading: const Icon(LucideIcons.image, color: Color(0xFF403600)),
+                title: Text("Pilih dari Galeri", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.black)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.gallery);
+                },
               ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1310,7 +1293,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               onTap: _showImageSourceSheet,
               child: Text(
                 "Unggah Foto", 
-                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFFDAC66F), decoration: TextDecoration.underline, decorationColor: const Color(0xFFDAC66F)),
+                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF403600), decoration: TextDecoration.underline, decorationColor: const Color(0xFF403600)),
               ),
             ),
           ),
