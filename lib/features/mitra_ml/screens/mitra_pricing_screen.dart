@@ -39,11 +39,11 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   String? _currentMitraKey;
 
   // Dynamic States
-  Map<String, List<Map<String, String>>> _groupedData = {};
-  Map<String, PageController> _pageControllers = {};
-  Map<String, int> _pages = {};
-  Map<String, bool> _editModes = {};
-  Map<String, bool> _swipeForward = {};
+  final Map<String, List<Map<String, String>>> _groupedData = {};
+  final Map<String, PageController> _pageControllers = {};
+  final Map<String, int> _pages = {};
+  final Map<String, bool> _editModes = {};
+  final Map<String, bool> _swipeForward = {};
   
   final Set<String> _selectedForEdit = {};
   final Map<String, TextEditingController> _editControllers = {};
@@ -655,8 +655,11 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
                 onChanged: (v) {
                   setState(() {
                     if (editing) {
-                      if (v!) _selectedForEdit.add(id);
-                      else _selectedForEdit.remove(id);
+                      if (v!) {
+                        _selectedForEdit.add(id);
+                      } else {
+                        _selectedForEdit.remove(id);
+                      }
                     } else {
                       _selectedItems[id] = v! ? 1 : 0;
                     }
