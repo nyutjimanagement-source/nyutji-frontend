@@ -1390,17 +1390,7 @@ final orderProv = ref.watch(orderProvider);
               onTap: steps[stepIndex]["onTap"],
             );
           } else {
-            int prevStepIndex = (index - 1) ~/ 2;
-            bool isLineActive = steps[prevStepIndex]["active"] && steps[prevStepIndex + 1]["active"];
-            return Expanded(
-              child: Container(
-                height: 2,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: isLineActive ? primaryTeal : const Color(0xFFE5E7EB),
-                ),
-              ),
-            );
+            return const Expanded(child: SizedBox());
           }
         }),
       ),
