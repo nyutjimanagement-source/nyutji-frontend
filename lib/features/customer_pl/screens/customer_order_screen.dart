@@ -94,6 +94,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       NyutjiNotif.showError(context, "Gagal mengambil foto: $e");
     }
   }
