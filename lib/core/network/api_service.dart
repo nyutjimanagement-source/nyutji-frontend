@@ -8,8 +8,8 @@ class ApiService {
 
   ApiService() : dio = Dio() {
     dio.options.baseUrl = ApiConstants.baseUrl;
-    dio.options.connectTimeout = const Duration(seconds: 15);
-    dio.options.receiveTimeout = const Duration(seconds: 15);
+    dio.options.connectTimeout = const Duration(seconds: 60);
+    dio.options.receiveTimeout = const Duration(seconds: 60);
     
     // Interceptor untuk Log (Membantu Debugging)
     dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));
