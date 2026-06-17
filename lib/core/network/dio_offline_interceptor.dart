@@ -18,22 +18,11 @@ class DioOfflineInterceptor extends Interceptor {
       final isSkipPath = skipQueuePaths.any((path) => options.path.contains(path));
       
       if (options.method.toUpperCase() != 'GET' && !isSkipPath) {
-        
-        // Logika Genius: Ekstrak data multipart menjadi JSON yang dapat diserialisasi oleh Hive
-        dynamic serializableData = options.data;
-        if (options.extra['is_multipart'] == true) {
-          serializableData = {
-            'is_multipart': true,
-            'file_path': options.extra['file_path'],
-            'file_field': options.extra['file_field'],
-          };
-        }
-
         // Simpan ke offline queue
         await OfflineQueueDB.addRequest({
           'path': options.path,
           'method': options.method,
-          'data': serializableData,
+          'data': options.data,
           'headers': options.headers,
           'timestamp': DateTime.now().toIso8601String(),
         });
