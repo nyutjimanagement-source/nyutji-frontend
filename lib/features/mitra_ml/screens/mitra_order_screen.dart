@@ -1573,8 +1573,6 @@ final auth = ref.watch(authProvider);
                 children: [
                   Row(
                     children: [
-                      const Icon(LucideIcons.camera, size: 18, color: primaryTeal),
-                      const SizedBox(width: 8),
                       Text("Foto Progress Nyutji", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
                       const Spacer(),
                       if (powImage != null)
@@ -1653,6 +1651,15 @@ final auth = ref.watch(authProvider);
                       'DELIVERING': 'Pengiriman',
                       'DONE': 'Selesai',
                     };
+                    final Map<String, IconData> statusIcons = {
+                      'WAITING_DROPOFF': LucideIcons.clock,
+                      'WEIGHING': LucideIcons.clipboardList,
+                      'WASH_START': LucideIcons.playCircle,
+                      'IRONING': LucideIcons.wind,
+                      'PACKING': LucideIcons.package,
+                      'DELIVERING': LucideIcons.truck,
+                      'DONE': LucideIcons.checkCircle2,
+                    };
                     String label = statusLabels[s] ?? s.replaceAll('_', ' ');
 
                     return InkWell(
@@ -1682,16 +1689,31 @@ final auth = ref.watch(authProvider);
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        alignment: Alignment.center,
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
                           color: isCurrent ? primaryTeal : Colors.grey[100],
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: isCurrent ? primaryTeal : Colors.grey[300]!),
                         ),
-                        child: Text(
-                          label,
-                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : darkText),
-                          textAlign: TextAlign.center,
+                        child: Row(
+                          children: [
+                            Icon(
+                              statusIcons[s] ?? LucideIcons.circle,
+                              size: 16,
+                              color: isCurrent ? Colors.white : darkText,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                label,
+                                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : darkText),
+                                textAlign: TextAlign.left,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
