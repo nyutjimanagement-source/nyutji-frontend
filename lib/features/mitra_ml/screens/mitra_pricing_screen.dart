@@ -385,14 +385,25 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   Widget _buildSectionHeader(String title, IconData icon, {bool isEditing = false, VoidCallback? onEdit, VoidCallback? onSave, VoidCallback? onCancel}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, size: 18, color: primaryTeal),
-            const SizedBox(width: 8),
-            Text(title, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkBg)),
-          ],
+        Expanded(
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: primaryTeal),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title, 
+                  maxLines: 2, 
+                  overflow: TextOverflow.ellipsis, 
+                  style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkBg)
+                ),
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 12),
         if (!widget.isReadOnly)
           isEditing
               ? Row(
