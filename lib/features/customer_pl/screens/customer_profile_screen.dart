@@ -4,6 +4,8 @@ import '../../../core/theme/nyutji_theme.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/order_provider.dart';
+import '../../../providers/wallet_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -99,6 +101,8 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             ]),
             _buildSettingsGroup([
               _settingRow(LucideIcons.logOut, currentT['logout'], isDanger: true, onTap: () async {
+                ref.invalidate(orderProvider);
+                ref.invalidate(walletProvider);
                 await auth.logout();
                 if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
               }),

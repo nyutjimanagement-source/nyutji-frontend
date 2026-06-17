@@ -226,6 +226,8 @@ final auth = ref.watch(authProvider);
 return GestureDetector(
                     onTap: () async {
                       try {
+                        ref.invalidate(orderProvider);
+                        ref.invalidate(walletProvider);
                         await auth.logout();
                         if (!context.mounted) return;
                         Navigator.pushReplacementNamed(context, '/login');

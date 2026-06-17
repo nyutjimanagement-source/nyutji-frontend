@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/order_provider.dart';
+import '../../../providers/wallet_provider.dart';
 
 class CourierProfileScreen extends ConsumerWidget {
   const CourierProfileScreen({super.key});
@@ -141,6 +143,8 @@ class CourierProfileScreen extends ConsumerWidget {
           const Divider(height: 1),
           ListTile(
             onTap: () async {
+              ref.invalidate(orderProvider);
+              ref.invalidate(walletProvider);
               await auth.logout();
               if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
             },
