@@ -53,7 +53,7 @@ class ApiService {
           if (retryCount < 2) { // Kurangi retry count agar tidak terlalu lama freeze
             e.requestOptions.extra['retry_count'] = retryCount + 1;
             try {
-              await Future.delayed(Duration(seconds: 1)); // Delay konstan 1 detik
+              await Future.delayed(const Duration(seconds: 1)); // Delay konstan 1 detik
               // Gunakan _dio yang sama (agar timeout tetap berlaku, bukan Dio kosongan)
               final response = await _dio.fetch(e.requestOptions);
               return handler.resolve(response);
