@@ -1575,7 +1575,7 @@ final auth = ref.watch(authProvider);
                     children: [
                       const Icon(LucideIcons.camera, size: 18, color: primaryTeal),
                       const SizedBox(width: 8),
-                      Text("Foto Bukti Kerja (POW)", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+                      Text("Foto Progress Nyutji", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
                       const Spacer(),
                       if (powImage != null)
                         const Icon(LucideIcons.checkCircle2, color: Color(0xFF10B981), size: 18),
@@ -1631,17 +1631,34 @@ final auth = ref.watch(authProvider);
             const SizedBox(height: 12),
             isUploading 
               ? const Center(child: CircularProgressIndicator())
-              : Wrap(
-                  spacing: 10, runSpacing: 10,
-                  children: stages.map((s) {
+              : GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 3.5,
+                  ),
+                  itemCount: stages.length,
+                  itemBuilder: (context, index) {
+                    final s = stages[index];
                     bool isCurrent = s == currentStatus;
-                    return ActionChip(
-                      label: Text(s.replaceAll('_', ' ')),
-                      backgroundColor: isCurrent ? primaryTeal : Colors.grey[100],
-                      labelStyle: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : textGrey),
-                      onPressed: () async {
+                    final Map<String, String> statusLabels = {
+                      'WAITING_DROPOFF': 'Menunggu Drop Off',
+                      'WEIGHING': 'Penimbangan',
+                      'WASH_START': 'Proses Cuci',
+                      'IRONING': 'Proses Setrika',
+                      'PACKING': 'Packing',
+                      'DELIVERING': 'Pengiriman',
+                      'DONE': 'Selesai',
+                    };
+                    String label = statusLabels[s] ?? s.replaceAll('_', ' ');
+
+                    return InkWell(
+                      onTap: () async {
                         if (powImage == null) {
-                          _showNotif("Wajib ambil foto bukti kerja sebelum update status!", false);
+                          _showNotif("Wajib ambil foto progress sebelum update status!", false);
                           return;
                         }
 
@@ -1661,10 +1678,24 @@ final auth = ref.watch(authProvider);
                         final success = await provider.updateOrderStatus(orderId, s);
                         if (!context.mounted) return;
                         Navigator.pop(context);
-                        if (success) _showNotif("Status diperbarui ke $s", true);
+                        if (success) _showNotif("Status diperbarui ke $label", true);
                       },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isCurrent ? primaryTeal : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: isCurrent ? primaryTeal : Colors.grey[300]!),
+                        ),
+                        child: Text(
+                          label,
+                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : darkText),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     );
-                  }).toList(),
+                  },
                 ),
             const SizedBox(height: 20),
           ]),
