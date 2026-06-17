@@ -47,7 +47,16 @@ class BackgroundSyncService {
 
         final path = req['path'];
         final method = req['method'];
-        final data = req['data'];
+        dynamic data = req['data'];
+        
+        // Logika Genius: Rekonstruksi FormData jika tipe payload adalah multipart/gambar
+        if (data is Map && data['is_multipart'] == true) {
+          final filePath = data['file_path'];
+          final fileField = data['file_field'];
+          data = FormData.fromMap({
+             fileField: await MultipartFile.fromFile(filePath),
+          });
+        }
         final headers = req['headers'];
 
         try {

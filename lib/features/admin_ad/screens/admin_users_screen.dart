@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/auth_provider.dart';
+import 'ai_camera_screen.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/utils/nyutji_distance.dart';
@@ -157,7 +158,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          _buildActionBtn("Tambah\nKecamatan", LucideIcons.mapPin, Colors.orange),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const AiCameraScreen()));
+            },
+            child: _buildActionBtn("Kamera\nAI", LucideIcons.camera, Colors.orange),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
