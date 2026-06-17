@@ -400,7 +400,7 @@ class OrderProvider extends ChangeNotifier {
       _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
-      _errorMessage = e.response?.data?['message'] ?? 'Gagal mengambil order';
+      _errorMessage = (e.response?.data is Map ? (e.response?.data is Map ? e.response?.data['message'] : null) : null) ?? 'Gagal mengambil order';
       _isLoading = false;
       _safeNotifyListeners();
       return false;
@@ -424,7 +424,7 @@ class OrderProvider extends ChangeNotifier {
       _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
-      _errorMessage = e.response?.data?['message'] ?? 'Gagal menunjuk kurir';
+      _errorMessage = (e.response?.data is Map ? (e.response?.data is Map ? e.response?.data['message'] : null) : null) ?? 'Gagal menunjuk kurir';
       _isLoading = false;
       _safeNotifyListeners();
       return false;
@@ -447,7 +447,7 @@ class OrderProvider extends ChangeNotifier {
       _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
-      _errorMessage = e.response?.data?['message'] ?? 'Gagal update status';
+      _errorMessage = (e.response?.data is Map ? (e.response?.data is Map ? e.response?.data['message'] : null) : null) ?? 'Gagal update status';
       _isLoading = false;
       _safeNotifyListeners();
       return false;
@@ -470,7 +470,7 @@ class OrderProvider extends ChangeNotifier {
       _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
-      _errorMessage = e.response?.data?['message'] ?? 'Gagal menyimpan ulasan';
+      _errorMessage = (e.response?.data is Map ? (e.response?.data is Map ? e.response?.data['message'] : null) : null) ?? 'Gagal menyimpan ulasan';
       _isLoading = false;
       _safeNotifyListeners();
       return false;
@@ -492,7 +492,7 @@ class OrderProvider extends ChangeNotifier {
       _safeNotifyListeners();
       return true;
     } on DioException catch (e) {
-      _errorMessage = e.response?.data?['message'] ?? 'Gagal upload foto POW';
+      _errorMessage = (e.response?.data is Map ? (e.response?.data is Map ? e.response?.data['message'] : null) : null) ?? 'Gagal upload foto POW';
       _isLoading = false;
       _safeNotifyListeners();
       return false;

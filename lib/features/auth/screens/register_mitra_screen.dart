@@ -207,11 +207,11 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
       if (!mounted) return;
       String errMsg = "Gagal Registrasi";
       if (e is DioException && e.response != null) {
-        final errText = (e.response?.data['message']?.toString() ?? '') + (e.response?.data['error']?.toString() ?? '');
+        final errText = ((e.response?.data is Map ? e.response?.data['message'] : null)?.toString() ?? '') + ((e.response?.data is Map ? e.response?.data['error'] : null)?.toString() ?? '');
         if (errText.toLowerCase().contains('phone_number') || errText.toLowerCase().contains('unique')) {
           errMsg = "Registrasi Gagal: No Handphone sudah digunakan Mitra lain";
         } else {
-          errMsg = e.response?.data['message'] ?? e.response?.data['error'] ?? errMsg;
+          errMsg = (e.response?.data is Map ? e.response?.data['message'] : null) ?? (e.response?.data is Map ? e.response?.data['error'] : null) ?? errMsg;
         }
       }
       NyutjiNotif.showError(context, errMsg);

@@ -102,7 +102,7 @@ class WalletProvider extends ChangeNotifier {
       await fetchWallet();
       return true;
     } on DioException catch (e) {
-      _errorMessage = e.response?.data?['message'] ?? "Gagal memproses Penarikan";
+      _errorMessage = (e.response?.data is Map ? (e.response?.data is Map ? e.response?.data['message'] : null) : null) ?? "Gagal memproses Penarikan";
       _isLoading = false;
       _safeNotifyListeners();
       return false;
