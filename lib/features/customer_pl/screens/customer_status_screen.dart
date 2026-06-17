@@ -848,13 +848,10 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                         final orderType = (order['orderType'] ?? order['order_type'] ?? '').toString().toLowerCase();
                         
                         bool hasPickup = orderType == 'pickup';
-                        bool hasDelivery = rawDel.contains('DELIVERY') || (rawDel.isEmpty && hasPickup); // Default to delivery if empty
-                        if (rawDel == 'SELFDROP_SELFDELIVERY' || rawDel.contains('SELFDELIVERY') || rawDel == 'SELF_SERVICE') {
-                          hasDelivery = false;
-                        }
-                        if (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0) {
-                          hasDelivery = false;
-                        }
+                        // Keep exactly the old logic for Kirim (Delivery) to avoid hiding it unintentionally
+                        bool isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
+                            (rawDel == 'SELF_DROP' && (double.tryParse(order['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
+                        bool hasDelivery = !isSelfDropPickup;
 
                         // Deteksi apakah pesanan premium (Cuci Sepatu, Dry Clean, Pakaian Bayi, Cuci Khusus)
                         bool isPremium = false;
@@ -896,7 +893,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
 
                         // 1. JEMPUT (Optional)
                         if (hasPickup) {
-                          progressWidgets.add(Expanded(child: _buildModernProgress("Jemput", LucideIcons.truck, isStep1)));
+                          progressWidgets.add(Expanded(child: _buildModernProgress("Kurir", LucideIcons.truck, isStep1, onTap: () => _showPowDialog(order['proofs'], ['SEARCHING', 'WAITING_PICKUP', 'PICKING_UP'], "Kurir"))));
                         }
 
                         // 2. TIMBANG / DITERIMA
