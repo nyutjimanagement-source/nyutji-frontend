@@ -58,8 +58,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   // Hasil dari request lama (generasi lama) akan dibuang otomatis.
   int _loadGeneration = 0;
 
-  int _kiloanPage = 0;
-  int _satuanPage = 0;
+  final Map<String, int> _categoryPages = {};
 
   @override
   void initState() {
@@ -981,8 +980,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
         setState(() {
           _selectedMitra = mitra;
           _itemCounts.clear();
-          _kiloanPage = 0;
-          _satuanPage = 0;
+          _categoryPages.clear();
         });
 
         // 2. BACKGROUND FETCH: Ambil harga di belakang layar (tanpa await)
@@ -1275,77 +1273,95 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       );
     }
 
-    // Pisahkan Kiloan dan Satuan
-    final kiloanItems = allItems.where((i) => i['category'] == 'Kiloan' || i['category'] == null).toList();
-    final satuanItems = allItems.where((i) => i['category'] == 'Satuan').toList();
+    // Group items dynamically by category
+    final Map<String, List<dynamic>> groupedItems = {};
+    for (var item in allItems) {
+      String category = item['category'] ?? 'Kiloan';
+      if (!groupedItems.containsKey(category)) {
+        groupedItems[category] = [];
+      }
+      groupedItems[category]!.add(item);
+    }
 
-    return Column(
-      children: [
-        if (kiloanItems.isNotEmpty) ...[
-          _buildPaginatedTable(
-            kiloanItems, 
-            "Laundry Kiloan", 
-            LucideIcons.layers, 
-            true, 
-            _kiloanPage, 
-            (idx) => setState(() => _kiloanPage = idx),
-            actionWidget: GestureDetector(
-              onTap: _showImageSourceSheet,
-              child: Text(
-                "Unggah Foto", 
-                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF403600), decoration: TextDecoration.underline, decorationColor: const Color(0xFF403600)),
-              ),
-            ),
+    List<Widget> children = [];
+    groupedItems.forEach((category, items) {
+      bool isKiloan = category.toLowerCase().contains("kiloan");
+      int currentPage = _categoryPages[category] ?? 0;
+      
+      Widget? actionWidget;
+      if (isKiloan) {
+        actionWidget = GestureDetector(
+          onTap: _showImageSourceSheet,
+          child: Text(
+            "Unggah Foto", 
+            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF403600), decoration: TextDecoration.underline, decorationColor: const Color(0xFF403600)),
           ),
-          if (_orderImage != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.file(_orderImage!, height: 180, width: double.infinity, fit: BoxFit.cover),
+        );
+      }
+
+      children.add(
+        _buildPaginatedTable(
+          items, 
+          category, 
+          isKiloan ? LucideIcons.layers : LucideIcons.shirt, 
+          isKiloan, 
+          currentPage, 
+          (idx) => setState(() => _categoryPages[category] = idx),
+          actionWidget: actionWidget,
+        )
+      );
+      
+      if (isKiloan && _orderImage != null) {
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.file(_orderImage!, height: 180, width: double.infinity, fit: BoxFit.cover),
+                ),
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(LucideIcons.sparkles, color: Color(0xFFDAC66F), size: 16),
+                        const SizedBox(width: 6),
+                        Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _orderImage = null),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(LucideIcons.sparkles, color: Color(0xFFDAC66F), size: 16),
-                          const SizedBox(width: 6),
-                          Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                      child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
                     ),
                   ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: GestureDetector(
-                      onTap: () => setState(() => _orderImage = null),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                        child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-        ],
-        const SizedBox(height: 24),
-        if (satuanItems.isNotEmpty) _buildPaginatedTable(satuanItems, "Laundry Satuan / Meteran", LucideIcons.shirt, false, _satuanPage, (idx) => setState(() => _satuanPage = idx)),
-        const SizedBox(height: 24),
-      ],
-    );
+          )
+        );
+      }
+      
+      children.add(const SizedBox(height: 24));
+    });
+
+    return Column(children: children);
   }
 
   Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan, int currentPage, Function(int) onPageChanged, {Widget? actionWidget}) {
