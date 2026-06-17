@@ -994,7 +994,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
           child: Center(child: iconWidget),
         ),
         const SizedBox(height: 6),
-        Text(label, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
       ],
     );
 
