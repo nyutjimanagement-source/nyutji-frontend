@@ -1,22 +1,18 @@
 import 'package:dio/dio.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'offline_queue_db.dart';
 
 class DioOfflineInterceptor extends Interceptor {
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    
-    // Periksa apakah list connectivityResult mengandung 'none'
-    final isOffline = connectivityResult.contains(ConnectivityResult.none) || connectivityResult.isEmpty;
-    
-    // Rute yang dilarang diantrekan saat offline
-    final skipQueuePaths = ['/login', 'login'];
-
-    if (isOffline) {
-      // Jika request adalah GET atau termasuk dalam skip list, lempar koneksi error
-      final isSkipPath = skipQueuePaths.any((path) => options.path.contains(path));
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    // Tangkap error jika tidak ada koneksi
+    if (err.type == DioExceptionType.connectionError ||
+        err.type == DioExceptionType.connectionTimeout ||
+        err.type == DioExceptionType.receiveTimeout) {
       
+      final options = err.requestOptions;
+      final skipQueuePaths = ['/login', 'login'];
+      final isSkipPath = skipQueuePaths.any((path) => options.path.contains(path));
+
       if (options.method.toUpperCase() != 'GET' && !isSkipPath) {
         // Simpan ke offline queue
         await OfflineQueueDB.addRequest({
@@ -35,19 +31,12 @@ class DioOfflineInterceptor extends Interceptor {
             'success': true,
             'message': 'Anda sedang offline. Data disimpan dan akan dikirim saat koneksi pulih.',
             'queued': true,
-            'exists': false, // Untuk antisipasi check-phone
+            'exists': false,
           },
-        ));
-      } else {
-        // GET Request -> lempar error untuk ditangkap retry/UI
-        return handler.reject(DioException(
-          requestOptions: options,
-          error: "Tidak ada koneksi internet",
-          type: DioExceptionType.connectionError,
         ));
       }
     }
-
-    return handler.next(options);
+    
+    return handler.next(err);
   }
 }

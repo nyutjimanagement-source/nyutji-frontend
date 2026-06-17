@@ -21,12 +21,27 @@ class ApiService {
   ApiService._internal() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 60),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       headers: {'Content-Type': 'application/json'},
     ));
-    
-    // Add Retry Mechanism (Khusus GET)
+
+    // 1. Auth Interceptor (Harus pertama agar request yang di-retry sudah memiliki token)
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        if (options.path == ApiConstants.login || options.path == "/register") {
+          return handler.next(options);
+        }
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('token');
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        return handler.next(options);
+      },
+    ));
+
+    // 2. Retry Mechanism (Hanya aktif untuk GET)
     _dio.interceptors.add(InterceptorsWrapper(
       onError: (DioException e, handler) async {
         if (e.requestOptions.method.toUpperCase() == 'GET' && 
@@ -35,15 +50,15 @@ class ApiService {
             e.type == DioExceptionType.connectionError)) {
           
           int retryCount = e.requestOptions.extra['retry_count'] ?? 0;
-          if (retryCount < 3) {
+          if (retryCount < 2) { // Kurangi retry count agar tidak terlalu lama freeze
             e.requestOptions.extra['retry_count'] = retryCount + 1;
             try {
-              await Future.delayed(Duration(seconds: retryCount + 1));
-              final newDio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
-              final response = await newDio.fetch(e.requestOptions);
+              await Future.delayed(Duration(seconds: 1)); // Delay konstan 1 detik
+              // Gunakan _dio yang sama (agar timeout tetap berlaku, bukan Dio kosongan)
+              final response = await _dio.fetch(e.requestOptions);
               return handler.resolve(response);
             } catch (retryError) {
-              // Lanjut throw
+              // Abaikan dan lanjut throw original error
             }
           }
         }
@@ -51,29 +66,8 @@ class ApiService {
       }
     ));
 
-    // Offline Interceptor untuk Queue Mechanism
+    // 3. Offline Interceptor (Opsional, ditempatkan terakhir)
     _dio.interceptors.add(DioOfflineInterceptor());
-
-    // Add Interceptors for automatic Auth Token handling
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // Jangan kirim token untuk rute login atau register!
-        if (options.path == ApiConstants.login || options.path == "/register") {
-          return handler.next(options);
-        }
-
-        final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString('token');
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        return handler.next(options);
-      },
-      onError: (DioException e, handler) {
-        // Global error tracking / token expiry handling could go here
-        return handler.next(e);
-      }
-    ));
   }
   
   // --- SYSTEM STATUS ---

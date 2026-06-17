@@ -1507,7 +1507,7 @@ final auth = ref.watch(authProvider);
                         trailing: const Icon(LucideIcons.chevronRight, size: 16, color: textGrey),
                         onTap: () async {
                           final provider = ref.read(orderProvider);
-                          Navigator.pop(context);
+                          Navigator.of(context, rootNavigator: true).pop();
                           final success = await provider.assignCourier(orderId, k['identifier'] ?? k['id']);
                           if (!mounted) return;
                           _showNotif(success ? "Berhasil menunjuk kurir!" : (provider.errorMessage ?? "Gagal"), success);
@@ -1673,9 +1673,12 @@ final auth = ref.watch(authProvider);
 
                         // 2. Update Status
                         final success = await provider.updateOrderStatus(orderId, s);
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
+                        // context di sini milik builder InkWell, mungkin sudah unmounted jika isUploading mengubah tree
+                        // Jadi kita pop dengan aman tanpa if (!mounted) yang strict,
+                        // atau kita hapus isUploading dari state jika gagal
+                        Navigator.of(context, rootNavigator: true).pop();
                         if (success) _showNotif("Status diperbarui ke $label", true);
+                        else setState(() { isUploading = false; });
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
