@@ -43,7 +43,7 @@ class ApiService {
     ));
 
     // Offline Interceptor untuk Queue Mechanism
-    dio.interceptors.add(DioOfflineInterceptor());
+    dio.interceptors.add(const DioOfflineInterceptor());
   }
 }
 

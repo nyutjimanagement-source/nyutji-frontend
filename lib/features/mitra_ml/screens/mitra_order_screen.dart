@@ -1676,7 +1676,7 @@ final auth = ref.watch(authProvider);
                         // context di sini milik builder InkWell, mungkin sudah unmounted jika isUploading mengubah tree
                         // Jadi kita pop dengan aman tanpa if (!mounted) yang strict,
                         // atau kita hapus isUploading dari state jika gagal
-                        if (mounted) {
+                        if (context.mounted) {
                           Navigator.of(context, rootNavigator: true).pop();
                         }
                         if (success) {
