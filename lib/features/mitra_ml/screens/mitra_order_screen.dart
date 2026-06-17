@@ -1643,7 +1643,7 @@ final auth = ref.watch(authProvider);
                     final s = stages[index];
                     bool isCurrent = s == currentStatus;
                     final Map<String, String> statusLabels = {
-                      'WAITING_DROPOFF': 'Menunggu Drop Off',
+                      'WAITING_DROPOFF': 'Drop Off',
                       'WEIGHING': 'Penimbangan',
                       'WASH_START': 'Proses Cuci',
                       'IRONING': 'Proses Setrika',
@@ -1651,14 +1651,14 @@ final auth = ref.watch(authProvider);
                       'DELIVERING': 'Pengiriman',
                       'DONE': 'Selesai',
                     };
-                    final Map<String, IconData> statusIcons = {
-                      'WAITING_DROPOFF': LucideIcons.clock,
-                      'WEIGHING': LucideIcons.clipboardList,
-                      'WASH_START': LucideIcons.playCircle,
-                      'IRONING': LucideIcons.wind,
-                      'PACKING': LucideIcons.package,
-                      'DELIVERING': LucideIcons.truck,
-                      'DONE': LucideIcons.checkCircle2,
+                    final Map<String, String> statusEmojis = {
+                      'WAITING_DROPOFF': '🕒',
+                      'WEIGHING': '📋',
+                      'WASH_START': '▶️',
+                      'IRONING': '💨',
+                      'PACKING': '📦',
+                      'DELIVERING': '🚚',
+                      'DONE': '☑️',
                     };
                     String label = statusLabels[s] ?? s.replaceAll('_', ' ');
 
@@ -1698,10 +1698,9 @@ final auth = ref.watch(authProvider);
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              statusIcons[s] ?? LucideIcons.circle,
-                              size: 16,
-                              color: isCurrent ? Colors.white : darkText,
+                            Text(
+                              statusEmojis[s] ?? '✨',
+                              style: const TextStyle(fontSize: 16),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
