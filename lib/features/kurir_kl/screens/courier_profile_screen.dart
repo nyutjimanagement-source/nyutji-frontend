@@ -46,7 +46,7 @@ class CourierProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 _buildPerformanceSection(textDark, textGrey, currentT),
                 const SizedBox(height: 24),
-                _buildMenuSection(context, auth, textDark, currentT),
+                _buildMenuSection(context, ref, auth, textDark, currentT),
                 const SizedBox(height: 40),
               ],
             ),
@@ -124,7 +124,7 @@ class CourierProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, AuthProvider auth, Color textDark, Map<String, dynamic> currentT) {
+  Widget _buildMenuSection(BuildContext context, WidgetRef ref, AuthProvider auth, Color textDark, Map<String, dynamic> currentT) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,

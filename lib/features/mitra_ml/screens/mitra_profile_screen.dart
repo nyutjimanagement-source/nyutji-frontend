@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/order_provider.dart';
+import '../../../providers/wallet_provider.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
