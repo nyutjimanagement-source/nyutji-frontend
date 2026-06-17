@@ -1418,7 +1418,7 @@ final orderProv = ref.watch(orderProvider);
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: 40, height: 40,
+            width: 44, height: 44,
             decoration: BoxDecoration(
               color: isActive ? activeColor : Colors.white,
               shape: BoxShape.circle,
