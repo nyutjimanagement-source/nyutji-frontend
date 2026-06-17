@@ -12,12 +12,13 @@ class OrderProvider extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    _trackingTimer?.cancel();
     super.dispose();
   }
 
   void _safeNotifyListeners() {
     if (!_isDisposed) {
-      _safeNotifyListeners();
+      notifyListeners();
     }
   }
 
@@ -325,11 +326,7 @@ class OrderProvider extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  @override
-  void dispose() {
-    _trackingTimer?.cancel();
-    super.dispose();
-  }
+
 
   Future<bool> createOrder(Map<String, dynamic> data) async {
     _isLoading = true;
