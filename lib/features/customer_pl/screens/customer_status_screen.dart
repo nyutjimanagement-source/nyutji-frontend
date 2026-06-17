@@ -984,7 +984,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
     Widget content = Column(
       children: [
         Container(
-          width: 38, height: 38,
+          width: 44, height: 44,
           decoration: BoxDecoration(
             color: isActive ? activeColor : Colors.white,
             shape: BoxShape.circle,
