@@ -1542,7 +1542,7 @@ final auth = ref.watch(authProvider);
     bool isUploading = false;
 
     return StatefulBuilder(
-      builder: (context, setState) {
+      builder: (sheetContext, setState) {
         return Container(
           decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
           padding: const EdgeInsets.all(24),
@@ -1589,12 +1589,12 @@ final auth = ref.watch(authProvider);
                         final picker = ImagePicker();
                         final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
                         if (image != null) {
-                          if (context.mounted) {
-                            NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
+                          if (sheetContext.mounted) {
+                            NyutjiLoadingOverlay.show(sheetContext, message: "Mengompresi WebP...");
                           }
                           final compressed = await NyutjiImagePicker.compressToWebP(image);
-                          if (context.mounted) {
-                            NyutjiLoadingOverlay.hide(context);
+                          if (sheetContext.mounted) {
+                            NyutjiLoadingOverlay.hide(sheetContext);
                             setState(() { powImage = compressed ?? image; });
                           }
                         }
@@ -1673,11 +1673,9 @@ final auth = ref.watch(authProvider);
 
                         // 2. Update Status
                         final success = await provider.updateOrderStatus(orderId, s);
-                        // context di sini milik builder InkWell, mungkin sudah unmounted jika isUploading mengubah tree
-                        // Jadi kita pop dengan aman tanpa if (!mounted) yang strict,
-                        // atau kita hapus isUploading dari state jika gagal
-                        if (context.mounted) {
-                          Navigator.of(context, rootNavigator: true).pop();
+                        
+                        if (sheetContext.mounted) {
+                          Navigator.of(sheetContext, rootNavigator: true).pop();
                         }
                         if (success) {
                           _showNotif("Status diperbarui ke $label", true);
