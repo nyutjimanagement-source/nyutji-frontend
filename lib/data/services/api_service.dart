@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/api_constants.dart';
@@ -38,6 +39,27 @@ class ApiService {
           options.headers['Authorization'] = 'Bearer $token';
         }
         return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        // Jika server mengembalikan HTML/String (misal: Captive Portal wifi) namun kita expect JSON
+        if (response.data is String && response.requestOptions.responseType == ResponseType.json) {
+          try {
+            // Coba parsing manual, jika berhasil, override data
+            if (response.data.toString().trim().isNotEmpty) {
+              final parsed = jsonDecode(response.data);
+              response.data = parsed;
+              return handler.next(response);
+            }
+          } catch (_) {}
+          
+          return handler.reject(DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: "Format respons server tidak valid (Mungkin karena Wifi Login/Captive Portal)",
+          ));
+        }
+        return handler.next(response);
       },
     ));
 
