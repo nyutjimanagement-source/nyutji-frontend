@@ -116,6 +116,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
       );
       
       if (quote['status'] == 'success') {
+        if (!mounted) return;
         setState(() {
           _dynamicCourierFee = (quote['data']?['deliveryFee'] as num? ?? quote['data']?['delivery_fee'] as num? ?? 0).toInt();
           _isLoadingPrice = false;
@@ -139,6 +140,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
     // Faktor Fast Track (Tambah 5rb jika Same Day)
     if (widget.speed == 'fast') calculated += 5000;
 
+    if (!mounted) return;
     setState(() {
       _dynamicCourierFee = calculated.toInt();
       _isLoadingPrice = false;
