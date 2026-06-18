@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter/scheduler.dart';
 
 class NyutjiNotif {
   static void showSuccess(BuildContext context, String message) {
@@ -17,7 +18,9 @@ class NyutjiNotif {
   }
 
   static void _show(BuildContext context, String message, IconData icon, Color color) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!context.mounted) return;
+
+    final VoidCallback showAction = () {
       if (!context.mounted) return;
       try {
         final overlay = Overlay.of(context);
@@ -38,7 +41,15 @@ class NyutjiNotif {
       } catch (e) {
         debugPrint("Error showing NyutjiNotif: $e");
       }
-    });
+    };
+
+    // Jika sedang dalam fase build/layout, tunda sampai frame selesai.
+    // Jika tidak (misal interaksi tap dari user), langsung tampilkan instan tanpa delay.
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => showAction());
+    } else {
+      showAction();
+    }
   }
 }
 
