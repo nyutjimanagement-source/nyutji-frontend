@@ -369,9 +369,9 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         } else {
           final data = e.response?.data;
           if (data is Map) {
-            _lastErrorMessage = data['message']?.toString() ?? e.message;
+            _lastErrorMessage = data['message']?.toString() ?? e.message ?? e.error?.toString() ?? "Gagal menghubungi server";
           } else {
-            _lastErrorMessage = e.message;
+            _lastErrorMessage = e.message ?? e.error?.toString() ?? "Format respons server tidak valid";
           }
         }
       } else {

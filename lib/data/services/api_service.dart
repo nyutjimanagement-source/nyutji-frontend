@@ -44,20 +44,41 @@ class ApiService {
       onResponse: (response, handler) {
         // Jika server mengembalikan HTML/String (misal: Captive Portal wifi) namun kita expect JSON
         if (response.data is String && response.requestOptions.responseType == ResponseType.json) {
+          final rawString = response.data.toString().trim();
+          if (rawString.isEmpty) {
+            response.data = <String, dynamic>{};
+            return handler.next(response);
+          }
+
           try {
             // Coba parsing manual, jika berhasil, override data
-            if (response.data.toString().trim().isNotEmpty) {
-              final parsed = jsonDecode(response.data);
-              response.data = parsed;
-              return handler.next(response);
+            final parsed = jsonDecode(rawString);
+            response.data = parsed;
+            return handler.next(response);
+          } catch (_) {
+            // Gagal parsing. Coba bersihkan PHP warning/HTML prepended jika ada
+            final extracted = _extractJson(rawString);
+            if (extracted != null) {
+              try {
+                final parsed = jsonDecode(extracted);
+                response.data = parsed;
+                return handler.next(response);
+              } catch (_) {}
             }
-          } catch (_) {}
+          }
+          
+          // Berikan pesan error lebih informatif berdasarkan konten
+          String errorMsg = "Format respons server tidak valid (Mungkin karena Wifi Login/Captive Portal)";
+          if (rawString.toLowerCase().contains("html") || rawString.startsWith("<!doctype") || rawString.startsWith("<html")) {
+            errorMsg = "Server sedang mengalami gangguan atau pembatasan resource (Shared Hosting Error).";
+          }
           
           return handler.reject(DioException(
             requestOptions: response.requestOptions,
             response: response,
             type: DioExceptionType.badResponse,
-            error: "Format respons server tidak valid (Mungkin karena Wifi Login/Captive Portal)",
+            message: errorMsg,
+            error: errorMsg,
           ));
         }
         return handler.next(response);
@@ -474,5 +495,25 @@ class ApiService {
   Future<Map<String, dynamic>> deleteRescheduler(String id) async {
     final response = await _dio.delete("/reschedulers/$id");
     return response.data;
+  }
+
+  String? _extractJson(String text) {
+    final startBrace = text.indexOf('{');
+    final startBracket = text.indexOf('[');
+    int start = -1;
+    int end = -1;
+    
+    if (startBrace != -1 && (startBracket == -1 || startBrace < startBracket)) {
+      start = startBrace;
+      end = text.lastIndexOf('}');
+    } else if (startBracket != -1) {
+      start = startBracket;
+      end = text.lastIndexOf(']');
+    }
+    
+    if (start != -1 && end != -1 && end > start) {
+      return text.substring(start, end + 1);
+    }
+    return null;
   }
 }
