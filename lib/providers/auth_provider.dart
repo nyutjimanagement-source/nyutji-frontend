@@ -261,6 +261,9 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     await prefs.remove('nyutji_seen_orders');
     await prefs.remove('nyutji_last_active');
     
+    // Bersihkan Hive cache agar tidak bocor ke user lain
+    await CacheService.clear();
+    
     _token = null;
     _role = null;
     _homeAddress = null;
