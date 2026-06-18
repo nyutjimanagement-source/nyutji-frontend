@@ -20,7 +20,7 @@ class NyutjiNotif {
   static void _show(BuildContext context, String message, IconData icon, Color color) {
     if (!context.mounted) return;
 
-    final VoidCallback showAction = () {
+    void showAction() {
       if (!context.mounted) return;
       try {
         final overlay = Overlay.of(context);
@@ -41,7 +41,7 @@ class NyutjiNotif {
       } catch (e) {
         debugPrint("Error showing NyutjiNotif: $e");
       }
-    };
+    }
 
     // Jika sedang dalam fase build/layout, tunda sampai frame selesai.
     // Jika tidak (misal interaksi tap dari user), langsung tampilkan instan tanpa delay.
