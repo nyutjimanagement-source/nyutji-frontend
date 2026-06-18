@@ -17,20 +17,26 @@ class NyutjiNotif {
   }
 
   static void _show(BuildContext context, String message, IconData icon, Color color) {
-    if (!context.mounted) return;
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
-      builder: (context) => _BeautyPopupWidget(
-        message: message,
-        icon: icon,
-        color: color,
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      try {
+        final overlay = Overlay.of(context);
+        final overlayEntry = OverlayEntry(
+          builder: (context) => _BeautyPopupWidget(
+            message: message,
+            icon: icon,
+            color: color,
+          ),
+        );
 
-    overlay.insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) {
-        overlayEntry.remove();
+        overlay.insert(overlayEntry);
+        Future.delayed(const Duration(seconds: 3), () {
+          if (overlayEntry.mounted) {
+            overlayEntry.remove();
+          }
+        });
+      } catch (e) {
+        debugPrint("Error showing NyutjiNotif: $e");
       }
     });
   }

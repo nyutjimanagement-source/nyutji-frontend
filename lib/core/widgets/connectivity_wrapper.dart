@@ -13,11 +13,15 @@ class ConnectivityWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Dengarkan perubahan koneksi untuk menampilkan notifikasi cantik
     ref.listen<AsyncValue<List<ConnectivityResult>>>(connectivityProvider, (previous, next) {
+      if (previous == null) {
+        // Abaikan emisi pertama saat inisialisasi aplikasi agar tidak memicu Overlay saat bootstrapping
+        return;
+      }
       if (next is AsyncData) {
         final results = next.value!;
         final isOnline = !results.contains(ConnectivityResult.none) && results.isNotEmpty;
         
-        final prevResults = previous?.value ?? [ConnectivityResult.none];
+        final prevResults = previous.value ?? [ConnectivityResult.none];
         final wasOffline = prevResults.contains(ConnectivityResult.none) || prevResults.isEmpty;
 
         if (wasOffline && isOnline) {
