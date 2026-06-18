@@ -26,6 +26,7 @@ import 'mitra_mesin.dart';
 import 'dart:math';
 import '../../../data/services/api_service.dart';
 import '../../../data/services/cache_service.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class MitraHomeScreen extends ConsumerStatefulWidget {
   const MitraHomeScreen({super.key});
@@ -586,7 +587,9 @@ final orderProv = ref.watch(orderProvider);
       _buildGridAction("Dompet", LucideIcons.wallet, Colors.green, () {
         _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
       }),
-      _buildGridAction("Kinerja", LucideIcons.pieChart, Colors.orange, (){}),
+      _buildGridAction("Kinerja", LucideIcons.pieChart, Colors.orange, () {
+        NyutjiNotif.showInfo(context, "Fitur Kinerja akan segera hadir");
+      }),
       _buildGridAction("Mesin", LucideIcons.cpu, Colors.cyan, () {
         Navigator.push(context, PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => const MitraMesinScreen(),

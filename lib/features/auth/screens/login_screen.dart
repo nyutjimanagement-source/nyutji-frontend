@@ -94,6 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   };
 
   void _handleAction() async {
+    HapticFeedback.mediumImpact();
     final auth = ref.read(authProvider);
     bool success = await auth.login(phoneController.text, passwordController.text);
     

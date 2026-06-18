@@ -1081,7 +1081,7 @@ final orderProv = ref.watch(orderProvider);
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildDetailInfoItem("Order ID", orderId, LucideIcons.hash),
-                  _buildDetailInfoItem("Tanggal", DateFormat('dd MMM, HH:mm', 'id_ID').format(doneAt), LucideIcons.calendar),
+                  _buildDetailInfoItem("Tanggal Selesai", DateFormat('dd MMM, HH:mm', 'id_ID').format(doneAt), LucideIcons.calendar),
                 ],
               ),
               const Padding(

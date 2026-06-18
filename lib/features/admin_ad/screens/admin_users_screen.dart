@@ -750,9 +750,9 @@ final auth = ref.watch(authProvider);
                           ],
                         );
                       }
-
                       return ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        physics: const BouncingScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(sbContext).padding.bottom + 20),
                         itemCount: filtered.length,
                         separatorBuilder: (context, index) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
@@ -762,6 +762,7 @@ final auth = ref.watch(authProvider);
                           final district = u['district']?['name'] ?? 'Luar Area';
                           final identifier = u['identifier'] ?? '-';
                           final status = u['registration_status'] ?? 'PENDING';
+                          final phoneNumber = u['phone_number'] ?? '-';
                           
                           Color roleColor = Colors.teal;
                           if (role == 'ML') roleColor = Colors.blue;
@@ -772,6 +773,13 @@ final auth = ref.watch(authProvider);
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: Colors.grey[100]!),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             child: Row(
@@ -792,6 +800,21 @@ final auth = ref.watch(authProvider);
                                       Text(name, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkGray)),
                                       const SizedBox(height: 4),
                                       Text("$identifier | $district", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600])),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(LucideIcons.phone, size: 10, color: Colors.grey[400]),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            phoneNumber, 
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 10, 
+                                              fontWeight: FontWeight.w600, 
+                                              color: Colors.grey[500],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),
