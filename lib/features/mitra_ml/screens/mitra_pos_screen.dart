@@ -89,7 +89,21 @@ class _MitraPosScreenState extends ConsumerState<MitraPosScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      
+      String errorMsg = e.toString();
+      final lowerMsg = errorMsg.toLowerCase();
+      if (lowerMsg.contains("socketexception") ||
+          lowerMsg.contains("clientexception") ||
+          lowerMsg.contains("failed host lookup") ||
+          lowerMsg.contains("connection failed") ||
+          lowerMsg.contains("network is unreachable") ||
+          lowerMsg.contains("handshake") ||
+          lowerMsg.contains("connection refused")) {
+        errorMsg = "Koneksi terkendala. Cek internet Anda.";
+      } else {
+        errorMsg = errorMsg.replaceAll(RegExp(r'^(Exception:\s*|Exception)'), '');
+      }
+      NyutjiNotif.showError(context, errorMsg);
     }
   }
 
@@ -235,7 +249,22 @@ class _MitraPosScreenState extends ConsumerState<MitraPosScreen> {
                           throw Exception("Gagal mengunggah foto. Code: ${streamedResponse.statusCode}");
                         }
                       } catch (e) {
-                        if (ctx.mounted) NyutjiNotif.showError(ctx, e.toString());
+                        if (ctx.mounted) {
+                          String errorMsg = e.toString();
+                          final lowerMsg = errorMsg.toLowerCase();
+                          if (lowerMsg.contains("socketexception") ||
+                              lowerMsg.contains("clientexception") ||
+                              lowerMsg.contains("failed host lookup") ||
+                              lowerMsg.contains("connection failed") ||
+                              lowerMsg.contains("network is unreachable") ||
+                              lowerMsg.contains("handshake") ||
+                              lowerMsg.contains("connection refused")) {
+                            errorMsg = "Koneksi terkendala. Cek internet Anda.";
+                          } else {
+                            errorMsg = errorMsg.replaceAll(RegExp(r'^(Exception:\s*|Exception)'), '');
+                          }
+                          NyutjiNotif.showError(ctx, errorMsg);
+                        }
                       } finally {
                         if (mounted) setModalState(() => isUploading = false);
                       }
