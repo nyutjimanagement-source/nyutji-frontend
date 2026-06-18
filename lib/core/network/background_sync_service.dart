@@ -35,20 +35,12 @@ class BackgroundSyncService {
 
       debugPrint("Mulai sinkronisasi ${requests.length} antrean offline...");
 
-      // Hapus semua terlebih dahulu dari box jika kita akan sync dengan asumsi berhasil atau gagal akan di handle
-      // Pendekatan lebih aman: Hapus hanya yang berhasil, tapi perhatikan pergeseran index
-      // Karena kita mengambil semua data, kita proses lalu hapus berdasar key/index di akhir jika sukses
-      
-      // Catatan: Jika menghapus per index di dalam loop for, index Hive akan bergeser!
-      // Jadi kita pakai list key atau hapus dari belakang, tapi lebih mudah pakai mapping key.
-      
-      for (int i = 0; i < requests.length; i++) {
-        final req = requests[i];
-
+      for (var req in requests) {
         final path = req['path'];
         final method = req['method'];
         final data = req['data'];
         final headers = req['headers'];
+        final hiveKey = req['hive_key'];
 
         try {
           final response = await _dio.request(
@@ -61,21 +53,25 @@ class BackgroundSyncService {
           );
 
           if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
-            // Berhasil
             debugPrint("Berhasil sinkronisasi request ke $path");
-            // Karena kita mendelete dari box, index lain bergeser. Jadi kita harus berhati-hati.
-            // Lebih aman menghapus langsung dan mere-fetch jika perlu, tapi untuk simple approach:
-            // Kita kumpulkan ID/Key jika pakai Map, tapi Hive list pakai index numerik.
+            await OfflineQueueDB.removeRequest(hiveKey);
+          } else if (response.statusCode != null && response.statusCode! >= 400 && response.statusCode! < 500) {
+            // Client error (misal validation error atau auth error) - tidak akan sukses meskipun di-retry. Hapus.
+            debugPrint("Gagal sinkronisasi request ke $path: Status ${response.statusCode} (Client Error). Menghapus.");
+            await OfflineQueueDB.removeRequest(hiveKey);
           }
         } catch (e) {
           debugPrint("Gagal sinkronisasi request ke $path: $e");
+          if (e is DioException) {
+            final status = e.response?.statusCode;
+            if (status != null && status >= 400 && status < 500) {
+              debugPrint("Gagal sinkronisasi karena Client Error ($status). Menghapus dari antrean.");
+              await OfflineQueueDB.removeRequest(hiveKey);
+            }
+          }
+          // Server error (5xx) atau Connection error dibiarkan di antrean untuk dicoba lagi nanti
         }
       }
-      
-      // Simplifikasi: Kosongkan queue jika sudah di-attempt semua (atau buat sistem validasi lebih detail)
-      // Untuk stabilitas awal: Kosongkan semua queue setelah attempt.
-      await OfflineQueueDB.clearQueue();
-      
     } finally {
       _isSyncing = false;
     }

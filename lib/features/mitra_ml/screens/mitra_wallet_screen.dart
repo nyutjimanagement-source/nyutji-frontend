@@ -182,21 +182,29 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
           final double totalKg = _calculateTotalKg(allOrders);
           final double avgRating = _calculateAverageRating(historyOrdersFiltered);
           
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-                _buildHeader(context, wallet.balance, isLoading),
-                const SizedBox(height: 16),
-                _buildRankAndQuickAction(context, avgRating, wallet, historyOrdersFiltered),
-                const SizedBox(height: 16),
-                _buildWithdrawalStatusCard(wallet.withdrawalsList, isLoading),
-                const SizedBox(height: 24),
-                _buildExecutiveReport(wallet.mutasiList.length, totalCashOut, totalCashIn, wip, allOrders.length, totalKg, isLoading),
-                const SizedBox(height: 8),
-                _buildMutationFilterAndList(wallet.mutasiList, allOrders, isLoading),
-                const SizedBox(height: 40),
-              ],
+          return RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                ref.read(walletProvider).fetchWallet(force: true),
+                ref.read(orderProvider).fetchOrders(force: true),
+              ]);
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  _buildHeader(context, wallet.balance, isLoading),
+                  const SizedBox(height: 16),
+                  _buildRankAndQuickAction(context, avgRating, wallet, historyOrdersFiltered),
+                  const SizedBox(height: 16),
+                  _buildWithdrawalStatusCard(wallet.withdrawalsList, isLoading),
+                  const SizedBox(height: 24),
+                  _buildExecutiveReport(wallet.mutasiList.length, totalCashOut, totalCashIn, wip, allOrders.length, totalKg, isLoading),
+                  const SizedBox(height: 8),
+                  _buildMutationFilterAndList(wallet.mutasiList, allOrders, isLoading),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           );
         }

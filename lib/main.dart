@@ -24,6 +24,7 @@ void main() async {
   // Inisialisasi Database Lokal untuk Offline Queue
   await Hive.initFlutter();
   await Hive.openBox('offline_queue');
+  await Hive.openBox('nyutji_cache');
   
   // Inisialisasi Background Sync
   BackgroundSyncService.initialize();

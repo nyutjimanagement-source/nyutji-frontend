@@ -25,6 +25,7 @@ import 'mitra_profile_screen.dart';
 import 'mitra_mesin.dart';
 import 'dart:math';
 import '../../../data/services/api_service.dart';
+import '../../../data/services/cache_service.dart';
 
 class MitraHomeScreen extends ConsumerStatefulWidget {
   const MitraHomeScreen({super.key});
@@ -43,7 +44,6 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   late PageController _pageController;
   String? _randomPosImage;
   bool isShopOpen = true;
-  Timer? _pollingTimer;
 
   @override
   void initState() {
@@ -56,48 +56,48 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
       ref.read(orderProvider).fetchOrders();
       auth.fetchCouriers();
       auth.fetchPendingApprovals();
-
-
-    });
-
-    // Auto-refresh data kurir tiap 5 detik
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (mounted) {
-        ref.read(authProvider).fetchPendingApprovals();
-      }
     });
   }
 
   int _servicesCount = 0;
 
   Future<void> _fetchMitraItemsData() async {
+    final auth = ref.read(authProvider);
+    final mitraId = auth.user?['identifier'] ?? auth.user?['id'];
+    if (mitraId == null) return;
+
+    final cacheKey = 'mitra_items_$mitraId';
+    // 1. Coba baca dari cache dulu agar UI ter-render instan
+    final cached = CacheService.get(cacheKey);
+    if (cached != null && cached is List) {
+      _processMitraItems(cached);
+    }
+
     try {
-      final auth = ref.read(authProvider);
-      final mitraId = auth.user?['identifier'] ?? auth.user?['id'];
-      if (mitraId == null) return;
-      
       final api = ApiService();
       final items = await api.getMitraItems(mitraId);
-      
-      if (mounted) {
-        setState(() {
-          _servicesCount = items.length;
-          final itemsWithPhoto = items.where((i) => i['url_photo'] != null).toList();
-          if (itemsWithPhoto.isNotEmpty) {
-            final random = Random();
-            final randomItem = itemsWithPhoto[random.nextInt(itemsWithPhoto.length)];
-            _randomPosImage = randomItem['url_photo'];
-          }
-        });
-      }
+      _processMitraItems(items);
     } catch (e) {
       debugPrint("Error fetching mitra items data: $e");
     }
   }
 
+  void _processMitraItems(List<dynamic> items) {
+    if (mounted) {
+      setState(() {
+        _servicesCount = items.length;
+        final itemsWithPhoto = items.where((i) => i['url_photo'] != null).toList();
+        if (itemsWithPhoto.isNotEmpty) {
+          final random = Random();
+          final randomItem = itemsWithPhoto[random.nextInt(itemsWithPhoto.length)];
+          _randomPosImage = randomItem['url_photo'];
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
-    _pollingTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -193,33 +193,45 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
       return MitraInventoryScreen(onBackTap: () => setState(() => _homeSubPage = "main"));
     }
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDenseHeader(),
-          _buildAntreanCucianCard(),
-          const SizedBox(height: 24),
-          _buildQuickActionsGrid(),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text("Informasi Laundry", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
-          ),
-          const SizedBox(height: 12),
-          _buildDanaSiapDitarikGrid(),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text("Cuaca Hari Ini", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
-          ),
-          const SizedBox(height: 12),
-          const ForecastWeather(),
-          const SizedBox(height: 24),
-          _buildLiveQueueMachine(),
-          const SizedBox(height: 40),
-        ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        final auth = ref.read(authProvider);
+        await Future.wait([
+          ref.read(walletProvider).fetchWallet(force: true),
+          ref.read(orderProvider).fetchOrders(force: true),
+          auth.fetchCouriers(force: true),
+          auth.fetchPendingApprovals(force: true),
+          _fetchMitraItemsData(),
+        ]);
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDenseHeader(),
+            _buildAntreanCucianCard(),
+            const SizedBox(height: 24),
+            _buildQuickActionsGrid(),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text("Informasi Laundry", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+            ),
+            const SizedBox(height: 12),
+            _buildDanaSiapDitarikGrid(),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text("Cuaca Hari Ini", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+            ),
+            const SizedBox(height: 12),
+            const ForecastWeather(),
+            const SizedBox(height: 24),
+            _buildLiveQueueMachine(),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }

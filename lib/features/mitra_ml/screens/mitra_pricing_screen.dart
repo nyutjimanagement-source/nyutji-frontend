@@ -7,6 +7,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../core/utils/formatters.dart';
 
 import '../../../data/services/api_service.dart';
+import '../../../data/services/cache_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 
@@ -71,59 +72,70 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   }
 
   Future<void> _loadPricingFromApi() async {
-    setState(() => _isInitialLoading = true);
-    try {
-      final auth = ref.read(authProvider);
-      final mitraId = auth.user?['identifier'] ?? '0000';
-      if (mitraId == null) return;
+    final auth = ref.read(authProvider);
+    final mitraId = auth.user?['identifier'] ?? '0000';
+    if (mitraId == null) return;
 
+    final cacheKey = 'mitra_items_$mitraId';
+    // 1. Coba baca dari cache dulu agar UI ter-render instan
+    final cached = CacheService.get(cacheKey);
+    if (cached != null && cached is List) {
+      _processPricingData(cached);
+      _isInitialLoading = false;
+      if (mounted) setState(() {});
+    } else {
+      setState(() => _isInitialLoading = true);
+    }
+
+    try {
       final api = ApiService();
       final items = await api.getMitraItems(mitraId);
-
-      setState(() {
-        _groupedData.clear();
-        _pageControllers.clear();
-        _pages.clear();
-        _editModes.clear();
-        _swipeForward.clear();
-
-        int parseSafe(dynamic val) {
-          if (val == null) return 0;
-          String s = val.toString();
-          if (s.contains('.')) {
-            double? d = double.tryParse(s);
-            if (d != null) return d.toInt();
-            s = s.replaceAll('.', '');
-          }
-          return int.tryParse(s.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-        }
-
-        for (var i in items) {
-          if (parseSafe(i['price_regular']) >= 10000000) continue;
-          
-          String cat = i['category']?.toString() ?? "Lainnya";
-          
-          if (!_groupedData.containsKey(cat)) {
-            _groupedData[cat] = [];
-            _pageControllers[cat] = PageController();
-            _pages[cat] = 0;
-            _editModes[cat] = false;
-            _swipeForward[cat] = true;
-          }
-          
-          _groupedData[cat]!.add({
-            "id": i['id'].toString(),
-            "svc": i['name']?.toString() ?? "",
-            "reg": i['price_regular']?.toString() ?? "0",
-            "fast": i['price_fast']?.toString() ?? "0",
-            "category": cat,
-          });
-        }
-      });
+      _processPricingData(items);
     } catch (e) {
       debugPrint("Gagal mengambil data dari API: $e");
     } finally {
       if (mounted) setState(() => _isInitialLoading = false);
+    }
+  }
+
+  void _processPricingData(List<dynamic> items) {
+    int parseSafe(dynamic val) {
+      if (val == null) return 0;
+      String s = val.toString();
+      if (s.contains('.')) {
+        double? d = double.tryParse(s);
+        if (d != null) return d.toInt();
+        s = s.replaceAll('.', '');
+      }
+      return int.tryParse(s.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    }
+
+    _groupedData.clear();
+    _pageControllers.clear();
+    _pages.clear();
+    _editModes.clear();
+    _swipeForward.clear();
+
+    for (var i in items) {
+      if (parseSafe(i['price_regular']) >= 10000000) continue;
+      
+      String cat = i['category']?.toString() ?? "Lainnya";
+      
+      if (!_groupedData.containsKey(cat)) {
+        _groupedData[cat] = [];
+        _pageControllers[cat] = PageController();
+        _pages[cat] = 0;
+        _editModes[cat] = false;
+        _swipeForward[cat] = true;
+      }
+      
+      _groupedData[cat]!.add({
+        "id": i['id'].toString(),
+        "svc": i['name']?.toString() ?? "",
+        "reg": i['price_regular']?.toString() ?? "0",
+        "fast": i['price_fast']?.toString() ?? "0",
+        "category": cat,
+      });
     }
   }
 

@@ -10,24 +10,23 @@ class OfflineQueueDB {
     await box.add(requestData);
   }
 
-  /// Mengambil semua antrean request beserta index-nya (agar bisa dihapus nanti)
+  /// Mengambil semua antrean request beserta key aslinya
   static List<Map<String, dynamic>> getAllRequests() {
     final List<Map<String, dynamic>> requests = [];
-    for (int i = 0; i < box.length; i++) {
-      final item = box.getAt(i);
+    for (var key in box.keys) {
+      final item = box.get(key);
       if (item != null) {
-        // Simpan index aslinya agar bisa dihapus satu per satu
         final data = Map<String, dynamic>.from(item as Map);
-        data['hive_index'] = i; 
+        data['hive_key'] = key; 
         requests.add(data);
       }
     }
     return requests;
   }
 
-  /// Menghapus request berdasarkan index
-  static Future<void> removeRequestAt(int index) async {
-    await box.deleteAt(index);
+  /// Menghapus request berdasarkan key
+  static Future<void> removeRequest(dynamic key) async {
+    await box.delete(key);
   }
 
   /// Mengosongkan semua antrean

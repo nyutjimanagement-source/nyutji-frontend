@@ -13,6 +13,7 @@ import '../../../providers/auth_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'customer_payment_screen.dart';
 import '../../../data/services/api_service.dart';
+import '../../../data/services/cache_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -336,88 +337,110 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     // Naikkan generasi — request lama yang masih berjalan akan dibuang
     final int myGeneration = ++_loadGeneration;
 
-    setState(() {
-      _isLoadingMitras = true;
-      _isConnectionError = false;
-    });
+    final targetCity = forcedCity ?? _selectedCity;
+    final cacheKey = 'recommended_mitras_${targetCity.isEmpty ? "default" : targetCity}';
+
+    // 1. Coba baca dari cache dulu agar UI ter-render instan
+    final cached = CacheService.get(cacheKey);
+    if (cached != null && cached is List) {
+      _processMappedMitras(cached, myGeneration);
+      _isLoadingMitras = false;
+      if (mounted) setState(() {});
+    } else {
+      setState(() {
+        _isLoadingMitras = true;
+        _isConnectionError = false;
+      });
+    }
+
     try {
       final api = ApiService();
-      final targetCity = forcedCity ?? _selectedCity;
-
       final data = await api.getRecommendedMitras(cityName: targetCity);
 
-      // GUARD: Jika sudah ada request baru yang lebih baru, buang hasil ini
       if (myGeneration != _loadGeneration) return;
 
-      final List<dynamic> rawData = data;
-
-      List<Map<String, dynamic>> mapped = rawData.map((m) {
-        final Map<String, dynamic> item = Map<String, dynamic>.from(m);
-        return {
-          'id': item['identifier'] ?? item['id'] ?? '-',
-          'name': item['name'] ?? item['brand_name'] ?? 'Mitra Nyutji',
-          'rating': NyutjiParser.toDouble(item['rating'] ?? 5.0),
-          'distance': NyutjiParser.toDouble(item['distance'] ?? 0.1),
-          'address': item['address'] ?? '-',
-          'district': item['district_name'] ?? item['owner_district_name'] ?? item['district'] ?? '-',
-          'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
-          'lat': NyutjiParser.toDouble(item['lat']),
-          'lng': NyutjiParser.toDouble(item['lng']),
-          'items': item['items'] ?? [],
-          'items_loaded': false,
-        };
-      }).toList();
-
-      if (!mounted || myGeneration != _loadGeneration) return;
-
-      // INJECT PRESELECTED MITRA JIKA TIDAK ADA DI HASIL API
-      if (_selectedMitra != null) {
-        bool exists = mapped.any((m) => m['id'].toString() == _selectedMitra!['id'].toString());
-        if (!exists) {
-          final normalizedMitra = {
-            'id': _selectedMitra!['id'] ?? _selectedMitra!['identifier'] ?? '-',
-            'name': _selectedMitra!['name'] ?? _selectedMitra!['brand_name'] ?? 'Mitra Nyutji',
-            'rating': NyutjiParser.toDouble(_selectedMitra!['rating'] ?? 5.0),
-            'distance': NyutjiParser.toDouble(_selectedMitra!['distance'] ?? 0.1),
-            'address': _selectedMitra!['address'] ?? '-',
-            'district': _selectedMitra!['district_name'] ?? _selectedMitra!['owner_district_name'] ?? _selectedMitra!['district'] ?? '-',
-            'image': _selectedMitra!['image'] ?? _selectedMitra!['profile_photo'] ?? _selectedMitra!['photo'],
-            'lat': NyutjiParser.toDouble(_selectedMitra!['lat']),
-            'lng': NyutjiParser.toDouble(_selectedMitra!['lng']),
-            'items': _selectedMitra!['items'] ?? [],
-            'items_loaded': false,
-          };
-          mapped.insert(0, normalizedMitra);
-        }
-      }
-
-      _mitras = mapped;
-      
-      // Sinkronkan referensi _selectedMitra dengan object di _mitras agar UI Daftar Harga langsung update
-      if (_selectedMitra != null) {
-        try {
-          _selectedMitra = _mitras.firstWhere((m) => m['id'].toString() == _selectedMitra!['id'].toString());
-        } catch (_) {}
-      }
+      _processMappedMitras(data, myGeneration);
 
       _recalculateDistances();
-
-      setState(() {
-        _isLoadingMitras = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingMitras = false;
+        });
+      }
 
       // Fetch harga tiap mitra di background
       for (var m in _mitras) {
         _fetchMitraItems(m['id']);
       }
     } catch (e) {
-      if (!mounted || myGeneration != _loadGeneration) return;
-      setState(() {
-        _isLoadingMitras = false;
-        _isConnectionError = true;
-      });
-      NyutjiNotif.showError(context, "Koneksi terkendala. Cek internet Anda.");
-      debugPrint("Nyutji Error: $e");
+      debugPrint("Gagal mengambil live mitras dari API: $e");
+      if (myGeneration != _loadGeneration) return;
+      if (_mitras.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _isLoadingMitras = false;
+            _isConnectionError = true;
+          });
+          NyutjiNotif.showError(context, "Koneksi terkendala. Cek internet Anda.");
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoadingMitras = false;
+          });
+        }
+      }
+    }
+  }
+
+  void _processMappedMitras(List<dynamic> rawData, int myGeneration) {
+    List<Map<String, dynamic>> mapped = rawData.map((m) {
+      final Map<String, dynamic> item = Map<String, dynamic>.from(m);
+      return {
+        'id': item['identifier'] ?? item['id'] ?? '-',
+        'name': item['name'] ?? item['brand_name'] ?? 'Mitra Nyutji',
+        'rating': NyutjiParser.toDouble(item['rating'] ?? 5.0),
+        'distance': NyutjiParser.toDouble(item['distance'] ?? 0.1),
+        'address': item['address'] ?? '-',
+        'district': item['district_name'] ?? item['owner_district_name'] ?? item['district'] ?? '-',
+        'image': item['image'] ?? item['profile_photo'] ?? item['photo'],
+        'lat': NyutjiParser.toDouble(item['lat']),
+        'lng': NyutjiParser.toDouble(item['lng']),
+        'items': item['items'] ?? [],
+        'items_loaded': false,
+      };
+    }).toList();
+
+    if (!mounted || myGeneration != _loadGeneration) return;
+
+    // INJECT PRESELECTED MITRA JIKA TIDAK ADA DI HASIL API
+    if (_selectedMitra != null) {
+      bool exists = mapped.any((m) => m['id'].toString() == _selectedMitra!['id'].toString());
+      if (!exists) {
+        final normalizedMitra = {
+          'id': _selectedMitra!['id'] ?? _selectedMitra!['identifier'] ?? '-',
+          'name': _selectedMitra!['name'] ?? _selectedMitra!['brand_name'] ?? 'Mitra Nyutji',
+          'rating': NyutjiParser.toDouble(_selectedMitra!['rating'] ?? 5.0),
+          'distance': NyutjiParser.toDouble(_selectedMitra!['distance'] ?? 0.1),
+          'address': _selectedMitra!['address'] ?? '-',
+          'district': _selectedMitra!['district_name'] ?? _selectedMitra!['owner_district_name'] ?? _selectedMitra!['district'] ?? '-',
+          'image': _selectedMitra!['image'] ?? _selectedMitra!['profile_photo'] ?? _selectedMitra!['photo'],
+          'lat': NyutjiParser.toDouble(_selectedMitra!['lat']),
+          'lng': NyutjiParser.toDouble(_selectedMitra!['lng']),
+          'items': _selectedMitra!['items'] ?? [],
+          'items_loaded': false,
+        };
+        mapped.insert(0, normalizedMitra);
+      }
+    }
+
+    _mitras = mapped;
+    
+    // Sinkronkan referensi _selectedMitra dengan object di _mitras agar UI Daftar Harga langsung update
+    if (_selectedMitra != null) {
+      try {
+        _selectedMitra = _mitras.firstWhere((m) => m['id'].toString() == _selectedMitra!['id'].toString());
+      } catch (_) {}
     }
   }
 

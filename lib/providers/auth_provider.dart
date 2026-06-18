@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../core/utils/formatters.dart';
 import '../data/services/api_service.dart';
+import '../data/services/cache_service.dart';
 import '../../main.dart'; // Import navigatorKey
 
 class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
@@ -89,14 +90,33 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   List<dynamic> get addressHistory => _addressHistory;
   String? get lastErrorMessage => _lastErrorMessage;
 
-  Future<void> fetchCouriers() async {
+  DateTime? _lastCouriersFetch;
+
+  Future<void> fetchCouriers({bool force = false}) async {
+    // Throttling: Jika tidak dipaksa (force), batasi request ke server maksimal tiap 15 detik
+    if (!force && _lastCouriersFetch != null && DateTime.now().difference(_lastCouriersFetch!) < const Duration(seconds: 15)) {
+      return;
+    }
+
+    const cacheKey = 'auth_couriers';
+    final cached = CacheService.get(cacheKey);
+    if (cached != null && cached is List) {
+      _couriers = cached;
+      _safeNotifyListeners();
+    }
+
+    _lastCouriersFetch = DateTime.now();
+
     try {
+      List<dynamic> data;
       if (_role == 'ML') {
-        _couriers = await ApiService().getMitraCouriers();
+        data = await ApiService().getMitraCouriers();
       } else {
         final all = await ApiService().getAllUsers();
-        _couriers = all.where((u) => u['role']?.toString().toUpperCase() == 'KL').toList();
+        data = all.where((u) => u['role']?.toString().toUpperCase() == 'KL').toList();
       }
+      _couriers = data;
+      await CacheService.set(cacheKey, data);
       debugPrint("Fetched ${_couriers.length} couriers from database");
       _safeNotifyListeners();
     } catch (e) {
@@ -434,17 +454,32 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     return 'Terjadi kesalahan tidak terduga';
   }
 
+  DateTime? _lastApprovalsFetch;
+
   // Khusus Admin & Mitra: Ambil antrean approval
-  Future<List<dynamic>> fetchPendingApprovals() async {
+  Future<List<dynamic>> fetchPendingApprovals({bool force = false}) async {
+    // Throttling: Jika tidak dipaksa (force), batasi request ke server maksimal tiap 15 detik
+    if (!force && _lastApprovalsFetch != null && DateTime.now().difference(_lastApprovalsFetch!) < const Duration(seconds: 15)) {
+      return _pendingApprovals;
+    }
+
+    const cacheKey = 'auth_pending_approvals';
+    final cached = CacheService.get(cacheKey);
+    if (cached != null && cached is List) {
+      _pendingApprovals = cached;
+      _safeNotifyListeners();
+    }
+
+    _lastApprovalsFetch = DateTime.now();
+
     try {
       final data = await ApiService().getPendingApprovals();
       _pendingApprovals = data;
+      await CacheService.set(cacheKey, data);
       _safeNotifyListeners();
       return data;
     } catch (e) {
-      // Tidak perlu di-print terus-menerus karena dipanggil setiap 5 detik
-      // debugPrint("Fetch Approvals Error: $e");
-      return [];
+      return _pendingApprovals;
     }
   }
 

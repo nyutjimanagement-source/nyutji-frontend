@@ -79,11 +79,19 @@ class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF9ED),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            _buildPremiumHeader(currentT['title']),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future.wait([
+            ref.read(walletProvider).fetchWallet(force: true),
+            ref.read(orderProvider).fetchOrders(force: true),
+          ]);
+        },
+        color: const Color(0xFF403600),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              _buildPremiumHeader(currentT['title']),
             const SizedBox(height: 12),
             // CARD SALDO
             Padding(
@@ -200,10 +208,33 @@ final wallet = ref.watch(walletProvider);
                           ...grouped.entries.toList().asMap().entries.map((mapEntry) {
                             int idx = mapEntry.key;
                             var entry = mapEntry.value;
+                            bool isInitialExpanded;
+                            if (_historyFilter == 'Minggu') {
+                              final now = DateTime.now();
+                              int currentWeek = ((now.day - 1) / 7).floor() + 1;
+                              String currentMonthYear = DateFormat('MMMM yyyy', 'id_ID').format(now);
+                              bool isCurrentMonth = entry.key.contains(currentMonthYear);
+                              if (isCurrentMonth) {
+                                int? groupWeek;
+                                final match = RegExp(r'Minggu ke-(\d+)').firstMatch(entry.key);
+                                if (match != null) {
+                                  groupWeek = int.tryParse(match.group(1) ?? '');
+                                }
+                                if (groupWeek != null && groupWeek != currentWeek) {
+                                  isInitialExpanded = false;
+                                } else {
+                                  isInitialExpanded = idx == 0;
+                                }
+                              } else {
+                                isInitialExpanded = idx == 0;
+                              }
+                            } else {
+                              isInitialExpanded = idx == 0;
+                            }
                             return _HistoryGroupItem(
                               title: entry.key,
                               items: entry.value,
-                              isInitialExpanded: idx == 0,
+                              isInitialExpanded: isInitialExpanded,
                             );
                           }),
                       ],
@@ -216,8 +247,9 @@ final wallet = ref.watch(walletProvider);
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildPremiumHeader(String title) {
     return ClipPath(

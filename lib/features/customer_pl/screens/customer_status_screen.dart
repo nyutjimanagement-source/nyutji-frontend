@@ -214,15 +214,21 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
             subtitle: "Ada ${orders.length} Pesanan Milik Anda"
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-              physics: const BouncingScrollPhysics(),
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                debugPrint("Nyutji Debug Order [$index]: ${order['order_number'] ?? order['orderNumber']} -> Keys: ${order.keys.toList()}");
-                return PremiumOrderCard(order: order);
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref.read(orderProvider).fetchOrders(force: true);
               },
+              color: const Color(0xFF403600),
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: orders.length,
+                itemBuilder: (context, index) {
+                  final order = orders[index];
+                  debugPrint("Nyutji Debug Order [$index]: ${order['order_number'] ?? order['orderNumber']} -> Keys: ${order.keys.toList()}");
+                  return PremiumOrderCard(order: order);
+                },
+              ),
             ),
           ),
         ],
@@ -834,7 +840,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                       // PROGRESS HEADER
                       Row(
                         children: [
-                          Text("Progress Layanan", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600).withValues(alpha: 0.8))),
+                          Text("Progress Layanan", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: const Color(0xFF403600).withValues(alpha: 0.8))),
                           const SizedBox(width: 12),
                           const Expanded(child: Divider(color: Color(0xFFF3F0E9), thickness: 1)),
                         ],
@@ -994,7 +1000,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
           child: Center(child: iconWidget),
         ),
         const SizedBox(height: 6),
-        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+        Text(label, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
       ],
     );
 

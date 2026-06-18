@@ -57,7 +57,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(walletProvider).fetchWallet();
       ref.read(orderProvider).fetchOrders();
-      ref.read(orderProvider).fetchOrders();
       _fetchMitrasByLocation();
       // _startPromoMarquee(); // Disabled marquee
     });
@@ -179,15 +178,24 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         onPressed: () => _mainScrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut),
         child: const Icon(Icons.arrow_upward, color: Colors.white, size: 20),
       ) : null,
-      body: SingleChildScrollView(
-        controller: _mainScrollController,
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                _buildHeader(currentT, auth),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future.wait([
+            ref.read(walletProvider).fetchWallet(force: true),
+            ref.read(orderProvider).fetchOrders(force: true),
+            _fetchMitrasByLocation(),
+          ]);
+        },
+        color: const Color(0xFF403600),
+        child: SingleChildScrollView(
+          controller: _mainScrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _buildHeader(currentT, auth),
                 Positioned(
                   bottom: -15, 
                   left: 16,
@@ -208,8 +216,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildHeader(Map<String, dynamic> currentT, AuthProvider auth) {
     final photoUrl = auth.user?['profile_photo'];
@@ -511,7 +520,9 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
               // Baris 1
               _buildServiceItem("Pick Up\nKurir", "icon_pickup.png", hasPromo: true, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'pickup')))),
               _buildServiceItem("Antar\nSendiri", "icon_dropoff.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'drop')))),
-              _buildServiceItem("Nyutji\nCoin", "icon_coin.png"),
+              _buildServiceItem("Nyutji\nCoin", "icon_coin.png", onTap: () {
+                NyutjiNotif.showInfo(context, "Fitur Nyutji Coin akan segera hadir");
+              }),
               _buildServiceItem("Top-Up", "icon_topup.png", onTap: () {
                 final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
                 if (mainState != null) {

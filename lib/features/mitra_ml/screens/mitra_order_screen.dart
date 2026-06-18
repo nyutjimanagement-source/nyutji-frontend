@@ -535,7 +535,7 @@ final orderProv = ref.watch(orderProvider);
       duration: const Duration(milliseconds: 300),
       child: filtered.isEmpty
           ? RefreshIndicator(
-              onRefresh: () => ref.read(orderProvider).fetchOrders(),
+              onRefresh: () => ref.read(orderProvider).fetchOrders(force: true),
               color: primaryTeal,
               child: ListView(
                 key: ValueKey('empty_$currentFilter'),
@@ -784,7 +784,7 @@ final orderProv = ref.watch(orderProvider);
       children: [
         Expanded(
           child: RefreshIndicator(
-            onRefresh: () => ref.read(orderProvider).fetchOrders(),
+            onRefresh: () => ref.read(orderProvider).fetchOrders(force: true),
             color: primaryTeal,
             child: PageView.builder(
               controller: _pageController,

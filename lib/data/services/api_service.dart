@@ -7,6 +7,7 @@ import '../../core/constants/api_constants.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/network/dio_offline_interceptor.dart';
+import 'cache_service.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -374,11 +375,22 @@ class ApiService {
 
   // --- LIVE MITRA & PRICING ENDPOINTS ---
   Future<List<dynamic>> getRecommendedMitras({String? cityName}) async {
-    // Menarik daftar mitra terdekat/rekomendasi dari DB
-    final response = await _dio.get("/mitras/recommended", queryParameters: {
-      if (cityName != null && cityName.isNotEmpty) 'city_name': cityName
-    });
-    return response.data['data'] ?? [];
+    final cacheKey = 'recommended_mitras_${cityName ?? "default"}';
+    try {
+      final response = await _dio.get("/mitras/recommended", queryParameters: {
+        if (cityName != null && cityName.isNotEmpty) 'city_name': cityName
+      });
+      final data = response.data['data'] ?? [];
+      await CacheService.set(cacheKey, data);
+      return data;
+    } catch (e) {
+      debugPrint("Gagal mengambil recommended mitras dari API, mencoba cache: $e");
+      final cached = CacheService.get(cacheKey);
+      if (cached != null && cached is List) {
+        return cached;
+      }
+      rethrow;
+    }
   }
 
   Future<List<dynamic>> searchMitras(String query) async {
@@ -389,9 +401,20 @@ class ApiService {
   }
 
   Future<List<dynamic>> getMitraItems(dynamic mitraId) async {
-    // Menarik daftar harga asli mitra tertentu dari DB
-    final response = await _dio.get("/mitras/$mitraId/items");
-    return response.data['data'] ?? [];
+    final cacheKey = 'mitra_items_$mitraId';
+    try {
+      final response = await _dio.get("/mitras/$mitraId/items");
+      final data = response.data['data'] ?? [];
+      await CacheService.set(cacheKey, data);
+      return data;
+    } catch (e) {
+      debugPrint("Gagal mengambil mitra items dari API, mencoba cache: $e");
+      final cached = CacheService.get(cacheKey);
+      if (cached != null && cached is List) {
+        return cached;
+      }
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> updateMitraPricing(dynamic mitraId, List<Map<String, dynamic>> items) async {

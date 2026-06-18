@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/services/api_service.dart';
+import '../data/services/cache_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class OrderProvider extends ChangeNotifier {
@@ -152,56 +153,40 @@ class OrderProvider extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  Future<void> fetchOrders() async {
-    _isLoading = true;
-    _errorMessage = null;
-    _safeNotifyListeners();
+  DateTime? _lastOrdersFetch;
+
+  Future<void> fetchOrders({bool force = false}) async {
+    // Throttling: Jika tidak dipaksa (force), batasi request ke server maksimal tiap 15 detik
+    if (!force && _lastOrdersFetch != null && DateTime.now().difference(_lastOrdersFetch!) < const Duration(seconds: 15)) {
+      debugPrint("[fetchOrders] Throttled (kurang dari 15 detik).");
+      return;
+    }
+
+    // 1. Coba baca dari cache dulu agar UI ter-render instan
+    final cachedData = CacheService.get('nyutji_orders');
+    if (cachedData != null && cachedData is List) {
+      await _processOrders(cachedData);
+      _isLoading = false;
+      _safeNotifyListeners();
+    } else {
+      _isLoading = true;
+      _errorMessage = null;
+      _safeNotifyListeners();
+    }
+
+    _lastOrdersFetch = DateTime.now();
 
     try {
       final List<dynamic> orders = await _api.getOrders();
       debugPrint("Nyutji API Data: Diterima ${orders.length} pesanan");
-      if (orders.isNotEmpty) debugPrint("Nyutji API Sample: ${orders.first}");
-
-      // Ambil role aktif dari lokal storage
-      final prefs = await SharedPreferences.getInstance();
-      final role = (prefs.getString('role') ?? 'PL').toUpperCase();
-
-      // SMART FILTER: Sesuai role user
-      if (role == 'PL') {
-        // Untuk Pelanggan (PL): DONE tetap aktif agar bisa ulasan/review
-        _activeOrders = orders.where((o) {
-          if (o is! Map) return false;
-          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-          return status != 'selesai' && status != 'completed' && status != 'paid';
-        }).toList();
-        
-        _historyOrders = orders.where((o) {
-          if (o is! Map) return false;
-          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-          return status == 'selesai' || status == 'completed' || status == 'paid';
-        }).toList();
-
-        await checkPLNotifications();
-      } else {
-        // Untuk Mitra (ML) & Kurir (KL): DONE sudah masuk riwayat / selesai!
-        _activeOrders = orders.where((o) {
-          if (o is! Map) return false;
-          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-          return status != 'done' && status != 'paid' && status != 'selesai' && status != 'completed';
-        }).toList();
-        
-        _historyOrders = orders.where((o) {
-          if (o is! Map) return false;
-          final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
-          return status == 'done' || status == 'paid' || status == 'selesai' || status == 'completed';
-        }).toList();
-      }
       
-      debugPrint("Nyutji State untuk role $role: ${_activeOrders.length} aktif, ${_historyOrders.length} riwayat");
+      // Simpan hasil sukses ke cache
+      await CacheService.set('nyutji_orders', orders);
+      await _processOrders(orders);
     } catch (e) {
       _errorMessage = 'Gagal memuat data pesanan';
       debugPrint("Nyutji Data Error: $e");
-      // Fallback dummy hanya jika benar-benar kosong dan error
+      // Jika cache kosong baru gunakan dummy fallback
       if (_activeOrders.isEmpty && _historyOrders.isEmpty) {
         _activeOrders = [
           {'order_number': 'NYJ-DEBUG-001', 'order_status': 'Proses Cuci', 'grand_total': 21000.0},
@@ -210,6 +195,41 @@ class OrderProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
+    }
+  }
+
+  Future<void> _processOrders(List<dynamic> orders) async {
+    // Ambil role aktif dari lokal storage
+    final prefs = await SharedPreferences.getInstance();
+    final role = (prefs.getString('role') ?? 'PL').toUpperCase();
+
+    // SMART FILTER: Sesuai role user
+    if (role == 'PL') {
+      _activeOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status != 'selesai' && status != 'completed' && status != 'paid';
+      }).toList();
+      
+      _historyOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status == 'selesai' || status == 'completed' || status == 'paid';
+      }).toList();
+
+      await checkPLNotifications();
+    } else {
+      _activeOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status != 'done' && status != 'paid' && status != 'selesai' && status != 'completed';
+      }).toList();
+      
+      _historyOrders = orders.where((o) {
+        if (o is! Map) return false;
+        final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+        return status == 'done' || status == 'paid' || status == 'selesai' || status == 'completed';
+      }).toList();
     }
   }
 

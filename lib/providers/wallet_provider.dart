@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/services/api_service.dart';
+import '../data/services/cache_service.dart';
 import 'package:dio/dio.dart';
 
 class WalletProvider extends ChangeNotifier {
@@ -35,23 +36,50 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchWallet() async {
-    _isLoading = true;
-    _errorMessage = null;
-    _safeNotifyListeners();
+  DateTime? _lastWalletFetch;
+
+  Future<void> fetchWallet({bool force = false}) async {
+    // Throttling: Jika tidak dipaksa (force), batasi request ke server maksimal tiap 15 detik
+    if (!force && _lastWalletFetch != null && DateTime.now().difference(_lastWalletFetch!) < const Duration(seconds: 15)) {
+      debugPrint("[fetchWallet] Throttled (kurang dari 15 detik).");
+      return;
+    }
+
+    // 1. Coba baca dari cache dulu agar UI ter-render instan
+    final cachedData = CacheService.get('nyutji_wallet');
+    if (cachedData != null && cachedData is Map) {
+      _balance = double.parse(cachedData['balance']?.toString() ?? '0');
+      _mutasiList = cachedData['logs'] ?? [];
+      _withdrawalsList = cachedData['withdrawals'] ?? [];
+      _isLoading = false;
+      _safeNotifyListeners();
+    } else {
+      _isLoading = true;
+      _errorMessage = null;
+      _safeNotifyListeners();
+    }
+
+    _lastWalletFetch = DateTime.now();
 
     try {
       final data = await _api.getWalletData();
       debugPrint('[fetchWallet] data: $data');
-      _balance = double.parse(data['balance'].toString());
+      
+      // Simpan hasil sukses ke cache
+      await CacheService.set('nyutji_wallet', data);
+      
+      _balance = double.parse(data['balance']?.toString() ?? '0');
       _mutasiList = data['logs'] ?? [];
       _withdrawalsList = data['withdrawals'] ?? [];
     } catch (e) {
       debugPrint('[fetchWallet] ERROR: $e');
       _errorMessage = 'Gagal memuat saldo dompet: $e';
-      _balance = 0.0;
-      _mutasiList = [];
-      _withdrawalsList = [];
+      // Jika cache kosong baru di-reset ke default
+      if (_mutasiList.isEmpty && _withdrawalsList.isEmpty) {
+        _balance = 0.0;
+        _mutasiList = [];
+        _withdrawalsList = [];
+      }
     } finally {
       _isLoading = false;
       _safeNotifyListeners();
