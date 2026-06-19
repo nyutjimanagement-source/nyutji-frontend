@@ -118,8 +118,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
       _refreshData();
       _fetchRealLocation();
     });
-    // Aktifkan auto-reload setiap 5 detik (Instruksi Jenderal)
-    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => _refreshData());
+    // Auto-reload dihapus sesuai Aturan Pelarangan Polling Agresif (Rule 4)
   }
 
   Future<void> _fetchRealLocation() async {

@@ -31,12 +31,7 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
     super.initState();
     _fetchDevices();
     
-    // Poll status every 10 seconds
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (mounted && _devices.isNotEmpty) {
-        _fetchAllStatuses();
-      }
-    });
+    // Auto-reload dihapus sesuai Aturan Pelarangan Polling Agresif (Rule 4)
   }
 
   @override

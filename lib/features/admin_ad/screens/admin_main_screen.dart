@@ -56,7 +56,7 @@ class _AdminMainScreenState extends ConsumerState<AdminMainScreen> with SingleTi
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadAdminData();
       _fetchSystemStatus();
-      _statusTimer = Timer.periodic(const Duration(seconds: 15), (_) => _fetchSystemStatus());
+      // Auto-reload dihapus sesuai Aturan Pelarangan Polling Agresif (Rule 4)
     });
   }
 
