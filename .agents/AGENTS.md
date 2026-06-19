@@ -30,12 +30,13 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Aturan**: Dilarang menggunakan `Timer.periodic` dengan durasi pendek (misalnya polling setiap 5-10 detik) untuk memantau status atau data di dashboard utama.
 * **Solusi**: Biarkan data diperbarui saat pengguna pertama kali membuka halaman (menggunakan alur cache-first), dan biarkan pengguna memperbarui data secara berkala secara manual menggunakan gesture pull-to-refresh.
 
-### 5. Kehandalan Antrean Offline (Selective Sync Queue)
-* **Aturan**: Gunakan `OfflineQueueDB` berbasis key Hive unik untuk request mutasi (`POST`/`PUT`/`PATCH`/`DELETE`) yang tertunda saat offline.
-* **Implementasi**:
-  * Saat mendeteksi koneksi pulih, proses antrean offline satu per satu.
-  * **Hanya hapus** request dari antrean lokal jika server mengembalikan respons sukses (2xx) atau terjadi *client-error* permanen (4xx).
-  * **Dilarang keras** membersihkan antrean jika request gagal karena kendala jaringan sementara (seperti timeout atau offline kembali) atau *server-error* (5xx). Request harus tetap disimpan di Hive untuk dicoba ulang berikutnya.
+### 5. Larangan Offline Queue untuk Nyutji
+* **Aturan**: **Dilarang** mengimplementasikan sistem Offline Queue (antrian mutasi saat offline) di aplikasi Nyutji.
+* **Alasan**:
+  1. Masalah koneksi di Nyutji bersifat **server-side** (shared hosting overload), bukan device-side — sudah ditangani oleh Retry Interceptor.
+  2. Operasi kritis Nyutji (buat pesanan, upload POW, update status) memerlukan validasi real-time dari server dan **tidak aman** untuk di-queue karena risiko konflik state.
+  3. Retry Mechanism yang sudah ada (`connectionError` + `badResponse HTML`) sudah cukup untuk menangani gangguan sementara tanpa kompleksitas Offline Queue.
+* **Alternatif yang benar**: Gunakan `cache-first` untuk READ, dan `retry otomatis` untuk WRITE yang gagal sementara.
 
 ---
 
@@ -97,13 +98,28 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Aturan**: Dilarang menggunakan standar bawaan Flutter (`ScaffoldMessenger.of(context).showSnackBar`) atau *dialog popup* bawaan sistem untuk menampilkan pesan *success*, *error*, atau informasi kepada pengguna.
 * **Solusi**: Wajib menggunakan pemanggilan statis dari widget kustom `NyutjiNotif` (misal: `NyutjiNotif.showSuccess`, `NyutjiNotif.showError`) secara langsung pada blok eksekusi agar notifikasi muncul dengan desain premium (*BeautyPopupWidget*) tanpa perlu melempar pesan melalui `Navigator.pop`.
 
+### 14. Keamanan Context dalam GridView/ListView Builder
+* **Aturan**: Di dalam `itemBuilder` pada `GridView` atau `ListView`, jangan gunakan `context` lokal builder untuk operasi asinkron (navigasi, notifikasi) setelah `await`.
+* **Solusi**: Gunakan `mounted` (bukan `context.mounted`) dan `this.context` untuk mengakses context induk `State` yang dijamin tetap hidup meski layout builder sudah dihancurkan dan dibangun ulang. Contoh:
+  ```dart
+  itemBuilder: (ctx, index) { // ← pakai nama berbeda (ctx) agar tidak shadow
+    onTap: () async {
+      await someAsyncOperation();
+      if (mounted) { // ← cek mounted milik State, bukan ctx
+        NyutjiNotif.showSuccess(this.context, "Berhasil"); // ← this.context
+        Navigator.pop(this.context);
+      }
+    }
+  }
+  ```
+
 ---
 
 ## III. Standar Database & Relasi Tabel
 
 ### 1. Penggunaan orderNumber sebagai Primary Key Tabel Orders
 * **Aturan**: Tabel "orders" secara mutlak menggunakan "orderNumber" (dengan format *string* kustom, contoh: "SRP-20260529-1782") sebagai *Primary Key*. Dilarang keras menggunakan, mencari, atau menambahkan kolom "id" pada tabel "orders" maupun referensi *foreign key*-nya di tabel lain.
-* **Implementasi**: 
+* **Implementasi**:
   1. Saat mencari data (*query*) menggunakan Sequelize (misal: "Order.findOne"), hanya gunakan parameter "where: { orderNumber: ... }".
   2. Hapus dan hindari logika *fallback* pencarian yang melibatkan kolom "id" (misal: "{ id: isNaN(orderNumber) ? null : parseInt(orderNumber) }").
   3. Seluruh tabel relasi (seperti "order_items", "order_attachment") yang terhubung ke pesanan wajib menggunakan kolom bertipe *string* yang merujuk langsung ke "orderNumber".
