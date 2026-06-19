@@ -43,7 +43,19 @@ class ApiService {
       },
     );
 
-    // 1. Auth Interceptor (Harus pertama agar request sudah memiliki token)
+    // ─── CATATAN ARSITEKTUR INTERCEPTOR DIO ─────────────────────────────────────
+    // Dio memproses interceptors secara FIFO untuk REQUEST, tapi LIFO untuk RESPONSE/ERROR.
+    // Urutan add: [Auth(0), HtmlRetry(1)]
+    //   Request : Auth(0) → HtmlRetry(1) → server
+    //   Response: server → HtmlRetry(1) → Auth(0) → caller
+    //   Error   : server → HtmlRetry(1) → Auth(0) → caller
+    //
+    // Dengan urutan ini, HtmlRetry(1) memproses response/error PERTAMA kali,
+    // sebelum Auth(0). Maka HtmlRetry bisa detect HTML dan langsung retry
+    // tanpa perlu Auth.reject melempar ke atasnya.
+    // ────────────────────────────────────────────────────────────────────────────
+
+    // 1. Auth Interceptor — hanya menambahkan Bearer token pada request
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         if (options.path == ApiConstants.login || options.path == "/register") {
@@ -56,22 +68,30 @@ class ApiService {
         }
         return handler.next(options);
       },
-      onResponse: (response, handler) {
-        // Jika server mengembalikan HTML/String (misal: Captive Portal wifi) namun kita expect JSON
+    ));
+
+    // 2. HTML-Detect + Retry Interceptor — diproses PERTAMA saat ada response/error (LIFO)
+    // Menangani dua kasus:
+    //   A) Server merespons HTML (cPanel 503 / resource limit) → deteksi & retry di sini
+    //   B) Error transport TCP (connection reset, timeout) → flush pool & retry
+    _dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (response, handler) async {
+        // Deteksi respons HTML yang merupakan halaman error sementara dari shared hosting
         if (response.data is String && response.requestOptions.responseType == ResponseType.json) {
           final rawString = response.data.toString().trim();
+
           if (rawString.isEmpty) {
             response.data = <String, dynamic>{};
             return handler.next(response);
           }
 
+          // Coba parse sebagai JSON dulu
           try {
-            // Coba parsing manual, jika berhasil, override data
             final parsed = jsonDecode(rawString);
             response.data = parsed;
             return handler.next(response);
           } catch (_) {
-            // Gagal parsing. Coba bersihkan PHP warning/HTML prepended jika ada
+            // Bukan JSON — coba ekstrak JSON dari dalam HTML (jika ada PHP warning prefix)
             final extracted = _extractJson(rawString);
             if (extracted != null) {
               try {
@@ -81,13 +101,41 @@ class ApiService {
               } catch (_) {}
             }
           }
-          
-          // Berikan pesan error lebih informatif berdasarkan konten
+
+          // Benar-benar HTML — cek apakah ini error sementara dari server (bisa di-retry)
+          final isHtml = rawString.toLowerCase().contains('html') ||
+              rawString.startsWith('<!doctype') ||
+              rawString.startsWith('<html');
+
+          final int attemptNumber =
+              (response.requestOptions.extra['retryCount'] as int?) ?? 0;
+
+          if (isHtml && attemptNumber < 3) {
+            // Ini HTML error sementara dari cPanel/Apache — retry dengan jeda bertambah
+            final delay = Duration(seconds: attemptNumber + 1);
+            debugPrint(
+              '[Retry] HTML response dari server. '
+              'Percobaan ${attemptNumber + 1}/3 setelah ${delay.inSeconds}s...',
+            );
+            await Future.delayed(delay);
+
+            final options = response.requestOptions;
+            options.extra['retryCount'] = attemptNumber + 1;
+
+            try {
+              final retryResponse = await _dio.fetch(options);
+              return handler.next(retryResponse);
+            } on DioException catch (retryError) {
+              return handler.reject(retryError);
+            }
+          }
+
+          // Sudah habis retry atau bukan HTML — lempar sebagai error dengan pesan deskriptif
           String errorMsg = "Format respons server tidak valid (Mungkin karena Wifi Login/Captive Portal)";
-          if (rawString.toLowerCase().contains("html") || rawString.startsWith("<!doctype") || rawString.startsWith("<html")) {
+          if (isHtml) {
             errorMsg = "Server sedang mengalami gangguan atau pembatasan resource (Shared Hosting Error).";
           }
-          
+
           return handler.reject(DioException(
             requestOptions: response.requestOptions,
             response: response,
@@ -96,15 +144,13 @@ class ApiService {
             error: errorMsg,
           ));
         }
+
         return handler.next(response);
       },
-    ));
 
-    // 2. Retry Interceptor — Tangani stale connection & error jaringan sementara
-    // Hanya retry untuk error transport (bukan 4xx/5xx), maksimal 2x
-    _dio.interceptors.add(InterceptorsWrapper(
       onError: (DioException error, ErrorInterceptorHandler handler) async {
-        final bool isTransientError =
+        // Error transport TCP (connection reset, closed before header, timeout)
+        final bool isConnectionError =
             error.type == DioExceptionType.connectionError ||
             error.type == DioExceptionType.connectionTimeout ||
             error.type == DioExceptionType.receiveTimeout ||
@@ -113,33 +159,30 @@ class ApiService {
         final int attemptNumber =
             (error.requestOptions.extra['retryCount'] as int?) ?? 0;
 
-        if (isTransientError && attemptNumber < 2) {
-          // Flush koneksi idle dari pool sebelum retry
-          // close(force: false) = hanya tutup idle connections, tidak putus koneksi aktif
-          // Ini menghilangkan koneksi "stale" yang sudah ditutup server tapi masih di pool kita
-          if (error.type == DioExceptionType.connectionError) {
-            try {
-              _dio.httpClientAdapter.close(force: false);
-              // Re-create adapter baru dengan pool kosong
-              _dio.httpClientAdapter = IOHttpClientAdapter(
-                createHttpClient: () {
-                  final client = HttpClient();
-                  client.maxConnectionsPerHost = 3;
-                  client.idleTimeout = const Duration(seconds: 8);
-                  return client;
-                },
-              );
-            } catch (_) {}
-          }
+        if (isConnectionError && attemptNumber < 2) {
+          // Flush koneksi stale dari pool sebelum retry
+          try {
+            _dio.httpClientAdapter.close(force: false);
+            _dio.httpClientAdapter = IOHttpClientAdapter(
+              createHttpClient: () {
+                final client = HttpClient();
+                client.maxConnectionsPerHost = 3;
+                client.idleTimeout = const Duration(seconds: 8);
+                return client;
+              },
+            );
+          } catch (_) {}
 
-          // Jeda sebelum retry: 500ms untuk percobaan pertama, 1.5s untuk kedua
           final delay = attemptNumber == 0
               ? const Duration(milliseconds: 500)
               : const Duration(milliseconds: 1500);
-          debugPrint('[Retry] Percobaan ${attemptNumber + 1}/2 setelah ${delay.inMilliseconds}ms — ${error.type.name}');
+
+          debugPrint(
+            '[Retry] Percobaan ${attemptNumber + 1}/2 '
+            'setelah ${delay.inMilliseconds}ms — ${error.type.name}',
+          );
           await Future.delayed(delay);
 
-          // Tandai percobaan ke-berapa ini
           final options = error.requestOptions;
           options.extra['retryCount'] = attemptNumber + 1;
 
