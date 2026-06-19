@@ -263,6 +263,11 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     
     // Bersihkan Hive cache agar tidak bocor ke user lain
     await CacheService.clear();
+
+    // Reset ApiService client (menutup adapter lama dan menginisialisasi client baru) untuk mencegah stuck DNS/connection cache
+    try {
+      ApiService().reset();
+    } catch (_) {}
     
     _token = null;
     _role = null;
@@ -289,6 +294,11 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     try {
+      // Reset ApiService client (menutup adapter lama dan menginisialisasi client baru) untuk mencegah stuck DNS/connection cache
+      try {
+        ApiService().reset();
+      } catch (_) {}
+
       final response = await ApiService().login(realIdentifier, password);
 
       if (response['token'] != null) {

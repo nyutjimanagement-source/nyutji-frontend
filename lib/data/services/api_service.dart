@@ -10,7 +10,7 @@ import '../../core/network/dio_offline_interceptor.dart';
 import 'cache_service.dart';
 
 class ApiService {
-  late final Dio _dio;
+  late Dio _dio;
 
   Dio get dio => _dio;
 
@@ -21,6 +21,10 @@ class ApiService {
   }
 
   ApiService._internal() {
+    _initDio();
+  }
+
+  void _initDio() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiConstants.baseUrl,
       connectTimeout: const Duration(seconds: 30),
@@ -112,6 +116,13 @@ class ApiService {
 
     // 3. Offline Interceptor (Opsional, ditempatkan terakhir)
     _dio.interceptors.add(const DioOfflineInterceptor());
+  }
+
+  void reset() {
+    try {
+      _dio.httpClientAdapter.close(force: true);
+    } catch (_) {}
+    _initDio();
   }
   
   // --- SYSTEM STATUS ---
