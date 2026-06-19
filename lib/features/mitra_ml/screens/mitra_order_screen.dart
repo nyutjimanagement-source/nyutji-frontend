@@ -1535,13 +1535,13 @@ final auth = ref.watch(authProvider);
     );
   }
 
-  void _showStatusUpdater(String orderId, String currentStatus, String deliveryType) {
+  void _showStatusUpdater(String orderId, String currentStatus, String deliveryType) async {
     bool isSelfDrop = ['SELF_DROP', 'SELFDROP_SELFDELIVERY', 'SELF_SERVICE'].contains(deliveryType.toUpperCase());
     final stages = isSelfDrop 
         ? ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DONE'] 
         : ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE'];
 
-    showModalBottomSheet(
+    final result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1551,6 +1551,12 @@ final auth = ref.watch(authProvider);
         stages: stages,
       ),
     );
+
+    if (result != null && result is Map) {
+      if (context.mounted) {
+        _showNotif(result['msg'], result['success']);
+      }
+    }
   }
 
   void _showNotif(String msg, bool isSuccess) {
@@ -2167,12 +2173,11 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                             final success = await provider.updateOrderStatus(widget.orderId, s);
                             
                             if (context.mounted) {
-                              Navigator.of(context, rootNavigator: true).pop();
-                            }
-                            if (success) {
-                              _showNotif("Status diperbarui ke $label", true);
-                            } else {
-                              setState(() { isUploading = false; });
+                              if (success) {
+                                Navigator.of(context, rootNavigator: true).pop({'msg': "Status diperbarui ke $label", 'success': true});
+                              } else {
+                                setState(() { isUploading = false; });
+                              }
                             }
                           },
                           borderRadius: BorderRadius.circular(10),
@@ -2291,13 +2296,11 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                         final statusSuccess = await provider.updateOrderStatus(widget.orderId, 'WEIGHING');
                                         
                                         if (context.mounted) {
-                                          Navigator.of(context, rootNavigator: true).pop();
-                                        }
-                                        
-                                        if (statusSuccess) {
-                                          _showNotif("Status diperbarui ke Penimbangan & Notes Disimpan", true);
-                                        } else {
-                                          setState(() { isUploading = false; });
+                                          if (statusSuccess) {
+                                            Navigator.of(context, rootNavigator: true).pop({'msg': "Status diperbarui ke Penimbangan & Notes Disimpan", 'success': true});
+                                          } else {
+                                            setState(() { isUploading = false; });
+                                          }
                                         }
                                       },
                                       child: Text(
