@@ -32,12 +32,13 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
     ));
 
-    // Limit concurrent connections & allow idle connections for 15s agar tidak perlu buka TCP baru tiap request
+    // Limit concurrent connections & idle timeout 8s (lebih pendek dari keep-alive Apache ~10-15s)
+    // agar koneksi tidak menjadi "stale" saat server sudah menutupnya
     _dio.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {
         final client = HttpClient();
         client.maxConnectionsPerHost = 3;
-        client.idleTimeout = const Duration(seconds: 15); // Naik dari 1s agar koneksi keep-alive tetap hidup
+        client.idleTimeout = const Duration(seconds: 8); // Aman: lebih pendek dari timeout Apache
         return client;
       },
     );
@@ -99,8 +100,8 @@ class ApiService {
       },
     ));
 
-    // 2. Retry Interceptor — Tangani error jaringan sementara (connection reset, closed, timeout)
-    // Hanya retry untuk error transport (bukan 4xx/5xx), maksimal 2x dengan jeda naik (1s, 2s)
+    // 2. Retry Interceptor — Tangani stale connection & error jaringan sementara
+    // Hanya retry untuk error transport (bukan 4xx/5xx), maksimal 2x
     _dio.interceptors.add(InterceptorsWrapper(
       onError: (DioException error, ErrorInterceptorHandler handler) async {
         final bool isTransientError =
@@ -113,9 +114,29 @@ class ApiService {
             (error.requestOptions.extra['retryCount'] as int?) ?? 0;
 
         if (isTransientError && attemptNumber < 2) {
-          // Jeda sebelum retry: 1s untuk percobaan pertama, 2s untuk kedua
-          final delay = Duration(seconds: attemptNumber + 1);
-          debugPrint('[Retry] Percobaan ${attemptNumber + 1}/2 setelah ${delay.inSeconds}s — ${error.message}');
+          // Flush koneksi idle dari pool sebelum retry
+          // close(force: false) = hanya tutup idle connections, tidak putus koneksi aktif
+          // Ini menghilangkan koneksi "stale" yang sudah ditutup server tapi masih di pool kita
+          if (error.type == DioExceptionType.connectionError) {
+            try {
+              _dio.httpClientAdapter.close(force: false);
+              // Re-create adapter baru dengan pool kosong
+              _dio.httpClientAdapter = IOHttpClientAdapter(
+                createHttpClient: () {
+                  final client = HttpClient();
+                  client.maxConnectionsPerHost = 3;
+                  client.idleTimeout = const Duration(seconds: 8);
+                  return client;
+                },
+              );
+            } catch (_) {}
+          }
+
+          // Jeda sebelum retry: 500ms untuk percobaan pertama, 1.5s untuk kedua
+          final delay = attemptNumber == 0
+              ? const Duration(milliseconds: 500)
+              : const Duration(milliseconds: 1500);
+          debugPrint('[Retry] Percobaan ${attemptNumber + 1}/2 setelah ${delay.inMilliseconds}ms — ${error.type.name}');
           await Future.delayed(delay);
 
           // Tandai percobaan ke-berapa ini
