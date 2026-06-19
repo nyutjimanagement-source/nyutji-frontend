@@ -412,7 +412,7 @@ class OrderProvider extends ChangeNotifier {
     try {
       await _api.acceptOrder(orderId);
       // Refresh data
-      await fetchOrders();
+      await fetchOrders(force: true);
       // Reset available orders locally or fetch again
       // Gunakan order_number sebagai prioritas identitas pesanan
       _availableOrders.removeWhere((o) => (o['order_number'] ?? o['id']) == orderId);
@@ -439,7 +439,7 @@ class OrderProvider extends ChangeNotifier {
     try {
       await _api.assignCourier(orderId, courierId);
       // Refresh data agar status berubah di UI
-      await fetchOrders();
+      await fetchOrders(force: true);
       _isLoading = false;
       _safeNotifyListeners();
       return true;
@@ -462,7 +462,7 @@ class OrderProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.updateOrderStatus(orderId, status);
-      await fetchOrders();
+      await fetchOrders(force: true);
       _isLoading = false;
       _safeNotifyListeners();
       return true;
@@ -485,7 +485,7 @@ class OrderProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.saveOrderNotes(orderId, notes);
-      await fetchOrders();
+      await fetchOrders(force: true);
       _isLoading = false;
       _safeNotifyListeners();
       return true;
@@ -508,7 +508,7 @@ class OrderProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.submitReview(orderId, ratingMitra, ratingCourier, comment);
-      await fetchOrders();
+      await fetchOrders(force: true);
       _isLoading = false;
       _safeNotifyListeners();
       return true;

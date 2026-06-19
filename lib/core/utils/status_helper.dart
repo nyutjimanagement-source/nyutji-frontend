@@ -24,6 +24,24 @@ class StatusHelper {
     return labels[s] ?? s;
   }
 
+  /// Mendapatkan urutan step/progress untuk logika flow UI
+  static int getProgressStep(String status) {
+    switch (status.toUpperCase()) {
+      case 'SEARCHING':
+      case 'COURIER_ACCEPTED':
+      case 'WAITING_DROPOFF':
+      case 'PICKING_UP': return 1;
+      case 'WEIGHING': return 2;
+      case 'WASH_START':
+      case 'IRONING': return 3;
+      case 'PACKING': return 4;
+      case 'DELIVERING': return 5;
+      case 'DONE':
+      case 'PAID': return 6;
+      default: return 1;
+    }
+  }
+
   /// Mendapatkan warna tema untuk status tertentu
   static Color getColor(String status) {
     final s = status.toUpperCase();

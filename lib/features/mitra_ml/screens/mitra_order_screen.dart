@@ -53,23 +53,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     super.dispose();
   }
 
-  // Progress step: 1=PickUp, 2=Timbang, 3=Cuci, 4=Packing, 5=Kirim, 6=Done
-  int _getProgressStep(String status) {
-    switch (status.toUpperCase()) {
-      case 'SEARCHING':
-      case 'COURIER_ACCEPTED':
-      case 'WAITING_DROPOFF':
-      case 'PICKING_UP': return 1;
-      case 'WEIGHING': return 2;
-      case 'WASH_START':
-      case 'IRONING': return 3;
-      case 'PACKING': return 4;
-      case 'DELIVERING': return 5;
-      case 'DONE':
-      case 'PAID': return 6;
-      default: return 1;
-    }
-  }
+  // Progress step moved to StatusHelper
 
   bool _isPremiumOrder(dynamic o) {
     final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List?;
@@ -1298,7 +1282,7 @@ final orderProv = ref.watch(orderProvider);
   // SELF_DROP + kurir → 4 steps (ada Kirim)
   // SELF_DROP tanpa kurir → 3 steps (no Kirim = Ambil Mandiri)
   Widget _buildProgressCucian(String orderId, String status, Color accentColor, dynamic o) {
-    final int step = _getProgressStep(status);
+    final int step = StatusHelper.getProgressStep(status);
     final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
     final bool isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
     final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' || 
@@ -2124,7 +2108,8 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                       itemCount: widget.stages.length,
                       itemBuilder: (context, index) {
                         final s = widget.stages[index];
-                        bool isCurrent = s == widget.currentStatus || s == selectedStage;
+                        final bool isCurrent = s == widget.currentStatus || s == selectedStage;
+                        final bool isPast = StatusHelper.getProgressStep(s) <= StatusHelper.getProgressStep(widget.currentStatus);
                         final Map<String, String> statusLabels = {
                           'WAITING_DROPOFF': 'Drop Off',
                           'WEIGHING': 'Penimbangan',
@@ -2146,7 +2131,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                         String label = statusLabels[s] ?? s.replaceAll('_', ' ');
 
                         return InkWell(
-                          onTap: () async {
+                          onTap: isPast ? null : () async {
                             if (powImage == null) {
                               _showNotif("Wajib ambil foto progress sebelum update status!", false);
                               return;
@@ -2185,24 +2170,27 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
-                              color: isCurrent ? primaryTeal : Colors.grey[100],
+                              color: isCurrent ? primaryTeal : (isPast ? Colors.grey[300] : Colors.grey[100]),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: isCurrent ? primaryTeal : Colors.grey[300]!),
+                              border: Border.all(color: isCurrent ? primaryTeal : (isPast ? Colors.grey[400]! : Colors.grey[300]!)),
                             ),
                             child: Row(
                               children: [
                                 Text(
                                   statusEmojis[s] ?? '✨',
-                                  style: const TextStyle(fontSize: 16),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: isPast ? Colors.grey[500] : null,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     label,
                                     style: GoogleFonts.montserrat(
-                                      fontSize: 12, 
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold, 
-                                      color: isCurrent ? Colors.white : darkText
+                                      color: isCurrent ? Colors.white : (isPast ? Colors.grey[500] : darkText)
                                     ),
                                     textAlign: TextAlign.left,
                                     maxLines: 1,
