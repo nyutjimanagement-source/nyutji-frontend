@@ -5,6 +5,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/scheduler.dart';
 
 class NyutjiNotif {
+  static OverlayEntry? _currentEntry;
+
   static void showSuccess(BuildContext context, String message) {
     _show(context, message, LucideIcons.checkCircle, const Color(0xFF286B6A));
   }
@@ -23,6 +25,16 @@ class NyutjiNotif {
     void showAction() {
       if (!context.mounted) return;
       try {
+        // Hapus notifikasi yang sedang aktif sebelumnya agar tidak bertumpuk
+        if (_currentEntry != null) {
+          try {
+            if (_currentEntry!.mounted) {
+              _currentEntry!.remove();
+            }
+          } catch (_) {}
+          _currentEntry = null;
+        }
+
         final overlay = Overlay.of(context);
         final overlayEntry = OverlayEntry(
           builder: (context) => _BeautyPopupWidget(
@@ -32,10 +44,15 @@ class NyutjiNotif {
           ),
         );
 
+        _currentEntry = overlayEntry;
         overlay.insert(overlayEntry);
+
         Future.delayed(const Duration(seconds: 3), () {
           if (overlayEntry.mounted) {
             overlayEntry.remove();
+            if (_currentEntry == overlayEntry) {
+              _currentEntry = null;
+            }
           }
         });
       } catch (e) {
