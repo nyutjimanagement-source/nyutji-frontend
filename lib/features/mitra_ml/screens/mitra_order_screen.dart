@@ -2159,7 +2159,8 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                             
                             if (context.mounted) {
                               if (success) {
-                                Navigator.pop(context, {'msg': "Status diperbarui ke $label", 'success': true});
+                                NyutjiNotif.showSuccess(context, "Status diperbarui $label");
+                                Navigator.pop(context);
                               } else {
                                 setState(() { isUploading = false; });
                               }
@@ -2285,7 +2286,8 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                         
                                         if (context.mounted) {
                                           if (statusSuccess) {
-                                            Navigator.pop(context, {'msg': "Status diperbarui ke Penimbangan & Notes Disimpan", 'success': true});
+                                            NyutjiNotif.showSuccess(context, "Status diperbarui Penimbangan & Notes Disimpan");
+                                            Navigator.pop(context);
                                           } else {
                                             setState(() { isUploading = false; });
                                           }
