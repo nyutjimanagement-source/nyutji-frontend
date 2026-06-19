@@ -107,3 +107,29 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
   1. Saat mencari data (*query*) menggunakan Sequelize (misal: "Order.findOne"), hanya gunakan parameter "where: { orderNumber: ... }".
   2. Hapus dan hindari logika *fallback* pencarian yang melibatkan kolom "id" (misal: "{ id: isNaN(orderNumber) ? null : parseInt(orderNumber) }").
   3. Seluruh tabel relasi (seperti "order_items", "order_attachment") yang terhubung ke pesanan wajib menggunakan kolom bertipe *string* yang merujuk langsung ke "orderNumber".
+
+---
+
+## IV. Standar Koneksi API & Error Handling
+
+### 1. Pesan Log Throttle Adalah Normal (Bukan Error)
+* **Aturan**: Pesan log `[fetchOrders] Throttled (kurang dari 15 detik)` atau `[fetchWallet] Throttled (kurang dari 15 detik)` adalah perilaku **yang diharapkan dan benar**, bukan sebuah bug atau error yang perlu diperbaiki.
+* **Penjelasan**: Throttle ini adalah mekanisme perlindungan server shared hosting. Ketika beberapa widget atau tab memanggil `fetchOrders()` atau `fetchWallet()` secara bersamaan (misal: saat pre-loading dashboard), sistem secara cerdas memblokir request duplikat dan menjawab dengan data dari cache lokal. Ini mencegah "badai request" ke server.
+* **Kapan perlu diperhatikan**: Hanya jika user mengeluh data yang tampil terasa *sangat basi* padahal sudah lebih dari 15 detik. Solusinya adalah memastikan `pull-to-refresh` menggunakan parameter `force: true`.
+
+### 2. Arsitektur Interceptor Dio: Urutan LIFO untuk Response/Error
+* **Aturan**: Saat menambahkan interceptor pada `Dio`, perhatikan bahwa **REQUEST diproses secara FIFO** (pertama masuk, pertama keluar), namun **RESPONSE dan ERROR diproses secara LIFO** (terakhir masuk, pertama keluar).
+* **Implementasi wajib** pada `api_service.dart`:
+  1. Interceptor **Auth** (penambah token Bearer) selalu ditambahkan **pertama** (`index 0`) agar token disisipkan sebelum request dikirim.
+  2. Interceptor **HTML-Detect + Retry** ditambahkan **kedua** (`index 1`) sehingga ia memproses response/error **lebih dahulu** dari Auth (karena LIFO). Dengan posisi ini, deteksi halaman HTML dari shared hosting dan logika retry terjadi di satu tempat sebelum error sempat "naik" ke caller.
+  3. **Dilarang** memisahkan logika deteksi HTML (di Auth `onResponse`) dari logika retry (di interceptor lain) karena error yang di-`reject` dari `onResponse` hanya diteruskan ke interceptor di bawahnya (index lebih rendah), bukan ke atas.
+* **Jenis error yang wajib di-retry** (maksimal 3x dengan jeda bertambah):
+  * `connectionError` — koneksi TCP gagal (connection reset, closed before header) → flush connection pool sebelum retry
+  * `connectionTimeout` / `receiveTimeout` / `sendTimeout` — timeout jaringan
+  * `badResponse` berisi HTML — respons HTML sementara dari cPanel/Apache (resource limit, 503 page)
+* **Jenis error yang TIDAK boleh di-retry**:
+  * `badResponse` berisi JSON dengan status 4xx (misal: 401 Unauthorized, 404 Not Found, 422 Validation Error) — ini adalah error permanen dari logika bisnis, bukan masalah jaringan.
+
+### 3. `ApiService().reset()` Hanya Dipanggil saat Logout
+* **Aturan**: Metode `ApiService().reset()` yang memutus dan membuat ulang seluruh koneksi HTTP **hanya boleh dipanggil di dalam fungsi `logout()`**. Dilarang memanggil `reset()` di fungsi `login()`, constructor, atau lifecycle widget manapun.
+* **Alasan**: Memanggil `reset()` sebelum setiap `login()` akan memutus paksa semua koneksi TCP aktif (`force: true`), sehingga server membalas dengan "Connection reset by peer" dan "closed before full header" pada request yang langsung menyusul setelahnya.
