@@ -1503,7 +1503,7 @@ final auth = ref.watch(authProvider);
                         trailing: const Icon(LucideIcons.chevronRight, size: 16, color: textGrey),
                         onTap: () async {
                           final provider = ref.read(orderProvider);
-                          Navigator.of(context, rootNavigator: true).pop();
+                          Navigator.pop(context);
                           final success = await provider.assignCourier(orderId, k['identifier'] ?? k['id']);
                           if (!mounted) return;
                           _showNotif(success ? "Berhasil menunjuk kurir!" : (provider.errorMessage ?? "Gagal"), success);
@@ -2159,7 +2159,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                             
                             if (context.mounted) {
                               if (success) {
-                                Navigator.of(context, rootNavigator: true).pop({'msg': "Status diperbarui ke $label", 'success': true});
+                                Navigator.pop(context, {'msg': "Status diperbarui ke $label", 'success': true});
                               } else {
                                 setState(() { isUploading = false; });
                               }
@@ -2285,7 +2285,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                         
                                         if (context.mounted) {
                                           if (statusSuccess) {
-                                            Navigator.of(context, rootNavigator: true).pop({'msg': "Status diperbarui ke Penimbangan & Notes Disimpan", 'success': true});
+                                            Navigator.pop(context, {'msg': "Status diperbarui ke Penimbangan & Notes Disimpan", 'success': true});
                                           } else {
                                             setState(() { isUploading = false; });
                                           }
