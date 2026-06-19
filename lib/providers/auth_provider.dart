@@ -294,11 +294,6 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     try {
-      // Reset ApiService client (menutup adapter lama dan menginisialisasi client baru) untuk mencegah stuck DNS/connection cache
-      try {
-        ApiService().reset();
-      } catch (_) {}
-
       final response = await ApiService().login(realIdentifier, password);
 
       if (response['token'] != null) {

@@ -32,12 +32,12 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
     ));
 
-    // Limit concurrent connections & close idle connections quickly to respect shared hosting limits
+    // Limit concurrent connections & allow idle connections for 15s agar tidak perlu buka TCP baru tiap request
     _dio.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {
         final client = HttpClient();
-        client.maxConnectionsPerHost = 3; 
-        client.idleTimeout = const Duration(seconds: 1); 
+        client.maxConnectionsPerHost = 3;
+        client.idleTimeout = const Duration(seconds: 15); // Naik dari 1s agar koneksi keep-alive tetap hidup
         return client;
       },
     );
@@ -96,6 +96,41 @@ class ApiService {
           ));
         }
         return handler.next(response);
+      },
+    ));
+
+    // 2. Retry Interceptor — Tangani error jaringan sementara (connection reset, closed, timeout)
+    // Hanya retry untuk error transport (bukan 4xx/5xx), maksimal 2x dengan jeda naik (1s, 2s)
+    _dio.interceptors.add(InterceptorsWrapper(
+      onError: (DioException error, ErrorInterceptorHandler handler) async {
+        final bool isTransientError =
+            error.type == DioExceptionType.connectionError ||
+            error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout ||
+            error.type == DioExceptionType.sendTimeout;
+
+        final int attemptNumber =
+            (error.requestOptions.extra['retryCount'] as int?) ?? 0;
+
+        if (isTransientError && attemptNumber < 2) {
+          // Jeda sebelum retry: 1s untuk percobaan pertama, 2s untuk kedua
+          final delay = Duration(seconds: attemptNumber + 1);
+          debugPrint('[Retry] Percobaan ${attemptNumber + 1}/2 setelah ${delay.inSeconds}s — ${error.message}');
+          await Future.delayed(delay);
+
+          // Tandai percobaan ke-berapa ini
+          final options = error.requestOptions;
+          options.extra['retryCount'] = attemptNumber + 1;
+
+          try {
+            final response = await _dio.fetch(options);
+            return handler.resolve(response);
+          } on DioException catch (retryError) {
+            return handler.next(retryError);
+          }
+        }
+
+        return handler.next(error);
       },
     ));
   }
