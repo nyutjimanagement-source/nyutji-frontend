@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/api_constants.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../core/network/dio_offline_interceptor.dart';
 import 'cache_service.dart';
 
 class ApiService {
