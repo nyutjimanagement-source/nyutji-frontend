@@ -2147,7 +2147,6 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
 
                         return InkWell(
                           onTap: () async {
-                            if (isUploading) return;
                             if (powImage == null) {
                               _showNotif("Wajib ambil foto progress sebelum update status!", false);
                               return;
@@ -2164,8 +2163,6 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                             // 1. Upload POW
                             final uploadSuccess = await provider.uploadPOWImage(widget.orderId, powImage!, s);
                             
-                            if (!context.mounted) return;
-
                             if (!uploadSuccess) {
                               setState(() { isUploading = false; });
                               _showNotif(provider.errorMessage ?? "Gagal unggah foto", false);
@@ -2175,13 +2172,12 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                             // 2. Update Status
                             final success = await provider.updateOrderStatus(widget.orderId, s);
                             
-                            if (!context.mounted) return;
-
-                            if (success) {
-                              Navigator.of(context, rootNavigator: true).pop({'msg': "Status diperbarui ke $label", 'success': true});
-                            } else {
-                              setState(() { isUploading = false; });
-                              _showNotif(provider.errorMessage ?? "Gagal update status", false);
+                            if (context.mounted) {
+                              if (success) {
+                                Navigator.of(context, rootNavigator: true).pop({'msg': "Status diperbarui ke $label", 'success': true});
+                              } else {
+                                setState(() { isUploading = false; });
+                              }
                             }
                           },
                           borderRadius: BorderRadius.circular(10),
@@ -2277,15 +2273,11 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                     alignment: Alignment.centerRight,
                                     child: InkWell(
                                       onTap: () async {
-                                        if (isUploading) return;
                                         setState(() { isUploading = true; });
                                         final provider = ref.read(orderProvider);
                                         
                                         // 1. Simpan notes ke database
                                         final saveNotesSuccess = await provider.saveOrderNotes(widget.orderId, noteController.text);
-                                        
-                                        if (!context.mounted) return;
-                                        
                                         if (!saveNotesSuccess) {
                                           setState(() { isUploading = false; });
                                           _showNotif(provider.errorMessage ?? "Gagal menyimpan notes", false);
@@ -2294,9 +2286,6 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
 
                                         // 2. Upload POW
                                         final uploadSuccess = await provider.uploadPOWImage(widget.orderId, powImage!, 'WEIGHING');
-                                        
-                                        if (!context.mounted) return;
-                                        
                                         if (!uploadSuccess) {
                                           setState(() { isUploading = false; });
                                           _showNotif(provider.errorMessage ?? "Gagal unggah foto", false);
@@ -2311,7 +2300,6 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                             Navigator.of(context, rootNavigator: true).pop({'msg': "Status diperbarui ke Penimbangan & Notes Disimpan", 'success': true});
                                           } else {
                                             setState(() { isUploading = false; });
-                                            _showNotif(provider.errorMessage ?? "Gagal update status", false);
                                           }
                                         }
                                       },
