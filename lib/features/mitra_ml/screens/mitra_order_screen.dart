@@ -2106,7 +2106,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                         childAspectRatio: 3.5,
                       ),
                       itemCount: widget.stages.length,
-                      itemBuilder: (context, index) {
+                      itemBuilder: (ctx, index) {
                         final s = widget.stages[index];
                         final bool isCurrent = s == selectedStage;
                         final bool isPast = StatusHelper.getProgressStep(s) <= StatusHelper.getProgressStep(widget.currentStatus);
@@ -2157,10 +2157,10 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                             // 2. Update Status
                             final success = await provider.updateOrderStatus(widget.orderId, s);
                             
-                            if (context.mounted) {
+                            if (mounted) {
                               if (success) {
-                                NyutjiNotif.showSuccess(context, "Status diperbarui $label");
-                                Navigator.pop(context);
+                                NyutjiNotif.showSuccess(this.context, "Status diperbarui $label");
+                                Navigator.pop(this.context);
                               } else {
                                 setState(() { isUploading = false; });
                               }
@@ -2284,10 +2284,10 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                         // 3. Update Status ke WEIGHING
                                         final statusSuccess = await provider.updateOrderStatus(widget.orderId, 'WEIGHING');
                                         
-                                        if (context.mounted) {
+                                        if (mounted) {
                                           if (statusSuccess) {
-                                            NyutjiNotif.showSuccess(context, "Status diperbarui Penimbangan & Notes Disimpan");
-                                            Navigator.pop(context);
+                                            NyutjiNotif.showSuccess(this.context, "Status diperbarui Penimbangan & Notes Disimpan");
+                                            Navigator.pop(this.context);
                                           } else {
                                             setState(() { isUploading = false; });
                                           }

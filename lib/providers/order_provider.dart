@@ -159,6 +159,8 @@ class OrderProvider extends ChangeNotifier {
     // Throttling: Jika tidak dipaksa (force), batasi request ke server maksimal tiap 15 detik
     if (!force && _lastOrdersFetch != null && DateTime.now().difference(_lastOrdersFetch!) < const Duration(seconds: 15)) {
       debugPrint("[fetchOrders] Throttled (kurang dari 15 detik).");
+      _isLoading = false;
+      _safeNotifyListeners();
       return;
     }
 
@@ -354,7 +356,7 @@ class OrderProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.createOrder(data);
-      await fetchOrders(); 
+      await fetchOrders(force: true); 
       addNotif('ML'); // Notif buat Mitra ada order baru
       return true;
     } on DioException catch (e) {

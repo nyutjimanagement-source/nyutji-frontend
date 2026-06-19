@@ -42,6 +42,8 @@ class WalletProvider extends ChangeNotifier {
     // Throttling: Jika tidak dipaksa (force), batasi request ke server maksimal tiap 15 detik
     if (!force && _lastWalletFetch != null && DateTime.now().difference(_lastWalletFetch!) < const Duration(seconds: 15)) {
       debugPrint("[fetchWallet] Throttled (kurang dari 15 detik).");
+      _isLoading = false;
+      _safeNotifyListeners();
       return;
     }
 
@@ -91,7 +93,7 @@ class WalletProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.requestTopupMember(amount);
-      await fetchWallet();
+      await fetchWallet(force: true);
       return true;
     } catch (e) {
       _errorMessage = "Gagal memproses Top Up";
@@ -106,7 +108,7 @@ class WalletProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.forceTopup(amount);
-      await fetchWallet();
+      await fetchWallet(force: true);
       return true;
     } catch (e) {
       _errorMessage = "Gagal memproses Force Top Up";
@@ -127,7 +129,7 @@ class WalletProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.requestWithdraw(amount, pin);
-      await fetchWallet();
+      await fetchWallet(force: true);
       return true;
     } on DioException catch (e) {
       _errorMessage = (e.response?.data is Map ? (e.response?.data is Map ? e.response?.data['message'] : null) : null) ?? "Gagal memproses Penarikan";
