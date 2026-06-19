@@ -56,7 +56,7 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 
 ### 4. Efek Geser Alami (`BouncingScrollPhysics`)
 * **Aturan**: Berikan kenyamanan navigasi bergaya premium untuk pengguna iOS maupun Android.
-* **Solusi**: Selalu gunakan `physics: const BouncingScrollPhysics()` pada semua scrollable widget (`ListView`, `SingleChildScrollView`, `PageView`, `GridView`) baik saat menggeser deretan kartu secara horizontal (kanan-kiri) maupun vertikal (atas-bawah).
+* **Solusi**: Selalu gunakan `physics: const BouncingScrollPhysics()` pada semua scrollable widget (`ListView`, `SingleChildScrollView`, `PageView`, `GridView`) baik saat menggeser cards/kartu secara horizontal (kiri-kanan) maupun untuk gesture screen saat ditarik keatas/kebawah (vertikal).
 
 ### 5. Kliping Halus Kontainer (`Clip.antiAlias`)
 * **Aturan**: Menghindari sudut tumpul yang terlihat patah-patah, abu-abu kotor, atau transparan gelap di ujung sudut kontainer bulat saat melakukan collapse/expand (transisi melebarkan/mengecilkan widget).
@@ -112,6 +112,10 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
     }
   }
   ```
+
+### 15. Skeleton Loading Menggunakan Shimmer Loading
+* **Aturan**: Gunakan skeleton loading berbasis shimmer loading untuk indikasi visual saat memuat data, bukan menggunakan spinner bulat (CircularProgressIndicator) standar pada konten utama.
+* **Solusi**: Bungkus layout skeleton menggunakan widget kustom `ShimmerLoading` dengan ukuran (lebar dan tinggi) yang menyerupai bentuk asli komponen data yang sedang dimuat untuk transisi visual yang halus dan estetik.
 
 ---
 
