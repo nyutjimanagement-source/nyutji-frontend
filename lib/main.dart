@@ -27,7 +27,7 @@ void main() async {
   await Hive.openBox('nyutji_cache');
   
   // Inisialisasi Background Sync
-  BackgroundSyncService.initialize();
+  // BackgroundSyncService.initialize();
 
   // Inisialisasi locale Indonesia
   await initializeDateFormatting('id_ID', null);

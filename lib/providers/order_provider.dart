@@ -479,6 +479,29 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> saveOrderNotes(String orderId, String notes) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _safeNotifyListeners();
+    try {
+      await _api.saveOrderNotes(orderId, notes);
+      await fetchOrders();
+      _isLoading = false;
+      _safeNotifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = (e.response?.data is Map ? e.response?.data['message'] : null) ?? 'Gagal menyimpan notes';
+      _isLoading = false;
+      _safeNotifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      _safeNotifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> submitReview(String orderId, int ratingMitra, int ratingCourier, String comment) async {
     _isLoading = true;
     _errorMessage = null;

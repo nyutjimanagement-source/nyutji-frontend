@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -32,7 +33,17 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
     ));
 
-    // 1. Auth Interceptor (Harus pertama agar request yang di-retry sudah memiliki token)
+    // Limit concurrent connections & close idle connections quickly to respect shared hosting limits
+    _dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.maxConnectionsPerHost = 3; 
+        client.idleTimeout = const Duration(seconds: 1); 
+        return client;
+      },
+    );
+
+    // 1. Auth Interceptor (Harus pertama agar request sudah memiliki token)
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         if (options.path == ApiConstants.login || options.path == "/register") {
@@ -88,34 +99,6 @@ class ApiService {
         return handler.next(response);
       },
     ));
-
-    // 2. Retry Mechanism (Hanya aktif untuk GET)
-    _dio.interceptors.add(InterceptorsWrapper(
-      onError: (DioException e, handler) async {
-        if (e.requestOptions.method.toUpperCase() == 'GET' && 
-           (e.type == DioExceptionType.connectionTimeout || 
-            e.type == DioExceptionType.receiveTimeout || 
-            e.type == DioExceptionType.connectionError)) {
-          
-          int retryCount = e.requestOptions.extra['retry_count'] ?? 0;
-          if (retryCount < 2) { // Kurangi retry count agar tidak terlalu lama freeze
-            e.requestOptions.extra['retry_count'] = retryCount + 1;
-            try {
-              await Future.delayed(const Duration(seconds: 1)); // Delay konstan 1 detik
-              // Gunakan _dio yang sama (agar timeout tetap berlaku, bukan Dio kosongan)
-              final response = await _dio.fetch(e.requestOptions);
-              return handler.resolve(response);
-            } catch (retryError) {
-              // Abaikan dan lanjut throw original error
-            }
-          }
-        }
-        return handler.next(e);
-      }
-    ));
-
-    // 3. Offline Interceptor (Opsional, ditempatkan terakhir)
-    _dio.interceptors.add(const DioOfflineInterceptor());
   }
 
   void reset() {
@@ -262,6 +245,11 @@ class ApiService {
   Future<Map<String, dynamic>> updateOrderStatus(String orderId, String newStatus) async {
     // Khusus Kurir/Mitra
     final response = await _dio.patch("/orders/$orderId/status", data: {'status': newStatus});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> saveOrderNotes(String orderId, String notes) async {
+    final response = await _dio.patch("/orders/$orderId/notes", data: {'notes': notes});
     return response.data;
   }
 

@@ -1318,7 +1318,13 @@ final orderProv = ref.watch(orderProvider);
               "label": isPremium ? "Diterima" : "Timbang", 
               "icon": isPremium ? LucideIcons.packageCheck : 'assets/icons/scale.png', 
               "active": isStep1,
-              "onTap": () => _showPowDialog(o['proofs'], ['WEIGHING', 'SEARCHING', 'WAITING_DROPOFF'], isPremium ? "Diterima" : "Timbang")
+              "onTap": () {
+                if (status.toUpperCase() == 'WAITING_DROPOFF') {
+                  NyutjiNotif.showInfo(context, "Pesanan masih dalam status WAITING_DROPOFF (Menunggu Drop-off). Penimbangan baru bisa dilakukan setelah cucian diterima.");
+                } else {
+                  _showPowDialog(o['proofs'], ['WEIGHING', 'SEARCHING', 'WAITING_DROPOFF'], isPremium ? "Diterima" : "Timbang");
+                }
+              }
             },
             {
               "label": "Cuci", 
@@ -1344,7 +1350,13 @@ final orderProv = ref.watch(orderProvider);
               "label": isPremium ? "Diterima" : "Timbang", 
               "icon": isPremium ? LucideIcons.packageCheck : 'assets/icons/scale.png', 
               "active": isStep1,
-              "onTap": () => _showPowDialog(o['proofs'], ['WEIGHING', 'SEARCHING', 'WAITING_DROPOFF'], isPremium ? "Diterima" : "Timbang")
+              "onTap": () {
+                if (status.toUpperCase() == 'WAITING_DROPOFF') {
+                  NyutjiNotif.showInfo(context, "Pesanan masih dalam status WAITING_DROPOFF (Menunggu Drop-off). Penimbangan baru bisa dilakukan setelah cucian diterima.");
+                } else {
+                  _showPowDialog(o['proofs'], ['WEIGHING', 'SEARCHING', 'WAITING_DROPOFF'], isPremium ? "Diterima" : "Timbang");
+                }
+              }
             },
             {
               "label": "Cuci", 
@@ -1533,191 +1545,11 @@ final auth = ref.watch(authProvider);
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildStatusUpdaterSheet(orderId, currentStatus, stages),
-    );
-  }
-
-  Widget _buildStatusUpdaterSheet(String orderId, String currentStatus, List<String> stages) {
-    XFile? powImage;
-    bool isUploading = false;
-
-    return StatefulBuilder(
-      builder: (sheetContext, setState) {
-        return Container(
-          decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-          padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text("Update Status Pesanan", style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: darkText)),
-            const SizedBox(height: 20),
-            
-            // POW Capture section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text("Foto Progress Nyutji", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
-                      const Spacer(),
-                      if (powImage != null)
-                        const Icon(LucideIcons.checkCircle2, color: Color(0xFF10B981), size: 18),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (powImage != null) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(powImage!.path),
-                        width: double.infinity,
-                        height: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final picker = ImagePicker();
-                        final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
-                        if (image != null) {
-                          if (sheetContext.mounted) {
-                            NyutjiLoadingOverlay.show(sheetContext, message: "Mengompresi WebP...");
-                          }
-                          final compressed = await NyutjiImagePicker.compressToWebP(image);
-                          if (sheetContext.mounted) {
-                            NyutjiLoadingOverlay.hide(sheetContext);
-                            setState(() { powImage = compressed ?? image; });
-                          }
-                        }
-                      },
-                      icon: const Icon(LucideIcons.camera, size: 16),
-                      label: Text(powImage == null ? "Ambil Foto" : "Ganti Foto"),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: primaryTeal,
-                        side: const BorderSide(color: primaryTeal),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Stages Chips
-            Text("Pilih Tahapan Baru:", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 13, color: textGrey)),
-            const SizedBox(height: 12),
-            isUploading 
-              ? const Center(child: CircularProgressIndicator())
-              : GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 3.5,
-                  ),
-                  itemCount: stages.length,
-                  itemBuilder: (context, index) {
-                    final s = stages[index];
-                    bool isCurrent = s == currentStatus;
-                    final Map<String, String> statusLabels = {
-                      'WAITING_DROPOFF': 'Drop Off',
-                      'WEIGHING': 'Penimbangan',
-                      'WASH_START': 'Proses Cuci',
-                      'IRONING': 'Proses Setrika',
-                      'PACKING': 'Packing',
-                      'DELIVERING': 'Pengiriman',
-                      'DONE': 'Selesai',
-                    };
-                    final Map<String, String> statusEmojis = {
-                      'WAITING_DROPOFF': '🕒',
-                      'WEIGHING': '📋',
-                      'WASH_START': '▶️',
-                      'IRONING': '💨',
-                      'PACKING': '📦',
-                      'DELIVERING': '🚚',
-                      'DONE': '☑️',
-                    };
-                    String label = statusLabels[s] ?? s.replaceAll('_', ' ');
-
-                    return InkWell(
-                      onTap: () async {
-                        if (powImage == null) {
-                          _showNotif("Wajib ambil foto progress sebelum update status!", false);
-                          return;
-                        }
-
-                        setState(() { isUploading = true; });
-                        final provider = ref.read(orderProvider);
-                        
-                        // 1. Upload POW
-                        final uploadSuccess = await provider.uploadPOWImage(orderId, powImage!, s);
-                        
-                        if (!uploadSuccess) {
-                          setState(() { isUploading = false; });
-                          _showNotif(provider.errorMessage ?? "Gagal unggah foto", false);
-                          return;
-                        }
-
-                        // 2. Update Status
-                        final success = await provider.updateOrderStatus(orderId, s);
-                        
-                        if (sheetContext.mounted) {
-                          Navigator.of(sheetContext, rootNavigator: true).pop();
-                        }
-                        if (success) {
-                          _showNotif("Status diperbarui ke $label", true);
-                        } else {
-                          setState(() { isUploading = false; });
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: isCurrent ? primaryTeal : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: isCurrent ? primaryTeal : Colors.grey[300]!),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              statusEmojis[s] ?? '✨',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                label,
-                                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: isCurrent ? Colors.white : darkText),
-                                textAlign: TextAlign.left,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-            const SizedBox(height: 20),
-          ]),
-        );
-      }
+      builder: (context) => _StatusUpdaterSheet(
+        orderId: orderId,
+        currentStatus: currentStatus,
+        stages: stages,
+      ),
     );
   }
 
@@ -2121,6 +1953,376 @@ final auth = ref.watch(authProvider);
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StatusUpdaterSheet extends ConsumerStatefulWidget {
+  final String orderId;
+  final String currentStatus;
+  final List<String> stages;
+
+  const _StatusUpdaterSheet({
+    required this.orderId,
+    required this.currentStatus,
+    required this.stages,
+  });
+
+  @override
+  ConsumerState<_StatusUpdaterSheet> createState() => _StatusUpdaterSheetState();
+}
+
+class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
+  static const Color primaryTeal = Color(0xFF1E5655);
+  static const Color darkText = Color(0xFF111827);
+  static const Color textGrey = Color(0xFF6B7280);
+
+  XFile? powImage;
+  bool isUploading = false;
+  String? selectedStage;
+  late final TextEditingController noteController;
+
+  @override
+  void initState() {
+    super.initState();
+    noteController = TextEditingController(text: "Berat timbangan cucian ... kg");
+  }
+
+  @override
+  void dispose() {
+    noteController.dispose();
+    super.dispose();
+  }
+
+  void _showNotif(String msg, bool isSuccess) {
+    if (isSuccess) {
+      NyutjiNotif.showSuccess(context, msg);
+    } else {
+      NyutjiNotif.showError(context, msg);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboardPadding),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        padding: EdgeInsets.fromLTRB(24, 24, 24, keyboardPadding > 0 ? 16 : bottomPadding + 24),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Update Status Pesanan", 
+                style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 18, color: darkText)
+              ),
+              const SizedBox(height: 20),
+              
+              // POW Capture section
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "Foto Progress Nyutji", 
+                          style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)
+                        ),
+                        const Spacer(),
+                        if (powImage != null)
+                          const Icon(LucideIcons.checkCircle2, color: Color(0xFF10B981), size: 18),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (powImage != null) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(powImage!.path),
+                          width: double.infinity,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final picker = ImagePicker();
+                          final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+                          if (image != null) {
+                            if (context.mounted) {
+                              NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
+                            }
+                            final compressed = await NyutjiImagePicker.compressToWebP(image);
+                            if (context.mounted) {
+                              NyutjiLoadingOverlay.hide(context);
+                              setState(() { powImage = compressed ?? image; });
+                            }
+                          }
+                        },
+                        icon: const Icon(LucideIcons.camera, size: 16),
+                        label: Text(powImage == null ? "Ambil Foto" : "Ganti Foto"),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: primaryTeal,
+                          side: const BorderSide(color: primaryTeal),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Stages Chips
+              Text(
+                "Pilih Tahapan Baru:", 
+                style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 13, color: textGrey)
+              ),
+              const SizedBox(height: 12),
+              if (isUploading)
+                const Center(child: CircularProgressIndicator(color: primaryTeal))
+              else
+                Column(
+                  children: [
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 3.5,
+                      ),
+                      itemCount: widget.stages.length,
+                      itemBuilder: (context, index) {
+                        final s = widget.stages[index];
+                        bool isCurrent = s == widget.currentStatus || s == selectedStage;
+                        final Map<String, String> statusLabels = {
+                          'WAITING_DROPOFF': 'Drop Off',
+                          'WEIGHING': 'Penimbangan',
+                          'WASH_START': 'Proses Cuci',
+                          'IRONING': 'Proses Setrika',
+                          'PACKING': 'Packing',
+                          'DELIVERING': 'Pengiriman',
+                          'DONE': 'Selesai',
+                        };
+                        final Map<String, String> statusEmojis = {
+                          'WAITING_DROPOFF': '🕒',
+                          'WEIGHING': '📋',
+                          'WASH_START': '▶️',
+                          'IRONING': '💨',
+                          'PACKING': '📦',
+                          'DELIVERING': '🚚',
+                          'DONE': '☑️',
+                        };
+                        String label = statusLabels[s] ?? s.replaceAll('_', ' ');
+
+                        return InkWell(
+                          onTap: () async {
+                            if (powImage == null) {
+                              _showNotif("Wajib ambil foto progress sebelum update status!", false);
+                              return;
+                            }
+
+                            if (s == 'WEIGHING') {
+                              setState(() { selectedStage = 'WEIGHING'; });
+                              return;
+                            }
+
+                            setState(() { isUploading = true; });
+                            final provider = ref.read(orderProvider);
+                            
+                            // 1. Upload POW
+                            final uploadSuccess = await provider.uploadPOWImage(widget.orderId, powImage!, s);
+                            
+                            if (!uploadSuccess) {
+                              setState(() { isUploading = false; });
+                              _showNotif(provider.errorMessage ?? "Gagal unggah foto", false);
+                              return;
+                            }
+
+                            // 2. Update Status
+                            final success = await provider.updateOrderStatus(widget.orderId, s);
+                            
+                            if (context.mounted) {
+                              Navigator.of(context, rootNavigator: true).pop();
+                            }
+                            if (success) {
+                              _showNotif("Status diperbarui ke $label", true);
+                            } else {
+                              setState(() { isUploading = false; });
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: isCurrent ? primaryTeal : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: isCurrent ? primaryTeal : Colors.grey[300]!),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  statusEmojis[s] ?? '✨',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    label,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 12, 
+                                      fontWeight: FontWeight.bold, 
+                                      color: isCurrent ? Colors.white : darkText
+                                    ),
+                                    textAlign: TextAlign.left,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: selectedStage == 'WEIGHING'
+                          ? Container(
+                              key: const ValueKey('weighing_note_box'),
+                              margin: const EdgeInsets.only(top: 16),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFDFBF7),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFE3DCCF), width: 1.5),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(LucideIcons.scale, color: primaryTeal, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "Konfirmasi Berat Timbangan Kg",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 12, 
+                                          fontWeight: FontWeight.w800, 
+                                          color: darkText
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: noteController,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 12, 
+                                      fontWeight: FontWeight.w600, 
+                                      color: darkText
+                                    ),
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: Colors.grey[300]!),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: const BorderSide(color: primaryTeal, width: 1.5),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: InkWell(
+                                      onTap: () async {
+                                        setState(() { isUploading = true; });
+                                        final provider = ref.read(orderProvider);
+                                        
+                                        // 1. Simpan notes ke database
+                                        final saveNotesSuccess = await provider.saveOrderNotes(widget.orderId, noteController.text);
+                                        if (!saveNotesSuccess) {
+                                          setState(() { isUploading = false; });
+                                          _showNotif(provider.errorMessage ?? "Gagal menyimpan notes", false);
+                                          return;
+                                        }
+
+                                        // 2. Upload POW
+                                        final uploadSuccess = await provider.uploadPOWImage(widget.orderId, powImage!, 'WEIGHING');
+                                        if (!uploadSuccess) {
+                                          setState(() { isUploading = false; });
+                                          _showNotif(provider.errorMessage ?? "Gagal unggah foto", false);
+                                          return;
+                                        }
+
+                                        // 3. Update Status ke WEIGHING
+                                        final statusSuccess = await provider.updateOrderStatus(widget.orderId, 'WEIGHING');
+                                        
+                                        if (context.mounted) {
+                                          Navigator.of(context, rootNavigator: true).pop();
+                                        }
+                                        
+                                        if (statusSuccess) {
+                                          _showNotif("Status diperbarui ke Penimbangan & Notes Disimpan", true);
+                                        } else {
+                                          setState(() { isUploading = false; });
+                                        }
+                                      },
+                                      child: Text(
+                                        "Simpan Notes",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 12, 
+                                          fontWeight: FontWeight.w900, 
+                                          color: primaryTeal,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
