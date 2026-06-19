@@ -6,7 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_util.dart';
-import 'core/widgets/connectivity_wrapper.dart';
+
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_pelanggan_screen.dart';
@@ -54,12 +54,15 @@ class NyutjiApp extends ConsumerWidget {
       initialRoute: '/',
       builder: (context, child) {
           return Container(
-            color: const Color(0xFF171717), // Background luar area HP
+            color: const Color(0xFF171717),
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 450),
-                child: ConnectivityWrapper(
-                  child: child ?? const SizedBox.shrink(),
+                child: MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: const TextScaler.linear(1.0),
+                  ),
+                  child: child!,
                 ),
               ),
             ),
