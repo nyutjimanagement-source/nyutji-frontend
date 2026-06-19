@@ -92,3 +92,14 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
   2. Tanamkan watermark bertuliskan "Nyutji Management" sebanyak 3 kalimat terpisah.
   3. Posisikan watermark secara acak (kombinasi atas, tengah, dan bawah gambar).
   4. Berikan efek kemiringan watermark sebesar 45 derajat (`Transform.rotate(angle: -pi / 4)` atau setara) agar sulit dimanipulasi.
+
+---
+
+## III. Standar Database & Relasi Tabel
+
+### 1. Penggunaan orderNumber sebagai Primary Key Tabel Orders
+* **Aturan**: Tabel "orders" secara mutlak menggunakan "orderNumber" (dengan format *string* kustom, contoh: "NYC-20260329-001") sebagai *Primary Key*. Dilarang keras menggunakan, mencari, atau menambahkan kolom "id" pada tabel "orders" maupun referensi *foreign key*-nya di tabel lain.
+* **Implementasi**: 
+  1. Saat mencari data (*query*) menggunakan Sequelize (misal: "Order.findOne"), hanya gunakan parameter "where: { orderNumber: ... }".
+  2. Hapus dan hindari logika *fallback* pencarian yang melibatkan kolom "id" (misal: "{ id: isNaN(orderNumber) ? null : parseInt(orderNumber) }").
+  3. Seluruh tabel relasi (seperti "order_items", "order_attachment") yang terhubung ke pesanan wajib menggunakan kolom bertipe *string* yang merujuk langsung ke "orderNumber".
