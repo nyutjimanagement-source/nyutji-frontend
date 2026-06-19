@@ -462,6 +462,17 @@ class OrderProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.updateOrderStatus(orderId, status);
+      
+      // Optimistic Update: Update UI immediately so it's not dependent on fetchOrders (which might throttle or fail)
+      final index = _activeOrders.indexWhere((o) => (o['orderNumber'] ?? o['order_number'] ?? o['id']).toString() == orderId);
+      if (index != -1) {
+        // Salin map agar state benar-benar baru
+        final updatedOrder = Map<String, dynamic>.from(_activeOrders[index]);
+        updatedOrder['status'] = status;
+        updatedOrder['order_status'] = status;
+        _activeOrders[index] = updatedOrder;
+      }
+      
       await fetchOrders(force: true);
       _isLoading = false;
       _safeNotifyListeners();

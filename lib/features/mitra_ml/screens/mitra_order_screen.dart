@@ -2108,7 +2108,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                       itemCount: widget.stages.length,
                       itemBuilder: (context, index) {
                         final s = widget.stages[index];
-                        final bool isCurrent = s == widget.currentStatus || s == selectedStage;
+                        final bool isCurrent = s == selectedStage;
                         final bool isPast = StatusHelper.getProgressStep(s) <= StatusHelper.getProgressStep(widget.currentStatus);
                         final Map<String, String> statusLabels = {
                           'WAITING_DROPOFF': 'Drop Off',
