@@ -36,15 +36,21 @@ class _AdminApprovalScreenState extends ConsumerState<AdminApprovalScreen> {
   }
 
   Future<void> _handleAction(dynamic identifier, String action, String name) async {
+    setState(() {
+      pendingUsers.removeWhere((u) => u['identifier'] == identifier);
+    });
+    
+    if (mounted) {
+      NyutjiNotif.showSuccess(context, '$name berhasil disetujui!');
+    }
+
     final auth = ref.read(authProvider);
     final success = await auth.processUserApproval(identifier, action);
     
-    if (!mounted) {
-      return;
-    }
-
-    if (success) {
-      NyutjiNotif.showSuccess(context, '$name berhasil disetujui!');
+    if (!success) {
+      if (mounted) {
+        NyutjiNotif.showError(context, 'Gagal menyetujui $name, memuat ulang data...');
+      }
       _loadPending();
     }
   }

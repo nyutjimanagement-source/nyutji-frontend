@@ -309,6 +309,17 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
+  IconData _getCategoryIcon(String category) {
+    final lower = category.toLowerCase();
+    if (lower.contains("kilo")) return LucideIcons.layers;
+    if (lower.contains("satu") || lower.contains("baju") || lower.contains("pakaian")) return LucideIcons.shirt;
+    if (lower.contains("bed") || lower.contains("selimut")) return LucideIcons.cloud;
+    if (lower.contains("sepatu") || lower.contains("tas")) return LucideIcons.shoppingBag;
+    if (lower.contains("karpet")) return LucideIcons.layoutGrid;
+    if (lower.contains("setrika") || lower.contains("gosok")) return LucideIcons.wind;
+    return LucideIcons.tag;
+  }
+
   Widget _buildCategorySection(String category) {
     bool isKiloan = _isKiloanCategory(category);
     bool isEditing = _editModes[category] ?? false;
@@ -321,7 +332,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
       children: [
         _buildSectionHeader(
           category, 
-          isKiloan ? LucideIcons.layers : LucideIcons.shirt, 
+          _getCategoryIcon(category), 
           isEditing: isEditing, 
           onEdit: () {
             setState(() => _editModes[category] = true);
