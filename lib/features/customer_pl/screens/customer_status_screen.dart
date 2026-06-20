@@ -782,56 +782,90 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                         Text("Detail Pesanan", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.grey)),
                         const SizedBox(height: 6),
                         if (items != null && items.isNotEmpty)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFFDF9),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFF3F0E9), width: 1),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: items.map<Widget>((it) {
-                                final name = (it['itemName'] ?? it['item_name'] ?? it['name'] ?? 'Layanan Laundry').toString();
-                                final qty = double.tryParse(it['qty']?.toString() ?? '1') ?? 1.0;
-                                final unitText = (it['unit'] ?? 'Pcs').toString();
-                                final notes = (it['notes'] ?? '').toString();
-                                
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          (() {
+                            String? scaleNote;
+                            for (var it in items) {
+                              final notes = (it['notes'] ?? '').toString().trim();
+                              if (notes.toLowerCase().contains('timbangan') || notes.toLowerCase().contains('berat')) {
+                                scaleNote = notes;
+                                break;
+                              }
+                            }
+                            return Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFFDF9),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFF3F0E9), width: 1),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ...items.map<Widget>((it) {
+                                    final name = (it['itemName'] ?? it['item_name'] ?? it['name'] ?? 'Layanan Laundry').toString();
+                                    final qty = double.tryParse(it['qty']?.toString() ?? '1') ?? 1.0;
+                                    final unitText = (it['unit'] ?? 'Pcs').toString();
+                                    final notes = (it['notes'] ?? '').toString();
+                                    final isScaleNote = notes.toLowerCase().contains('timbangan') || notes.toLowerCase().contains('berat');
+                                    
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Expanded(
-                                            child: Text(
-                                              name,
-                                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  name,
+                                                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)),
+                                                ),
+                                              ),
+                                              Text(
+                                                "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
+                                                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600)),
+                                              ),
+                                            ],
+                                          ),
+                                          if (notes.isNotEmpty && !isScaleNote)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 2.0),
+                                              child: Text(
+                                                notes,
+                                                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey[600]),
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
-                                            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600)),
-                                          ),
                                         ],
                                       ),
-                                      if (notes.isNotEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 2.0),
+                                    );
+                                  }),
+                                  if (scaleNote != null && scaleNote.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    const Divider(color: Color(0xFFF3F0E9), height: 16, thickness: 1),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(LucideIcons.scale, color: Color(0xFF403600), size: 16),
+                                        const SizedBox(width: 8),
+                                        Expanded(
                                           child: Text(
-                                            notes,
-                                            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey[600]),
+                                            scaleNote,
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey[600],
+                                            ),
                                           ),
                                         ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          )
+                                      ],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            );
+                          }())
                         else
                           Text(
                             "-",
