@@ -117,6 +117,10 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Aturan**: Gunakan skeleton loading berbasis shimmer loading untuk indikasi visual saat memuat data, bukan menggunakan spinner bulat (CircularProgressIndicator) standar pada konten utama.
 * **Solusi**: Bungkus layout skeleton menggunakan widget kustom `ShimmerLoading` dengan ukuran (lebar dan tinggi) yang menyerupai bentuk asli komponen data yang sedang dimuat untuk transisi visual yang halus dan estetik.
 
+### 16. Penggunaan Local Font GoogleFonts (Offline-First)
+* **Aturan**: Aplikasi memblokir unduhan font dari internet saat runtime (`GoogleFonts.config.allowRuntimeFetching = false`). Oleh karena itu, semua penggunaan font (seperti `GoogleFonts.montserrat(...)`) harus menggunakan kombinasi `fontWeight` dan `fontStyle` yang secara spesifik memiliki file `.ttf` pendukung di dalam folder `assets/google_fonts/`.
+* **Solusi**: Hanya gunakan varian font yang fisiknya tersedia secara lokal. Misalnya, untuk membuat teks miring, pastikan menggunakan `fontWeight: FontWeight.w400` dengan `fontStyle: FontStyle.italic` (merujuk ke file `Montserrat-Italic.ttf`). Hindari kombinasi tidak standar seperti `FontWeight.w600` + `FontStyle.italic` jika file `Montserrat-SemiBoldItalic.ttf` tidak ada di folder assets, karena hal tersebut akan memicu *runtime exception* dan membuat aplikasi *freeze*.
+
 ---
 
 ## III. Standar Database & Relasi Tabel
