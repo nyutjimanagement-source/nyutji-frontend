@@ -138,6 +138,9 @@ class _AdminApprovalScreenState extends ConsumerState<AdminApprovalScreen> {
             const Divider(height: 32),
             _buildInfoTile(LucideIcons.mail, 'EMail', user['email'] ?? '-'),
             _buildInfoTile(LucideIcons.phone, 'Kontak', user['phone_number'] ?? '-'),
+            Divider(height: 32, color: Colors.grey[300]),
+            _buildInfoTile(LucideIcons.layers, 'Jumlah Services', (user['services'] is List ? (user['services'] as List).length.toString() : user['services']?.toString() ?? '0')),
+            _buildInfoTile(LucideIcons.briefcase, 'Bisnis Type', user['business_type'] ?? '-'),
             const SizedBox(height: 24),
             
             if (isKL)
