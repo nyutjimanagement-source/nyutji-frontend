@@ -783,11 +783,11 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                         const SizedBox(height: 6),
                         if (items != null && items.isNotEmpty)
                           (() {
-                            String? scaleNote;
+                            String? orderNote;
                             for (var it in items) {
                               final notes = (it['notes'] ?? '').toString().trim();
-                              if (notes.toLowerCase().contains('timbangan') || notes.toLowerCase().contains('berat')) {
-                                scaleNote = notes;
+                              if (notes.isNotEmpty) {
+                                orderNote = notes;
                                 break;
                               }
                             }
@@ -806,52 +806,43 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                                     final name = (it['itemName'] ?? it['item_name'] ?? it['name'] ?? 'Layanan Laundry').toString();
                                     final qty = double.tryParse(it['qty']?.toString() ?? '1') ?? 1.0;
                                     final unitText = (it['unit'] ?? 'Pcs').toString();
-                                    final notes = (it['notes'] ?? '').toString();
-                                    final isScaleNote = notes.toLowerCase().contains('timbangan') || notes.toLowerCase().contains('berat');
                                     
                                     return Padding(
                                       padding: const EdgeInsets.only(bottom: 8.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  name,
-                                                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)),
-                                                ),
-                                              ),
-                                              Text(
-                                                "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
-                                                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600)),
-                                              ),
-                                            ],
-                                          ),
-                                          if (notes.isNotEmpty && !isScaleNote)
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 2.0),
-                                              child: Text(
-                                                notes,
-                                                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey[600]),
-                                              ),
+                                          Expanded(
+                                            child: Text(
+                                              name,
+                                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)),
                                             ),
+                                          ),
+                                          Text(
+                                            "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
+                                            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF403600)),
+                                          ),
                                         ],
                                       ),
                                     );
                                   }),
-                                  if (scaleNote != null && scaleNote.isNotEmpty) ...[
+                                  if (orderNote != null && orderNote.isNotEmpty) ...[
                                     const SizedBox(height: 6),
                                     const Divider(color: Color(0xFFF3F0E9), height: 16, thickness: 1),
                                     Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(LucideIcons.scale, color: Color(0xFF403600), size: 16),
+                                        Icon(
+                                          (orderNote.toLowerCase().contains('timbangan') || orderNote.toLowerCase().contains('berat'))
+                                              ? LucideIcons.scale
+                                              : LucideIcons.info,
+                                          color: const Color(0xFF403600),
+                                          size: 16,
+                                        ),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            scaleNote,
+                                            orderNote,
                                             style: GoogleFonts.montserrat(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w600,

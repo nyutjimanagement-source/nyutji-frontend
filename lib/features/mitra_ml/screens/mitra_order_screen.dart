@@ -1203,12 +1203,12 @@ final orderProv = ref.watch(orderProvider);
   Widget _buildDetailPesanan(dynamic o) {
     final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List?;
     
-    String? scaleNote;
+    String? orderNote;
     if (items != null && items.isNotEmpty) {
       for (var it in items) {
         final notes = (it['notes'] ?? '').toString().trim();
-        if (notes.toLowerCase().contains('timbangan') || notes.toLowerCase().contains('berat')) {
-          scaleNote = notes;
+        if (notes.isNotEmpty) {
+          orderNote = notes;
           break;
         }
       }
@@ -1241,52 +1241,43 @@ final orderProv = ref.watch(orderProvider);
                   final name = (it['itemName'] ?? it['item_name'] ?? it['name'] ?? 'Layanan Laundry').toString();
                   final qty = double.tryParse(it['qty']?.toString() ?? '1') ?? 1.0;
                   final unitText = (it['unit'] ?? 'Pcs').toString();
-                  final notes = (it['notes'] ?? '').toString();
-                  final isScaleNote = notes.toLowerCase().contains('timbangan') || notes.toLowerCase().contains('berat');
                   
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                name,
-                                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
-                              ),
-                            ),
-                            Text(
-                              "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
-                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal),
-                            ),
-                          ],
-                        ),
-                        if (notes.isNotEmpty && !isScaleNote)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 3.0),
-                            child: Text(
-                              notes,
-                              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
-                            ),
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
                           ),
+                        ),
+                        Text(
+                          "${qty.toStringAsFixed(qty == qty.toInt() ? 0 : 1)} $unitText",
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal),
+                        ),
                       ],
                     ),
                   );
                 }),
-                if (scaleNote != null && scaleNote.isNotEmpty) ...[
+                if (orderNote != null && orderNote.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   const Divider(color: Color(0xFFE5E7EB), height: 16, thickness: 1),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(LucideIcons.scale, color: primaryTeal, size: 16),
+                      Icon(
+                        (orderNote.toLowerCase().contains('timbangan') || orderNote.toLowerCase().contains('berat'))
+                            ? LucideIcons.scale
+                            : LucideIcons.info,
+                        color: primaryTeal,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          scaleNote,
+                          orderNote,
                           style: GoogleFonts.montserrat(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
