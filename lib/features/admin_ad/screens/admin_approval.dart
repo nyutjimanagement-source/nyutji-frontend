@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class AdminApprovalScreen extends ConsumerStatefulWidget {
   const AdminApprovalScreen({super.key});
@@ -18,7 +19,11 @@ class _AdminApprovalScreenState extends ConsumerState<AdminApprovalScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPending();
+    // Gunakan addPostFrameCallback agar fetch tidak terjadi saat tree masih building,
+    // mencegah FlutterError: "Tried to modify a provider while the widget tree was building"
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPending();
+    });
   }
 
   Future<void> _loadPending() async {
@@ -55,17 +60,30 @@ class _AdminApprovalScreenState extends ConsumerState<AdminApprovalScreen> {
         elevation: 0,
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.teal))
+          ? _buildShimmerLoading()
           : pendingUsers.isEmpty
               ? _buildEmptyState()
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
+                  physics: const BouncingScrollPhysics(),
                   itemCount: pendingUsers.length,
                   itemBuilder: (context, index) {
                     final user = pendingUsers[index];
                     return _buildUserCard(user);
                   },
                 ),
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const BouncingScrollPhysics(),
+      itemCount: 4,
+      itemBuilder: (_, __) => const Padding(
+        padding: EdgeInsets.only(bottom: 16),
+        child: ShimmerLoading(height: 220, borderRadius: 16),
+      ),
     );
   }
 
