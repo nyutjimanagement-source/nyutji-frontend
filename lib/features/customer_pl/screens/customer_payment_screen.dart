@@ -11,7 +11,8 @@ import '../../../data/services/api_service.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
-import 'customer_wallet_screen.dart';
+import 'customer_order_screen.dart';
+import 'customer_ok_bayar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerPaymentScreen extends ConsumerStatefulWidget {
@@ -166,160 +167,24 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
   ];
 
   Future<void> _handleConfirmOrder(int grandTotal) async {
-    _showEstimationInvoice(grandTotal);
-  }
-
-  void _showEstimationInvoice(int grandTotal) {
-    final auth = ref.read(authProvider);
-    final now = DateTime.now();
-
-    // JENIS NOTA & JUDUL
-    String notaTitle = "Nota Estimasi Transaksi";
-    String notaSubtitle = "Jemput & Antar Kurir";
-    
-    if (widget.orderType == 'drop') {
-      notaTitle = "Nota Transaksi";
-      if (widget.dropMethod == 'self') {
-        notaSubtitle = "Drop & Ambil Mandiri";
-      } else {
-        notaSubtitle = "Drop Mandiri & Antar Kurir";
-      }
-    }
-    
-    // FORMAT JENDERAL: KODE_KECAMATAN-YYYYMMDD-counting
-    final stringkatBtn = widget.districtCode.toUpperCase();
-    final dateStr = DateFormat('yyyyMMdd').format(now);
-    final counting = now.millisecondsSinceEpoch.toString().substring(9); // 4 digit terakhir timestamp
-    final orderNo = "$stringkatBtn-$dateStr-$counting";
-    
-    final finishDate = widget.speed == 'fast' 
-        ? now.add(const Duration(days: 1)) 
-        : now.add(const Duration(days: 3));
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        contentPadding: EdgeInsets.zero,
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header Nota
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  color: primaryTeal,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-                ),
-                child: Center(
-                  child: Column(
-                    children: [
-                      const Icon(LucideIcons.fileText, color: Colors.white, size: 30),
-                      const SizedBox(height: 8),
-                      Text(notaTitle, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                      Text(notaSubtitle, style: GoogleFonts.montserrat(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Isi Nota
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    _notaRow("No Nota", "$orderNo / ${widget.speed.toUpperCase()}"),
-                    _notaRow("Nama", auth.user?['name'] ?? 'Pelanggan Nyutji'),
-                    
-                    // SMART SUMMARY LOGIC
-                    if (widget.orderType == 'pickup') ...[
-                      _notaRow("Alamat Pickup", "${widget.address}, ${widget.districtName}", isAddress: true),
-                      _notaRow("Mitra Laundry", widget.mitraName),
-                      _notaRow("Pengantaran", "Kurir Antar ke Alamat Pelanggan"),
-                    ] else ...[
-                      _notaRow("Lokasi Laundry", widget.mitraName),
-                      _notaRow("Metode Antar", "Mandiri oleh Pelanggan"),
-                      if (widget.dropMethod == 'courier')
-                        _notaRow("Alamat Pengiriman", widget.address, isAddress: true)
-                      else
-                        _notaRow("Pengambilan", "Diambil Sendiri oleh Pelanggan"),
-                    ],
-
-                    _notaRow("Tgl Pesan", DateFormat('dd MMM yyyy, HH:mm').format(now)),
-                    _notaRow("Est. Selesai", DateFormat('dd MMM yyyy').format(finishDate)),
-                    const Divider(height: 24),
-                    _notaRow("Items Cucian", "${widget.totalItems} Items (Kiloan & Satuan)"),
-                    _notaRow(widget.isPickup ? "Est. Total Biaya" : "Total Biaya", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(grandTotal), isBold: true),
-                    _notaRow("Metode Bayar", _selectedPayment, isBold: true),
-                  ],
-                ),
-              ),
-              
-              if (_selectedPayment == 'QRIS')
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Text("Scan QR Code di bawah ini:", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Image.network(
-                            'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/300px-QR_code_for_mobile_English_Wikipedia.svg.png',
-                            width: 150,
-                            height: 150,
-                            errorBuilder: (_, __, ___) => const Icon(LucideIcons.qrCode, size: 150, color: Colors.black87),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-              // Tombol Aksi
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        ),
-                        child: Text("BATAL", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _processPayment(grandTotal, finishDate);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryTeal,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        ),
-                        child: Text("BAYAR", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CustomerOkBayarScreen(
+          grandTotal: grandTotal,
+          orderType: widget.orderType,
+          dropMethod: widget.dropMethod,
+          districtCode: widget.districtCode,
+          speed: widget.speed,
+          address: widget.address,
+          districtName: widget.districtName,
+          mitraName: widget.mitraName,
+          totalItems: widget.totalItems,
+          isPickup: widget.isPickup,
+          selectedPayment: _selectedPayment,
+          onPay: (finishDate) {
+            _processPayment(grandTotal, finishDate);
+          },
         ),
       ),
     );
