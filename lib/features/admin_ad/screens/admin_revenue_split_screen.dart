@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:ui';
 import '../../../providers/revenue_split_provider.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class AdminRevenueSplitScreen extends ConsumerStatefulWidget {
   const AdminRevenueSplitScreen({super.key});
@@ -94,7 +95,22 @@ class _AdminRevenueSplitScreenState extends ConsumerState<AdminRevenueSplitScree
         builder: (context, ref, child) {
 final provider = ref.watch(revenueSplitProvider);
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFF59E0B)));
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const ShimmerLoading(height: 44, borderRadius: 30),
+                  const SizedBox(height: 16),
+                  const ShimmerLoading(height: 180, borderRadius: 12),
+                  const SizedBox(height: 16),
+                  const ShimmerLoading(height: 140, borderRadius: 16),
+                  const SizedBox(height: 12),
+                  const ShimmerLoading(height: 140, borderRadius: 16),
+                  const SizedBox(height: 12),
+                  const ShimmerLoading(height: 140, borderRadius: 16),
+                ],
+              ),
+            );
           }
 
           final splits = provider.revenueSplits;

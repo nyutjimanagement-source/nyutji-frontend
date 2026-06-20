@@ -5,6 +5,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class AdminAiOpinionScreen extends ConsumerStatefulWidget {
   const AdminAiOpinionScreen({super.key});
@@ -193,6 +195,7 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
         color: primaryTeal,
         child: CustomScrollView(
           controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           slivers: [
             _buildPremiumAppbar(),
             _buildSentimentStats(),
@@ -200,8 +203,8 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
             if (_isLoading)
               const SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Center(child: CircularProgressIndicator()),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: ShimmerLoading(height: 160, borderRadius: 24),
                 ),
               ),
           ],
@@ -334,7 +337,18 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 child: Stack(
                   children: [
-                    Image.network(item['imageUrl'], height: 180, width: double.infinity, fit: BoxFit.cover),
+                    CachedNetworkImage(
+                      imageUrl: item['imageUrl'] ?? '',
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const ShimmerLoading(height: 180, borderRadius: 0),
+                      errorWidget: (context, url, error) => Container(
+                        height: 180,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
                     if (item['type'] == 'video')
                       Positioned.fill(
                         child: Container(

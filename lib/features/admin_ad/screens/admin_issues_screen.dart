@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../providers/issue_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/theme/nyutji_theme.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class AdminIssuesScreen extends ConsumerStatefulWidget {
   const AdminIssuesScreen({super.key});
@@ -86,14 +87,10 @@ class _AdminIssuesScreenState extends ConsumerState<AdminIssuesScreen> with Tick
       if (lat != 0 && lng != 0) {
         _animatedMapMove(LatLng(lat, lng), 15.0);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Mitra ditemukan tapi lokasi belum diset"), behavior: SnackBarBehavior.floating),
-        );
+        NyutjiNotif.showInfo(context, "Mitra ditemukan tapi lokasi belum diset");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Mitra tidak ditemukan"), behavior: SnackBarBehavior.floating),
-      );
+      NyutjiNotif.showError(context, "Mitra tidak ditemukan");
     }
   }
 

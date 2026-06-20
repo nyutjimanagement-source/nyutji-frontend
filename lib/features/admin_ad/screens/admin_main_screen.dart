@@ -143,23 +143,37 @@ class _AdminMainScreenState extends ConsumerState<AdminMainScreen> with SingleTi
 
     return Container(
       color: lightGray,
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDenseHeader(),
-            _buildSystemStatusStrip(),
-            const SizedBox(height: 12),
-            _buildDenseSummaryGrid(allOrders, authProv, walletProv),
-            const SizedBox(height: 16),
-            _buildMiniLiveChart(allOrders),
-            const SizedBox(height: 16),
-            _buildTwoColStats(),
-            const SizedBox(height: 16),
-            _buildCompactActivityLog(),
-            const SizedBox(height: 40),
-          ],
+      child: RefreshIndicator(
+        color: primaryTeal,
+        onRefresh: () async {
+          await Future.wait([
+            ref.read(walletProvider).fetchWallet(force: true),
+            ref.read(authProvider).fetchPendingApprovals(force: true),
+            ref.read(authProvider).fetchAllUsers(force: true),
+          ]);
+          ref.read(orderProvider).fetchAdminOrders();
+          ref.read(issueProvider).fetchIssues();
+          ref.read(sentimentProvider).fetchSentiments();
+          _fetchSystemStatus();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDenseHeader(),
+              _buildSystemStatusStrip(),
+              const SizedBox(height: 12),
+              _buildDenseSummaryGrid(allOrders, authProv, walletProv),
+              const SizedBox(height: 16),
+              _buildMiniLiveChart(allOrders),
+              const SizedBox(height: 16),
+              _buildTwoColStats(),
+              const SizedBox(height: 16),
+              _buildCompactActivityLog(),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
