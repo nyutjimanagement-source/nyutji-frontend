@@ -45,6 +45,9 @@ class OrderProvider extends ChangeNotifier {
   List<dynamic> _draftOrders = [];
   List<dynamic> get draftOrders => _draftOrders;
 
+  DateTime? _lastOrdersFetch;
+  DateTime? _lastAdminOrdersFetch;
+
   Map<String, dynamic>? _trackingOrder;
   Map<String, dynamic>? get trackingOrder => _trackingOrder;
 
@@ -283,7 +286,23 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchAdminOrders() async {
+  Future<void> fetchAdminOrders({bool force = false}) async {
+    // Throttling: Batasi request ke server maksimal tiap 15 detik
+    if (!force && _lastAdminOrdersFetch != null && DateTime.now().difference(_lastAdminOrdersFetch!) < const Duration(seconds: 15)) {
+      debugPrint('[fetchAdminOrders] Throttled (kurang dari 15 detik).');
+      return;
+    }
+
+    // Cache-first: Tampilkan data cache instan sebelum fetch ke server
+    const cacheKey = 'admin_orders_list';
+    final cached = CacheService.get(cacheKey);
+    if (cached != null && cached is List) {
+      _activeOrders = cached;
+      _historyOrders = [];
+      _safeNotifyListeners();
+    }
+
+    _lastAdminOrdersFetch = DateTime.now();
     _isLoading = true;
     _errorMessage = null;
     _safeNotifyListeners();
@@ -292,6 +311,7 @@ class OrderProvider extends ChangeNotifier {
       // TANPA FILTER SESUAI INSTRUKSI JENDERAL: Tarik Semua order_number
       _activeOrders = orders;
       _historyOrders = []; // Kosongkan history agar tidak terjadi duplikasi saat penjumlahan
+      await CacheService.set(cacheKey, orders);
     } catch (e) {
       _errorMessage = 'Gagal memuat data admin pesanan';
       debugPrint("Nyutji Admin Data Error: $e");
