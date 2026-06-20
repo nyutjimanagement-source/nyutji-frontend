@@ -178,7 +178,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[800],
-                      fontStyle: FontStyle.italic,
                     ),
                   ),
                   const SizedBox(height: 20),
