@@ -232,7 +232,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    _notaRow("No Order", "$orderNo / ${widget.speed.toUpperCase()}"),
+                    _notaRow("No Nota", "$orderNo / ${widget.speed.toUpperCase()}"),
                     _notaRow("Nama", auth.user?['name'] ?? 'Pelanggan Nyutji'),
                     
                     // SMART SUMMARY LOGIC
@@ -253,12 +253,38 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
                     _notaRow("Est. Selesai", DateFormat('dd MMM yyyy').format(finishDate)),
                     const Divider(height: 24),
                     _notaRow("Items Cucian", "${widget.totalItems} Items (Kiloan & Satuan)"),
-                    _notaRow("Total Biaya", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(grandTotal), isBold: true),
+                    _notaRow(widget.isPickup ? "Est. Total Biaya" : "Total Biaya", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(grandTotal), isBold: true),
                     _notaRow("Metode Bayar", _selectedPayment, isBold: true),
                   ],
                 ),
               ),
               
+              if (_selectedPayment == 'QRIS')
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Text("Scan QR Code di bawah ini:", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Image.network(
+                            'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/300px-QR_code_for_mobile_English_Wikipedia.svg.png',
+                            width: 150,
+                            height: 150,
+                            errorBuilder: (_, __, ___) => const Icon(LucideIcons.qrCode, size: 150, color: Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               // Tombol Aksi
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 25),
@@ -307,7 +333,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
         children: [
           SizedBox(width: 105, child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]))),
           const Text(" :  ", style: TextStyle(fontSize: 13, color: Colors.grey)),
-          Expanded(child: Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.black87), maxLines: isAddress ? 3 : 1, overflow: TextOverflow.ellipsis)),
+          Expanded(child: Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.black87))),
         ],
       ),
     );
