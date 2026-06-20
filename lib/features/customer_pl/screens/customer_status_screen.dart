@@ -351,6 +351,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
 
   String _getPremiumProgressLabel(String status) {
     final s = status.toUpperCase();
+    if (s == 'DRAFT') return "Draft";
     if (s == 'DONE' || s == 'PAID') return "Selesai";
     if (s == 'PACKING' || s == 'DELIVERING') return "Packing";
     if (s == 'WASH_START' || s == 'IN_PROGRESS' || s == 'IRONING') return "Cuci";
