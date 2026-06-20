@@ -37,6 +37,16 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  // Versi aman untuk dipanggil dari dalam context async yang bisa terjadi saat build phase.
+  // Menggunakan addPostFrameCallback agar notifikasi selalu terjadi SETELAH frame selesai di-build.
+  void _safeNotifyListenersPostFrame() {
+    if (!_isDisposed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isDisposed) notifyListeners();
+      });
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
@@ -243,7 +253,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         _temporaryLocalPhoto = prefs.getString('local_photo_${_user!['email']}');
       }
 
-      _safeNotifyListeners();
+      _safeNotifyListenersPostFrame();
       return true;
     }
     return false;
@@ -502,16 +512,35 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  DateTime? _lastAllUsersFetch;
+
   // Ambil SEMUA daftar user (Khusus Admin)
-  Future<List<dynamic>> fetchAllUsers() async {
+  Future<List<dynamic>> fetchAllUsers({bool force = false}) async {
+    // Throttling: Batasi request ke server maksimal tiap 15 detik
+    if (!force && _lastAllUsersFetch != null && DateTime.now().difference(_lastAllUsersFetch!) < const Duration(seconds: 15)) {
+      debugPrint("[fetchAllUsers] Throttled (kurang dari 15 detik).");
+      return _allUsers;
+    }
+
+    // Cache-first: Tampilkan data cache instan sebelum fetch ke server
+    const cacheKey = 'auth_all_users';
+    final cached = CacheService.get(cacheKey);
+    if (cached != null && cached is List) {
+      _allUsers = cached;
+      _safeNotifyListenersPostFrame();
+    }
+
+    _lastAllUsersFetch = DateTime.now();
+
     try {
       final data = await ApiService().getAllUsers();
       _allUsers = data;
+      await CacheService.set(cacheKey, data);
       _safeNotifyListeners();
       return data;
     } catch (e) {
       debugPrint("Fetch All Users Error: $e");
-      return [];
+      return _allUsers;
     }
   }
 

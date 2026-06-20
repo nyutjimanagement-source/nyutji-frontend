@@ -9,6 +9,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import 'admin_approval.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class AdminUsersScreen extends ConsumerStatefulWidget {
   const AdminUsersScreen({super.key});
@@ -251,7 +252,14 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
                             builder: (context, ref, _) {
                               final authData = ref.watch(authProvider);
                               if (authData.allUsers.isEmpty && authData.isLoading) {
-                                return const Center(child: CircularProgressIndicator(color: Colors.blue));
+                                return ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  itemCount: 5,
+                                  itemBuilder: (_, __) => const Padding(
+                                    padding: EdgeInsets.only(bottom: 8),
+                                    child: ShimmerLoading(height: 56, borderRadius: 12),
+                                  ),
+                                );
                               }
                               
                               final filtered = authData.allUsers.where((u) {
@@ -728,7 +736,16 @@ final auth = ref.watch(authProvider);
                     builder: (context, ref, _) {
                       final authData = ref.watch(authProvider);
                       if (authData.allUsers.isEmpty && authData.isLoading) {
-                        return const Center(child: CircularProgressIndicator(color: Colors.blue));
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: ListView.builder(
+                            itemCount: 5,
+                            itemBuilder: (_, __) => const Padding(
+                              padding: EdgeInsets.only(bottom: 8),
+                              child: ShimmerLoading(height: 64, borderRadius: 16),
+                            ),
+                          ),
+                        );
                       }
                       
                       final filtered = authData.allUsers.where((u) {
@@ -971,7 +988,16 @@ final auth = ref.watch(authProvider);
                     builder: (cContext, ref, _) {
 final authData = ref.watch(authProvider);
                       if (authData.isLoading && authData.allUsers.isEmpty) {
-                        return const Center(child: CircularProgressIndicator(color: primaryTeal));
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: ListView.builder(
+                            itemCount: 6,
+                            itemBuilder: (_, __) => const Padding(
+                              padding: EdgeInsets.only(bottom: 8),
+                              child: ShimmerLoading(height: 64, borderRadius: 20),
+                            ),
+                          ),
+                        );
                       }
                       final filtered = authData.allUsers.where((u) {
                         final name = (u['name'] ?? '').toString().toLowerCase();
