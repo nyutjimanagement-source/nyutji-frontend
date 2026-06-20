@@ -13,6 +13,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'customer_order_screen.dart';
 import 'customer_ok_bayar.dart';
+import 'customer_wallet_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerPaymentScreen extends ConsumerStatefulWidget {
@@ -169,7 +170,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
   Future<void> _handleConfirmOrder(int grandTotal) async {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      RetroRoute(
         builder: (_) => CustomerOkBayarScreen(
           grandTotal: grandTotal,
           orderType: widget.orderType,
@@ -186,20 +187,6 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
             _processPayment(grandTotal, finishDate);
           },
         ),
-      ),
-    );
-  }
-
-  Widget _notaRow(String label, String value, {bool isBold = false, bool isAddress = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: 105, child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]))),
-          const Text(" :  ", style: TextStyle(fontSize: 13, color: Colors.grey)),
-          Expanded(child: Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.black87))),
-        ],
       ),
     );
   }

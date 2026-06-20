@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../core/theme/colors.dart';
-import '../../../../core/providers/auth_provider.dart';
+import '../../../core/theme/nyutji_theme.dart';
+import '../../../core/providers/auth_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerOkBayarScreen extends ConsumerStatefulWidget {
   final int grandTotal;
@@ -86,7 +87,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: primaryTeal,
+        backgroundColor: NyutjiTheme.m3Primary,
         title: Text("Konfirmasi Pembayaran", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         centerTitle: true,
         leading: IconButton(
@@ -112,7 +113,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
-                  color: primaryTeal.withValues(alpha: 0.9),
+                  color: NyutjiTheme.m3Primary.withValues(alpha: 0.9),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
                 ),
                 child: Column(
@@ -170,11 +171,11 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
                           border: Border.all(color: Colors.grey[300]!),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Image.network(
-                          'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/300px-QR_code_for_mobile_English_Wikipedia.svg.png',
+                        child: CachedNetworkImage(
+                          imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/300px-QR_code_for_mobile_English_Wikipedia.svg.png',
                           width: 150,
                           height: 150,
-                          errorBuilder: (_, __, ___) => const Icon(LucideIcons.qrCode, size: 150, color: Colors.black87),
+                          errorWidget: (_, __, ___) => const Icon(LucideIcons.qrCode, size: 150, color: Colors.black87),
                         ),
                       ),
                     ],
@@ -193,7 +194,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
               widget.onPay(finishDate);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryTeal,
+              backgroundColor: NyutjiTheme.m3Primary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 4,
