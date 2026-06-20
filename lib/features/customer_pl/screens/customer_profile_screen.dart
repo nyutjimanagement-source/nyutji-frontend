@@ -176,8 +176,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                     "Aktif setiap hari pkl 08.00 - 22.00 WIB. Mohon siapkan Nomor Nota Anda saat menghubungi kami.",
                     style: GoogleFonts.montserrat(
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w400,
                       color: Colors.grey[800],
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                   const SizedBox(height: 20),
