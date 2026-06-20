@@ -76,19 +76,22 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
     super.dispose();
   }
 
-  Future<void> _checkPhoneNumber() async {
+  Future<bool> _checkPhoneNumber() async {
     final phone = phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (phone.isEmpty) return;
+    if (phone.isEmpty) return false;
     try {
       final dio = ApiService().dio;
       final response = await dio.post('${ApiConstants.baseUrl}/check-phone', data: {'phone_number': phone});
       if (response.data['success'] && response.data['exists']) {
-        if (!mounted) return;
+        if (!mounted) return false;
         NyutjiNotif.showError(context, "Nomor handphone ini sudah terdaftar. Silakan gunakan nomor lain.");
         phoneController.clear();
+        return false;
       }
+      return true;
     } catch (e) {
       debugPrint("Gagal check phone: $e");
+      return true;
     }
   }
 
@@ -341,7 +344,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                               ),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : () {
+                                onPressed: _isLoading ? null : () async {
                                   if (_currentStep == 0) {
                                     if (nameController.text.isEmpty || ktpFile == null) {
                                       NyutjiNotif.showError(context, "Nama dan KTP wajib diisi");
@@ -356,6 +359,14 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                                       NyutjiNotif.showError(context, "Kata Sandi dan Konfirmasi Kata Sandi tidak cocok");
                                       return;
                                     }
+                                    
+                                    // Pengecekan sinkron saat LANJUT ditekan
+                                    setState(() => _isLoading = true);
+                                    bool isPhoneOk = await _checkPhoneNumber();
+                                    if (!mounted) return;
+                                    setState(() => _isLoading = false);
+                                    if (!isPhoneOk) return;
+
                                   } else if (_currentStep == 2) {
                                     _submitRegistration();
                                     return;
@@ -368,7 +379,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                                   shape: const StadiumBorder(),
                                   elevation: 0,
                                 ),
-                                child: _isLoading && _currentStep == 2
+                                child: _isLoading
                                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                     : Text(
                                         _currentStep == 2 ? "DAFTAR" : "LANJUT",
