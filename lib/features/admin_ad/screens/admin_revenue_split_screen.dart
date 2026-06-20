@@ -95,19 +95,19 @@ class _AdminRevenueSplitScreenState extends ConsumerState<AdminRevenueSplitScree
         builder: (context, ref, child) {
 final provider = ref.watch(revenueSplitProvider);
           if (provider.isLoading) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+            return const SingleChildScrollView(
+              padding: EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const ShimmerLoading(height: 44, borderRadius: 30),
-                  const SizedBox(height: 16),
-                  const ShimmerLoading(height: 180, borderRadius: 12),
-                  const SizedBox(height: 16),
-                  const ShimmerLoading(height: 140, borderRadius: 16),
-                  const SizedBox(height: 12),
-                  const ShimmerLoading(height: 140, borderRadius: 16),
-                  const SizedBox(height: 12),
-                  const ShimmerLoading(height: 140, borderRadius: 16),
+                  ShimmerLoading(height: 44, borderRadius: 30),
+                  SizedBox(height: 16),
+                  ShimmerLoading(height: 180, borderRadius: 12),
+                  SizedBox(height: 16),
+                  ShimmerLoading(height: 140, borderRadius: 16),
+                  SizedBox(height: 12),
+                  ShimmerLoading(height: 140, borderRadius: 16),
+                  SizedBox(height: 12),
+                  ShimmerLoading(height: 140, borderRadius: 16),
                 ],
               ),
             );

@@ -45,9 +45,6 @@ class OrderProvider extends ChangeNotifier {
   List<dynamic> _draftOrders = [];
   List<dynamic> get draftOrders => _draftOrders;
 
-  DateTime? _lastOrdersFetch;
-  DateTime? _lastAdminOrdersFetch;
-
   Map<String, dynamic>? _trackingOrder;
   Map<String, dynamic>? get trackingOrder => _trackingOrder;
 
@@ -157,6 +154,7 @@ class OrderProvider extends ChangeNotifier {
   }
 
   DateTime? _lastOrdersFetch;
+  DateTime? _lastAdminOrdersFetch;
 
   Future<void> fetchOrders({bool force = false}) async {
     // Throttling: Jika tidak dipaksa (force), batasi request ke server maksimal tiap 15 detik
