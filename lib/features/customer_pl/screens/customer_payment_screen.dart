@@ -12,6 +12,7 @@ import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'customer_wallet_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerPaymentScreen extends ConsumerStatefulWidget {
   final int totalPrice;
@@ -870,7 +871,14 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
         child: Row(
           children: [
             if (logoUrl.isNotEmpty) 
-              Image.network(logoUrl, width: 30, height: 20, fit: BoxFit.contain, errorBuilder: (c, e, s) => const Icon(LucideIcons.image, size: 14))
+              CachedNetworkImage(
+                imageUrl: logoUrl,
+                width: 30,
+                height: 20,
+                fit: BoxFit.contain,
+                placeholder: (c, u) => const SizedBox(width: 30, height: 20),
+                errorWidget: (c, u, e) => const Icon(LucideIcons.image, size: 14),
+              )
             else
               const Icon(LucideIcons.moreHorizontal, size: 14),
             const SizedBox(width: 12),

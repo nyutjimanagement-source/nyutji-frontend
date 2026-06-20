@@ -15,6 +15,8 @@ import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import 'customer_wallet_screen.dart';
 import '../../../data/services/api_service.dart';
+import '../../../core/widgets/shimmer_loading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerPakaianBayiScreen extends ConsumerStatefulWidget {
   const CustomerPakaianBayiScreen({super.key});
@@ -838,7 +840,16 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
 
         Expanded(
           child: _isLoadingMitras
-              ? const Center(child: CircularProgressIndicator())
+              ? ListView.builder(
+                  itemCount: 3,
+                  padding: const EdgeInsets.all(20),
+                  physics: const BouncingScrollPhysics(),
+                  itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: ShimmerLoading(height: 72, width: double.infinity, borderRadius: 16),
+                  ),
+
+                )
               : _matchingMitras.isEmpty
                   ? Center(
                       child: Column(
@@ -853,6 +864,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                     )
                   : ListView(
                       padding: const EdgeInsets.all(20),
+                      physics: const BouncingScrollPhysics(),
                       children: [
                         Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                         const SizedBox(height: 12),
@@ -879,7 +891,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                                     decoration: BoxDecoration(
                                       color: Colors.grey[200],
                                       borderRadius: BorderRadius.circular(10),
-                                      image: m['image'] != null ? DecorationImage(image: NetworkImage(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
+                                      image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
                                     ),
                                     child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
                                   ),
@@ -1082,6 +1094,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
 
     return ListView(
       padding: const EdgeInsets.all(20),
+      physics: const BouncingScrollPhysics(),
       children: [
         // 1. DOKUMENTASI AWAL PAKAIAN (CHECK-IN)
         Text("1. Foto Pakaian Bayi Anda (Wajib)", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
@@ -1317,7 +1330,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
             style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
-        const SizedBox(height: 40),
+        SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
       ],
     );
   }
@@ -1403,7 +1416,14 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
         child: Row(
           children: [
             if (logoUrl.isNotEmpty) 
-              Image.network(logoUrl, width: 30, height: 20, fit: BoxFit.contain, errorBuilder: (c, e, s) => const Icon(LucideIcons.image, size: 14))
+              CachedNetworkImage(
+                imageUrl: logoUrl,
+                width: 30,
+                height: 20,
+                fit: BoxFit.contain,
+                placeholder: (c, u) => const SizedBox(width: 30, height: 20),
+                errorWidget: (c, u, e) => const Icon(LucideIcons.image, size: 14),
+              )
             else
               const Icon(LucideIcons.moreHorizontal, size: 14),
             const SizedBox(width: 12),

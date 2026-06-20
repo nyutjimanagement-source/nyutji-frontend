@@ -114,8 +114,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                 if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
               }),
             ]),
-            const SizedBox(height: 40),
+            SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
           ],
+
         ),
       ),
     );
@@ -384,13 +385,14 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                     const SizedBox(height: 12),
                     auth.isLoading
                     ? const ShimmerLoading(height: 18, width: 250, borderRadius: 4)
-                    : Text(mainAddress, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                    : Text(mainAddress, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
                     if (addressDetail.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       auth.isLoading
                       ? const ShimmerLoading(height: 14, width: 200, borderRadius: 4)
-                      : Text(addressDetail, style: NyutjiTheme.detail(Colors.grey[600]!)),
+                      : Text(addressDetail, style: NyutjiTheme.detail(Colors.grey[600]!), maxLines: 2, overflow: TextOverflow.ellipsis),
                     ],
+
                     const SizedBox(height: 8),
                     auth.isLoading
                     ? const ShimmerLoading(height: 14, width: 150, borderRadius: 4)
@@ -493,9 +495,10 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(value, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontSize: 13, fontWeight: FontWeight.w500)),
+                  child: Text(value, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontSize: 13, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
                 if (suffix != null) suffix,
+
               ],
             ),
           ),

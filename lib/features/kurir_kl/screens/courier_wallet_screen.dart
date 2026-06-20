@@ -9,6 +9,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'courier_tarik_dana_modal.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class CourierWalletScreen extends ConsumerStatefulWidget {
   const CourierWalletScreen({super.key});
@@ -68,8 +69,12 @@ class _CourierWalletScreenState extends ConsumerState<CourierWalletScreen> {
 
     return Container(
       color: bgColor,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(walletProvider).fetchWallet(force: true);
+        },
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -82,12 +87,13 @@ class _CourierWalletScreenState extends ConsumerState<CourierWalletScreen> {
                 _buildWithdrawStatusCard(currentT),
                 const SizedBox(height: 24),
                 _buildRecentTransactionsSection(textDark, textGrey, primaryTeal, currentT),
-                const SizedBox(height: 40),
+                SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
               ],
             ),
           ),
         ),
-      );
+      ),
+    );
     }
 
   Widget _buildBalanceCard(Color primaryTeal, Map<String, dynamic> currentT) {
@@ -97,6 +103,7 @@ final wallet = ref.watch(walletProvider);
 return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: primaryTeal,
           borderRadius: BorderRadius.circular(24),
@@ -350,6 +357,7 @@ return Row(
   Widget _buildWithdrawStatusCard(Map<String, dynamic> currentT) {
     return Container(
       padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -398,10 +406,16 @@ return Column(
           ),
           const SizedBox(height: 16),
           if (wallet.isLoading && wallet.mutasiList.isEmpty)
-            const Center(child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: CircularProgressIndicator(),
-            ))
+            ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: 3,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) => const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: ShimmerLoading(height: 72, width: double.infinity, borderRadius: 20),
+              ),
+            )
           else if (wallet.mutasiList.isEmpty)
             Center(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -444,6 +458,7 @@ return Column(
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -471,6 +486,8 @@ return Column(
                 Text(
                   title,
                   style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 12, color: textDark),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 Text(
                   date,

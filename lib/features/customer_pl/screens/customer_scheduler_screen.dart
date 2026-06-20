@@ -211,7 +211,9 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                                     child: ListView.builder(
                                       padding: const EdgeInsets.all(8),
+                                      physics: const BouncingScrollPhysics(),
                                       itemCount: options.length,
+
                                       itemBuilder: (context, index) {
                                         final option = options.elementAt(index);
                                         return ListTile(
@@ -290,8 +292,9 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                             ],
                           ),
                           
-                          const SizedBox(height: 40),
-                        ],
+                           SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
+                         ],
+
                       ),
                     ),
                   ),
@@ -383,8 +386,22 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator(color: Color(0xFFDAC66F))),
+      builder: (ctx) => Center(
+        child: Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(color: Color(0xFF403600), strokeWidth: 3),
+          ),
+        ),
+      ),
     );
+
 
     try {
       await ref.read(schedulerProvider.notifier).createSchedule(data);
@@ -512,16 +529,31 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
         leading: IconButton(icon: const Icon(LucideIcons.chevronLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
         title: Text("Jadwal Assistent Nyutji", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
       ),
-      body: isLoading && schedules.isEmpty
-          ? _buildShimmerLoading()
-          : schedules.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: schedules.length,
-                  itemBuilder: (ctx, idx) => _buildScheduleCard(schedules[idx]),
-                ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          final auth = ref.read(authProvider);
+          final city = auth.user?['city_name'] ?? 'Tangerang Selatan';
+          await ref.read(schedulerProvider.notifier).fetchSchedules(cityName: city);
+        },
+        color: const Color(0xFF403600),
+        child: isLoading && schedules.isEmpty
+            ? _buildShimmerLoading()
+            : schedules.isEmpty
+                ? SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height - 200,
+                      child: _buildEmptyState(),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                    itemCount: schedules.length,
+                    itemBuilder: (ctx, idx) => _buildScheduleCard(schedules[idx]),
+                  ),
+      ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddScheduleSheet,
         backgroundColor: const Color(0xFF286B6A),
@@ -677,7 +709,8 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
             ],
           ),
           const SizedBox(height: 8),
-          Text(schedule['name'] ?? '', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
+          Text(schedule['name'] ?? '', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109)), maxLines: 1, overflow: TextOverflow.ellipsis),
+
           const SizedBox(height: 16),
           _buildSimpleRow(LucideIcons.repeat, "Periode Jadwal", schedule['interval'] ?? ''),
           const SizedBox(height: 12),
@@ -698,7 +731,8 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                   children: [
                     Text(schedule['service_type'] ?? '', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF403600))),
                     const SizedBox(height: 4),
-                    Text(schedule['pickup_address'] ?? '-', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey[600])),
+                    Text(schedule['pickup_address'] ?? '-', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
+
                   ],
                 ),
               ),

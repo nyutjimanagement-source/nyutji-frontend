@@ -47,7 +47,7 @@ class CourierProfileScreen extends ConsumerWidget {
                 _buildPerformanceSection(textDark, textGrey, currentT),
                 const SizedBox(height: 24),
                 _buildMenuSection(context, ref, auth, textDark, currentT),
-                const SizedBox(height: 40),
+                SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
               ],
             ),
           ),
@@ -59,6 +59,7 @@ class CourierProfileScreen extends ConsumerWidget {
   Widget _buildVehicleCard(Color textDark, Color textGrey, Map<String, dynamic> currentT) {
     return Container(
       padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -77,7 +78,12 @@ class CourierProfileScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(currentT['active_vehicle'], style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: textGrey, letterSpacing: 1)),
-                Text("Honda Beat (B 3821 NYC)", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: textDark)),
+                Text(
+                  "Honda Beat (B 3821 NYC)", 
+                  style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: textDark),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -126,6 +132,7 @@ class CourierProfileScreen extends ConsumerWidget {
 
   Widget _buildMenuSection(BuildContext context, WidgetRef ref, AuthProvider auth, Color textDark, Map<String, dynamic> currentT) {
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -146,6 +153,7 @@ class CourierProfileScreen extends ConsumerWidget {
               ref.invalidate(orderProvider);
               ref.invalidate(walletProvider);
               await auth.logout();
+              ref.invalidate(authProvider);
               if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
             },
             leading: const Icon(LucideIcons.logOut, color: Colors.red, size: 18),

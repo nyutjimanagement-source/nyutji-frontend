@@ -221,8 +221,9 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
               color: const Color(0xFF403600),
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 itemCount: orders.length,
+
                 itemBuilder: (context, index) {
                   final order = orders[index];
                   debugPrint("Nyutji Debug Order [$index]: ${order['order_number'] ?? order['orderNumber']} -> Keys: ${order.keys.toList()}");
@@ -475,11 +476,13 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                             imageUrl: imageUrl,
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            placeholder: (context, url) => const SizedBox(
+                            placeholder: (context, url) => const ShimmerLoading(
                                 height: 260,
-                                child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                                width: double.infinity,
+                                borderRadius: 0,
                             ),
                             errorWidget: (context, url, error) => const SizedBox(
+
                                 height: 220,
                                 child: Center(child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey)),
                             ),
@@ -1021,8 +1024,9 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
       children: [
         Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.grey)),
         const SizedBox(height: 2),
-        Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)), softWrap: true),
+        Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF131109)), softWrap: true, maxLines: 2, overflow: TextOverflow.ellipsis),
       ],
+
     );
   }
 }

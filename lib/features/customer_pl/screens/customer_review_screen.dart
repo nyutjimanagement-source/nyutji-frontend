@@ -63,8 +63,9 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkBg)),
+        Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkBg), maxLines: 2, overflow: TextOverflow.ellipsis),
         const SizedBox(height: 8),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (index) {
@@ -232,7 +233,7 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
               ),
               child: Text("KIRIM ULASAN", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
             ),
-            const SizedBox(height: 40),
+            SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),

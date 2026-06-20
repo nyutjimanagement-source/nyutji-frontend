@@ -88,8 +88,9 @@ class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
         },
         color: const Color(0xFF403600),
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           child: Column(
+
             children: [
               _buildPremiumHeader(currentT['title']),
             const SizedBox(height: 12),
@@ -243,8 +244,8 @@ final wallet = ref.watch(walletProvider);
                 },
               ),
             ),
-            const SizedBox(height: 40),
-          ],
+             SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
+           ],
         ),
       ),
     ),
@@ -634,9 +635,10 @@ class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
                             imageUrl: imageUrl,
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            placeholder: (context, url) => const SizedBox(
-                              height: 260,
-                              child: Center(child: CircularProgressIndicator(color: Color(0xFF403600))),
+                            placeholder: (context, url) => const ShimmerLoading(
+                                height: 260,
+                                width: double.infinity,
+                                borderRadius: 0,
                             ),
                             errorWidget: (context, url, error) => const SizedBox(
                               height: 220,
@@ -921,7 +923,7 @@ class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
                 crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.0
               ),
               itemCount: existingProofs.length,
-              itemBuilder: (context, index) {
+              itemBuilder: (ctx, index) {
                 final pDef = existingProofs[index];
                 final pData = proofMap[pDef['step']];
                 final String path = pData['file_url'].toString().replaceAll('\\', '/').replaceAll(RegExp(r'^/+'), '');
@@ -930,6 +932,8 @@ class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
                 return GestureDetector(
                   onTap: () => _showPowImage(context, imageUrl, pDef['title'].toString(), order, pData),
                   child: Container(
+
+                    clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFFE3DCCF)),
@@ -940,7 +944,12 @@ class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
                         Expanded(
                           child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                            child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Center(child: Icon(LucideIcons.imageOff, color: Colors.grey))),
+                            child: CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (c, u) => const ShimmerLoading(height: double.infinity, width: double.infinity, borderRadius: 0),
+                              errorWidget: (_, __, ___) => const Center(child: Icon(LucideIcons.imageOff, color: Colors.grey)),
+                            ),
                           ),
                         ),
                         Container(
@@ -960,6 +969,7 @@ class _HistoryRowItemState extends ConsumerState<_HistoryRowItem> {
                   ),
                 );
               },
+
             ),
           ],
         ],

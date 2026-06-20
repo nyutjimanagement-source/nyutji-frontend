@@ -31,6 +31,7 @@ class _CourierTarikDanaModalState extends ConsumerState<CourierTarikDanaModal> {
     
     return Container(
       padding: EdgeInsets.only(bottom: bottomPadding),
+      clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -194,7 +195,7 @@ final auth = ref.watch(authProvider);
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32 + MediaQuery.of(context).padding.bottom),
           ],
         );
         },
@@ -208,16 +209,37 @@ final auth = ref.watch(authProvider);
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600])),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF111827))),
-            if (value2 != null) ...[
-              const SizedBox(height: 4),
-              Text(value2, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: highlight2 ? primaryTeal : Colors.grey[500])),
+        Expanded(
+          child: Text(
+            label, 
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600]),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value, 
+                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFF111827)),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              if (value2 != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  value2, 
+                  style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: highlight2 ? primaryTeal : Colors.grey[500]),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ],
             ],
-          ],
+          ),
         )
       ],
     );

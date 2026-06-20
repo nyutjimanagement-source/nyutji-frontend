@@ -29,6 +29,7 @@ import 'customer_scheduler_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -189,9 +190,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         color: const Color(0xFF403600),
         child: SingleChildScrollView(
           controller: _mainScrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           child: Column(
             children: [
+
               Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -212,8 +214,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             _buildPromoSection(currentT),
             const SizedBox(height: 24),
             _buildMitraSection(currentT, auth),
-            const SizedBox(height: 80),
+            SizedBox(height: 80 + MediaQuery.of(context).padding.bottom),
           ],
+
         ),
       ),
     ),
@@ -249,7 +252,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           ? DecorationImage(image: MemoryImage(auth.temporaryWebBytes!), fit: BoxFit.cover)
                           : (photoUrl != null && photoUrl.toString().isNotEmpty)
                               ? DecorationImage(
-                                  image: NetworkImage(photoUrl.toString().startsWith('http') 
+                                  image: CachedNetworkImageProvider(photoUrl.toString().startsWith('http') 
                                       ? photoUrl.toString()
                                       : "${ApiConstants.rootUrl}/$photoUrl"), 
                                   fit: BoxFit.cover)
@@ -258,7 +261,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
                           : (photoUrl != null && photoUrl.toString().isNotEmpty)
                               ? DecorationImage(
-                                  image: NetworkImage(photoUrl.toString().startsWith('http') 
+                                  image: CachedNetworkImageProvider(photoUrl.toString().startsWith('http') 
                                       ? photoUrl.toString()
                                       : "${ApiConstants.rootUrl}/$photoUrl"), 
                                   fit: BoxFit.cover)
@@ -840,7 +843,7 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        image: DecorationImage(image: NetworkImage(img), fit: BoxFit.cover),
+        image: DecorationImage(image: CachedNetworkImageProvider(img), fit: BoxFit.cover),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -877,7 +880,7 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
       width: 280,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
-        image: DecorationImage(image: NetworkImage(img), fit: BoxFit.cover),
+        image: DecorationImage(image: CachedNetworkImageProvider(img), fit: BoxFit.cover),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -1039,11 +1042,12 @@ final orderProv = ref.watch(orderProvider);
               color: Colors.white,
               image: (photoUrl != null && photoUrl.toString().isNotEmpty)
                 ? DecorationImage(
-                    image: NetworkImage(photoUrl.toString().startsWith('http') 
+                    image: CachedNetworkImageProvider(photoUrl.toString().startsWith('http') 
                       ? photoUrl 
                       : "${ApiConstants.rootUrl}/$photoUrl"), 
                     fit: BoxFit.cover)
                 : const DecorationImage(
+
                     image: AssetImage("assets/icons/icon_ML.png"), 
                     fit: BoxFit.contain),
             ),
@@ -1191,12 +1195,14 @@ final provider = ref.watch(orderProvider);
                       : isLoading 
                         ? ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            physics: const BouncingScrollPhysics(),
                             itemCount: 3,
                             itemBuilder: (context, index) => const Padding(
                               padding: EdgeInsets.only(bottom: 12),
                               child: ShimmerLoading(height: 80, borderRadius: 16),
                             ),
                           )
+
                         : (filteredMitras.isEmpty && filteredOrders.isEmpty)
                           ? Center(
                               child: Column(
@@ -1211,7 +1217,9 @@ final provider = ref.watch(orderProvider);
                             )
                           : ListView(
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              physics: const BouncingScrollPhysics(),
                               children: [
+
                                 if (filteredOrders.isNotEmpty) ...[
                                   Text("Riwayat Pesanan", style: NyutjiTheme.h3(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 12),
@@ -1269,17 +1277,20 @@ final provider = ref.watch(orderProvider);
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(num, style: NyutjiTheme.body(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold)),
-                Text(service, style: NyutjiTheme.detail(Colors.grey)),
+                Text(num, style: NyutjiTheme.body(const Color(0xFF131109)).copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(service, style: NyutjiTheme.detail(Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-            child: Text(status, style: NyutjiTheme.detail(Colors.orange).copyWith(fontWeight: FontWeight.bold)),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+              child: Text(status, style: NyutjiTheme.detail(Colors.orange).copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
           ),
         ],
+
       ),
     );
   }
@@ -1315,9 +1326,10 @@ final provider = ref.watch(orderProvider);
                     color: Colors.grey[200], 
                     borderRadius: BorderRadius.circular(12), 
                     image: m['profile_photo'] != null 
-                        ? DecorationImage(image: NetworkImage(m['profile_photo'].toString().startsWith('http') ? m['profile_photo'] : "${ApiConstants.rootUrl}/${m['profile_photo']}"), fit: BoxFit.cover) 
+                        ? DecorationImage(image: CachedNetworkImageProvider(m['profile_photo'].toString().startsWith('http') ? m['profile_photo'] : "${ApiConstants.rootUrl}/${m['profile_photo']}"), fit: BoxFit.cover) 
                         : null
                   ),
+
                   child: m['profile_photo'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
                 ),
                 const SizedBox(width: 12),
@@ -1428,11 +1440,12 @@ final provider = ref.watch(orderProvider);
                       borderRadius: BorderRadius.circular(12),
                       image: (mitra['image'] != null || mitra['profile_photo'] != null)
                           ? DecorationImage(
-                              image: NetworkImage((mitra['image'] ?? mitra['profile_photo']).toString().startsWith('http') 
+                              image: CachedNetworkImageProvider((mitra['image'] ?? mitra['profile_photo']).toString().startsWith('http') 
                                 ? (mitra['image'] ?? mitra['profile_photo']) 
                                 : "${ApiConstants.rootUrl}/${mitra['image'] ?? mitra['profile_photo']}"), 
                               fit: BoxFit.cover)
                           : const DecorationImage(image: AssetImage("assets/icons/icon_ML.png"), fit: BoxFit.contain),
+
                     ),
                   ),
                   const SizedBox(width: 14),

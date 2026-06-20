@@ -55,30 +55,36 @@ class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
 
     final currentT = t[auth.lang] ?? t['id'];
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHistorySummaryCard(currentT, walletProv.balance, historyOrders.length),
-                const SizedBox(height: 16),
-                _buildWeeklyProgressCard(currentT),
-                const SizedBox(height: 24),
-                _buildHistoryActionButtons(currentT),
-                const SizedBox(height: 24),
-                _buildTodaySummaryCard(currentT, historyOrders),
-                const SizedBox(height: 24),
-                _buildRecentTasksSection(currentT, historyOrders, walletProv.mutasiList),
-                const SizedBox(height: 40),
-              ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(orderProvider).fetchOrders(force: true);
+        await ref.read(walletProvider).fetchWallet(force: true);
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHistorySummaryCard(currentT, walletProv.balance, historyOrders.length),
+                  const SizedBox(height: 16),
+                  _buildWeeklyProgressCard(currentT),
+                  const SizedBox(height: 24),
+                  _buildHistoryActionButtons(currentT),
+                  const SizedBox(height: 24),
+                  _buildTodaySummaryCard(currentT, historyOrders),
+                  const SizedBox(height: 24),
+                  _buildRecentTasksSection(currentT, historyOrders, walletProv.mutasiList),
+                  SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -86,6 +92,7 @@ class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
   Widget _buildHistorySummaryCard(Map<String, dynamic> currentT, double balance, int totalOrders) {
     return Container(
       padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: [primaryTeal, const Color(0xFF3B8E8C)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(24),
@@ -117,6 +124,7 @@ class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
   Widget _buildWeeklyProgressCard(Map<String, dynamic> currentT) {
     return Container(
       padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -160,6 +168,7 @@ class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
 
     return Container(
       padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(24),
@@ -281,6 +290,7 @@ class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -317,6 +327,8 @@ class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
                 Text(
                   customerName,
                   style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 15, color: textDark),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   dateStr,

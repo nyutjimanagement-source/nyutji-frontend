@@ -177,7 +177,9 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                   ? Center(child: Text("Keranjang kosong", style: GoogleFonts.montserrat(color: Colors.grey)))
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
+                      physics: const BouncingScrollPhysics(),
                       itemCount: drafts.length,
+
                       itemBuilder: (context, index) {
                         final draft = drafts[index];
                         final mitraName = draft['mitra']?['name'] ?? 'Mitra';
@@ -881,17 +883,18 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
           Text(_getSmartAddress(_pickupAddress), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
           if (_pickupNote.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+            Text(_pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
           ],
           const Divider(height: 24),
           Row(
             children: [
               const Icon(LucideIcons.messageSquare, size: 14, color: Colors.grey),
               const SizedBox(width: 8),
-              Expanded(child: Text(_pickupNote.isEmpty ? "Tambahkan catatan penjemputan" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400]))),
+              Expanded(child: Text(_pickupNote.isEmpty ? "Tambahkan catatan penjemputan" : _pickupNote, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400]), maxLines: 1, overflow: TextOverflow.ellipsis)),
               _pillButton("Tambahan Info", () => _showNoteDialog()),
             ],
           ),
+
         ],
       ),
     );
@@ -1152,32 +1155,62 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
 
   void _showNoteDialog() {
     final TextEditingController noteCtrl = TextEditingController(text: _pickupNote);
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Keterangan Tambahan", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: noteCtrl,
-          decoration: const InputDecoration(
-            hintText: "Contoh: Baju Putih, Hati-hati kelunturan",
-            hintStyle: TextStyle(fontSize: 12),
-          ),
-          maxLines: 2,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: primaryTeal),
-            onPressed: () {
-              setState(() => _pickupNote = noteCtrl.text);
-              Navigator.pop(context);
-            },
-            child: const Text("Simpan", style: TextStyle(color: Colors.white)),
-          ),
-        ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Keterangan Tambahan", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF131109))),
+            const SizedBox(height: 12),
+            TextField(
+              controller: noteCtrl,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: "Contoh: Baju Putih, Hati-hati kelunturan",
+                hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text("Batal", style: GoogleFonts.montserrat(color: Colors.grey, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF403600),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    setState(() => _pickupNote = noteCtrl.text);
+                    Navigator.pop(ctx);
+                  },
+                  child: Text("Simpan", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+
 
   void _showPickupPicker({String? title}) async {
     final result = await showModalBottomSheet<NyutjiPickupResult>(
@@ -1283,14 +1316,15 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
         child: Column(
           children: [
             if (!isLoaded) ...[
-              SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: primaryTeal.withValues(alpha: 0.5))),
-              const SizedBox(height: 16),
-              Text("Sedang mengambil daftar harga...", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
+              const ShimmerLoading(height: 14, width: 150, borderRadius: 4),
+              const SizedBox(height: 8),
+              const ShimmerLoading(height: 14, width: 100, borderRadius: 4),
             ] else ...[
               Icon(LucideIcons.fileX, size: 30, color: Colors.grey[400]),
               const SizedBox(height: 12),
               Text("Daftar Harga Masih Kosong", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
             ]
+
           ],
         ),
       );
@@ -1705,15 +1739,10 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
 
                   // VALIDASI: Kecamatan wajib ada sebelum lanjut ke pembayaran
                   if (districtName.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Pilih Lokasi Penjemputan terlebih dahulu agar Kecamatan terisi.'),
-                        backgroundColor: Colors.red[700],
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    NyutjiNotif.showError(context, 'Pilih Lokasi Penjemputan terlebih dahulu agar Kecamatan terisi.');
                     return;
                   }
+
 
                   Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
                     totalPrice: _totalPrice, 

@@ -22,6 +22,8 @@ import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_loading_overlay.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 // --- MODELS ---
 enum CourierTaskType { pickup, delivery }
@@ -178,11 +180,11 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     }
   }
 
-  void _refreshData() {
+  Future<void> _refreshData({bool force = false}) async {
     if (!mounted || !isOnline) return;
     
-    ref.read(walletProvider).fetchWallet();
-    ref.read(orderProvider).fetchOrders();
+    ref.read(walletProvider).fetchWallet(force: force);
+    ref.read(orderProvider).fetchOrders(force: force);
     
     // Fetch order tersedia di KL (Marketplace)
     final auth = ref.read(authProvider);
@@ -226,7 +228,13 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
       currentImageUrl: auth.user?['profile_photo'],
       onImagePicked: (XFile file) async {
         final success = await auth.updateProfilePhoto(file);
-        if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
+        if (mounted) {
+          if (success) {
+            NyutjiNotif.showSuccess(context, "Foto profil berhasil diperbarui");
+          } else {
+            NyutjiNotif.showError(context, "Gagal mengunggah foto");
+          }
+        }
       },
     );
   }
@@ -244,42 +252,9 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
         setState(() {
           _taskCapturedImages[orderId] = File(compressed?.path ?? photo.path);
         });
-        _showBeautifulNotif("Foto berhasil diambil. Jangan lupa tekan Selesai.", true);
+        NyutjiNotif.showSuccess(context, "Foto berhasil diambil. Jangan lupa tekan Selesai.");
       }
     }
-  }
-
-  void _showBeautifulNotif(String message, bool success) {
-    late OverlayEntry overlayEntry;
-    overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 10,
-        left: 20,
-        right: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: success ? primaryTeal : const Color(0xFFC3312E),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
-            ),
-            child: Row(
-              children: [
-                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(context).insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) overlayEntry.remove();
-    });
   }
 
   @override
@@ -374,7 +349,7 @@ return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.u
                       ? DecorationImage(image: MemoryImage(auth!.temporaryWebBytes), fit: BoxFit.cover)
                       : (photoUrl != null && photoUrl.toString().isNotEmpty)
                           ? DecorationImage(
-                              image: NetworkImage(
+                              image: CachedNetworkImageProvider(
                                 photoUrl.toString().startsWith('http') 
                                   ? photoUrl.toString()
                                   : "${ApiConstants.rootUrl}/$photoUrl"
@@ -386,7 +361,7 @@ return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.u
                     ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
                     : (photoUrl != null && photoUrl.toString().isNotEmpty)
                         ? DecorationImage(
-                            image: NetworkImage(
+                            image: CachedNetworkImageProvider(
                               photoUrl.toString().startsWith('http') 
                                 ? photoUrl.toString()
                                 : "${ApiConstants.rootUrl}/$photoUrl"
@@ -455,20 +430,23 @@ return Stack(
 
   // === HOME TAB (DENSE) ===
   Widget _buildHomeTab(Map<String, dynamic> currentT) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        children: [
-          _buildActiveTrackingStrip(),
-          const SizedBox(height: 12),
-          _buildCompactStatsPanel(),
-          const SizedBox(height: 16),
-          _buildAvailableOrdersCard(),
-          const SizedBox(height: 16),
-          _buildDenseTaskSection(currentT),
-          const SizedBox(height: 40),
-        ],
+    return RefreshIndicator(
+      onRefresh: () => _refreshData(force: true),
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        child: Column(
+          children: [
+            _buildActiveTrackingStrip(),
+            const SizedBox(height: 12),
+            _buildCompactStatsPanel(),
+            const SizedBox(height: 16),
+            _buildAvailableOrdersCard(),
+            const SizedBox(height: 16),
+            _buildDenseTaskSection(currentT),
+            SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
+          ],
+        ),
       ),
     );
   }
@@ -505,7 +483,7 @@ final auth = ref.watch(authProvider);
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           image: DecorationImage(
-                                              image: NetworkImage(
+                                              image: CachedNetworkImageProvider(
                                                 photoUrl.toString().startsWith('http') 
                                                   ? photoUrl.toString()
                                                   : "${ApiConstants.rootUrl}/$photoUrl"
@@ -522,7 +500,7 @@ final auth = ref.watch(authProvider);
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         image: DecorationImage(
-                                            image: NetworkImage(
+                                            image: CachedNetworkImageProvider(
                                               photoUrl.toString().startsWith('http') 
                                                 ? photoUrl.toString()
                                                 : "${ApiConstants.rootUrl}/$photoUrl"
@@ -658,6 +636,7 @@ final orderProv = ref.watch(orderProvider);
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -722,8 +701,6 @@ final orderProv = ref.watch(orderProvider);
         final displayOrders = liveOrders;
 
         if (displayOrders.isEmpty) return const SizedBox.shrink();
-
-        final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -802,9 +779,10 @@ final orderProv = ref.watch(orderProvider);
                   child: ListView.separated(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                     shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
                     itemCount: displayOrders.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
+                    itemBuilder: (ctx, index) {
                       final order = displayOrders[index];
                       final isTop = index == 0;
                       
@@ -828,110 +806,167 @@ final orderProv = ref.watch(orderProvider);
                       final distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
 
                       return AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.all(12),
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.only(bottom: 4),
+                        padding: const EdgeInsets.all(14),
+                        clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
-                          color: isTop ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(14),
+                          color: isTop ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isTop ? const Color(0xFFFFD700).withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.1),
-                            width: isTop ? 1.5 : 1,
+                            color: isTop 
+                              ? const Color(0xFF334155) 
+                              : (isFast ? Colors.red.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.04)), 
+                            width: isTop ? 1.5 : 1
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isTop 
+                                ? const Color(0xFF1E293B).withValues(alpha: 0.15) 
+                                : Colors.black.withValues(alpha: 0.02), 
+                              blurRadius: 10, 
+                              offset: const Offset(0, 4)
+                            )
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // ROW 1: ORDER ID & BADGE
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(fmt.format(price),
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: isTop ? 22 : 18, fontWeight: FontWeight.w900,
-                                    color: isTop ? amberGold : Colors.white,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isTop ? const Color(0xFF334155) : const Color(0xFFFF8C42).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6)
                                   ),
-                                ),
-                                const Spacer(),
-                                isFast
-                                  ? Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFF4500)]),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text("\u26a1 FAST", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white)),
-                                    )
-                                  : Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: Colors.white24),
-                                      ),
-                                      child: Text("REGULER", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white70)),
+                                  child: Text(
+                                    orderId, 
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 9, 
+                                      fontWeight: FontWeight.bold, 
+                                      color: isTop ? Colors.white70 : const Color(0xFFD35400)
                                     ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(LucideIcons.mapPin, size: 11, color: Color(0xFF10B981)),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: Text(pickup,
-                                    style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
-                                    maxLines: 1, overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(LucideIcons.store, size: 11, color: Color(0xFF60A5FA)),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: Text("$mitraName \u2013 $mitraAddr",
-                                    style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white60, fontWeight: FontWeight.w500),
-                                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                                if (isFast)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(4)),
+                                    child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.red)),
+                                  )
                               ],
                             ),
                             const SizedBox(height: 10),
+                            
+                            // ROW 2: MITRA / ALAMAT JEMPUT
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(LucideIcons.store, size: 12, color: isTop ? Colors.white70 : primaryTeal),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text("$mitraName \u2013 $mitraAddr",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 10, 
+                                      color: isTop ? Colors.white60 : textGrey, 
+                                      fontWeight: FontWeight.w500
+                                    ),
+                                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            
+                            // ROW 3: ALAMAT JEMPUTAN (Dari Customer)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(LucideIcons.mapPin, size: 12, color: isTop ? Colors.white70 : primaryTeal),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(pickup,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 10, 
+                                      color: isTop ? Colors.white70 : darkText, 
+                                      fontWeight: FontWeight.w600
+                                    ),
+                                    maxLines: 2, overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: 12),
+                            const Divider(height: 1, color: Colors.white10),
+                            const SizedBox(height: 12),
+                            
+                            // ROW 4: JARAK & PENDAPATAN & TOMBOL AMBIL
                             Row(
                               children: [
-                                const Icon(LucideIcons.navigation2, size: 11, color: Colors.white38),
-                                const SizedBox(width: 4),
-                                Text("${distance > 0 ? distance.toStringAsFixed(1) : '~'} km",
-                                  style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w700),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("KOMISI JASA ANTAR",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 8, 
+                                        fontWeight: FontWeight.w700, 
+                                        color: isTop ? Colors.white38 : textGrey, 
+                                        letterSpacing: 0.5
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
+                                      style: GoogleFonts.montserrat(
+                                        fontWeight: FontWeight.w900, 
+                                        fontSize: 15, 
+                                        color: isTop ? Colors.white : const Color(0xFFD35400)
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const Spacer(),
-                                GestureDetector(
-                                  onTap: () async {
-                                    final provider = ref.read(orderProvider);
-                                    final success = await provider.acceptOrder(orderId);
-                                    if (!mounted) return;
-                                    if (success) {
-                                      _showBeautifulNotif("Order #$orderId berhasil diambil!", true);
-                                      _scrollToTasks(); // Fokus ke Antrean Tugas
-                                      _refreshData(); // Langsung hilangkan dari list tersedia
-                                    } else {
-                                      final error = provider.errorMessage;
-                                      _showBeautifulNotif(error ?? "Gagal mengambil order", false);
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(colors: [amberGold, const Color(0xFFD97706)]),
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(color: amberGold.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
-                                      ],
+                                Row(
+                                  children: [
+                                    const Icon(LucideIcons.navigation2, size: 11, color: Colors.white38),
+                                    const SizedBox(width: 4),
+                                    Text("${distance > 0 ? distance.toStringAsFixed(1) : '~'} km",
+                                      style: GoogleFonts.montserrat(fontSize: 10, color: isTop ? Colors.white54 : textGrey, fontWeight: FontWeight.w700),
                                     ),
-                                    child: Text("AMBIL",
-                                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final provider = ref.read(orderProvider);
+                                        final success = await provider.acceptOrder(orderId);
+                                        if (!mounted) return;
+                                        if (success) {
+                                          NyutjiNotif.showSuccess(this.context, "Order #$orderId berhasil diambil!");
+                                          _scrollToTasks(); // Fokus ke Antrean Tugas
+                                          _refreshData(); // Langsung hilangkan dari list tersedia
+                                        } else {
+                                          final error = provider.errorMessage;
+                                          NyutjiNotif.showError(this.context, error ?? "Gagal mengambil order");
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(colors: [amberGold, const Color(0xFFD97706)]),
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(color: amberGold.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
+                                          ],
+                                        ),
+                                        child: Text("AMBIL",
+                                          style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -1174,6 +1209,7 @@ final orderProv = ref.watch(orderProvider);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -1213,7 +1249,15 @@ final orderProv = ref.watch(orderProvider);
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(customerName, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText)),
+                        Expanded(
+                          child: Text(
+                            customerName, 
+                            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Text(
                           NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
                           style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 16, color: amberGold),
@@ -1297,13 +1341,81 @@ final orderProv = ref.watch(orderProvider);
                           
                           if (_taskCapturedImages[orderId] != null) ...[
                             const SizedBox(height: 12),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                _taskCapturedImages[orderId]!,
-                                width: double.infinity,
-                                height: 180,
-                                fit: BoxFit.cover,
+                            Container(
+                              height: 180,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: Image.file(
+                                      _taskCapturedImages[orderId]!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  // Watermark 1 — kiri atas
+                                  Positioned(
+                                    top: 30, left: -10,
+                                    child: IgnorePointer(
+                                      child: Transform.rotate(
+                                        angle: -0.785,
+                                        child: Text(
+                                          'Nyutji Management',
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white.withValues(alpha: 0.38),
+                                            letterSpacing: 1.0,
+                                            shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Watermark 2 — tengah
+                                  Positioned.fill(
+                                    child: IgnorePointer(
+                                      child: Align(
+                                        alignment: const Alignment(0.2, 0.0),
+                                        child: Transform.rotate(
+                                          angle: -0.785,
+                                          child: Text(
+                                            'Nyutji Management',
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white.withValues(alpha: 0.42),
+                                              letterSpacing: 1.2,
+                                              shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Watermark 3 — kanan bawah
+                                  Positioned(
+                                    bottom: 40, right: -10,
+                                    child: IgnorePointer(
+                                      child: Transform.rotate(
+                                        angle: -0.785,
+                                        child: Text(
+                                          'Nyutji Management',
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white.withValues(alpha: 0.35),
+                                            letterSpacing: 1.0,
+                                            shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -1316,7 +1428,7 @@ final orderProv = ref.watch(orderProvider);
                             child: ElevatedButton(
                               onPressed: _isUploading ? null : () async {
                                   if (_taskCapturedImages[orderId] == null) {
-                                    _showBeautifulNotif("Wajib upload foto sebelum Selesai!", false);
+                                    NyutjiNotif.showError(context, "Wajib upload foto sebelum Selesai!");
                                     return;
                                   }
                                   
@@ -1334,7 +1446,7 @@ final orderProv = ref.watch(orderProvider);
                                   if (!uploadSuccess) {
                                     if (mounted) {
                                       setState(() => _isUploading = false);
-                                      _showBeautifulNotif(provider.errorMessage ?? "Gagal mengunggah foto. Coba lagi.", false);
+                                      NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengunggah foto. Coba lagi.");
                                     }
                                     return;
                                   }
@@ -1348,13 +1460,13 @@ final orderProv = ref.watch(orderProvider);
                                     if (success) {
                                       _taskCapturedImages.remove(orderId);
                                       if (isDelivery) {
-                                          _showBeautifulNotif("Tugas Selesai! Cucian telah diterima pelanggan.", true);
+                                        NyutjiNotif.showSuccess(context, "Tugas Selesai! Cucian telah diterima pelanggan.");
                                       } else {
-                                          _showBeautifulNotif("Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).", true);
+                                        NyutjiNotif.showSuccess(context, "Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).");
                                       }
                                       _refreshData();
                                     } else {
-                                      _showBeautifulNotif(provider.errorMessage ?? "Gagal memperbarui status", false);
+                                      NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal memperbarui status");
                                     }
                                   }
                                 },
