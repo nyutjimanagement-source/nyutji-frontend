@@ -319,7 +319,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       orderType: isPickup ? 'pickup' : 'drop',
       speed: draft['serviceType'] == 'SAME_DAY' ? 'fast' : 'regular',
       distance: NyutjiParser.toDouble(draft['distance']),
-      dropMethod: isPickup ? '' : (draft['deliveryType'] ?? 'SELF_DROP'),
+      dropMethod: isPickup ? '' : (draft['deliveryType'] == 'SELFDROP_SELFDELIVERY' ? 'self' : 'courier'),
       selectedItemsList: updatedItems,
       districtName: districtName,
       districtCode: districtCode,
@@ -1701,7 +1701,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                             double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
 
                             String cat = (item['category'] ?? '').toString().toLowerCase();
-                            String unitDisplay = (cat == 'satuan' || cat == 'iron' || cat == 'dry clean') ? 'Pcs' : 'Kg';
+                            String unitDisplay = cat.contains('kilo') ? 'Kg' : 'Pcs';
                             
                             selectedItems.add({
                               'name': item['name'] ?? item['item_name'] ?? 'Item', 

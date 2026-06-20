@@ -388,7 +388,9 @@ final orderProv = ref.watch(orderProvider);
             if (pName.isNotEmpty) {
               final sUpper = rawStatus.toUpperCase();
               String pStatus = "Diterima";
-              if (sUpper == 'DONE' || sUpper == 'PAID') {
+              if (sUpper == 'DRAFT') {
+                pStatus = "Draft";
+              } else if (sUpper == 'DONE' || sUpper == 'PAID') {
                 pStatus = "Selesai";
               } else if (sUpper == 'PACKING' || sUpper == 'DELIVERING') {
                 pStatus = "Packing";
