@@ -92,12 +92,18 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             const SizedBox(height: 8),
             _buildSettingsGroup([
               _buildExpandableAddressRow(currentT, auth),
-              _settingRow(LucideIcons.heart, currentT['favorit']),
+              _settingRow(LucideIcons.heart, currentT['favorit'], onTap: () {
+                NyutjiNotif.showInfo(context, "Layanan Mitra Favorit akan Segera Hadir");
+              }),
             ]),
             _buildSettingsGroup([
               _buildExpandableSettingsRow(currentT, auth),
-              _settingRow(LucideIcons.bell, currentT['notif']),
-              _settingRow(LucideIcons.headphones, currentT['help']),
+              _settingRow(LucideIcons.bell, currentT['notif'], onTap: () {
+                NyutjiNotif.showInfo(context, "Layanan Notifikasi akan Segera Hadir");
+              }),
+              _settingRow(LucideIcons.headphones, currentT['help'], onTap: () {
+                _showHelpPopup();
+              }),
             ]),
             _buildSettingsGroup([
               _settingRow(LucideIcons.logOut, currentT['logout'], isDanger: true, onTap: () async {
@@ -111,6 +117,88 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showHelpPopup() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Text(
+                      "Butuh Bantuan Nyutji ?",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF403600),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Tim Nyutji siap membantu kendala operasional, transaksi, atau aplikasi Anda. Hubungi kami melalui:",
+                    style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[800], height: 1.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Email: support@nyutji.com",
+                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Untuk pertanyaan umum, kendala teknis aplikasi, kemitraan, atau pengajuan keluhan tertulis",
+                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.4),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "WhatsApp Darurat: 0812-3456-7890",
+                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.green[700]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Butuh bantuan cepat terkait pakaian tertukar, pembatalan darurat, atau konfirmasi antar-jemput kritis",
+                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.4),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Aktif setiap hari pkl 08.00 - 22.00 WIB. Mohon siapkan Nomor Nota Anda saat menghubungi kami.",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF403600),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text("Tutup", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
