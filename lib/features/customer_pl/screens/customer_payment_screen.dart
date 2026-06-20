@@ -171,7 +171,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
     Navigator.push(
       context,
       RetroRoute(
-        builder: (_) => CustomerOkBayarScreen(
+        page: CustomerOkBayarScreen(
           grandTotal: grandTotal,
           orderType: widget.orderType,
           dropMethod: widget.dropMethod,

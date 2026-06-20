@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/theme/nyutji_theme.dart';
-import '../../../core/providers/auth_provider.dart';
+import '../../../providers/auth_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomerOkBayarScreen extends ConsumerStatefulWidget {
