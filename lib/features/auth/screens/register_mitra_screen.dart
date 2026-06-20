@@ -44,6 +44,8 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
   final TextEditingController businessAddressController = TextEditingController();
   String businessDistrict = "";
   String businessCity = "";
+  double? businessLat;
+  double? businessLng;
 
   // Step 3: Segmen & Kategori
   String selectedSegment = 'PRIBADI';
@@ -140,6 +142,8 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
           businessAddressController.text = result.address;
           businessDistrict = result.subdistrict;
           businessCity = result.city;
+          businessLat = result.lat;
+          businessLng = result.lng;
         }
       });
       if (!mounted) return;
@@ -187,6 +191,8 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
         'washer_brand': selectedWasherBrand ?? '',
         'washer_type': washerTypeController.text.trim(),
         'selected_services': checkedServices.toList().join(','),
+        'lat': businessLat?.toString() ?? '',
+        'lng': businessLng?.toString() ?? '',
       });
 
       if (ktpFile != null) {
