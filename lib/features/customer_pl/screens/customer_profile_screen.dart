@@ -14,6 +14,7 @@ import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CustomerProfileScreen extends ConsumerStatefulWidget {
   const CustomerProfileScreen({super.key});
