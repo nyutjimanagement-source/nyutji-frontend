@@ -309,6 +309,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     final double mitraLng = NyutjiParser.toDouble(mitra['lng']);
     final isPickup = draft['deliveryType'] == 'PICKUP';
 
+    final String orderIdStr = (draft['orderNumber'] ?? draft['order_number'] ?? draft['id'] ?? '').toString();
+
     Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
       totalPrice: newTotalPrice.toInt(),
       totalItems: newTotalItems,
@@ -331,6 +333,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       pickupNote: draft['pickupNote'] ?? '',
       mitraAddress: mitra['address'] ?? '',
       mitraDistrict: districtName,
+      draftOrderNumber: orderIdStr,
     )));
   }
 

@@ -409,17 +409,19 @@ class OrderProvider extends ChangeNotifier {
   }
 
   Future<bool> deleteDraft(String orderId) async {
+    _draftOrders.removeWhere((o) => (o['orderNumber'] ?? o['order_number'] ?? o['id']).toString() == orderId);
+    _activeOrders.removeWhere((o) => (o['orderNumber'] ?? o['order_number'] ?? o['id']).toString() == orderId);
     _isLoading = true;
     _safeNotifyListeners();
     try {
       await _api.deleteDraftOrder(orderId);
-      _draftOrders.removeWhere((o) => (o['orderNumber'] ?? o['order_number'] ?? o['id']).toString() == orderId);
       _isLoading = false;
       _safeNotifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
-      _safeNotifyListeners();
+      await fetchDraftOrders();
+      await fetchOrders(force: true);
       debugPrint("Error deleting draft: $e");
       return false;
     }

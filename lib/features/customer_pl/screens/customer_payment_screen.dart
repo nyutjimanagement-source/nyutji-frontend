@@ -38,6 +38,7 @@ class CustomerPaymentScreen extends ConsumerStatefulWidget {
   final String pickupNote;
   final String mitraAddress;
   final String mitraDistrict;
+  final String? draftOrderNumber;
 
   const CustomerPaymentScreen({
     super.key,
@@ -62,6 +63,7 @@ class CustomerPaymentScreen extends ConsumerStatefulWidget {
     this.pickupNote = '',
     this.mitraAddress = '',
     this.mitraDistrict = '',
+    this.draftOrderNumber,
   });
 
   @override ConsumerState<CustomerPaymentScreen> createState() => _CustomerPaymentScreenState();
@@ -259,6 +261,9 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
       if (!mounted) return;
 
       if (success) {
+        if (widget.draftOrderNumber != null) {
+          await orderProv.deleteDraft(widget.draftOrderNumber!);
+        }
         _showMerpatiSuccess();
       } else {
         NyutjiNotif.showError(context, orderProv.errorMessage ?? "Gagal membuat pesanan. Coba lagi.");
@@ -322,6 +327,9 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
       final success = await orderProv.createOrder(payload);
       if (!mounted) return;
       if (success) {
+        if (widget.draftOrderNumber != null) {
+          await orderProv.deleteDraft(widget.draftOrderNumber!);
+        }
         await orderProv.fetchDraftOrders();
         if (!mounted) return;
         NyutjiNotif.showSuccess(context, 'Draft berhasil disimpan!');
