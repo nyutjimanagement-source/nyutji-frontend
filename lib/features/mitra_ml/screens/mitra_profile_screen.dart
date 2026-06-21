@@ -666,10 +666,10 @@ final auth = ref.watch(authProvider);
                                       Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 16),
                                         child: Text(
-                                          "QRIS Laundry Belum Diupload",
+                                          "QRIS Laundry Belum Diupload\n\nDebug Info:\nPayload: ${auth.user?['qris_payload']}\nKeys: ${auth.user?.keys.where((k) => k.contains('qris') || k.contains('bank')).join(', ')}",
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.montserrat(
-                                            fontSize: 11,
+                                            fontSize: 10,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.black54,
                                           ),
