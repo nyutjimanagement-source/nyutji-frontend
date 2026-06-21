@@ -121,6 +121,17 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Aturan**: Aplikasi memblokir unduhan font dari internet saat runtime (`GoogleFonts.config.allowRuntimeFetching = false`). Oleh karena itu, semua penggunaan font (seperti `GoogleFonts.montserrat(...)`) harus menggunakan kombinasi `fontWeight` dan `fontStyle` yang secara spesifik memiliki file `.ttf` pendukung di dalam folder `assets/google_fonts/`.
 * **Solusi**: Hanya gunakan varian font yang fisiknya tersedia secara lokal. Misalnya, untuk membuat teks miring, pastikan menggunakan `fontWeight: FontWeight.w400` dengan `fontStyle: FontStyle.italic` (merujuk ke file `Montserrat-Italic.ttf`). Hindari kombinasi tidak standar seperti `FontWeight.w600` + `FontStyle.italic` jika file `Montserrat-SemiBoldItalic.ttf` tidak ada di folder assets, karena hal tersebut akan memicu *runtime exception* dan membuat aplikasi *freeze*.
 
+### 17. Desain Model Counter Hybrid (Slider + Tombol Presisi)
+* **Aturan**: Setiap fitur input kuantitas/angka dinamis (seperti volume bahan kimia, jumlah item, dll.) yang memerlukan penyetelan cepat sekaligus presisi wajib mengadopsi **Model Counter Hybrid**.
+* **Implementasi**:
+  1. **Komponen Pendukung**: Sediakan tombol Minus (`IconButton` dengan ikon minus) di kiri, `Slider` di tengah, dan tombol Plus (`IconButton` dengan ikon plus) di kanan.
+  2. **Presisi & Interval**: Interval kenaikan/penurunan tombol (misalnya `0.1` atau `1.0`) dan tingkat presisi desimal deselerasi harus dapat dikonfigurasi sesuai kebutuhan bisnis.
+  3. **Visual Badge**: Letakkan badge penampil kuantitas (rounded card atau capsule badge) di lokasi yang strategis (misal kanan atas atau di tengah) sesuai kebutuhan layout.
+  4. **Estetika & Animasi Slider**:
+     - **Warna**: Slider wajib menggunakan warna utama brand (`primaryTeal` untuk aktif, `Color(0xFFF3F4F6)` atau abu-abu ultra-light untuk tidak aktif).
+     - **Garis Track**: Gunakan ketebalan track yang tipis dan elegan (misal: `trackHeight: 4.0` menggunakan custom `SliderTheme`).
+     - **Animasi & Efek Sentuh**: Pasang efek lingkar transparan (*overlay overlayRadius: 16.0*) dengan opasitas tipis (`primaryTeal.withValues(alpha: 0.12)`) saat slider ditekan dan digeser untuk memberikan feedback taktil yang halus.
+
 ---
 
 ## III. Standar Database & Relasi Tabel
