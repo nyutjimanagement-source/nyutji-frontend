@@ -132,6 +132,13 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
      - **Garis Track**: Gunakan ketebalan track yang tipis dan elegan (misal: `trackHeight: 4.0` menggunakan custom `SliderTheme`).
      - **Animasi & Efek Sentuh**: Pasang efek lingkar transparan (*overlay overlayRadius: 16.0*) dengan opasitas tipis (`primaryTeal.withValues(alpha: 0.12)`) saat slider ditekan dan digeser untuk memberikan feedback taktil yang halus.
 
+### 18. Desain Efek Garis Atas (Top Indicator Line) untuk Menu & Tab
+* **Aturan**: Setiap indikator penanda tab aktif (baik pada Bottom Navigation Bar, custom sub-menu selector, atau custom TabBar) wajib mengadopsi desain **Top Indicator Line** yang konsisten dengan estetika brand.
+* **Implementasi**:
+  1. **Warna**: Wajib menggunakan warna branding utama yang sesuai dengan tema peran layar (misal: `primaryTeal` untuk Mitra/Kurir, `plPrimary` untuk Customer, `accentGold` untuk Admin). Dilarang keras menggunakan warna abu-abu statis atau warna luar yang tidak relevan.
+  2. **Bentuk & Efek**: Harus memiliki ketebalan `3.0` (height) dengan lebar `60.0` (width) terpusat pada tab aktif. Sudut bagian bawah wajib melengkung (`borderRadius` dengan `bottomLeft` & `bottomRight` ber-radius `3.0`). Dilengkapi dengan bayangan berpendar tipis (`BoxShadow` dengan blurRadius `4.0`, offset `Offset(0, 1)`, dan warna yang sesuai dengan brand ber-opasitas `0.5` / `withValues(alpha: 0.5)`).
+  3. **Transisi**: Perpindahan posisi garis indikator saat menu/tab ditekan atau digeser wajib menggunakan animasi perpindahan dinamis (`AnimatedPositioned`) dengan durasi transisi `300ms` sampai `400ms` dan kurva transisi `Curves.easeInOut` atau `Curves.easeOutQuint` untuk gerakan yang sangat halus.
+
 ---
 
 ## III. Standar Database & Relasi Tabel
