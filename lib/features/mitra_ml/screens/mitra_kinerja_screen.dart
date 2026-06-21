@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../data/services/cache_service.dart';
+import '../../../data/services/api_service.dart';
 
 class MitraKinerjaScreen extends ConsumerStatefulWidget {
   const MitraKinerjaScreen({super.key});
@@ -28,6 +29,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   Map<String, List<Map<String, dynamic>>> _chemicalConsumption = {};
   Map<String, List<Map<String, dynamic>>> _employeeAttendance = {};
 
+  String _chemicalSort = "name_asc";
+  String _employeeFilter = "all";
+
   final List<String> _defaultConsumables = [
     "Deterjen Cair Matic",
     "Softener Sakura Premium",
@@ -46,6 +50,11 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     _loadAllKinerjaData();
   }
 
@@ -82,24 +91,86 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
     }
 
     setState(() {});
+    _triggerFetchFromServer();
+  }
+
+  void _triggerFetchFromServer() {
+    final monthKey = DateFormat('yyyy-MM').format(_selectedMonth);
+    _fetchKinerjaFromServer(monthKey);
+  }
+
+  Future<void> _fetchKinerjaFromServer(String monthKey) async {
+    try {
+      final List<dynamic> serverData = await ApiService().getMitraKinerja(monthKey);
+      if (serverData.isNotEmpty) {
+        for (final item in serverData) {
+          final String dateKey = item['date'];
+          _operationalHours[dateKey] = {
+            "isOpen": item['is_open'] ?? item['isOpen'] ?? true,
+            "openTime": item['open_time'] ?? item['openTime'] ?? "08:00",
+            "closeTime": item['close_time'] ?? item['closeTime'] ?? "20:00",
+            "note": item['notes'] ?? item['note'] ?? "",
+          };
+          if (item['chemical_consumption'] != null || item['chemicalConsumption'] != null) {
+            final List<dynamic> chem = item['chemical_consumption'] ?? item['chemicalConsumption'];
+            _chemicalConsumption[dateKey] = List<Map<String, dynamic>>.from(chem);
+          }
+          if (item['employee_attendance'] != null || item['employeeAttendance'] != null) {
+            final List<dynamic> emp = item['employee_attendance'] ?? item['employeeAttendance'];
+            _employeeAttendance[dateKey] = List<Map<String, dynamic>>.from(emp);
+          }
+        }
+        
+        await CacheService.set('mitra_operasional_hours', _operationalHours);
+        await CacheService.set('mitra_chemical_consumption', _chemicalConsumption);
+        await CacheService.set('mitra_employee_attendance', _employeeAttendance);
+        
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      debugPrint("Error fetching kinerja from server: $e");
+    }
+  }
+
+  Future<void> _saveToServer(String dateKey) async {
+    try {
+      final hours = _getOperationalInfoForDate(DateTime.parse(dateKey));
+      final chemicals = _getChemicalsForDate(DateTime.parse(dateKey));
+      final employees = _getEmployeesForDate(DateTime.parse(dateKey));
+
+      await ApiService().saveMitraKinerja({
+        "date": dateKey,
+        "isOpen": hours["isOpen"],
+        "openTime": hours["openTime"],
+        "closeTime": hours["closeTime"],
+        "notes": hours["note"] ?? "",
+        "chemicalConsumption": chemicals,
+        "employeeAttendance": employees
+      });
+    } catch (e) {
+      debugPrint("Error saving kinerja to server: $e");
+    }
   }
 
   Future<void> _saveOperationalHours(String dateKey, Map<String, dynamic> data) async {
     _operationalHours[dateKey] = data;
     await CacheService.set('mitra_operasional_hours', _operationalHours);
     setState(() {});
+    _saveToServer(dateKey);
   }
 
   Future<void> _saveChemicalConsumption(String dateKey, List<Map<String, dynamic>> data) async {
     _chemicalConsumption[dateKey] = data;
     await CacheService.set('mitra_chemical_consumption', _chemicalConsumption);
     setState(() {});
+    _saveToServer(dateKey);
   }
 
   Future<void> _saveEmployeeAttendance(String dateKey, List<Map<String, dynamic>> data) async {
     _employeeAttendance[dateKey] = data;
     await CacheService.set('mitra_employee_attendance', _employeeAttendance);
     setState(() {});
+    _saveToServer(dateKey);
   }
 
   // --- HELPERS ---
@@ -149,6 +220,33 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
     }).toList();
   }
 
+  Widget _buildTabItem(int index, String label, double tabWidth) {
+    final bool isSelected = _tabController.index == index;
+    return SizedBox(
+      width: tabWidth,
+      height: 50,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            _tabController.animateTo(index);
+            setState(() {});
+          },
+          child: Center(
+            child: Text(
+              label,
+              style: GoogleFonts.montserrat(
+                color: isSelected ? primaryTeal : textGrey,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: isSelected ? 13 : 12,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // --- WIDGET BUILDERS ---
   @override
   Widget build(BuildContext context) {
@@ -167,21 +265,51 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
-          child: Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: primaryTeal,
-              labelColor: primaryTeal,
-              unselectedLabelColor: textGrey,
-              labelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 13),
-              unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w600, fontSize: 12),
-              tabs: const [
-                Tab(text: "Jam Kerja"),
-                Tab(text: "Konsumsi"),
-                Tab(text: "Kehadiran"),
-              ],
-            ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final double tabWidth = constraints.maxWidth / 3;
+              final int selectedIndex = _tabController.index;
+              
+              return Container(
+                height: 50,
+                color: Colors.white,
+                child: Stack(
+                  children: [
+                    Row(
+                      children: [
+                        _buildTabItem(0, "Jam Kerja", tabWidth),
+                        _buildTabItem(1, "Konsumsi", tabWidth),
+                        _buildTabItem(2, "Kehadiran", tabWidth),
+                      ],
+                    ),
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      top: 0,
+                      left: (tabWidth * selectedIndex) + (tabWidth / 2) - 30,
+                      child: Container(
+                        height: 3,
+                        width: 60,
+                        decoration: const BoxDecoration(
+                          color: primaryTeal,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(3),
+                            bottomRight: Radius.circular(3),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x801E5655), // primaryTeal with 0.5 opacity
+                              blurRadius: 4,
+                              offset: Offset(0, 1),
+                            )
+                          ]
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
           ),
         ),
       ),
@@ -236,6 +364,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     setState(() {
                       _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
                     });
+                    _triggerFetchFromServer();
                   },
                 ),
                 Text(
@@ -248,6 +377,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     setState(() {
                       _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
                     });
+                    _triggerFetchFromServer();
                   },
                 ),
               ],
@@ -334,9 +464,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                             Text(
                               day.toString(),
                               style: GoogleFonts.montserrat(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: isToday ? primaryTeal : darkText,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: isToday ? primaryTeal : darkText,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -394,6 +524,39 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 20),
+
+          // Action Buttons: Rekap Bulanan & Ekspor Laporan
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _showMonthlySummary(),
+                  icon: const Icon(LucideIcons.fileSpreadsheet, color: Colors.white, size: 16),
+                  label: Text("Rekap & Laporan", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryTeal,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _exportKinerjaReportAsImage(),
+                  icon: const Icon(LucideIcons.image, color: primaryTeal, size: 16),
+                  label: Text("Ekspor Laporan", style: GoogleFonts.montserrat(color: primaryTeal, fontWeight: FontWeight.bold, fontSize: 11)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primaryTeal,
+                    side: const BorderSide(color: primaryTeal),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -563,12 +726,77 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
   // === 2. TAB KONSUMSI OPERASIONAL ===
   Widget _buildKonsumsiTab() {
-    final chemicals = _getChemicalsForDate(_activeDate);
+    final rawChemicals = _getChemicalsForDate(_activeDate);
+    final List<Map<String, dynamic>> chemicals = List<Map<String, dynamic>>.from(rawChemicals);
+    
+    if (_chemicalSort == "used_desc") {
+      chemicals.sort((a, b) {
+        final double ua = double.tryParse(a["used"].toString()) ?? 0.0;
+        final double ub = double.tryParse(b["used"].toString()) ?? 0.0;
+        return ub.compareTo(ua);
+      });
+    } else {
+      chemicals.sort((a, b) => a["name"].toString().compareTo(b["name"].toString()));
+    }
 
     return Column(
       children: [
         // Date Selector Bar
         _buildActiveDateSelector(),
+
+        // Sorting and Addition Action Bar
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Sort Button
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    if (_chemicalSort == "name_asc") {
+                      _chemicalSort = "used_desc";
+                      NyutjiNotif.showInfo(context, "Diurutkan berdasarkan Konsumsi Tertinggi.");
+                    } else {
+                      _chemicalSort = "name_asc";
+                      NyutjiNotif.showInfo(context, "Diurutkan berdasarkan Nama A-Z.");
+                    }
+                  });
+                },
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.arrowUpDown, size: 14, color: primaryTeal),
+                    const SizedBox(width: 6),
+                    Text(
+                      _chemicalSort == "name_asc" ? "Nama A-Z" : "Konsumsi ▼",
+                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Action Buttons Row
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _showAddChemicalDialog(),
+                    icon: const Icon(LucideIcons.plus, size: 14, color: primaryTeal),
+                    label: Text("Tambah Item", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                  ),
+                  const SizedBox(width: 16),
+                  TextButton.icon(
+                    onPressed: () => _showMonthlySummary(),
+                    icon: const Icon(LucideIcons.fileText, size: 14, color: primaryTeal),
+                    label: Text("Rekap", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
 
         Expanded(
           child: ListView.builder(
@@ -620,8 +848,12 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                           icon: const Icon(LucideIcons.minusCircle, color: textGrey),
                           onPressed: () {
                             if (used > 0) {
-                              chemicals[index]["used"] = used - 0.1;
-                              _saveChemicalConsumption(_getDateKey(_activeDate), chemicals);
+                              final originalList = _getChemicalsForDate(_activeDate);
+                              final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
+                              if (origIdx != -1) {
+                                originalList[origIdx]["used"] = used - 0.1;
+                                _saveChemicalConsumption(_getDateKey(_activeDate), originalList);
+                              }
                             }
                           },
                         ),
@@ -634,16 +866,24 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                             activeColor: primaryTeal,
                             inactiveColor: Colors.grey[100],
                             onChanged: (val) {
-                              chemicals[index]["used"] = val;
-                              _saveChemicalConsumption(_getDateKey(_activeDate), chemicals);
+                              final originalList = _getChemicalsForDate(_activeDate);
+                              final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
+                              if (origIdx != -1) {
+                                originalList[origIdx]["used"] = val;
+                                _saveChemicalConsumption(_getDateKey(_activeDate), originalList);
+                              }
                             },
                           ),
                         ),
                         IconButton(
                           icon: const Icon(LucideIcons.plusCircle, color: primaryTeal),
                           onPressed: () {
-                            chemicals[index]["used"] = used + 0.1;
-                            _saveChemicalConsumption(_getDateKey(_activeDate), chemicals);
+                            final originalList = _getChemicalsForDate(_activeDate);
+                            final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
+                            if (origIdx != -1) {
+                              originalList[origIdx]["used"] = used + 0.1;
+                              _saveChemicalConsumption(_getDateKey(_activeDate), originalList);
+                            }
                           },
                         ),
                       ],
@@ -660,11 +900,66 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
   // === 3. TAB KEHADIRAN PEGAWAI ===
   Widget _buildKehadiranTab() {
-    final employees = _getEmployeesForDate(_activeDate);
+    final allEmployees = _getEmployeesForDate(_activeDate);
+    final List<Map<String, dynamic>> employees = allEmployees.where((emp) {
+      if (_employeeFilter == "all") return true;
+      return emp["status"] == _employeeFilter;
+    }).toList();
 
     return Column(
       children: [
         _buildActiveDateSelector(),
+
+        // Filter and Addition Action Bar
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Filter Dropdown
+              DropdownButton<String>(
+                value: _employeeFilter,
+                underline: const SizedBox.shrink(),
+                icon: const Icon(LucideIcons.filter, size: 14, color: primaryTeal),
+                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
+                dropdownColor: Colors.white,
+                items: const [
+                  DropdownMenuItem(value: "all", child: Text("Semua Pegawai")),
+                  DropdownMenuItem(value: "Masuk", child: Text("Hadir (Masuk)")),
+                  DropdownMenuItem(value: "Off", child: Text("Absen (Off)")),
+                  DropdownMenuItem(value: "Pengganti", child: Text("Pengganti")),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _employeeFilter = val;
+                    });
+                  }
+                },
+              ),
+              
+              // Action Buttons Row
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _showAddEmployeeDialog(),
+                    icon: const Icon(LucideIcons.plus, size: 14, color: primaryTeal),
+                    label: Text("Tambah Pegawai", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                  ),
+                  const SizedBox(width: 16),
+                  TextButton.icon(
+                    onPressed: () => _showMonthlySummary(),
+                    icon: const Icon(LucideIcons.fileText, size: 14, color: primaryTeal),
+                    label: Text("Rekap", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
 
         Expanded(
           child: ListView.builder(
@@ -755,9 +1050,13 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                           label: "Masuk",
                           isActive: status == "Masuk",
                           onTap: () {
-                            employees[index]["status"] = "Masuk";
-                            employees[index]["substituteName"] = "";
-                            _saveEmployeeAttendance(_getDateKey(_activeDate), employees);
+                            final originalList = _getEmployeesForDate(_activeDate);
+                            final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
+                            if (origIdx != -1) {
+                              originalList[origIdx]["status"] = "Masuk";
+                              originalList[origIdx]["substituteName"] = "";
+                              _saveEmployeeAttendance(_getDateKey(_activeDate), originalList);
+                            }
                           },
                         ),
                         const SizedBox(width: 8),
@@ -765,16 +1064,26 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                           label: "Off",
                           isActive: status == "Off",
                           onTap: () {
-                            employees[index]["status"] = "Off";
-                            employees[index]["substituteName"] = "";
-                            _saveEmployeeAttendance(_getDateKey(_activeDate), employees);
+                            final originalList = _getEmployeesForDate(_activeDate);
+                            final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
+                            if (origIdx != -1) {
+                              originalList[origIdx]["status"] = "Off";
+                              originalList[origIdx]["substituteName"] = "";
+                              _saveEmployeeAttendance(_getDateKey(_activeDate), originalList);
+                            }
                           },
                         ),
                         const SizedBox(width: 8),
                         _buildAttendanceAction(
                           label: "Ganti",
                           isActive: status == "Pengganti",
-                          onTap: () => _showSubstituteDialog(index, employees),
+                          onTap: () {
+                            final originalList = _getEmployeesForDate(_activeDate);
+                            final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
+                            if (origIdx != -1) {
+                              _showSubstituteDialog(origIdx, originalList);
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -913,6 +1222,592 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           ),
         ],
       ),
+    );
+  }
+
+  void _showAddChemicalDialog() {
+    final nameController = TextEditingController();
+    String unit = "Liter";
+    
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text("Tambah Bahan Kimia Baru", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: "Nama Bahan Kimia",
+                      labelStyle: GoogleFonts.montserrat(fontSize: 12, color: textGrey),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    style: GoogleFonts.montserrat(fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Satuan Ukuran", style: GoogleFonts.montserrat(fontSize: 12, color: darkText, fontWeight: FontWeight.bold)),
+                      DropdownButton<String>(
+                        value: unit,
+                        items: const [
+                          DropdownMenuItem(value: "Liter", child: Text("Liter")),
+                          DropdownMenuItem(value: "Kg", child: Text("Kg")),
+                          DropdownMenuItem(value: "Pcs", child: Text("Pcs")),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setStateDialog(() => unit = val);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text("Batal", style: GoogleFonts.montserrat(color: Colors.grey, fontWeight: FontWeight.bold)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    if (name.isNotEmpty) {
+                      final chemicals = _getChemicalsForDate(_activeDate);
+                      final exists = chemicals.any((c) => c["name"].toString().toLowerCase() == name.toLowerCase());
+                      if (exists) {
+                        NyutjiNotif.showError(context, "Item dengan nama tersebut sudah ada.");
+                        return;
+                      }
+                      
+                      chemicals.add({
+                        "name": name,
+                        "used": 0.0,
+                        "unit": unit
+                      });
+                      
+                      _saveChemicalConsumption(_getDateKey(_activeDate), chemicals);
+                      Navigator.pop(ctx);
+                      NyutjiNotif.showSuccess(context, "Bahan kimia berhasil ditambahkan.");
+                    } else {
+                      NyutjiNotif.showError(context, "Nama tidak boleh kosong.");
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryTeal,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text("Simpan", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          }
+        );
+      }
+    );
+  }
+
+  void _showAddEmployeeDialog() {
+    final nameController = TextEditingController();
+    final roleController = TextEditingController(text: "Operator Cuci");
+    
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text("Tambah Pegawai Baru", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: "Nama Pegawai",
+                  labelStyle: GoogleFonts.montserrat(fontSize: 12, color: textGrey),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                style: GoogleFonts.montserrat(fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: roleController,
+                decoration: InputDecoration(
+                  labelText: "Peran / Posisi",
+                  labelStyle: GoogleFonts.montserrat(fontSize: 12, color: textGrey),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                style: GoogleFonts.montserrat(fontSize: 13),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text("Batal", style: GoogleFonts.montserrat(color: Colors.grey, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                final role = roleController.text.trim();
+                if (name.isNotEmpty && role.isNotEmpty) {
+                  final employees = _getEmployeesForDate(_activeDate);
+                  
+                  final exists = employees.any((e) => e["name"].toString().toLowerCase() == name.toLowerCase());
+                  if (exists) {
+                    NyutjiNotif.showError(context, "Pegawai dengan nama tersebut sudah terdaftar.");
+                    return;
+                  }
+                  
+                  employees.add({
+                    "name": name,
+                    "role": role,
+                    "status": "Masuk",
+                    "substituteName": ""
+                  });
+                  
+                  _saveEmployeeAttendance(_getDateKey(_activeDate), employees);
+                  Navigator.pop(ctx);
+                  NyutjiNotif.showSuccess(context, "Pegawai berhasil ditambahkan.");
+                } else {
+                  NyutjiNotif.showError(context, "Nama dan peran tidak boleh kosong.");
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryTeal,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text("Simpan", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  Map<String, dynamic> _calculateMonthlySummary() {
+    int totalDays = DateUtils.getDaysInMonth(_selectedMonth.year, _selectedMonth.month);
+    int daysOpen = 0;
+    int daysClosed = 0;
+    
+    Map<String, double> chemTotals = {};
+    Map<String, String> chemUnits = {};
+    
+    int totalEmployeeDays = 0;
+    int employeePresent = 0;
+    int employeeOff = 0;
+    int employeeSubstitute = 0;
+
+    for (int day = 1; day <= totalDays; day++) {
+      final date = DateTime(_selectedMonth.year, _selectedMonth.month, day);
+      final dateKey = _getDateKey(date);
+      
+      final hours = _getOperationalInfoForDate(date);
+      if (hours["isOpen"] == true) {
+        daysOpen++;
+      } else {
+        daysClosed++;
+      }
+      
+      if (_chemicalConsumption.containsKey(dateKey)) {
+        final chems = _chemicalConsumption[dateKey]!;
+        for (final c in chems) {
+          final name = c["name"] ?? "";
+          final double used = double.tryParse(c["used"].toString()) ?? 0.0;
+          final unit = c["unit"] ?? "Liter";
+          if (name.isNotEmpty) {
+            chemTotals[name] = (chemTotals[name] ?? 0.0) + used;
+            chemUnits[name] = unit;
+          }
+        }
+      }
+      
+      if (_employeeAttendance.containsKey(dateKey)) {
+        final emps = _employeeAttendance[dateKey]!;
+        for (final e in emps) {
+          totalEmployeeDays++;
+          final status = e["status"] ?? "Masuk";
+          if (status == "Masuk") {
+            employeePresent++;
+          } else if (status == "Off") {
+            employeeOff++;
+          } else if (status == "Pengganti") {
+            employeeSubstitute++;
+          }
+        }
+      }
+    }
+    
+    double attendanceRate = totalEmployeeDays > 0 ? (employeePresent / totalEmployeeDays) * 100 : 100.0;
+
+    return {
+      "daysOpen": daysOpen,
+      "daysClosed": daysClosed,
+      "chemTotals": chemTotals,
+      "chemUnits": chemUnits,
+      "attendanceRate": attendanceRate,
+      "employeePresent": employeePresent,
+      "employeeOff": employeeOff,
+      "employeeSubstitute": employeeSubstitute,
+      "totalEmployeeDays": totalEmployeeDays
+    };
+  }
+
+  void _showMonthlySummary() {
+    final summary = _calculateMonthlySummary();
+    final String monthName = DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth);
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).padding.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Rekap Kinerja - $monthName",
+                    style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: darkText),
+                  ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.x, color: textGrey, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSummaryStatCard(
+                      title: "Hari Buka",
+                      value: "${summary["daysOpen"]} Hari",
+                      subValue: "Libur: ${summary["daysClosed"]} Hari",
+                      icon: LucideIcons.store,
+                      color: primaryTeal,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildSummaryStatCard(
+                      title: "Hadir Pegawai",
+                      value: "${(summary["attendanceRate"] as double).toStringAsFixed(1)}%",
+                      subValue: "Ganti: ${summary["employeeSubstitute"]} shift",
+                      icon: LucideIcons.users,
+                      color: accentGold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              
+              Text(
+                "Konsumsi Bahan Kimia",
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText),
+              ),
+              const SizedBox(height: 8),
+              
+              Container(
+                constraints: const BoxConstraints(maxHeight: 180),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: (summary["chemTotals"] as Map<String, double>).isEmpty 
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          "Belum ada data konsumsi bulan ini.",
+                          style: GoogleFonts.montserrat(fontSize: 11, color: textGrey),
+                        ),
+                      ),
+                    )
+                  : ListView(
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      children: (summary["chemTotals"] as Map<String, double>).entries.map((entry) {
+                        final String name = entry.key;
+                        final double used = entry.value;
+                        final String unit = (summary["chemUnits"] as Map<String, String>)[name] ?? "Liter";
+                        
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                name,
+                                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: darkText),
+                              ),
+                              Text(
+                                "${used.toStringAsFixed(1)} $unit",
+                                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+              ),
+              const SizedBox(height: 24),
+              
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _exportKinerjaReportAsImage();
+                },
+                icon: const Icon(LucideIcons.download, color: Colors.white, size: 16),
+                label: Text(
+                  "Unduh Laporan Visual",
+                  style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryTeal,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryStatCard({
+    required String title,
+    required String value,
+    required String subValue,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.01),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w600, color: textGrey),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkText),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subValue,
+            style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w600, color: textGrey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _exportKinerjaReportAsImage() {
+    final summary = _calculateMonthlySummary();
+    final String monthName = DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth);
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          contentPadding: EdgeInsets.zero,
+          content: SizedBox(
+            width: 320,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: const BoxDecoration(
+                    color: primaryTeal,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(LucideIcons.award, color: Colors.white, size: 48),
+                      const SizedBox(height: 12),
+                      Text(
+                        "LAPORAN KINERJA RESMI",
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      Text(
+                        "NYUTJI LAUNDRY MANAGEMENT",
+                        style: GoogleFonts.montserrat(
+                          color: accentGold,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Text(
+                          "Bulan: $monthName",
+                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Status Buka Toko", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                          Text("${summary["daysOpen"]} Hari (${(summary["daysOpen"] / (summary["daysOpen"] + summary["daysClosed"]) * 100).toStringAsFixed(0)}%)", style: GoogleFonts.montserrat(fontSize: 11, color: darkText, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Kehadiran Pegawai", style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontWeight: FontWeight.w600)),
+                          Text("${(summary["attendanceRate"] as double).toStringAsFixed(1)}%", style: GoogleFonts.montserrat(fontSize: 11, color: darkText, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: accentGold.withValues(alpha: 0.5), width: 1.5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Transform.rotate(
+                            angle: -0.05,
+                            child: Text(
+                              "TERVERIFIKASI SISTEM NYUTJI",
+                              style: GoogleFonts.montserrat(
+                                color: accentGold,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                Container(
+                  color: const Color(0xFFDCFCE7),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.checkCircle2, color: Color(0xFF15803D), size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Laporan berhasil diekspor ke Galeri HP",
+                        style: GoogleFonts.montserrat(
+                          color: const Color(0xFF15803D),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  "Selesai",
+                  style: GoogleFonts.montserrat(color: darkText, fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

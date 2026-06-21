@@ -594,6 +594,17 @@ class ApiService {
     return response.data;
   }
 
+  // --- KINERJA OPERASIONAL (MITRA) ---
+  Future<List<dynamic>> getMitraKinerja(String month) async {
+    final response = await _dio.get("/mitra/kinerja", queryParameters: {'month': month});
+    return response.data['data'] ?? [];
+  }
+
+  Future<Map<String, dynamic>> saveMitraKinerja(Map<String, dynamic> data) async {
+    final response = await _dio.post("/mitra/kinerja", data: data);
+    return response.data;
+  }
+
   String? _extractJson(String text) {
     final startBrace = text.indexOf('{');
     final startBracket = text.indexOf('[');
