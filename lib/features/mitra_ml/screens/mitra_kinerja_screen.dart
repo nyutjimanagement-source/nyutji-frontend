@@ -106,7 +106,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
         for (final item in serverData) {
           final String dateKey = item['date'];
           _operationalHours[dateKey] = {
-            "isOpen": item['is_open'] ?? item['isOpen'] ?? true,
+            "isOpen": item['is_open'] ?? item['isOpen'],
             "openTime": item['open_time'] ?? item['openTime'] ?? "08:00",
             "closeTime": item['close_time'] ?? item['closeTime'] ?? "20:00",
             "note": item['notes'] ?? item['note'] ?? "",
@@ -186,7 +186,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
     // Default hours depending on weekday (Sunday = 7)
     final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
     return {
-      "isOpen": true,
+      "isOpen": null,
       "openTime": isWeekend ? "09:00" : "08:00",
       "closeTime": isWeekend ? "18:00" : "20:00",
       "note": "Operasional Standar"
@@ -196,10 +196,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   List<Map<String, dynamic>> _getChemicalsForDate(DateTime date) {
     final key = _getDateKey(date);
     if (_chemicalConsumption.containsKey(key)) {
-      return _chemicalConsumption[key]!;
+      return List<Map<String, dynamic>>.from(_chemicalConsumption[key]!);
     }
     // Return default empty logs
-    return _defaultConsumables.map((name) => {
+    return _defaultConsumables.map((name) => <String, dynamic>{
       "name": name,
       "used": 0.0,
       "unit": name.contains("Deterjen") ? "Kg" : "Liter",
@@ -209,10 +209,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   List<Map<String, dynamic>> _getEmployeesForDate(DateTime date) {
     final key = _getDateKey(date);
     if (_employeeAttendance.containsKey(key)) {
-      return _employeeAttendance[key]!;
+      return List<Map<String, dynamic>>.from(_employeeAttendance[key]!);
     }
     // Return default present logs
-    return _defaultEmployees.map((emp) => {
+    return _defaultEmployees.map((emp) => <String, dynamic>{
       "name": emp["name"],
       "role": emp["role"],
       "status": "Masuk", // Masuk, Off, Pengganti
@@ -285,24 +285,24 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
-                      top: 0,
+                      bottom: 0,
                       left: (tabWidth * selectedIndex) + (tabWidth / 2) - 30,
                       child: Container(
                         height: 3,
                         width: 60,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: primaryTeal,
-                          borderRadius: BorderRadius.only(
+                          borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(3),
                             bottomRight: Radius.circular(3),
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Color(0x801E5655), // primaryTeal with 0.5 opacity
+                              color: primaryTeal.withValues(alpha: 0.5),
                               blurRadius: 4,
-                              offset: Offset(0, 1),
+                              offset: const Offset(0, 1),
                             )
-                          ]
+                          ],
                         ),
                       ),
                     ),
@@ -443,6 +443,8 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                         cellDate.month == DateTime.now().month &&
                         cellDate.day == DateTime.now().day;
 
+                    final dateKey = _getDateKey(cellDate);
+                    final bool hasSetting = _operationalHours.containsKey(dateKey);
                     final opInfo = _getOperationalInfoForDate(cellDate);
                     final bool isOpen = opInfo["isOpen"] ?? true;
 
@@ -470,21 +472,24 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                isOpen ? "Buka" : "Tutup",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w700,
-                                  color: isOpen ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
+                            if (hasSetting && opInfo["isOpen"] != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                              ),
-                            ),
+                                child: Text(
+                                  isOpen ? "Buka" : "Tutup",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w700,
+                                    color: isOpen ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
+                                  ),
+                                ),
+                              )
+                            else
+                              const SizedBox(height: 12),
                           ],
                         ),
                       ),
@@ -808,6 +813,25 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
               final double used = double.tryParse(chem["used"].toString()) ?? 0.0;
               final String unit = chem["unit"] ?? "Liter";
 
+              final double maxVal;
+              final double step;
+              final int divisions;
+              final bool isIntegerUnit = unit == "Tabung" || unit == "kWh" || unit == "m³" || unit == "Pcs" || unit == "Roll" || unit == "Pack";
+
+              if (unit == "Tabung") {
+                maxVal = 10.0;
+                step = 1.0;
+                divisions = 10;
+              } else if (unit == "kWh" || unit == "m³" || unit == "Pcs" || unit == "Roll" || unit == "Pack") {
+                maxVal = 200.0;
+                step = 1.0;
+                divisions = 200;
+              } else {
+                maxVal = 10.0;
+                step = 0.1;
+                divisions = 100;
+              }
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
@@ -835,7 +859,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            "${used.toStringAsFixed(1)} $unit",
+                            "${isIntegerUnit ? used.toStringAsFixed(0) : used.toStringAsFixed(1)} $unit",
                             style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
                           ),
                         ),
@@ -851,28 +875,37 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                               final originalList = _getChemicalsForDate(_activeDate);
                               final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
                               if (origIdx != -1) {
-                                originalList[origIdx]["used"] = used - 0.1;
+                                final currentVal = double.tryParse(originalList[origIdx]["used"].toString()) ?? 0.0;
+                                originalList[origIdx]["used"] = (currentVal - step).clamp(0.0, maxVal);
                                 _saveChemicalConsumption(_getDateKey(_activeDate), originalList);
                               }
                             }
                           },
                         ),
                         Expanded(
-                          child: Slider(
-                            value: used.clamp(0.0, 10.0),
-                            min: 0.0,
-                            max: 10.0,
-                            divisions: 100,
-                            activeColor: primaryTeal,
-                            inactiveColor: Colors.grey[100],
-                            onChanged: (val) {
-                              final originalList = _getChemicalsForDate(_activeDate);
-                              final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
-                              if (origIdx != -1) {
-                                originalList[origIdx]["used"] = val;
-                                _saveChemicalConsumption(_getDateKey(_activeDate), originalList);
-                              }
-                            },
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 4.0,
+                              activeTrackColor: primaryTeal,
+                              inactiveTrackColor: const Color(0xFFF3F4F6),
+                              thumbColor: primaryTeal,
+                              overlayColor: primaryTeal.withValues(alpha: 0.12),
+                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+                            ),
+                            child: Slider(
+                              value: used.clamp(0.0, maxVal),
+                              min: 0.0,
+                              max: maxVal,
+                              divisions: divisions,
+                              onChanged: (val) {
+                                final originalList = _getChemicalsForDate(_activeDate);
+                                final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
+                                if (origIdx != -1) {
+                                  originalList[origIdx]["used"] = val;
+                                  _saveChemicalConsumption(_getDateKey(_activeDate), originalList);
+                                }
+                              },
+                            ),
                           ),
                         ),
                         IconButton(
@@ -881,7 +914,8 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                             final originalList = _getChemicalsForDate(_activeDate);
                             final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
                             if (origIdx != -1) {
-                              originalList[origIdx]["used"] = used + 0.1;
+                              final currentVal = double.tryParse(originalList[origIdx]["used"].toString()) ?? 0.0;
+                              originalList[origIdx]["used"] = (currentVal + step).clamp(0.0, maxVal);
                               _saveChemicalConsumption(_getDateKey(_activeDate), originalList);
                             }
                           },
@@ -1237,7 +1271,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
             return AlertDialog(
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: Text("Tambah Bahan Kimia Baru", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+              title: Text("Tambah Item Konsumsi & Utilitas", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1245,7 +1279,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                   TextField(
                     controller: nameController,
                     decoration: InputDecoration(
-                      labelText: "Nama Bahan Kimia",
+                      labelText: "Nama Item",
                       labelStyle: GoogleFonts.montserrat(fontSize: 12, color: textGrey),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
@@ -1262,6 +1296,11 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                           DropdownMenuItem(value: "Liter", child: Text("Liter")),
                           DropdownMenuItem(value: "Kg", child: Text("Kg")),
                           DropdownMenuItem(value: "Pcs", child: Text("Pcs")),
+                          DropdownMenuItem(value: "kWh", child: Text("kWh")),
+                          DropdownMenuItem(value: "m³", child: Text("m³")),
+                          DropdownMenuItem(value: "Tabung", child: Text("Tabung")),
+                          DropdownMenuItem(value: "Roll", child: Text("Roll")),
+                          DropdownMenuItem(value: "Pack", child: Text("Pack")),
                         ],
                         onChanged: (val) {
                           if (val != null) {
@@ -1289,7 +1328,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                         return;
                       }
                       
-                      chemicals.add({
+                      chemicals.add(<String, dynamic>{
                         "name": name,
                         "used": 0.0,
                         "unit": unit
@@ -1297,7 +1336,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                       
                       _saveChemicalConsumption(_getDateKey(_activeDate), chemicals);
                       Navigator.pop(ctx);
-                      NyutjiNotif.showSuccess(context, "Bahan kimia berhasil ditambahkan.");
+                      NyutjiNotif.showSuccess(context, "Item berhasil ditambahkan.");
                     } else {
                       NyutjiNotif.showError(context, "Nama tidak boleh kosong.");
                     }
@@ -1370,7 +1409,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     return;
                   }
                   
-                  employees.add({
+                  employees.add(<String, dynamic>{
                     "name": name,
                     "role": role,
                     "status": "Masuk",
@@ -1414,10 +1453,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
       final dateKey = _getDateKey(date);
       
       final hours = _getOperationalInfoForDate(date);
-      if (hours["isOpen"] == true) {
-        daysOpen++;
-      } else {
+      if (hours["isOpen"] == false) {
         daysClosed++;
+      } else {
+        daysOpen++;
       }
       
       if (_chemicalConsumption.containsKey(dateKey)) {
