@@ -150,6 +150,14 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
   2. Hapus dan hindari logika *fallback* pencarian yang melibatkan kolom "id" (misal: "{ id: isNaN(orderNumber) ? null : parseInt(orderNumber) }").
   3. Seluruh tabel relasi (seperti "order_items", "order_attachment") yang terhubung ke pesanan wajib menggunakan kolom bertipe *string* yang merujuk langsung ke "orderNumber".
 
+### 2. Sinkronisasi & Migrasi Database Mandiri (Shared Hosting / cPanel)
+* **Aturan**: Mengingat Nyutji di-deploy pada lingkungan shared hosting cPanel yang membatasi eksekusi migrasi otomatis atau CLI global (seperti `sequelize-cli db:migrate` atau auto-sync pada runtime server `index.js` karena masalah hak akses/resource limit), maka pembuatan atau perubahan tabel database wajib menggunakan berkas script sinkronisasi mandiri yang dapat dijalankan secara manual.
+* **Implementasi**:
+  1. Buat script sinkronisasi khusus di root backend (misalnya `sync_nama_tabel.js`).
+  2. Muat konfigurasi `.env` secara manual di dalam script.
+  3. Hubungkan ke Sequelize dan panggil sinkronisasi model spesifik menggunakan `await Model.sync({ alter: true })`.
+  4. Jalankan script ini secara manual melalui terminal cPanel dengan perintah: `node sync_nama_tabel.js`.
+
 ---
 
 ## IV. Standar Koneksi API & Error Handling
