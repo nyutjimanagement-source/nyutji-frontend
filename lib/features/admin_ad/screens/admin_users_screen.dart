@@ -9,6 +9,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import 'admin_approval.dart';
+import 'admin_qrcode_generate.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 
 class AdminUsersScreen extends ConsumerStatefulWidget {
@@ -158,7 +159,12 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          _buildActionBtn("Tambah\nKecamatan", LucideIcons.mapPin, Colors.orange),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _showQRCodeGeneratorSheet(context),
+              child: _buildActionBtn("QR Code\nGenerate", LucideIcons.qrCode, Colors.orange, noExpanded: true),
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
@@ -175,6 +181,15 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showQRCodeGeneratorSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => const AdminQRCodeGenerateSheet(),
     );
   }
 

@@ -13,6 +13,8 @@ import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'mitra_keamanan_pin.dart';
+import '../../admin_ad/screens/admin_qrcode_generate.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class MitraProfileScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? currentT;
@@ -29,6 +31,9 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
   bool _isCourierMenuExpanded = false;
   bool _isAddressExpanded = false;
   bool _isAccountExpanded = false;
+  bool _isQrisExpanded = false;
+  String? _tempQrisPayload;
+  bool _isUpdatingQris = false;
 
   final TextEditingController _fullAddressController = TextEditingController();
   String _selectedDistrict = "";
@@ -221,6 +226,8 @@ final auth = ref.watch(authProvider);
                 _buildExpandableCourierMenu(),
                 const Divider(height: 1),
                 _buildExpandableAccountMenu(auth),
+                const Divider(height: 1),
+                _buildExpandableQrisMenu(auth),
                 const Divider(height: 1),
                 Consumer(
                   builder: (context, ref, _) {
@@ -585,6 +592,208 @@ final auth = ref.watch(authProvider);
         ),
       ],
     );
+  }
+
+  Widget _buildExpandableQrisMenu(AuthProvider auth) {
+    final hasQris = auth.user?['qris_payload'] != null && auth.user!['qris_payload'].toString().isNotEmpty;
+    final displayPayload = _tempQrisPayload ?? (hasQris ? auth.user!['qris_payload'].toString() : null);
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: () => setState(() => _isQrisExpanded = !_isQrisExpanded),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.qrCode, size: 18, color: darkText),
+                const SizedBox(width: 12),
+                Text("QRIS Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                const Spacer(),
+                Icon(_isQrisExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: _isQrisExpanded
+              ? Container(
+                  color: Colors.grey[50],
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("QRIS Milik Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Box Gambar QRIS
+                      Container(
+                        width: 200,
+                        height: 200,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: primaryTeal, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: displayPayload == null
+                              ? Container(
+                                  color: Colors.grey[300],
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(LucideIcons.qrCode, size: 48, color: Colors.grey[500]),
+                                      const SizedBox(height: 12),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: Text(
+                                          "QRIS Laundry Belum Diupload",
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : QrImageView(
+                                  data: displayPayload,
+                                  version: QrVersions.auto,
+                                  size: 180.0,
+                                  eyeStyle: const QrEyeStyle(
+                                    eyeShape: QrEyeShape.square,
+                                    color: darkText,
+                                  ),
+                                  dataModuleStyle: const QrDataModuleStyle(
+                                    dataModuleShape: QrDataModuleShape.square,
+                                    color: darkText,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Tombol Aksi
+                      if (_tempQrisPayload != null) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                              onPressed: () => _openQrisScanner(),
+                              child: Text(
+                                "Scan Gambar Lain",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            ElevatedButton(
+                              onPressed: _isUpdatingQris ? null : () => _handleSaveQris(auth),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryTeal,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: _isUpdatingQris
+                                  ? const SizedBox(height: 14, width: 14, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : Text(
+                                      "Simpan",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        InkWell(
+                          onTap: () => _openQrisScanner(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            child: Text(
+                              "Upload Gambar QRIS",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  void _openQrisScanner() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => AdminQRCodeGenerateSheet(
+        onScanSuccess: (scannedText) {
+          setState(() {
+            _tempQrisPayload = scannedText;
+          });
+          Navigator.pop(sheetContext);
+        },
+      ),
+    );
+  }
+
+  Future<void> _handleSaveQris(AuthProvider auth) async {
+    if (_tempQrisPayload == null || _tempQrisPayload!.isEmpty) return;
+
+    setState(() => _isUpdatingQris = true);
+    
+    final success = await auth.updateProfile({
+      'qris_payload': _tempQrisPayload,
+    });
+
+    if (mounted) {
+      setState(() => _isUpdatingQris = false);
+      if (success) {
+        _showBeautifulNotif("QRIS Laundry berhasil disimpan!", true);
+        setState(() {
+          _tempQrisPayload = null;
+        });
+      } else {
+        _showBeautifulNotif(auth.lastErrorMessage ?? "Gagal menyimpan QRIS", false);
+      }
+    }
   }
 
   Widget _buildBulletNote(String text) {
