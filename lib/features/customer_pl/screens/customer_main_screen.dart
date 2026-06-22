@@ -73,6 +73,23 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
 
     final currentT = t[auth.lang] ?? t['id'];
 
+    final user = auth.user;
+    final hasAddress = user?['address'] != null && 
+                       user!['address'].toString().isNotEmpty && 
+                       user['address'].toString() != 'Pilih Lokasi Rumah' &&
+                       user['district_name'] != null &&
+                       user['district_name'].toString().isNotEmpty &&
+                       ((double.tryParse(user['lat']?.toString() ?? '0.0') ?? 0.0) != 0.0) &&
+                       ((double.tryParse(user['lng']?.toString() ?? '0.0') ?? 0.0) != 0.0);
+
+    final hasName = user?['name'] != null && user!['name'].toString().isNotEmpty && user['name'].toString() != '-';
+    final hasPhone = (user?['phone'] != null && user!['phone'].toString().isNotEmpty && user['phone'].toString() != '-') ||
+                      (user?['phone_number'] != null && user!['phone_number'].toString().isNotEmpty && user['phone_number'].toString() != '-');
+    final hasEmail = user?['email'] != null && user!['email'].toString().isNotEmpty && user['email'].toString() != '-';
+    final hasSettings = hasName && hasPhone && hasEmail;
+
+    final showProfileRedDot = !hasAddress || !hasSettings;
+
     return Scaffold(
       backgroundColor: NyutjiTheme.background,
       body: PageView(
@@ -107,7 +124,47 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
                     BottomNavigationBarItem(icon: const Icon(LucideIcons.home, size: 22), activeIcon: const Icon(LucideIcons.home, size: 22), label: currentT['home']),
                     BottomNavigationBarItem(icon: const Icon(LucideIcons.package, size: 22), activeIcon: const Icon(LucideIcons.package, size: 22), label: currentT['status']),
                     BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
-                    BottomNavigationBarItem(icon: const Icon(LucideIcons.user, size: 22), activeIcon: const Icon(LucideIcons.user, size: 22), label: currentT['profile']),
+                    BottomNavigationBarItem(
+                      icon: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(LucideIcons.user, size: 22),
+                          if (showProfileRedDot)
+                            Positioned(
+                              right: -2,
+                              top: -2,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      activeIcon: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(LucideIcons.user, size: 22),
+                          if (showProfileRedDot)
+                            Positioned(
+                              right: -2,
+                              top: -2,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      label: currentT['profile'],
+                    ),
                   ],
                   currentIndex: _selectedIndex,
                   selectedItemColor: NyutjiTheme.plPrimary,

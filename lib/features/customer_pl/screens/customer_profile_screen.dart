@@ -320,12 +320,20 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     final addressDetail = user?['address_detail']?.toString() ?? '';
     final district = user?['district_name']?.toString() ?? user?['owner_district_name']?.toString() ?? '-';
     final city = user?['city_name']?.toString() ?? user?['owner_city_name']?.toString() ?? '-';
+    final hasAddress = user?['address'] != null && 
+                       user!['address'].toString().isNotEmpty && 
+                       user['address'].toString() != 'Pilih Lokasi Rumah' &&
+                       user['district_name'] != null &&
+                       user['district_name'].toString().isNotEmpty &&
+                       ((double.tryParse(user['lat']?.toString() ?? '0.0') ?? 0.0) != 0.0) &&
+                       ((double.tryParse(user['lng']?.toString() ?? '0.0') ?? 0.0) != 0.0);
     
     return Column(
       children: [
         _settingRow(
           LucideIcons.mapPin, 
           currentT['address'], 
+          showRedDot: !hasAddress,
           onTap: () => setState(() => _isAddressExpanded = !_isAddressExpanded),
           trailing: Icon(
             _isAddressExpanded ? LucideIcons.chevronDown : LucideIcons.chevronRight, 
@@ -428,12 +436,18 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     final phone = user?['phone']?.toString() ?? user?['no_hp']?.toString() ?? '-';
     final email = user?['email']?.toString() ?? '-';
     final tier = currentT['tier'] ?? 'VIP Member';
+    final hasName = user?['name'] != null && user!['name'].toString().isNotEmpty && user['name'].toString() != '-';
+    final hasPhone = (user?['phone'] != null && user!['phone'].toString().isNotEmpty && user['phone'].toString() != '-') ||
+                      (user?['phone_number'] != null && user!['phone_number'].toString().isNotEmpty && user['phone_number'].toString() != '-');
+    final hasEmail = user?['email'] != null && user!['email'].toString().isNotEmpty && user['email'].toString() != '-';
+    final hasSettings = hasName && hasPhone && hasEmail;
 
     return Column(
       children: [
         _settingRow(
           LucideIcons.settings, 
           currentT['settings'], 
+          showRedDot: !hasSettings,
           onTap: () => setState(() => _isSettingsExpanded = !_isSettingsExpanded),
           trailing: Icon(
             _isSettingsExpanded ? LucideIcons.chevronDown : LucideIcons.chevronRight, 
@@ -531,7 +545,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     );
   }
 
-  Widget _settingRow(IconData icon, String title, {bool isDanger = false, VoidCallback? onTap, Widget? trailing}) {
+  Widget _settingRow(IconData icon, String title, {bool isDanger = false, VoidCallback? onTap, Widget? trailing, bool showRedDot = false}) {
     return InkWell(
       onTap: onTap ?? () {},
       child: Container(
@@ -550,7 +564,24 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
               child: Icon(icon, size: 16, color: isDanger ? Colors.red : const Color(0xFF403600)),
             ),
             const SizedBox(width: 16),
-            Expanded(child: Text(title, style: NyutjiTheme.body(isDanger ? Colors.red : NyutjiTheme.darkText).copyWith(fontSize: 13, fontWeight: FontWeight.w700))),
+            Expanded(
+              child: Row(
+                children: [
+                  Text(title, style: NyutjiTheme.body(isDanger ? Colors.red : NyutjiTheme.darkText).copyWith(fontSize: 13, fontWeight: FontWeight.w700)),
+                  if (showRedDot) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             trailing ?? Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey[300]),
           ],
         ),
