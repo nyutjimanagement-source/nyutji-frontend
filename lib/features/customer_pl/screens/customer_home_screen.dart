@@ -789,13 +789,31 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
 
                             return Dismissible(
                               key: Key(orderIdStr),
-                              direction: DismissDirection.endToStart,
+                              direction: DismissDirection.startToEnd,
                               background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 20),
+                                alignment: Alignment.centerLeft,
+                                padding: const EdgeInsets.only(left: 20),
                                 margin: const EdgeInsets.only(bottom: 12),
-                                decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(16)),
-                                child: const Icon(LucideIcons.trash2, color: Colors.red),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50], 
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.red[100]!),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    const Icon(LucideIcons.trash2, color: Colors.red, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Hapus cucian ?",
+                                      style: GoogleFonts.montserrat(
+                                        color: Colors.red[700],
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                               onDismissed: (direction) {
                                 orderProv.deleteDraft(orderIdStr);
