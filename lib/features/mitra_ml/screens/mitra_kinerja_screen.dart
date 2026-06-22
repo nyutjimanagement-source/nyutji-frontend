@@ -386,117 +386,125 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           const SizedBox(height: 20),
 
           // Calendar Grid Card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey[200]!),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 8))
-              ],
+          MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.0),
             ),
-            child: Column(
-              children: [
-                // Weekday Header
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    childAspectRatio: 1.2,
-                  ),
-                  itemCount: 7,
-                  itemBuilder: (context, idx) {
-                    final isSunday = idx == 0;
-                    return Center(
-                      child: Text(
-                        weekdays[idx],
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: isSunday ? const Color(0xFFC3312E) : textGrey,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 16),
-
-                // Days Grid
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    childAspectRatio: 0.95,
-                  ),
-                  itemCount: offset + daysInMonth,
-                  itemBuilder: (context, index) {
-                    if (index < offset) {
-                      return const SizedBox.shrink();
-                    }
-
-                    final int day = index - offset + 1;
-                    final DateTime cellDate = DateTime(year, month, day);
-                    final isToday = cellDate.year == DateTime.now().year &&
-                        cellDate.month == DateTime.now().month &&
-                        cellDate.day == DateTime.now().day;
-
-                    final dateKey = _getDateKey(cellDate);
-                    final bool hasSetting = _operationalHours.containsKey(dateKey);
-                    final opInfo = _getOperationalInfoForDate(cellDate);
-                    final bool isOpen = opInfo["isOpen"] ?? true;
-
-                    return GestureDetector(
-                      onTap: () => _showJamKerjaDialog(cellDate, opInfo),
-                      child: Container(
-                        margin: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: isToday ? primaryTeal.withValues(alpha: 0.08) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isToday ? primaryTeal : Colors.grey[100]!,
-                            width: isToday ? 1.5 : 1,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey[200]!),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 8))
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Weekday Header
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      childAspectRatio: 1.2,
+                    ),
+                    itemCount: 7,
+                    itemBuilder: (context, idx) {
+                      final isSunday = idx == 0;
+                      return Center(
+                        child: Text(
+                          weekdays[idx],
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isSunday ? const Color(0xFFC3312E) : textGrey,
                           ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              day.toString(),
-                              style: GoogleFonts.montserrat(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: isToday ? primaryTeal : darkText,
-                              ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 16),
+ 
+                  // Days Grid
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      childAspectRatio: 0.95,
+                    ),
+                    itemCount: offset + daysInMonth,
+                    itemBuilder: (context, index) {
+                      if (index < offset) {
+                        return const SizedBox.shrink();
+                      }
+ 
+                      final int day = index - offset + 1;
+                      final DateTime cellDate = DateTime(year, month, day);
+                      final isToday = cellDate.year == DateTime.now().year &&
+                          cellDate.month == DateTime.now().month &&
+                          cellDate.day == DateTime.now().day;
+ 
+                      final dateKey = _getDateKey(cellDate);
+                      final bool hasSetting = _operationalHours.containsKey(dateKey);
+                      final opInfo = _getOperationalInfoForDate(cellDate);
+                      final bool isOpen = opInfo["isOpen"] ?? true;
+ 
+                      return GestureDetector(
+                        onTap: () => _showJamKerjaDialog(cellDate, opInfo),
+                        child: Container(
+                          margin: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: isToday ? primaryTeal.withValues(alpha: 0.08) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isToday ? primaryTeal : Colors.grey[100]!,
+                              width: isToday ? 1.5 : 1,
                             ),
-                            const SizedBox(height: 4),
-                            if (hasSetting && opInfo["isOpen"] != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
-                                  borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                day.toString(),
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: isToday ? primaryTeal : darkText,
                                 ),
-                                child: Text(
-                                  isOpen ? "Buka" : "Tutup",
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w700,
-                                    color: isOpen ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
+                              ),
+                              const SizedBox(height: 4),
+                              if (hasSetting && opInfo["isOpen"] != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
-                                ),
-                              )
-                            else
-                              const SizedBox(height: 12),
-                          ],
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      isOpen ? "Buka" : "Tutup",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.w700,
+                                        color: isOpen ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
+                                const SizedBox(height: 12),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),

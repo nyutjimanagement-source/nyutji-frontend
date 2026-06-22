@@ -514,53 +514,58 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
         children: [
           Text(currentT['main_services'], style: NyutjiTheme.h2(const Color(0xFF131109)).copyWith(fontSize: 22)),
           const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 4,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 8,
-            childAspectRatio: 0.65,
-            children: [
-              // Baris 1
-              _buildServiceItem("Pick Up\nKurir", "icon_pickup.png", hasPromo: true, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'pickup')))),
-              _buildServiceItem("Antar\nSendiri", "icon_dropoff.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'drop')))),
-              _buildServiceItem("Nyutji\nCoin", "icon_coin.png", onTap: () {
-                NyutjiNotif.showInfo(context, "Fitur Nyutji Coin akan segera hadir");
-              }),
-              _buildServiceItem("Top-Up", "icon_topup.png", onTap: () {
-                final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
-                if (mainState != null) {
-                  mainState.switchToTab(2);
-                } else {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerWalletScreen()));
-                }
-              }),
-              // Baris 2
-              _buildServiceItem("Cuci\nKhusus", "baby_stroller.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerCuciKhususScreen()))),
-              _buildServiceItem("Dry\nClean", "icon_dryclean.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerDryCleanScreen()))),
-              _buildServiceItem("Cuci\nSepatu", "icon_sepatu.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerCuciSepatuScreen()))),
-              _buildServiceItem("Pakaian\nBayi", "icon_bayi.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerPakaianBayiScreen()))),
-              // Baris 3
-              _buildServiceItem("Jadwal", "icon_jadwal.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerSchedulerScreen()))),
-              _buildServiceItem("Cek Status", "icon_status.png", onTap: () {
-                final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
-                if (mainState != null) {
-                  mainState.switchToTab(1);
-                } else {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
-                }
-              }),
-              _buildServiceItem("Pengaturan", "icon_pengaturan.png", onTap: () {
-                final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
-                if (mainState != null) {
-                  mainState.switchToTab(3);
-                } else {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerProfileScreen()));
-                }
-              }),
-              _buildServiceItem("Bantuan", "icon_bantuan.png", onTap: () => _showBantuanBottomSheet()),
-            ],
+          MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.0),
+            ),
+            child: GridView.count(
+              crossAxisCount: 4,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.65,
+              children: [
+                // Baris 1
+                _buildServiceItem("Pick Up\nKurir", "icon_pickup.png", hasPromo: true, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'pickup')))),
+                _buildServiceItem("Antar\nSendiri", "icon_dropoff.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerOrderScreen(orderType: 'drop')))),
+                _buildServiceItem("Nyutji\nCoin", "icon_coin.png", onTap: () {
+                  NyutjiNotif.showInfo(context, "Fitur Nyutji Coin akan segera hadir");
+                }),
+                _buildServiceItem("Top-Up", "icon_topup.png", onTap: () {
+                  final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
+                  if (mainState != null) {
+                    mainState.switchToTab(2);
+                  } else {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerWalletScreen()));
+                  }
+                }),
+                // Baris 2
+                _buildServiceItem("Cuci\nKhusus", "baby_stroller.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerCuciKhususScreen()))),
+                _buildServiceItem("Dry\nClean", "icon_dryclean.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerDryCleanScreen()))),
+                _buildServiceItem("Cuci\nSepatu", "icon_sepatu.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerCuciSepatuScreen()))),
+                _buildServiceItem("Pakaian\nBayi", "icon_bayi.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerPakaianBayiScreen()))),
+                // Baris 3
+                _buildServiceItem("Jadwal", "icon_jadwal.png", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerSchedulerScreen()))),
+                _buildServiceItem("Cek Status", "icon_status.png", onTap: () {
+                  final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
+                  if (mainState != null) {
+                    mainState.switchToTab(1);
+                  } else {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
+                  }
+                }),
+                _buildServiceItem("Pengaturan", "icon_pengaturan.png", onTap: () {
+                  final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
+                  if (mainState != null) {
+                    mainState.switchToTab(3);
+                  } else {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerProfileScreen()));
+                  }
+                }),
+                _buildServiceItem("Bantuan", "icon_bantuan.png", onTap: () => _showBantuanBottomSheet()),
+              ],
+            ),
           ),
         ],
       ),
@@ -713,7 +718,10 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
             ],
           ),
           const SizedBox(height: 8),
-          Text(label, textAlign: TextAlign.center, style: NyutjiTheme.body(const Color(0xFF131109)).copyWith(fontSize: 13, height: 1.1)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label, textAlign: TextAlign.center, style: NyutjiTheme.body(const Color(0xFF131109)).copyWith(fontSize: 13, height: 1.1)),
+          ),
         ],
       ),
     );

@@ -137,7 +137,13 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Implementasi**:
   1. **Warna**: Wajib menggunakan warna branding utama yang sesuai dengan tema peran layar (misal: `primaryTeal` untuk Mitra/Kurir, `plPrimary` untuk Customer, `accentGold` untuk Admin). Dilarang keras menggunakan warna abu-abu statis atau warna luar yang tidak relevan.
   2. **Bentuk & Efek**: Harus memiliki ketebalan `3.0` (height) dengan lebar `60.0` (width) terpusat pada tab aktif. Sudut bagian bawah wajib melengkung (`borderRadius` dengan `bottomLeft` & `bottomRight` ber-radius `3.0`). Dilengkapi dengan bayangan berpendar tipis (`BoxShadow` dengan blurRadius `4.0`, offset `Offset(0, 1)`, dan warna yang sesuai dengan brand ber-opasitas `0.5` / `withValues(alpha: 0.5)`).
-  3. **Transisi**: Perpindahan posisi garis indikator saat menu/tab ditekan atau digeser wajib menggunakan animasi perpindahan dinamis (`AnimatedPositioned`) dengan durasi transisi `300ms` sampai `400ms` dan kurva transisi `Curves.easeInOut` atau `Curves.easeOutQuint` untuk gerakan yang sangat halus.
+  3. **Transisi**: Perpindahan posisi garis indikator saat menu/tab ditekan atau digeser wajib menggunakan animasi perpindahan dinamis (`AnimatedPositioned`) with durasi transisi `300ms` sampai `400ms` dan kurva transisi `Curves.easeInOut` atau `Curves.easeOutQuint` untuk gerakan yang sangat halus.
+
+### 19. Desain Layout Anti-Pecah & Responsif Skala Teks (Responsive Text Scale & FittedBox)
+* **Aturan**: Setiap elemen UI dengan tata letak padat, ringkas, atau berkolom banyak (seperti kalender harian, tombol keyboard custom, panel indikator kecil, atau badge status mikro) wajib diproteksi agar tidak pecah/meluber akibat resolusi layar ponsel yang sempit maupun karena pengaturan ukuran font sistem yang besar.
+* **Implementasi**:
+  1. **Penguncian Skala Teks (TextScaler Lock)**: Bungkus kontainer atau area tata letak padat tersebut dengan widget `MediaQuery` kustom yang menyetel `textScaler: const TextScaler.linear(1.0)`. Ini memastikan proporsi layout tetap konsisten dan tidak rusak oleh pengaturan aksesibilitas font global pengguna.
+  2. **Pengecilan Teks Otomatis (BoxFit ScaleDown)**: Bungkus teks status atau teks dinamis di dalam badge/tombol berukuran mikro dengan widget `FittedBox` dengan properti `fit: BoxFit.scaleDown`. Ini memaksa teks menyusut secara otomatis dan tetap berada dalam satu baris (single line) daripada patah menjadi dua baris atau terpotong jika ruang horizontal terlalu sempit.
 
 ---
 
