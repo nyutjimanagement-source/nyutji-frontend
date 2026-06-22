@@ -443,7 +443,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 7,
-                      childAspectRatio: 0.95,
+                      childAspectRatio: 0.72,
                     ),
                     itemCount: offset + daysInMonth,
                     itemBuilder: (context, index) {
@@ -490,10 +490,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                                     color: isActive ? primaryTeal : darkText,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               if (hasSetting && opInfo["isOpen"] != null)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
                                     borderRadius: BorderRadius.circular(6),
@@ -511,7 +511,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                                   ),
                                 )
                               else
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 18),
                             ],
                           ),
                         ),
