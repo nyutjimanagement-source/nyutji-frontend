@@ -443,7 +443,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 7,
-                      childAspectRatio: 0.72,
+                      childAspectRatio: 0.95,
                     ),
                     itemCount: offset + daysInMonth,
                     itemBuilder: (context, index) {
@@ -453,9 +453,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
  
                       final int day = index - offset + 1;
                       final DateTime cellDate = DateTime(year, month, day);
-                      final bool isActive = cellDate.year == _activeDate.year &&
-                          cellDate.month == _activeDate.month &&
-                          cellDate.day == _activeDate.day;
+                      final isToday = cellDate.year == DateTime.now().year &&
+                          cellDate.month == DateTime.now().month &&
+                          cellDate.day == DateTime.now().day;
  
                       final dateKey = _getDateKey(cellDate);
                       final bool hasSetting = _operationalHours.containsKey(dateKey);
@@ -463,20 +463,15 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                       final bool isOpen = opInfo["isOpen"] ?? true;
  
                       return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _activeDate = cellDate;
-                          });
-                          _showJamKerjaDialog(cellDate, opInfo);
-                        },
+                        onTap: () => _showJamKerjaDialog(cellDate, opInfo),
                         child: Container(
                           margin: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            color: isActive ? primaryTeal.withValues(alpha: 0.08) : Colors.white,
+                            color: isToday ? primaryTeal.withValues(alpha: 0.08) : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isActive ? primaryTeal : const Color(0xFFF3F4F6),
-                              width: isActive ? 1.5 : 1,
+                              color: isToday ? primaryTeal : Colors.grey[100]!,
+                              width: isToday ? 1.5 : 1,
                             ),
                           ),
                           child: Column(
@@ -485,15 +480,15 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                               Text(
                                 day.toString(),
                                 style: GoogleFonts.montserrat(
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: isActive ? primaryTeal : darkText,
+                                    color: isToday ? primaryTeal : darkText,
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 4),
                               if (hasSetting && opInfo["isOpen"] != null)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
                                     borderRadius: BorderRadius.circular(6),
@@ -503,15 +498,15 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                                     child: Text(
                                       isOpen ? "Buka" : "Tutup",
                                       style: GoogleFonts.montserrat(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: isOpen ? const Color(0xFF15803D) : const Color(0xFFC3312E),
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.w700,
+                                        color: isOpen ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
                                       ),
                                     ),
                                   ),
                                 )
                               else
-                                const SizedBox(height: 18),
+                                const SizedBox(height: 12),
                             ],
                           ),
                         ),
