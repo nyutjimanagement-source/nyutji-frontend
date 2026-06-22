@@ -106,6 +106,16 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.watch(authProvider);
+    final hasAddress = (auth.user?['address'] != null && auth.user!['address'].toString().isNotEmpty) &&
+                       ((double.tryParse(auth.user?['lat']?.toString() ?? '0.0') ?? 0.0) != 0.0) &&
+                       ((double.tryParse(auth.user?['lng']?.toString() ?? '0.0') ?? 0.0) != 0.0);
+    final hasBank = (auth.user?['bank_name'] != null && auth.user!['bank_name'].toString().isNotEmpty) && 
+                    (auth.user?['bank_account'] != null && auth.user!['bank_account'].toString().isNotEmpty) && 
+                    (auth.user?['account_name'] != null && auth.user!['account_name'].toString().isNotEmpty);
+    final hasQris = auth.user?['qris_payload'] != null && auth.user!['qris_payload'].toString().isNotEmpty;
+    final showTokoRedDot = !hasAddress || !hasBank || !hasQris;
+
     final Map<String, dynamic> t = {
       'id': {'logout': 'Keluar Akun'},
     };
@@ -137,7 +147,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
               ],
             ),
           ),
-          SafeArea(top: false, child: _buildBottomNav(primaryTeal)),
+          SafeArea(top: false, child: _buildBottomNav(primaryTeal, showTokoRedDot)),
         ],
       ),
     );
@@ -754,7 +764,29 @@ final orderProv = ref.watch(orderProvider);
 
 
   // === BOTTOM NAV ===
-  Widget _buildBottomNav(Color activeColor) {
+  Widget _buildTokoTabIcon(bool isActive, bool showRedDot) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(LucideIcons.store, size: 20, color: isActive ? primaryTeal : textGrey.withValues(alpha: 0.6)),
+        if (showRedDot)
+          Positioned(
+            top: -2,
+            right: -2,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBottomNav(Color activeColor, bool showRedDot) {
     return Container(
       decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))]),
       child: LayoutBuilder(
@@ -763,11 +795,15 @@ final orderProv = ref.watch(orderProvider);
           return Stack(
             children: [
               BottomNavigationBar(
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(icon: Icon(LucideIcons.layoutDashboard, size: 20), activeIcon: Icon(LucideIcons.layoutDashboard, size: 20), label: "Beranda"),
-                  BottomNavigationBarItem(icon: Icon(LucideIcons.clipboardList, size: 20), activeIcon: Icon(LucideIcons.clipboardList, size: 20), label: "Pesanan"),
-                  BottomNavigationBarItem(icon: Icon(LucideIcons.wallet, size: 20), activeIcon: Icon(LucideIcons.wallet, size: 20), label: "Dompet"),
-                  BottomNavigationBarItem(icon: Icon(LucideIcons.store, size: 20), activeIcon: Icon(LucideIcons.store, size: 20), label: "Toko"),
+                items: <BottomNavigationBarItem>[
+                  const BottomNavigationBarItem(icon: Icon(LucideIcons.layoutDashboard, size: 20), activeIcon: Icon(LucideIcons.layoutDashboard, size: 20), label: "Beranda"),
+                  const BottomNavigationBarItem(icon: Icon(LucideIcons.clipboardList, size: 20), activeIcon: Icon(LucideIcons.clipboardList, size: 20), label: "Pesanan"),
+                  const BottomNavigationBarItem(icon: Icon(LucideIcons.wallet, size: 20), activeIcon: Icon(LucideIcons.wallet, size: 20), label: "Dompet"),
+                  BottomNavigationBarItem(
+                    icon: _buildTokoTabIcon(false, showRedDot), 
+                    activeIcon: _buildTokoTabIcon(true, showRedDot), 
+                    label: "Toko"
+                  ),
                 ],
                 currentIndex: _selectedIndex,
                 selectedItemColor: activeColor,

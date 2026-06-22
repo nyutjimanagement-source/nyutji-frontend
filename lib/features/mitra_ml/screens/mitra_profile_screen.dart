@@ -258,6 +258,10 @@ return GestureDetector(
   }
 
   Widget _buildExpandableAddressMenu(AuthProvider auth) {
+    final hasAddress = (auth.user?['address'] != null && auth.user!['address'].toString().isNotEmpty) &&
+                       ((double.tryParse(auth.user?['lat']?.toString() ?? '0.0') ?? 0.0) != 0.0) &&
+                       ((double.tryParse(auth.user?['lng']?.toString() ?? '0.0') ?? 0.0) != 0.0);
+
     return Column(
       children: [
         InkWell(
@@ -269,6 +273,17 @@ return GestureDetector(
                 const Icon(LucideIcons.mapPin, size: 20, color: darkText),
                 const SizedBox(width: 12),
                 Text("Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                if (!hasAddress) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
                 const Spacer(),
                 Icon(_isAddressExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
               ],
@@ -468,6 +483,17 @@ final auth = ref.watch(authProvider);
                 const Icon(LucideIcons.settings, size: 18, color: darkText),
                 const SizedBox(width: 12),
                 Text("Pengaturan Akun", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                if (!hasBank) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
                 const Spacer(),
                 Icon(_isAccountExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
               ],
@@ -609,6 +635,17 @@ final auth = ref.watch(authProvider);
                 const Icon(LucideIcons.qrCode, size: 18, color: darkText),
                 const SizedBox(width: 12),
                 Text("QRIS Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                if (!hasQris) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
                 const Spacer(),
                 Icon(_isQrisExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
               ],
