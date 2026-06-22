@@ -189,3 +189,15 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 ### 3. `ApiService().reset()` Hanya Dipanggil saat Logout
 * **Aturan**: Metode `ApiService().reset()` yang memutus dan membuat ulang seluruh koneksi HTTP **hanya boleh dipanggil di dalam fungsi `logout()`**. Dilarang memanggil `reset()` di fungsi `login()`, constructor, atau lifecycle widget manapun.
 * **Alasan**: Memanggil `reset()` sebelum setiap `login()` akan memutus paksa semua koneksi TCP aktif (`force: true`), sehingga server membalas dengan "Connection reset by peer" dan "closed before full header" pada request yang langsung menyusul setelahnya.
+
+### 4. Metode Type-Safe Cache & API Parsing (Penanganan TypeError Bersarang)
+* **Aturan**: Setiap kali membaca atau mengurai data JSON bersarang (seperti list dari map) yang dimuat dari `CacheService` atau respons `ApiService` (Dio), dilarang keras melakukan casting tipe langsung menggunakan `List<Map<String, dynamic>>.from(...)` atau `as List<Map<String, dynamic>>`.
+* **Alasan**: Pustaka parser JSON internal pada Dart/Dio/Hive menginstansiasi objek bersarang sebagai tipe `Map<dynamic, dynamic>` (atau `_InternalLinkedHashMap<dynamic, dynamic>`). Melakukan cast langsung ke `Map<String, dynamic>` akan memicu crash `TypeError` saat runtime.
+* **Implementasi**:
+  1. Gunakan pemetaan eksplisit untuk mengubah setiap objek di dalam list secara aman menggunakan `Map<String, dynamic>.from(item as Map)`:
+     ```dart
+     // Contoh konversi list of maps yang aman:
+     final List<dynamic> rawList = response.data['data'] ?? [];
+     final List<Map<String, dynamic>> typedList = rawList.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+     ```
+  2. Bungkus proses parsing cache dan API di dalam blok `try-catch` untuk menghindari crash silent yang dapat memblokir pembaruan state antarmuka.
