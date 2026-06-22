@@ -215,3 +215,13 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
      final List<Map<String, dynamic>> typedList = rawList.map((item) => Map<String, dynamic>.from(item as Map)).toList();
      ```
   2. Bungkus proses parsing cache dan API di dalam blok `try-catch` untuk menghindari crash silent yang dapat memblokir pembaruan state antarmuka.
+
+---
+
+## V. Standar Version Control (Git)
+
+### 1. Penulisan Pesan Commit Wajib Bahasa Indonesia
+* **Aturan**: Setiap kali melakukan komit kode (*git commit*), pesan komit wajib ditulis dalam **Bahasa Indonesia** yang ringkas, jelas, dan menggambarkan perubahan yang dilakukan secara presisi.
+* **Format**: Gunakan tipe prefiks standar (seperti `feat:`, `fix:`, `style:`, `refactor:`, `docs:`) diikuti dengan penjelasan dalam bahasa Indonesia.
+  * *Contoh*: `feat: tambah bubble merah draft pesanan pada keranjang di home screen PL`
+  * *Contoh*: `fix: perbaikan type-safety parsing data cache`
