@@ -30,6 +30,8 @@ import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'customer_payment_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -58,6 +60,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(walletProvider).fetchWallet();
       ref.read(orderProvider).fetchOrders();
+      ref.read(orderProvider).fetchDraftOrders();
       _fetchMitrasByLocation();
       // _startPromoMarquee(); // Disabled marquee
     });
@@ -184,6 +187,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           await Future.wait([
             ref.read(walletProvider).fetchWallet(force: true),
             ref.read(orderProvider).fetchOrders(force: true),
+            ref.read(orderProvider).fetchDraftOrders(),
             _fetchMitrasByLocation(),
           ]);
         },
@@ -507,6 +511,8 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
   }
 
   Widget _buildDenseServicesGrid(Map<String, dynamic> currentT) {
+    final draftsCount = ref.watch(orderProvider).draftOrders.length;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -555,13 +561,8 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerStatusScreen()));
                   }
                 }),
-                _buildServiceItem("Pengaturan", "icon_pengaturan.png", onTap: () {
-                  final mainState = context.findAncestorStateOfType<CustomerMainScreenState>();
-                  if (mainState != null) {
-                    mainState.switchToTab(3);
-                  } else {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerProfileScreen()));
-                  }
+                _buildServiceItem("Keranjang", "icon_keranjang.png", badgeCount: draftsCount, onTap: () {
+                  _showKeranjangDraftBottomSheet();
                 }),
                 _buildServiceItem("Bantuan", "icon_bantuan.png", onTap: () => _showBantuanBottomSheet()),
               ],
@@ -696,7 +697,280 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
     );
   }
 
-  Widget _buildServiceItem(String label, String iconPath, {bool hasPromo = false, VoidCallback? onTap}) {
+  void _showKeranjangDraftBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final orderProv = ref.watch(orderProvider);
+            final drafts = orderProv.draftOrders;
+            final bottomPadding = MediaQuery.of(context).padding.bottom;
+            final Color primaryTeal = const Color(0xFF403600);
+            const Color accentGold = Color(0xFFF59E0B);
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.5,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+              ),
+              padding: EdgeInsets.only(bottom: bottomPadding > 0 ? bottomPadding : 0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Container(
+                      width: 40, height: 5,
+                      decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Icon(LucideIcons.shoppingBag, color: primaryTeal),
+                        const SizedBox(width: 12),
+                        Text(
+                          "Draft Pesanan", 
+                          style: GoogleFonts.montserrat(
+                            fontSize: 18, 
+                            fontWeight: FontWeight.w900, 
+                            color: const Color(0xFF131109),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: drafts.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Belum ada order Nyutji.", 
+                                style: GoogleFonts.montserrat(color: Colors.grey, fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  Navigator.push(
+                                    context, 
+                                    MaterialPageRoute(builder: (_) => const CustomerOrderScreen()),
+                                  );
+                                },
+                                child: Text(
+                                  "Pesan Sekarang",
+                                  style: GoogleFonts.montserrat(
+                                    color: primaryTeal, 
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: drafts.length,
+                          itemBuilder: (context, index) {
+                            final draft = drafts[index];
+                            final mitraName = draft['mitra']?['name'] ?? 'Mitra';
+                            final date = draft['createdAt'] != null 
+                                ? DateTime.parse(draft['createdAt']).toLocal().toString().split(' ')[0] 
+                                : '';
+                            final orderIdStr = (draft['orderNumber'] ?? draft['order_number'] ?? draft['id'] ?? index).toString();
+
+                            return Dismissible(
+                              key: Key(orderIdStr),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
+                                margin: const EdgeInsets.only(bottom: 12),
+                                decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(16)),
+                                child: const Icon(LucideIcons.trash2, color: Colors.red),
+                              ),
+                              onDismissed: (direction) {
+                                orderProv.deleteDraft(orderIdStr);
+                              },
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pop(ctx);
+                                  _resumeDraft(draft);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.grey[200]!),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.02), 
+                                        blurRadius: 10,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 40, height: 40,
+                                        decoration: BoxDecoration(
+                                          color: accentGold.withValues(alpha: 0.1), 
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(LucideIcons.fileText, color: accentGold, size: 20),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              mitraName, 
+                                              style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              "Draft: $date", 
+                                              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(LucideIcons.chevronRight, color: Colors.grey, size: 18),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _resumeDraft(Map<String, dynamic> draft) {
+    // 1. Ekstrak data
+    final draftItems = draft['items'] as List?;
+    if (draftItems == null || draftItems.isEmpty) return;
+    
+    final mitra = draft['mitra'];
+    if (mitra == null) return;
+
+    final String mitraIdStr = (draft['mitraId'] ?? draft['mitra_id']).toString();
+    final String districtName = mitra['district_name'] ?? mitra['owner_district_name'] ?? '';
+    final String cityName = mitra['city_name'] ?? mitra['owner_city_name'] ?? '';
+    final String districtCode = draft['district_code'] ?? 'NYJ';
+
+    // 2. Ambil harga terbaru mitra dari recommendedMitras (jika ada)
+    final recommendedMitras = ref.read(orderProvider).recommendedMitras;
+    final currentMitra = recommendedMitras.firstWhere(
+      (m) => m is Map && m['id'].toString() == mitraIdStr,
+      orElse: () => mitra,
+    );
+
+    List<Map<String, dynamic>> updatedItems = [];
+    double newTotalPrice = 0.0;
+    int newTotalItems = 0;
+
+    final List? liveItems = currentMitra['items'] as List?;
+    
+    for (var dItem in draftItems) {
+      if (dItem is! Map) continue;
+      // Cari item di live data untuk harga terbaru
+      final liveItem = liveItems?.firstWhere(
+        (i) => i is Map && i['name'] == dItem['itemName'],
+        orElse: () => null
+      );
+      
+      bool isFast = draft['serviceType'] == 'SAME_DAY';
+      double pricePerUnit = double.tryParse(dItem['pricePerUnit']?.toString() ?? '0') ?? 0.0;
+      
+      // Update dengan harga baru jika ada
+      if (liveItem != null) {
+        double pReg = double.tryParse(liveItem['price_regular']?.toString() ?? liveItem['price']?.toString() ?? '0') ?? 0.0;
+        double? pFastRaw = double.tryParse(liveItem['price_fast']?.toString() ?? '');
+        double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
+        pricePerUnit = isFast ? pFast : pReg;
+      }
+      
+      final qty = int.tryParse(dItem['qty']?.toString() ?? '1') ?? 1;
+      updatedItems.add({
+        'name': dItem['itemName'],
+        'count': qty,
+        'unit': dItem['unit'],
+        'price': pricePerUnit,
+        'category': dItem['category'],
+      });
+      
+      newTotalPrice += (pricePerUnit * qty);
+      newTotalItems += qty;
+    }
+
+    final double lat = double.tryParse(draft['pickupLat']?.toString() ?? '0') ?? 0.0;
+    final double lng = double.tryParse(draft['pickupLng']?.toString() ?? '0') ?? 0.0;
+    
+    double mitraLat = 0.0;
+    if (mitra['lat'] != null) {
+      mitraLat = double.tryParse(mitra['lat'].toString()) ?? 0.0;
+    }
+    double mitraLng = 0.0;
+    if (mitra['lng'] != null) {
+      mitraLng = double.tryParse(mitra['lng'].toString()) ?? 0.0;
+    }
+    
+    final isPickup = draft['deliveryType'] == 'PICKUP';
+
+    final String orderIdStr = (draft['orderNumber'] ?? draft['order_number'] ?? draft['id'] ?? '').toString();
+
+    double distanceVal = 0.0;
+    if (draft['distance'] != null) {
+      distanceVal = double.tryParse(draft['distance'].toString()) ?? 0.0;
+    }
+
+    Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
+      totalPrice: newTotalPrice.toInt(),
+      totalItems: newTotalItems,
+      address: draft['address'] ?? '',
+      isPickup: isPickup,
+      mitraId: mitraIdStr,
+      mitraName: mitra['name'] ?? 'Mitra',
+      orderType: isPickup ? 'pickup' : 'drop',
+      speed: draft['serviceType'] == 'SAME_DAY' ? 'fast' : 'regular',
+      distance: distanceVal,
+      dropMethod: isPickup ? '' : (draft['deliveryType'] == 'SELFDROP_SELFDELIVERY' ? 'self' : 'courier'),
+      selectedItemsList: updatedItems,
+      districtName: districtName,
+      districtCode: districtCode,
+      cityName: cityName,
+      lat: lat,
+      lng: lng,
+      mitraLat: mitraLat,
+      mitraLng: mitraLng,
+      pickupNote: draft['pickupNote'] ?? '',
+      mitraAddress: mitra['address'] ?? '',
+      mitraDistrict: districtName,
+      draftOrderNumber: orderIdStr,
+    )));
+  }
+
+  Widget _buildServiceItem(String label, String iconPath, {bool hasPromo = false, int badgeCount = 0, VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -713,6 +987,22 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: BoxDecoration(color: const Color(0xFFC3312E), borderRadius: BorderRadius.circular(10)),
                     child: const Text("PROMO", textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              if (badgeCount > 0)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Color(0xFFC3312E), shape: BoxShape.circle),
+                    constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                    child: Center(
+                      child: Text(
+                        badgeCount.toString(),
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ),
                 ),
             ],
