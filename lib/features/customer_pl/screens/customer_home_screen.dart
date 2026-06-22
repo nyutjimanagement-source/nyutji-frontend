@@ -730,7 +730,7 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
                     padding: const EdgeInsets.all(20),
                     child: Row(
                       children: [
-                        Icon(LucideIcons.shoppingBag, color: primaryTeal),
+                        const Icon(LucideIcons.shoppingBag, color: primaryTeal),
                         const SizedBox(width: 12),
                         Text(
                           "Draft Pesanan", 
