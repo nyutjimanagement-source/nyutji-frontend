@@ -66,28 +66,38 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
   // --- LOCAL CACHE OPERATIONS ---
   void _loadAllKinerjaData() {
-    // 1. Load Operational Hours
-    final hoursCache = CacheService.get('mitra_operasional_hours');
-    if (hoursCache != null && hoursCache is Map) {
-      _operationalHours = Map<String, Map<String, dynamic>>.from(
-        hoursCache.map((key, value) => MapEntry(key.toString(), Map<String, dynamic>.from(value))),
-      );
-    }
+    try {
+      // 1. Load Operational Hours
+      final hoursCache = CacheService.get('mitra_operasional_hours');
+      if (hoursCache != null && hoursCache is Map) {
+        _operationalHours = hoursCache.map(
+          (key, value) => MapEntry(key.toString(), Map<String, dynamic>.from(value as Map)),
+        );
+      }
 
-    // 2. Load Consumables
-    final chemCache = CacheService.get('mitra_chemical_consumption');
-    if (chemCache != null && chemCache is Map) {
-      _chemicalConsumption = Map<String, List<Map<String, dynamic>>>.from(
-        chemCache.map((key, value) => MapEntry(key.toString(), List<Map<String, dynamic>>.from(value))),
-      );
-    }
+      // 2. Load Consumables
+      final chemCache = CacheService.get('mitra_chemical_consumption');
+      if (chemCache != null && chemCache is Map) {
+        _chemicalConsumption = chemCache.map(
+          (key, value) => MapEntry(
+            key.toString(),
+            (value as List).map((item) => Map<String, dynamic>.from(item as Map)).toList(),
+          ),
+        );
+      }
 
-    // 3. Load Employee Attendance
-    final empCache = CacheService.get('mitra_employee_attendance');
-    if (empCache != null && empCache is Map) {
-      _employeeAttendance = Map<String, List<Map<String, dynamic>>>.from(
-        empCache.map((key, value) => MapEntry(key.toString(), List<Map<String, dynamic>>.from(value))),
-      );
+      // 3. Load Employee Attendance
+      final empCache = CacheService.get('mitra_employee_attendance');
+      if (empCache != null && empCache is Map) {
+        _employeeAttendance = empCache.map(
+          (key, value) => MapEntry(
+            key.toString(),
+            (value as List).map((item) => Map<String, dynamic>.from(item as Map)).toList(),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error loading kinerja cache: $e");
     }
 
     setState(() {});
@@ -113,11 +123,11 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           };
           if (item['chemical_consumption'] != null || item['chemicalConsumption'] != null) {
             final List<dynamic> chem = item['chemical_consumption'] ?? item['chemicalConsumption'];
-            _chemicalConsumption[dateKey] = List<Map<String, dynamic>>.from(chem);
+            _chemicalConsumption[dateKey] = chem.map((c) => Map<String, dynamic>.from(c as Map)).toList();
           }
           if (item['employee_attendance'] != null || item['employeeAttendance'] != null) {
             final List<dynamic> emp = item['employee_attendance'] ?? item['employeeAttendance'];
-            _employeeAttendance[dateKey] = List<Map<String, dynamic>>.from(emp);
+            _employeeAttendance[dateKey] = emp.map((e) => Map<String, dynamic>.from(e as Map)).toList();
           }
         }
         
