@@ -164,6 +164,20 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
   3. Hubungkan ke Sequelize dan panggil sinkronisasi model spesifik menggunakan `await Model.sync({ alter: true })`.
   4. Jalankan script ini secara manual melalui terminal cPanel dengan perintah: `node sync_nama_tabel.js`.
 
+### 3. Penanganan Rentang Tanggal Bulan Dinamis (Pencegahan SQL Incorrect DATE Value)
+* **Aturan**: Saat melakukan penarikan data (query database) berdasarkan rentang bulan (misalnya mengambil data dari tanggal 1 sampai akhir bulan), dilarang keras melakukan hardcoding tanggal akhir dengan `-31` (seperti `yyyy-MM-31`).
+* **Alasan**: Bulan-bulan tertentu (seperti Februari, April, Juni, September, November) tidak memiliki 31 hari. Query basis data MySQL/MariaDB dengan nilai tanggal tidak valid seperti `2026-06-31` akan memicu error `Incorrect DATE value` (Internal Server Error 500) pada mode SQL ketat.
+* **Implementasi (Backend Node.js/Sequelize)**:
+  Selalu hitung hari terakhir dari bulan secara dinamis sebelum melakukan query:
+  ```javascript
+  const parts = month.split('-'); // Format 'yyyy-MM'
+  const year = parseInt(parts[0], 10);
+  const monthNum = parseInt(parts[1], 10);
+  const lastDay = new Date(year, monthNum, 0).getDate(); // Menghasilkan jumlah hari asli (28, 29, 30, atau 31)
+  const startDate = `${month}-01`;
+  const endDate = `${month}-${String(lastDay).padStart(2, '0')}`;
+  ```
+
 ---
 
 ## IV. Standar Koneksi API & Error Handling
