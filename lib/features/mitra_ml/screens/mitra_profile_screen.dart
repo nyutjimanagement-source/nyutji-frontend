@@ -204,23 +204,29 @@ final auth = ref.watch(authProvider);
               children: [
                 _buildExpandableAddressMenu(auth),
                 const Divider(height: 1),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const MitraKeamananPinScreen(),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          const begin = Offset(1.0, 0.0);
-                          const end = Offset.zero;
-                          const curve = Curves.easeOutCubic;
-                          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                          return SlideTransition(position: animation.drive(tween), child: child);
-                        },
-                      ),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final wallet = ref.watch(walletProvider);
+                    final hasPin = wallet.hasPin;
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => const MitraKeamananPinScreen(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeOutCubic;
+                              final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              return SlideTransition(position: animation.drive(tween), child: child);
+                            },
+                          ),
+                        );
+                      },
+                      child: _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false, showRedDot: !hasPin),
                     );
-                  },
-                  child: _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false),
+                  }
                 ),
                 const Divider(height: 1),
                 _buildExpandableCourierMenu(),
@@ -413,6 +419,17 @@ final auth = ref.watch(authProvider);
                     const Icon(LucideIcons.users, size: 18, color: darkText),
                     const SizedBox(width: 12),
                     Text("Kelola Kurir Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                    if (activeCouriers.isEmpty) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
                     if (pendingUsers.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Container(
@@ -432,6 +449,7 @@ final auth = ref.watch(authProvider);
               curve: Curves.easeInOut,
               child: _isCourierMenuExpanded
                   ? Container(
+                      width: double.infinity,
                       color: Colors.grey[50],
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Column(
@@ -443,7 +461,14 @@ final auth = ref.watch(authProvider);
                             ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)),
                             const SizedBox(height: 12),
                           ],
-                          Text("Daftar Anggota Aktif (${activeCouriers.length})", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Daftar Anggota Aktif (${activeCouriers.length})",
+                              textAlign: TextAlign.left,
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           if (activeCouriers.isEmpty)
                             Padding(
@@ -1161,7 +1186,7 @@ final auth = ref.watch(authProvider);
     }
   }
 
-  Widget _buildMenuItem(IconData icon, String title, bool isLogout) {
+  Widget _buildMenuItem(IconData icon, String title, bool isLogout, {bool showRedDot = false}) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -1169,6 +1194,17 @@ final auth = ref.watch(authProvider);
           Icon(icon, size: 18, color: isLogout ? Colors.red : darkText),
           const SizedBox(width: 12),
           Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isLogout ? Colors.red : darkText)),
+          if (showRedDot) ...[
+            const SizedBox(width: 6),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
           const Spacer(),
           Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey[400]),
         ],

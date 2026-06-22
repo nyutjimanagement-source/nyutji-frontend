@@ -17,6 +17,9 @@ class WalletProvider extends ChangeNotifier {
   List<dynamic> _withdrawalsList = [];
   List<dynamic> get withdrawalsList => _withdrawalsList;
 
+  bool _hasPin = true;
+  bool get hasPin => _hasPin;
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -53,6 +56,7 @@ class WalletProvider extends ChangeNotifier {
       _balance = double.parse(cachedData['balance']?.toString() ?? '0');
       _mutasiList = cachedData['logs'] ?? [];
       _withdrawalsList = cachedData['withdrawals'] ?? [];
+      _hasPin = cachedData['hasPin'] ?? true;
       _isLoading = false;
       _safeNotifyListeners();
     } else {
@@ -73,6 +77,7 @@ class WalletProvider extends ChangeNotifier {
       _balance = double.parse(data['balance']?.toString() ?? '0');
       _mutasiList = data['logs'] ?? [];
       _withdrawalsList = data['withdrawals'] ?? [];
+      _hasPin = data['hasPin'] ?? true;
     } catch (e) {
       debugPrint('[fetchWallet] ERROR: $e');
       _errorMessage = 'Gagal memuat saldo dompet: $e';
@@ -149,6 +154,13 @@ class WalletProvider extends ChangeNotifier {
     _safeNotifyListeners();
     try {
       await _api.updateWalletPin(pin);
+      _hasPin = true;
+      final cachedData = CacheService.get('nyutji_wallet');
+      if (cachedData != null && cachedData is Map) {
+        final mutableMap = Map<String, dynamic>.from(cachedData);
+        mutableMap['hasPin'] = true;
+        await CacheService.set('nyutji_wallet', mutableMap);
+      }
       return true;
     } catch (e) {
       _errorMessage = "Gagal memperbarui PIN";

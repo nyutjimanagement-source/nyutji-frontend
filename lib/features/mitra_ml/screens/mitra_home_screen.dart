@@ -107,6 +107,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final wallet = ref.watch(walletProvider);
     final hasAddress = (auth.user?['address'] != null && auth.user!['address'].toString().isNotEmpty) &&
                        ((double.tryParse(auth.user?['lat']?.toString() ?? '0.0') ?? 0.0) != 0.0) &&
                        ((double.tryParse(auth.user?['lng']?.toString() ?? '0.0') ?? 0.0) != 0.0);
@@ -114,7 +115,9 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
                     (auth.user?['bank_account'] != null && auth.user!['bank_account'].toString().isNotEmpty) && 
                     (auth.user?['account_name'] != null && auth.user!['account_name'].toString().isNotEmpty);
     final hasQris = auth.user?['qris_payload'] != null && auth.user!['qris_payload'].toString().isNotEmpty;
-    final showTokoRedDot = !hasAddress || !hasBank || !hasQris;
+    final hasPin = wallet.hasPin;
+    final hasCouriers = auth.couriers.isNotEmpty;
+    final showTokoRedDot = !hasAddress || !hasBank || !hasQris || !hasPin || !hasCouriers;
 
     final Map<String, dynamic> t = {
       'id': {'logout': 'Keluar Akun'},
