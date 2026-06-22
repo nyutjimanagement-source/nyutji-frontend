@@ -578,11 +578,11 @@ final auth = ref.watch(authProvider);
                         // INFORMASI BANK
                         Text("Informasi Bank", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
                         const SizedBox(height: 12),
-                        _buildInputField("Nama Bank", _bankNameController, hint: "contoh: BCA / BNI / MANDIRI"),
+                        _buildInputField("Nama Bank", _bankNameController, hint: "contoh: BCA / BNI / MANDIRI", isWarning: true),
                         const SizedBox(height: 12),
-                        _buildInputField("Nomor Rekening", _bankAccountController, hint: "contoh: 1234567890", isNumber: true),
+                        _buildInputField("Nomor Rekening", _bankAccountController, hint: "contoh: 1234567890", isNumber: true, isWarning: true),
                         const SizedBox(height: 12),
-                        _buildInputField("Nama Pemilik (Sesuai Rekening)", _accountNameController, hint: "contoh: Budi Santoso"),
+                        _buildInputField("Nama Pemilik (Sesuai Rekening)", _accountNameController, hint: "contoh: Budi Santoso", isWarning: true),
                         const SizedBox(height: 24),
                       ],
 
@@ -887,7 +887,7 @@ final auth = ref.watch(authProvider);
     );
   }
 
-  Widget _buildInputField(String label, TextEditingController controller, {String hint = "", bool isNumber = false}) {
+  Widget _buildInputField(String label, TextEditingController controller, {String hint = "", bool isNumber = false, bool isWarning = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -901,11 +901,20 @@ final auth = ref.watch(authProvider);
             hintText: hint,
             hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: isWarning ? Colors.red.withValues(alpha: 0.05) : Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryTeal)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: isWarning ? Colors.red.withValues(alpha: 0.3) : Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: isWarning ? Colors.red.withValues(alpha: 0.2) : Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: isWarning ? Colors.red : primaryTeal),
+            ),
           ),
         ),
       ],
