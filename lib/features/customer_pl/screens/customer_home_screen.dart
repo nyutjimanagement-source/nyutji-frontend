@@ -23,7 +23,6 @@ import 'customer_pakaian_bayi.dart';
 import 'customer_dryclean.dart';
 import '../../../core/utils/status_helper.dart';
 import 'customer_wallet_screen.dart';
-import 'customer_profile_screen.dart';
 import 'customer_main_screen.dart';
 import 'customer_scheduler_screen.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
@@ -708,7 +707,7 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
             final orderProv = ref.watch(orderProvider);
             final drafts = orderProv.draftOrders;
             final bottomPadding = MediaQuery.of(context).padding.bottom;
-            final Color primaryTeal = const Color(0xFF403600);
+            const Color primaryTeal = Color(0xFF403600);
             const Color accentGold = Color(0xFFF59E0B);
 
             return Container(
