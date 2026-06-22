@@ -789,10 +789,10 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
 
                             return Dismissible(
                               key: Key(orderIdStr),
-                              direction: DismissDirection.startToEnd,
+                              direction: DismissDirection.endToStart,
                               background: Container(
-                                alignment: Alignment.centerLeft,
-                                padding: const EdgeInsets.only(left: 20),
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
                                 margin: const EdgeInsets.only(bottom: 12),
                                 decoration: BoxDecoration(
                                   color: Colors.red[50], 
@@ -800,10 +800,8 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
                                   border: Border.all(color: Colors.red[100]!),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    const Icon(LucideIcons.trash2, color: Colors.red, size: 20),
-                                    const SizedBox(width: 8),
                                     Text(
                                       "Hapus cucian ?",
                                       style: GoogleFonts.montserrat(
@@ -812,6 +810,8 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
                                         fontSize: 13,
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
+                                    const Icon(LucideIcons.trash2, color: Colors.red, size: 20),
                                   ],
                                 ),
                               ),
