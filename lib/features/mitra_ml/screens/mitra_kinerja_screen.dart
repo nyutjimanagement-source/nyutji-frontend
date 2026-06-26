@@ -842,7 +842,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
     final String note = opInfo["note"] ?? "";
     final formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_activeDate);
     final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    final bool isAfterToday = _activeDate.isAfter(today);
+    final bool isTodaySelected = _activeDate.year == today.year &&
+        _activeDate.month == today.month &&
+        _activeDate.day == today.day;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -942,7 +944,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
               fontStyle: note.isNotEmpty ? FontStyle.normal : FontStyle.italic,
             ),
           ),
-          if (!isAfterToday) ...[
+          if (isTodaySelected) ...[
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () => _showJamKerjaDialog(_activeDate, opInfo),
@@ -1128,7 +1130,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   // === 2. TAB KONSUMSI OPERASIONAL ===
   Widget _buildKonsumsiTab() {
     final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    final bool isReadOnlyDate = _activeDate.isAfter(today);
+    final bool isTodaySelected = _activeDate.year == today.year &&
+        _activeDate.month == today.month &&
+        _activeDate.day == today.day;
+    final bool isReadOnlyDate = !isTodaySelected;
 
     final rawChemicals = _getChemicalsForDate(_activeDate);
     final List<Map<String, dynamic>> chemicals = List<Map<String, dynamic>>.from(rawChemicals);
@@ -1336,7 +1341,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   // === 3. TAB KEHADIRAN PEGAWAI ===
   Widget _buildKehadiranTab() {
     final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    final bool isReadOnlyDate = _activeDate.isAfter(today);
+    final bool isTodaySelected = _activeDate.year == today.year &&
+        _activeDate.month == today.month &&
+        _activeDate.day == today.day;
+    final bool isReadOnlyDate = !isTodaySelected;
 
     final allEmployees = _getEmployeesForDate(_activeDate);
     final List<Map<String, dynamic>> employees = allEmployees.where((emp) {
