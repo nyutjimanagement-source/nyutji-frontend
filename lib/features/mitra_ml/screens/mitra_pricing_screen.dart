@@ -318,7 +318,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
 
   Widget _buildCategorySelector() {
     return Container(
-      color: Colors.white,
+      color: Colors.transparent,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
