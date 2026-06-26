@@ -49,7 +49,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (mounted) {
         setState(() {});
@@ -277,7 +277,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           preferredSize: const Size.fromHeight(50),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final double tabWidth = constraints.maxWidth / 3;
+              final double tabWidth = constraints.maxWidth / 4;
               final int selectedIndex = _tabController.index;
               
               return Container(
@@ -287,9 +287,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                   children: [
                     Row(
                       children: [
-                        _buildTabItem(0, "Jam Kerja", tabWidth),
-                        _buildTabItem(1, "Konsumsi", tabWidth),
-                        _buildTabItem(2, "Kehadiran", tabWidth),
+                        _buildTabItem(0, "Rekap", tabWidth),
+                        _buildTabItem(1, "Jam Kerja", tabWidth),
+                        _buildTabItem(2, "Konsumsi", tabWidth),
+                        _buildTabItem(3, "Kehadiran", tabWidth),
                       ],
                     ),
                     AnimatedPositioned(
@@ -327,9 +328,241 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
         controller: _tabController,
         physics: const BouncingScrollPhysics(),
         children: [
+          _buildRekapitulasiTab(),
           _buildJamKerjaTab(),
           _buildKonsumsiTab(),
           _buildKehadiranTab(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRekapitulasiTab() {
+    final int year = _selectedMonth.year;
+    final int month = _selectedMonth.month;
+    final int totalDays = DateUtils.getDaysInMonth(year, month);
+    
+    int daysOpen = 0;
+    int daysClosed = 0;
+    double totalHoursOpen = 0;
+    double totalHoursClosed = 0;
+    
+    Map<String, double> chemTotals = {};
+    Map<String, String> chemUnits = {};
+    
+    final Set<String> uniqueEmployees = {};
+    int totalEmployeeDays = 0;
+    int employeePresent = 0;
+
+    for (int day = 1; day <= totalDays; day++) {
+      final date = DateTime(year, month, day);
+      final dateKey = _getDateKey(date);
+      
+      // Jam Kerja
+      final hours = _getOperationalInfoForDate(date);
+      if (hours["isOpen"] == false) {
+        daysClosed++;
+        totalHoursClosed += 24.0;
+      } else {
+        daysOpen++;
+        final String openTime = hours["openTime"] ?? "08:00";
+        final String closeTime = hours["closeTime"] ?? "20:00";
+        try {
+          final openParts = openTime.split(':');
+          final closeParts = closeTime.split(':');
+          final openMin = int.parse(openParts[0]) * 60 + int.parse(openParts[1]);
+          final closeMin = int.parse(closeParts[0]) * 60 + int.parse(closeParts[1]);
+          final diffMin = closeMin - openMin;
+          final double diffHrs = diffMin / 60.0;
+          totalHoursOpen += diffHrs;
+          totalHoursClosed += (24.0 - diffHrs);
+        } catch (e) {
+          totalHoursOpen += 12.0;
+          totalHoursClosed += 12.0;
+        }
+      }
+      
+      // Konsumsi
+      if (_chemicalConsumption.containsKey(dateKey)) {
+        for (final c in _chemicalConsumption[dateKey]!) {
+          final name = c["name"] ?? "";
+          final double used = double.tryParse(c["used"].toString()) ?? 0.0;
+          final unit = c["unit"] ?? "Liter";
+          if (name.isNotEmpty) {
+            chemTotals[name] = (chemTotals[name] ?? 0.0) + used;
+            chemUnits[name] = unit;
+          }
+        }
+      }
+      
+      // Pegawai
+      if (_employeeAttendance.containsKey(dateKey)) {
+        for (final e in _employeeAttendance[dateKey]!) {
+          final name = e["name"] ?? "";
+          final status = e["status"] ?? "Masuk";
+          if (name.isNotEmpty) {
+            uniqueEmployees.add(name);
+            totalEmployeeDays++;
+            if (status == "Masuk") {
+              employeePresent++;
+            }
+          }
+        }
+      }
+    }
+    
+    if (uniqueEmployees.isEmpty) {
+      for (final emp in _defaultEmployees) {
+        uniqueEmployees.add(emp["name"]);
+      }
+    }
+    
+    double attendanceRate = totalEmployeeDays > 0 ? (employeePresent / totalEmployeeDays) * 100 : 100.0;
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Month Selector Card
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey[200]!),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(LucideIcons.chevronLeft, color: primaryTeal),
+                  onPressed: () {
+                    setState(() {
+                      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+                    });
+                    _triggerFetchFromServer();
+                  },
+                ),
+                Text(
+                  DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth),
+                  style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: darkText),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.chevronRight, color: primaryTeal),
+                  onPressed: () {
+                    setState(() {
+                      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+                    });
+                    _triggerFetchFromServer();
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          
+          // Card Jam Operasional
+          _buildRekapCard(
+            title: "Operasional Toko",
+            icon: LucideIcons.calendar,
+            children: [
+              _buildRekapRow("Total Hari Buka", "$daysOpen Hari"),
+              _buildRekapRow("Total Hari Tutup", "$daysClosed Hari"),
+              _buildRekapRow("Total Jumlah Jam Buka", "${totalHoursOpen.toStringAsFixed(0)} Jam"),
+              _buildRekapRow("Total Jumlah Jam Tutup", "${totalHoursClosed.toStringAsFixed(0)} Jam"),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Card Pegawai
+          _buildRekapCard(
+            title: "Kehadiran & Staffing",
+            icon: LucideIcons.users,
+            children: [
+              _buildRekapRow("Total Pegawai Aktif", "${uniqueEmployees.length} Orang"),
+              _buildRekapRow("Rata-rata Kehadiran", "${attendanceRate.toStringAsFixed(1)}%"),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Card Konsumsi
+          _buildRekapCard(
+            title: "Total Konsumsi Posisi Akhir",
+            icon: LucideIcons.droplet,
+            children: chemTotals.isEmpty
+                ? [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        "Belum ada catatan konsumsi bahan bulan ini.",
+                        style: GoogleFonts.montserrat(fontSize: 11, color: textGrey, fontStyle: FontStyle.italic),
+                      ),
+                    )
+                  ]
+                : chemTotals.entries.map((entry) {
+                    final unit = chemUnits[entry.key] ?? "Liter";
+                    final isInteger = unit == "Tabung" || unit == "kWh" || unit == "m³" || unit == "Pcs" || unit == "Roll" || unit == "Pack";
+                    final formattedVal = isInteger ? entry.value.toStringAsFixed(0) : entry.value.toStringAsFixed(1);
+                    return _buildRekapRow(entry.key, "$formattedVal $unit");
+                  }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRekapCard({required String title, required IconData icon, required List<Widget> children}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: primaryTeal, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
+              ),
+            ],
+          ),
+          const Divider(height: 24),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRekapRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.montserrat(fontSize: 12, color: textGrey, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText),
+          ),
         ],
       ),
     );
@@ -443,7 +676,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 7,
-                      childAspectRatio: 0.95,
+                      childAspectRatio: 0.82,
                     ),
                     itemCount: offset + daysInMonth,
                     itemBuilder: (context, index) {
@@ -608,6 +841,8 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
     final String closeTime = opInfo["closeTime"] ?? "20:00";
     final String note = opInfo["note"] ?? "";
     final formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_activeDate);
+    final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final bool isAfterToday = _activeDate.isAfter(today);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -707,21 +942,23 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
               fontStyle: note.isNotEmpty ? FontStyle.normal : FontStyle.italic,
             ),
           ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () => _showJamKerjaDialog(_activeDate, opInfo),
-            icon: const Icon(LucideIcons.edit2, size: 14, color: Colors.white),
-            label: Text(
-              "Atur Jam Kerja",
-              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+          if (!isAfterToday) ...[
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => _showJamKerjaDialog(_activeDate, opInfo),
+              icon: const Icon(LucideIcons.edit2, size: 14, color: Colors.white),
+              label: Text(
+                "Atur Jam Kerja",
+                style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryTeal,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryTeal,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -890,6 +1127,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
   // === 2. TAB KONSUMSI OPERASIONAL ===
   Widget _buildKonsumsiTab() {
+    final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final bool isReadOnlyDate = _activeDate.isAfter(today);
+
     final rawChemicals = _getChemicalsForDate(_activeDate);
     final List<Map<String, dynamic>> chemicals = List<Map<String, dynamic>>.from(rawChemicals);
     
@@ -943,13 +1183,15 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
               // Action Buttons Row
               Row(
                 children: [
-                  TextButton.icon(
-                    onPressed: () => _showAddChemicalDialog(),
-                    icon: const Icon(LucideIcons.plus, size: 14, color: primaryTeal),
-                    label: Text("Tambah Item", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                  ),
-                  const SizedBox(width: 16),
+                  if (!isReadOnlyDate) ...[
+                    TextButton.icon(
+                      onPressed: () => _showAddChemicalDialog(),
+                      icon: const Icon(LucideIcons.plus, size: 14, color: primaryTeal),
+                      label: Text("Tambah Item", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                    ),
+                    const SizedBox(width: 16),
+                  ],
                   TextButton.icon(
                     onPressed: () => _showMonthlySummary(),
                     icon: const Icon(LucideIcons.fileText, size: 14, color: primaryTeal),
@@ -1028,8 +1270,8 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(LucideIcons.minusCircle, color: textGrey),
-                          onPressed: () {
+                          icon: Icon(LucideIcons.minusCircle, color: isReadOnlyDate ? Colors.grey[300] : textGrey),
+                          onPressed: isReadOnlyDate ? null : () {
                             if (used > 0) {
                               final originalList = _getChemicalsForDate(_activeDate);
                               final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
@@ -1047,7 +1289,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                               trackHeight: 4.0,
                               activeTrackColor: primaryTeal,
                               inactiveTrackColor: const Color(0xFFF3F4F6),
-                              thumbColor: primaryTeal,
+                              thumbColor: isReadOnlyDate ? Colors.grey : primaryTeal,
                               overlayColor: primaryTeal.withValues(alpha: 0.12),
                               overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
                             ),
@@ -1056,7 +1298,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                               min: 0.0,
                               max: maxVal,
                               divisions: divisions,
-                              onChanged: (val) {
+                              onChanged: isReadOnlyDate ? null : (val) {
                                 final originalList = _getChemicalsForDate(_activeDate);
                                 final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
                                 if (origIdx != -1) {
@@ -1068,8 +1310,8 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(LucideIcons.plusCircle, color: primaryTeal),
-                          onPressed: () {
+                          icon: Icon(LucideIcons.plusCircle, color: isReadOnlyDate ? Colors.grey[300] : primaryTeal),
+                          onPressed: isReadOnlyDate ? null : () {
                             final originalList = _getChemicalsForDate(_activeDate);
                             final origIdx = originalList.indexWhere((c) => c["name"] == chem["name"]);
                             if (origIdx != -1) {
@@ -1093,6 +1335,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
   // === 3. TAB KEHADIRAN PEGAWAI ===
   Widget _buildKehadiranTab() {
+    final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final bool isReadOnlyDate = _activeDate.isAfter(today);
+
     final allEmployees = _getEmployeesForDate(_activeDate);
     final List<Map<String, dynamic>> employees = allEmployees.where((emp) {
       if (_employeeFilter == "all") return true;
@@ -1135,13 +1380,15 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
               // Action Buttons Row
               Row(
                 children: [
-                  TextButton.icon(
-                    onPressed: () => _showAddEmployeeDialog(),
-                    icon: const Icon(LucideIcons.plus, size: 14, color: primaryTeal),
-                    label: Text("Tambah Pegawai", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                  ),
-                  const SizedBox(width: 16),
+                  if (!isReadOnlyDate) ...[
+                    TextButton.icon(
+                      onPressed: () => _showAddEmployeeDialog(),
+                      icon: const Icon(LucideIcons.plus, size: 14, color: primaryTeal),
+                      label: Text("Tambah Pegawai", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                    ),
+                    const SizedBox(width: 16),
+                  ],
                   TextButton.icon(
                     onPressed: () => _showMonthlySummary(),
                     icon: const Icon(LucideIcons.fileText, size: 14, color: primaryTeal),
@@ -1225,15 +1472,17 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                             style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: textColor),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(LucideIcons.trash2, color: Colors.red, size: 16),
-                          onPressed: () {
-                            _showDeleteEmployeeConfirmation(emp["name"]);
-                          },
-                          constraints: const BoxConstraints(),
-                          padding: EdgeInsets.zero,
-                        ),
+                        if (!isReadOnlyDate) ...[
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(LucideIcons.trash2, color: Colors.red, size: 16),
+                            onPressed: () {
+                              _showDeleteEmployeeConfirmation(emp["name"]);
+                            },
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
                       ],
                     ),
                     if (status == "Pengganti" && subName.isNotEmpty) ...[
@@ -1243,52 +1492,54 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                         style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: accentGold),
                       ),
                     ],
-                    const SizedBox(height: 16),
-                    // Action Buttons to change status
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        _buildAttendanceAction(
-                          label: "Masuk",
-                          isActive: status == "Masuk",
-                          onTap: () {
-                            final originalList = _getEmployeesForDate(_activeDate);
-                            final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
-                            if (origIdx != -1) {
-                              originalList[origIdx]["status"] = "Masuk";
-                              originalList[origIdx]["substituteName"] = "";
-                              _saveEmployeeAttendance(_getDateKey(_activeDate), originalList);
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        _buildAttendanceAction(
-                          label: "Off",
-                          isActive: status == "Off",
-                          onTap: () {
-                            final originalList = _getEmployeesForDate(_activeDate);
-                            final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
-                            if (origIdx != -1) {
-                              originalList[origIdx]["status"] = "Off";
-                              originalList[origIdx]["substituteName"] = "";
-                              _saveEmployeeAttendance(_getDateKey(_activeDate), originalList);
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        _buildAttendanceAction(
-                          label: "Ganti",
-                          isActive: status == "Pengganti",
-                          onTap: () {
-                            final originalList = _getEmployeesForDate(_activeDate);
-                            final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
-                            if (origIdx != -1) {
-                              _showSubstituteDialog(origIdx, originalList);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
+                    if (!isReadOnlyDate) ...[
+                      const SizedBox(height: 16),
+                      // Action Buttons to change status
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _buildAttendanceAction(
+                            label: "Masuk",
+                            isActive: status == "Masuk",
+                            onTap: () {
+                              final originalList = _getEmployeesForDate(_activeDate);
+                              final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
+                              if (origIdx != -1) {
+                                originalList[origIdx]["status"] = "Masuk";
+                                originalList[origIdx]["substituteName"] = "";
+                                _saveEmployeeAttendance(_getDateKey(_activeDate), originalList);
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildAttendanceAction(
+                            label: "Off",
+                            isActive: status == "Off",
+                            onTap: () {
+                              final originalList = _getEmployeesForDate(_activeDate);
+                              final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
+                              if (origIdx != -1) {
+                                originalList[origIdx]["status"] = "Off";
+                                originalList[origIdx]["substituteName"] = "";
+                                _saveEmployeeAttendance(_getDateKey(_activeDate), originalList);
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildAttendanceAction(
+                            label: "Ganti",
+                            isActive: status == "Pengganti",
+                            onTap: () {
+                              final originalList = _getEmployeesForDate(_activeDate);
+                              final origIdx = originalList.indexWhere((e) => e["name"] == emp["name"]);
+                              if (origIdx != -1) {
+                                _showSubstituteDialog(origIdx, originalList);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               );
