@@ -461,17 +461,29 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                       final bool hasSetting = _operationalHours.containsKey(dateKey);
                       final opInfo = _getOperationalInfoForDate(cellDate);
                       final bool isOpen = opInfo["isOpen"] ?? true;
- 
+
+                      final bool isSelected = cellDate.year == _activeDate.year &&
+                          cellDate.month == _activeDate.month &&
+                          cellDate.day == _activeDate.day;
+
                       return GestureDetector(
-                        onTap: () => _showJamKerjaDialog(cellDate, opInfo),
+                        onTap: () {
+                          setState(() {
+                            _activeDate = cellDate;
+                          });
+                        },
                         child: Container(
                           margin: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            color: isToday ? primaryTeal.withValues(alpha: 0.08) : Colors.transparent,
+                            color: isSelected 
+                                ? primaryTeal.withValues(alpha: 0.12)
+                                : (isToday ? primaryTeal.withValues(alpha: 0.04) : Colors.transparent),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isToday ? primaryTeal : Colors.grey[100]!,
-                              width: isToday ? 1.5 : 1,
+                              color: isSelected 
+                                  ? primaryTeal 
+                                  : (isToday ? primaryTeal.withValues(alpha: 0.4) : Colors.grey[100]!),
+                              width: isSelected ? 2 : 1,
                             ),
                           ),
                           child: Column(
@@ -482,7 +494,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                                 style: GoogleFonts.montserrat(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: isToday ? primaryTeal : darkText,
+                                    color: (isSelected || isToday) ? primaryTeal : darkText,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -518,6 +530,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
             ),
           ),
           const SizedBox(height: 24),
+
+          _buildSelectedDateDetailCard(),
+          const SizedBox(height: 20),
 
           // Operational Notes Info Area
           Container(
@@ -580,6 +595,132 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedDateDetailCard() {
+    final opInfo = _getOperationalInfoForDate(_activeDate);
+    final bool isOpen = opInfo["isOpen"] ?? true;
+    final String openTime = opInfo["openTime"] ?? "08:00";
+    final String closeTime = opInfo["closeTime"] ?? "20:00";
+    final String note = opInfo["note"] ?? "";
+    final formattedDate = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_activeDate);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  formattedDate,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: darkText,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isOpen ? "Buka" : "Tutup",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: isOpen ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Jam Buka",
+                      style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isOpen ? openTime : "-",
+                      style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Jam Tutup",
+                      style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isOpen ? closeTime : "-",
+                      style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Catatan",
+            style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            note.isNotEmpty ? note : "Tidak ada catatan untuk hari ini.",
+            style: GoogleFonts.montserrat(
+              fontSize: 11,
+              color: note.isNotEmpty ? darkText : Colors.grey[400],
+              fontStyle: note.isNotEmpty ? FontStyle.normal : FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => _showJamKerjaDialog(_activeDate, opInfo),
+            icon: const Icon(LucideIcons.edit2, size: 14, color: Colors.white),
+            label: Text(
+              "Atur Jam Kerja",
+              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryTeal,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
           ),
         ],
       ),
@@ -1018,7 +1159,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
             padding: const EdgeInsets.all(20),
             physics: const BouncingScrollPhysics(),
             itemCount: employees.length,
-            itemBuilder: (context, index) {
+            itemBuilder: (ctx, index) {
               final emp = employees[index];
               final String status = emp["status"] ?? "Masuk";
               final String subName = emp["substituteName"] ?? "";
@@ -1083,6 +1224,15 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                             status,
                             style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: textColor),
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(LucideIcons.trash2, color: Colors.red, size: 16),
+                          onPressed: () {
+                            _showDeleteEmployeeConfirmation(emp["name"]);
+                          },
+                          constraints: const BoxConstraints(),
+                          padding: EdgeInsets.zero,
                         ),
                       ],
                     ),
@@ -1450,6 +1600,48 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           ],
         );
       }
+    );
+  }
+
+  void _showDeleteEmployeeConfirmation(String name) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            "Hapus Pegawai",
+            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText),
+          ),
+          content: Text(
+            "Apakah Anda yakin ingin menghapus pegawai '$name' dari daftar hari ini?",
+            style: GoogleFonts.montserrat(fontSize: 12, color: darkText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text("Batal", style: GoogleFonts.montserrat(color: Colors.grey, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () {
+                final originalList = _getEmployeesForDate(_activeDate);
+                originalList.removeWhere((e) => e["name"] == name);
+                _saveEmployeeAttendance(_getDateKey(_activeDate), originalList);
+                Navigator.pop(ctx);
+                if (mounted) {
+                  NyutjiNotif.showSuccess(context, "Pegawai berhasil dihapus.");
+                }
+              },
+              child: Text("Hapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 
