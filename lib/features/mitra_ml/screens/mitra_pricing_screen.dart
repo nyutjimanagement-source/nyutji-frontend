@@ -256,19 +256,13 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
             backgroundColor: primaryTeal,
             elevation: 0,
             title: Text(
-              "DAFTAR HARGA",
+              "Daftar Harga",
               style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
             ),
             centerTitle: true,
-            leading: InkWell(
-              onTap: () => Navigator.pop(context),
-              borderRadius: BorderRadius.circular(30),
-              child: Center(
-                child: Text(
-                  "<-",
-                  style: GoogleFonts.montserrat(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
+            leading: IconButton(
+              icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
           body: _isInitialLoading
@@ -671,7 +665,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Dihapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+            Text("Daftar Harga Dihapus", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
             const SizedBox(width: 8),
             const Icon(LucideIcons.trash2, color: Colors.white),
           ],
@@ -725,8 +719,8 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            "Simulasi perhitungan Harga Pokok Penjualan (HPP) untuk operasional laundry, baik untuk sistem Kiloan maupun Satuan (Premium/Dry Cleaning). Kunci utama dalam menghitung HPP laundry yang akurat adalah memisahkan dengan tegas antara Biaya Langsung (Variabel) yang menempel pada baju yang dicuci, dengan Biaya Tetap (Overhead) seperti sewa ruko atau gaji pokok karyawan.",
-            style: GoogleFonts.montserrat(fontSize: 11, color: const Color(0xFF4B5563), height: 1.5, fontWeight: FontWeight.w500),
+            "Simulasi perhitungan Harga Pokok Penjualan (HPP) untuk operasional laundry, baik untuk sistem Kiloan maupun Satuan (Premium/Dry Cleaning)\n\nKunci utama dalam menghitung HPP laundry yang akurat adalah memisahkan dengan tegas antara Biaya Langsung (Variabel) yang menempel pada baju yang dicuci, dengan Biaya Tetap (Overhead) seperti sewa ruko atau gaji pokok karyawan.",
+            style: GoogleFonts.montserrat(fontSize: 12, color: const Color(0xFF4B5563), height: 1.5, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 16),
           InkWell(
