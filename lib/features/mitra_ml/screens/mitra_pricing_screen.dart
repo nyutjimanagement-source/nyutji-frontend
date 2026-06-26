@@ -248,8 +248,6 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = ref.watch(authProvider);
-    
     return Stack(
       children: [
         Scaffold(
@@ -356,7 +354,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
                     cat,
                     style: GoogleFonts.montserrat(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : Alignment.center == null ? FontWeight.bold : FontWeight.w600,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                       color: isSelected ? Colors.white : Colors.grey[700],
                     ),
                   ),
