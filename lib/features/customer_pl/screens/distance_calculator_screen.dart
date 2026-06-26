@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/utils/nyutji_distance.dart';
 

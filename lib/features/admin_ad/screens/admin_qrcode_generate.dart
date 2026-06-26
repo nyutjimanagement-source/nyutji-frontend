@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/widgets/nyutji_notif.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 class StatusHelper {
   /// Mendapatkan label status berdasarkan role (PL, ML, KL)

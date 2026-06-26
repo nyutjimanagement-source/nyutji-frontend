@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:math';
@@ -32,7 +32,7 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
       "summary": "Para pengusaha laundry di Jabodetabek mulai mengeluhkan kenaikan harga deterjen cair curah hingga 15% dalam sebulan terakhir. Hal ini dipicu oleh kelangkaan bahan baku impor.",
       "sentiment": "Negatif",
       "user": "@LaundryKeren",
-      "icon": LucideIcons.twitter,
+      "icon": LucideIcons.messageSquare,
       "url": "https://twitter.com/search?q=harga%20sabun%20laundry"
     },
     {
@@ -43,7 +43,7 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
       "summary": "Postingan viral menunjukkan antrean panjang di laundry koin Jakarta Selatan. Konsumen lebih memilih laundry koin karena faktor kecepatan dan privasi pakaian dalam.",
       "sentiment": "Positif",
       "user": "JakartaInfo",
-      "icon": LucideIcons.instagram,
+      "icon": LucideIcons.image,
       "url": "https://www.instagram.com/explore/tags/laundrykoin/"
     },
     {
@@ -54,7 +54,7 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
       "summary": "YouTuber teknologi merilis review mesin pengering terbaru yang hemat listrik hingga 40%. Menjadi topik hangat di kalangan pengusaha laundry franchise.",
       "sentiment": "Positif",
       "user": "TechReviewID",
-      "icon": LucideIcons.youtube,
+      "icon": LucideIcons.play,
       "url": "https://www.youtube.com/results?search_query=mesin+laundry+terbaik+2024"
     },
     {
@@ -74,7 +74,7 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
       "summary": "Grup 'Komunitas Laundry Indonesia' sedang ramai membahas perbandingan profit margin antara ikut franchise besar atau membangun brand mandiri di tahun 2024.",
       "sentiment": "Netral",
       "user": "Budi Santoso",
-      "icon": LucideIcons.facebook,
+      "icon": LucideIcons.share2,
       "url": "https://www.facebook.com/groups/komunitaslaundryindonesia"
     }
   ];
@@ -113,8 +113,8 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
 
     final sourceIcons = [
       {"source": "Berita Online", "icon": LucideIcons.globe, "sentiment": "Netral"},
-      {"source": "Twitter (X)",  "icon": LucideIcons.twitter, "sentiment": "Negatif"},
-      {"source": "Instagram",    "icon": LucideIcons.instagram, "sentiment": "Positif"},
+      {"source": "Twitter (X)",  "icon": LucideIcons.messageSquare, "sentiment": "Negatif"},
+      {"source": "Instagram",    "icon": LucideIcons.image, "sentiment": "Positif"},
     ];
 
     for (final match in itemMatches.take(8)) {

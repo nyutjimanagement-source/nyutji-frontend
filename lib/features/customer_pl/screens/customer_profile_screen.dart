@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';

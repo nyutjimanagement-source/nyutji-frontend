@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../auth/screens/register_mitra_screen.dart';
 import '../../auth/screens/register_kurir_screen.dart';
 import '../../../core/theme/theme_util.dart';
