@@ -145,6 +145,15 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
   1. **Penguncian Skala Teks (TextScaler Lock)**: Bungkus kontainer atau area tata letak padat tersebut dengan widget `MediaQuery` kustom yang menyetel `textScaler: const TextScaler.linear(1.0)`. Ini memastikan proporsi layout tetap konsisten dan tidak rusak oleh pengaturan aksesibilitas font global pengguna.
   2. **Pengecilan Teks Otomatis (BoxFit ScaleDown)**: Bungkus teks status atau teks dinamis di dalam badge/tombol berukuran mikro dengan widget `FittedBox` dengan properti `fit: BoxFit.scaleDown`. Ini memaksa teks menyusut secara otomatis dan tetap berada dalam satu baris (single line) daripada patah menjadi dua baris atau terpotong jika ruang horizontal terlalu sempit.
 
+### 20. Penggunaan Widget Kustom Dot / Lencana (`NyutjiDot`)
+* **Aturan**: Dilarang membuat, menata, atau menganimasikan indikator dot merah pasif, dot berkedip (blinking), lencana angka, atau label promo ("PROMO") secara manual menggunakan kontainer kustom.
+* **Solusi**: Wajib menggunakan widget kustom terpusat `NyutjiDot` dari package `lib/core/widgets/nyutji_dot.dart` yang sudah mengemas logika dekorasi dan pengontrol animasi secara terpadu.
+* **Implementasi**:
+  1. **Dot Pasif (Mandatory Verification)**: Gunakan `const NyutjiDot.static()` (misal untuk penanda menu profil yang belum diisi).
+  2. **Dot Berkedip (System Status / Map)**: Gunakan `const NyutjiDot.blinking()` dengan durasi kedip 1200ms terkelola internal.
+  3. **Lencana Angka (Notification count)**: Gunakan `NyutjiDot.badge(count: jumlahData)` untuk bel/keranjang belanja.
+  4. **Lencana Teks (Promo label)**: Gunakan `const NyutjiDot.text(text: "PROMO")` untuk tag promo berukuran mikro.
+
 ---
 
 ## III. Standar Database & Relasi Tabel
