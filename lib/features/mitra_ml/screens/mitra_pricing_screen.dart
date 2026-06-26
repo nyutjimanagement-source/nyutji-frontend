@@ -38,13 +38,11 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   bool _isInitialLoading = true;
   bool _isSaving = false;
   String? _currentMitraKey;
+  String? _selectedCategory;
 
   // Dynamic States
   final Map<String, List<Map<String, String>>> _groupedData = {};
-  final Map<String, PageController> _pageControllers = {};
-  final Map<String, int> _pages = {};
   final Map<String, bool> _editModes = {};
-  final Map<String, bool> _swipeForward = {};
   
   final Set<String> _selectedForEdit = {};
   final Map<String, TextEditingController> _editControllers = {};
@@ -62,9 +60,6 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
 
   @override
   void dispose() {
-    for (var ctrl in _pageControllers.values) {
-      ctrl.dispose();
-    }
     for (var ctrl in _editControllers.values) {
       ctrl.dispose();
     }
@@ -111,10 +106,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     }
 
     _groupedData.clear();
-    _pageControllers.clear();
-    _pages.clear();
     _editModes.clear();
-    _swipeForward.clear();
 
     for (var i in items) {
       if (parseSafe(i['price_regular']) >= 10000000) continue;
@@ -123,10 +115,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
       
       if (!_groupedData.containsKey(cat)) {
         _groupedData[cat] = [];
-        _pageControllers[cat] = PageController();
-        _pages[cat] = 0;
         _editModes[cat] = false;
-        _swipeForward[cat] = true;
       }
       
       _groupedData[cat]!.add({
@@ -136,6 +125,12 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         "fast": i['price_fast']?.toString() ?? "0",
         "category": cat,
       });
+    }
+
+    if (_groupedData.isNotEmpty) {
+      if (_selectedCategory == null || !_groupedData.containsKey(_selectedCategory)) {
+        _selectedCategory = _groupedData.keys.first;
+      }
     }
   }
 
@@ -254,49 +249,69 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
-    final mitraName = widget.customName ?? (auth.user?['name'] ?? "Nyutji Mitra");
     
     return Stack(
       children: [
         Scaffold(
           backgroundColor: const Color(0xFFF9FAFB),
-          body: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildElegantHeader(mitraName),
-              if (_isInitialLoading)
-                SliverPadding(
-                  padding: const EdgeInsets.all(20),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
-                        child: ShimmerLoading(height: 70, borderRadius: 12),
-                      ),
-                      childCount: 6,
-                    ),
-                  ),
-                )
-              else
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ..._groupedData.keys.where((k) => _groupedData[k]!.isNotEmpty || _editModes[k] == true).map((category) {
-                          return _buildCategorySection(category);
-                        }),
-                        const SizedBox(height: 32),
-                        _buildActionButtons(),
-                        if (widget.isSelectionMode) _buildSelectionConfirmButton(),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                )
-            ],
+          appBar: AppBar(
+            backgroundColor: primaryTeal,
+            elevation: 0,
+            title: Text(
+              "DAFTAR HARGA",
+              style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            centerTitle: true,
+            leading: InkWell(
+              onTap: () => Navigator.pop(context),
+              borderRadius: BorderRadius.circular(30),
+              child: Center(
+                child: Text(
+                  "<-",
+                  style: GoogleFonts.montserrat(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
           ),
+          body: _isInitialLoading
+              ? const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      ShimmerLoading(height: 70, borderRadius: 12),
+                      SizedBox(height: 16),
+                      ShimmerLoading(height: 70, borderRadius: 12),
+                      SizedBox(height: 16),
+                      ShimmerLoading(height: 70, borderRadius: 12),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCategorySelector(),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_selectedCategory != null &&
+                                (_groupedData[_selectedCategory]!.isNotEmpty || _editModes[_selectedCategory] == true))
+                              _buildCategorySection(_selectedCategory!),
+                            const SizedBox(height: 12),
+                            _buildSimulasiSection(),
+                            const SizedBox(height: 20),
+                            _buildActionButtons(),
+                            if (widget.isSelectionMode) _buildSelectionConfirmButton(),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
         if (_isSaving)
           Container(
@@ -306,6 +321,51 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: _groupedData.keys.map((cat) {
+            bool isSelected = _selectedCategory == cat;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: InkWell(
+                onTap: () {
+                  setState(() => _selectedCategory = cat);
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? primaryTeal : const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected ? primaryTeal : Colors.grey[200]!,
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Text(
+                    cat,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.bold : Alignment.center == null ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected ? Colors.white : Colors.grey[700],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 
@@ -324,8 +384,6 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     bool isKiloan = _isKiloanCategory(category);
     bool isEditing = _editModes[category] ?? false;
     List<Map<String, String>> data = _groupedData[category] ?? [];
-    int currentPage = _pages[category] ?? 0;
-    PageController controller = _pageControllers[category] ?? PageController();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,60 +406,9 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
           }
         ),
         const SizedBox(height: 12),
-        _buildTableWrapper(category, controller, currentPage, (idx) {
-          setState(() => _pages[category] = idx);
-        }, data, isKiloan),
-        _buildPageIndicator(currentPage, (data.length / (isEditing ? 4 : 5)).ceil()),
+        _buildTableWrapper(category, data, isKiloan),
         const SizedBox(height: 24),
       ],
-    );
-  }
-
-  Widget _buildElegantHeader(String name) {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: false,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: primaryTeal,
-      leading: IconButton(
-        icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "DAFTAR HARGA",
-              style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white.withValues(alpha: 0.9), letterSpacing: 1.5),
-            ),
-            const SizedBox(height: 2),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                name.toUpperCase(),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primaryTeal, Color(0xFF2D807E)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -471,148 +478,76 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
-  Widget _buildTableWrapper(String category, PageController controller, int currentPage, Function(int) onPageChanged, List<Map<String, String>> data, bool isKiloan) {
+  Widget _buildTableWrapper(String category, List<Map<String, String>> data, bool isKiloan) {
     bool editing = _editModes[category] ?? false;
-    int itemsPerPage = editing ? 4 : 5;
-    int totalPages = (data.length / itemsPerPage).ceil();
-    if (totalPages == 0) totalPages = 1;
 
-    int start = currentPage * itemsPerPage;
-    int end = (start + itemsPerPage > data.length) ? data.length : start + itemsPerPage;
-    List<Map<String, String>> pageData = data.isNotEmpty ? data.sublist(start, end) : [];
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity! < 0) {
-          if (currentPage < totalPages - 1) {
-            setState(() => _swipeForward[category] = true);
-            onPageChanged(currentPage + 1);
-          }
-        } else if (details.primaryVelocity! > 0) {
-          if (currentPage > 0) {
-            setState(() => _swipeForward[category] = false);
-            onPageChanged(currentPage - 1);
-          }
-        }
-      },
-      child: AnimatedSize(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Regular", "Fast Track"] : ["", "Service", "Harga"], editing),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  bool isFwd = _swipeForward[category] ?? true;
-                  final offset = isFwd 
-                    ? (child.key == ValueKey(currentPage) ? const Offset(0.2, 0) : const Offset(-0.2, 0))
-                    : (child.key == ValueKey(currentPage) ? const Offset(-0.2, 0) : const Offset(0.2, 0));
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(begin: offset, end: Offset.zero).animate(animation),
-                      child: child,
-                    ),
-                  );
-                },
-                child: Column(
-                  key: ValueKey(currentPage), 
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ...pageData.map((item) {
-                      String id = item['id']?.toString() ?? "";
-                      return _buildDynamicRow(category, id, item, editing, isKiloan);
-                    }),
-                    if (editing) _buildAddRowButton(category, isKiloan, currentPage, totalPages, onPageChanged),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8), 
-            ],
-          ),
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Regular", "Fast Track"] : ["", "Service", "Harga"], editing),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ...data.map((item) {
+                  String id = item['id']?.toString() ?? "";
+                  return _buildDynamicRow(category, id, item, editing, isKiloan);
+                }),
+                if (editing) _buildAddRowButton(category, isKiloan),
+              ],
+            ),
+            const SizedBox(height: 8), 
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildAddRowButton(String category, bool isKiloan, int currentPage, int totalPages, Function(int) onPageChanged) {
+  Widget _buildAddRowButton(String category, bool isKiloan) {
     return Container(
       decoration: BoxDecoration(
         color: primaryTeal.withValues(alpha: 0.05),
         border: Border(top: BorderSide(color: Colors.grey[100]!)),
       ),
-      child: Row(
-        children: [
-          if (totalPages > 1)
-            IconButton(
-              icon: const Icon(LucideIcons.chevronLeft, size: 20),
-              color: currentPage > 0 ? primaryTeal : Colors.grey[400],
-              onPressed: currentPage > 0 ? () {
-                setState(() => _swipeForward[category] = false);
-                onPageChanged(currentPage - 1);
-              } : null,
-            )
-          else
-            const SizedBox(width: 48),
-
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  final newId = DateTime.now().millisecondsSinceEpoch.toString();
-                  if (_groupedData[category] == null) _groupedData[category] = [];
-                  _groupedData[category]!.add({
-                    "id": newId, 
-                    "svc": "", 
-                    "reg": "", 
-                    "fast": "", 
-                    "category": category
-                  });
-                  _selectedForEdit.add(newId);
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(LucideIcons.plusCircle, size: 16, color: primaryTeal),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Tambah Baru",
-                      style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal),
-                    ),
-                  ],
-                ),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            final newId = DateTime.now().millisecondsSinceEpoch.toString();
+            if (_groupedData[category] == null) _groupedData[category] = [];
+            _groupedData[category]!.add({
+              "id": newId, 
+              "svc": "", 
+              "reg": "", 
+              "fast": "", 
+              "category": category
+            });
+            _selectedForEdit.add(newId);
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(LucideIcons.plusCircle, size: 16, color: primaryTeal),
+              const SizedBox(width: 8),
+              Text(
+                "Tambah Baru",
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTeal),
               ),
-            ),
+            ],
           ),
-
-          if (totalPages > 1)
-            IconButton(
-              icon: const Icon(LucideIcons.chevronRight, size: 20),
-              color: currentPage < totalPages - 1 ? primaryTeal : Colors.grey[400],
-              onPressed: currentPage < totalPages - 1 ? () {
-                setState(() => _swipeForward[category] = true);
-                onPageChanged(currentPage + 1);
-              } : null,
-            )
-          else
-            const SizedBox(width: 48),
-        ],
+        ),
       ),
     );
   }
@@ -748,55 +683,79 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
-  Widget _buildPageIndicator(int current, int count) {
-    if (count <= 1) return const SizedBox(height: 12);
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(count, (i) => AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: current == i ? 12 : 6, 
-          height: 6,
-          decoration: BoxDecoration(
-            color: current == i ? primaryTeal : Colors.grey[300],
-            borderRadius: BorderRadius.circular(10),
+  Widget _buildSimulasiSection() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16, bottom: 12),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF1E5655).withValues(alpha: 0.05), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF1E5655).withValues(alpha: 0.15), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        )),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E5655).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.calculator, size: 18, color: Color(0xFF1E5655)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "Simulasi Harga Kiloan dan Satuan",
+                  style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF111827)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Simulasi perhitungan Harga Pokok Penjualan (HPP) untuk operasional laundry, baik untuk sistem Kiloan maupun Satuan (Premium/Dry Cleaning). Kunci utama dalam menghitung HPP laundry yang akurat adalah memisahkan dengan tegas antara Biaya Langsung (Variabel) yang menempel pada baju yang dicuci, dengan Biaya Tetap (Overhead) seperti sewa ruko atau gaji pokok karyawan.",
+            style: GoogleFonts.montserrat(fontSize: 11, color: const Color(0xFF4B5563), height: 1.5, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () {
+              NyutjiNotif.showInfo(context, "Fitur Simulasi akan segera hadir");
+            },
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                "Mulai Simulasi",
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildActionButtons() {
-    if (widget.isReadOnly) return const SizedBox.shrink();
-    return Column(
-      children: [
-        _buildLuxuryButton("Pamflet Promosi Discount", LucideIcons.megaphone, accentGold, () {}),
-      ],
-    );
-  }
-
-  Widget _buildLuxuryButton(String title, IconData icon, Color color, VoidCallback onPressed) {
-    return Container(
-      width: double.infinity,
-      height: 54,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 18),
-        label: Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   Widget _buildSelectionConfirmButton() {
