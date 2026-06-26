@@ -487,7 +487,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Regular", "Fast Track"] : ["", "Service", "Harga"], editing),
+            if (!editing) _buildTableHeader(isKiloan ? ["", "Service", "Reguler", "Fast Track"] : ["", "Service", "Harga"], editing),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -557,9 +557,9 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
             child: SizedBox(
               width: isCheck ? 30 : null,
               child: Text(
-                t.toUpperCase(), 
+                t, 
                 textAlign: isCheck ? TextAlign.left : TextAlign.center,
-                style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 0.8)
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600])
               ),
             )
           );
