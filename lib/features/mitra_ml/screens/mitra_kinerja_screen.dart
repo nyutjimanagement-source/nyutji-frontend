@@ -2130,8 +2130,10 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                 };
 
                 await CacheService.set('mitra_costing_config', _costingConfig);
-                setState(() {});
-                Navigator.pop(ctx);
+                if (mounted) {
+                  setState(() {});
+                  Navigator.pop(ctx);
+                }
                 _saveToServer(key);
               },
               style: ElevatedButton.styleFrom(
