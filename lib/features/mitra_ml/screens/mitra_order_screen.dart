@@ -1328,19 +1328,19 @@ final orderProv = ref.watch(orderProvider);
               "label": "Cuci", 
               "icon": LucideIcons.droplets, 
               "active": isStep2,
-              "onTap": () => _showPowDialog(o['proofs'], ['WASHING'], "Cuci")
+              "onTap": () => _showPowDialog(o['proofs'], ['WASH_START', 'IN_PROGRESS'], "Cuci")
             },
             {
               "label": "Packing", 
               "icon": LucideIcons.package, 
               "active": isStep3,
-              "onTap": () => _showPowDialog(o['proofs'], ['PACKING'], "Packing")
+              "onTap": () => _showPowDialog(o['proofs'], ['IRONING', 'PACKING'], "Packing")
             },
             {
               "label": "Selesai", 
               "icon": LucideIcons.checkCircle, 
               "active": isStep5,
-              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERED', 'COMPLETED', 'PICKUP_READY'], "Selesai")
+              "onTap": () => _showPowDialog(o['proofs'], ['DONE', 'DELIVERING'], "Selesai")
             },
           ]
         : [
@@ -1360,13 +1360,13 @@ final orderProv = ref.watch(orderProvider);
               "label": "Cuci", 
               "icon": LucideIcons.droplets, 
               "active": isStep2,
-              "onTap": () => _showPowDialog(o['proofs'], ['WASHING'], "Cuci")
+              "onTap": () => _showPowDialog(o['proofs'], ['WASH_START', 'IN_PROGRESS'], "Cuci")
             },
             {
               "label": "Packing", 
               "icon": LucideIcons.package, 
               "active": isStep3,
-              "onTap": () => _showPowDialog(o['proofs'], ['PACKING'], "Packing")
+              "onTap": () => _showPowDialog(o['proofs'], ['IRONING', 'PACKING'], "Packing")
             },
             {
               "label": "Kirim", 
@@ -1378,7 +1378,7 @@ final orderProv = ref.watch(orderProvider);
               "label": "Selesai", 
               "icon": LucideIcons.checkCircle, 
               "active": isStep5,
-              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERED', 'COMPLETED', 'PICKUP_READY'], "Selesai")
+              "onTap": () => _showPowDialog(o['proofs'], ['DONE', 'DELIVERING'], "Selesai")
             },
           ];
 
@@ -1432,7 +1432,13 @@ final orderProv = ref.watch(orderProvider);
             ),
           ),
           const SizedBox(height: 8),
-          Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+          MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isActive ? FontWeight.w800 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+            ),
+          ),
         ],
       ),
     );

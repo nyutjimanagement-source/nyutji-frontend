@@ -950,7 +950,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                         }
 
                         // 6. SELESAI
-                        progressWidgets.add(Expanded(child: _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai"))));
+                        progressWidgets.add(Expanded(child: _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID', 'DELIVERING'], "Selesai"))));
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1029,7 +1029,13 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
           child: Center(child: iconWidget),
         ),
         const SizedBox(height: 6),
-        Text(label, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+        MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label, style: GoogleFonts.montserrat(fontSize: 12, fontWeight: isActive ? FontWeight.w900 : FontWeight.w600, color: isActive ? activeColor : Colors.grey[400])),
+          ),
+        ),
       ],
     );
 

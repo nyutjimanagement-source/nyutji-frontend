@@ -7,6 +7,7 @@ import '../../../providers/auth_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
@@ -24,6 +25,7 @@ import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_loading_overlay.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_dot.dart';
 
 // --- MODELS ---
 enum CourierTaskType { pickup, delivery }
@@ -70,7 +72,11 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   Timer? _refreshTimer;
   final Map<String, File?> _taskCapturedImages = {};
   bool _isUploading = false;
-  String _gpsLocationText = "Mendeteksi GPS...";
+  String _gpsLocationText = "Mendeteksi lokasi...";
+  String _gpsRawCity = ""; // Nama kota/kab untuk filter order 1 kota
+  double? _currentLat;  // GPS lat kurir
+  double? _currentLng; // GPS lng kurir
+  bool _hasDoneAutoSelect = false;
 
   // Clean Emerald Glass Palette
   final Color primaryTeal = const Color(0xFF0F766E); // Deep Emerald Teal
@@ -119,8 +125,31 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshData();
       _fetchRealLocation();
+      // Auto-set tab default ke Jemput jika ada pickup (Rule: default Jemput jika keduanya ada)
+      _autoSelectTab();
     });
     // Auto-reload dihapus sesuai Aturan Pelarangan Polling Agresif (Rule 4)
+  }
+
+  void _autoSelectTab() {
+    final activeOrders = ref.read(orderProvider).activeOrders;
+    final hasPickup = activeOrders.any((o) {
+      final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
+      final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+      if (isSelfDrop) return false;
+      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      return s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
+    });
+    final hasDelivery = activeOrders.any((o) {
+      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      return s == 'PACKING' || s == 'DELIVERING';
+    });
+    // Default: Jemput jika ada, atau Antar jika hanya delivery yang ada
+    final targetTab = (hasPickup || (!hasPickup && !hasDelivery)) ? 0 : 1;
+    if (_tabController.index != targetTab) {
+      setState(() => _tabController.index = targetTab);
+      _tabController.animateTo(targetTab);
+    }
   }
 
   Future<void> _fetchRealLocation() async {
@@ -172,7 +201,10 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
         }
         
         setState(() {
-          _gpsLocationText = "Lokasi GPS: $locStr";
+          _currentLat = pos.latitude;
+          _currentLng = pos.longitude;
+          _gpsRawCity = city;
+          _gpsLocationText = locStr;
         });
       }
     } catch (e) {
@@ -180,9 +212,25 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     }
   }
 
+  // Haversine distance (km) antara dua koordinat
+  double _haversineKm(double lat1, double lng1, double lat2, double lng2) {
+    const r = 6371.0; // Earth's radius in km
+    final dLat = (lat2 - lat1) * math.pi / 180;
+    final dLng = (lng2 - lng1) * math.pi / 180;
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(lat1 * math.pi / 180) * math.cos(lat2 * math.pi / 180) *
+        math.sin(dLng / 2) * math.sin(dLng / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return r * c;
+  }
+
   Future<void> _refreshData({bool force = false}) async {
     if (!mounted || !isOnline) return;
     
+    setState(() {
+      _hasDoneAutoSelect = false;
+    });
+
     ref.read(walletProvider).fetchWallet(force: force);
     ref.read(orderProvider).fetchOrders(force: force);
     
@@ -437,14 +485,20 @@ return Stack(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         child: Column(
           children: [
-            _buildActiveTrackingStrip(),
+            const SizedBox(height: 8),
+            // ORDER COUNT INFO — 3 tingkat
+            _buildOrderCountInfo(),
             const SizedBox(height: 12),
-            _buildCompactStatsPanel(),
-            const SizedBox(height: 16),
+            // CARD ORDER TERSEDIA — paling atas, background putih
             _buildAvailableOrdersCard(),
             const SizedBox(height: 16),
+            _buildCompactStatsPanel(),
+            const SizedBox(height: 16),
             _buildDenseTaskSection(currentT),
-            SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
+            const SizedBox(height: 16),
+            // GPS STRIP — paling bawah
+            _buildGpsLocationStrip(),
+            SizedBox(height: 24 + MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
@@ -588,22 +642,110 @@ final orderProv = ref.watch(orderProvider);
       ),
     );
   }
+  // === INFO 3 TINGKAT ORDER COUNT ===
+  Widget _buildOrderCountInfo() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final orderProv = ref.watch(orderProvider);
+        final auth = ref.watch(authProvider);
+        final available = orderProv.availableOrders;
+        final districtName = auth.user?['district_name']?.toString() ?? auth.user?['owner_district_name']?.toString() ?? '';
+        final myDistrictCode = (auth.user?['district_code'] ?? auth.user?['owner_district_code'] ?? '').toString().toUpperCase();
 
-  Widget _buildActiveTrackingStrip() {
+        // Tingkat 1: order di kecamatan KL register
+        final int kecCount = available.where((o) {
+          final oDistCode = (o['district_code'] ?? o['district']?['code'] ?? '').toString().toUpperCase();
+          if (oDistCode.isEmpty || myDistrictCode.isEmpty) return false;
+          // Bandingkan 3 digit pertama dari kode kecamatan
+          return oDistCode.substring(0, math.min(3, oDistCode.length)) == 
+                 myDistrictCode.substring(0, math.min(3, myDistrictCode.length));
+        }).length;
+
+        // Tingkat 2: order di kota/kab yang sama (satu kota/kab)
+        final int kotaCount = available.length;
+
+        // Tingkat 3: radius ~40km dari posisi GPS kurir
+        int radiusCount = available.length; // default semua jika GPS belum ada
+        if (_currentLat != null && _currentLng != null) {
+          radiusCount = available.where((o) {
+            final oLat = double.tryParse((o['pickupLat'] ?? o['pickup_lat'] ?? o['lat'] ?? o['latitude'] ?? '').toString());
+            final oLng = double.tryParse((o['pickupLng'] ?? o['pickup_lng'] ?? o['lng'] ?? o['longitude'] ?? '').toString());
+            if (oLat == null || oLng == null) return true;
+            final distance = _haversineKm(_currentLat!, _currentLng!, oLat, oLng);
+            return distance <= 40.0;
+          }).length;
+        }
+
+        if (kecCount == 0 && kotaCount == 0 && radiusCount == 0) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              _buildCountRow("Ada $kecCount order di Kec. $districtName", const Color(0xFF0F766E), LucideIcons.mapPin),
+              const SizedBox(height: 6),
+              _buildCountRow("Ada $kotaCount order radius 15km lebih", const Color(0xFF0284C7), LucideIcons.circle),
+              const SizedBox(height: 6),
+              _buildCountRow("Ada $radiusCount order radius 25km lebih", const Color(0xFF7C3AED), LucideIcons.globe),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCountRow(String text, Color color, IconData icon) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w800, color: color),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // GPS STRIP — paling bawah layar
+  Widget _buildGpsLocationStrip() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue[100]!)),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
       child: Row(
         children: [
-          Icon(LucideIcons.mapPin, size: 14, color: Colors.blue[700]),
-          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(LucideIcons.mapPin, size: 14, color: const Color(0xFF0284C7)),
+          ),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              _gpsLocationText, 
-              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.blue[900]),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Anda sekarang berada di",
+                  style: GoogleFonts.montserrat(fontSize: 10, color: const Color(0xFF6B7280), fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  _gpsLocationText.isEmpty ? "Mendeteksi lokasi..." : _gpsLocationText,
+                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF111827)),
+                ),
+              ],
             ),
           ),
         ],
@@ -689,31 +831,24 @@ final orderProv = ref.watch(orderProvider);
   }
 
   // ============================================================
-  // === CARD ORDER TERSEDIA (PREMIUM MARKETPLACE) ==============
+  // === CARD ORDER TERSEDIA (PREMIUM MARKETPLACE) — PUTIH ======
   // ============================================================
   Widget _buildAvailableOrdersCard() {
     return Consumer(
       builder: (context, ref, _) {
         final orderProv = ref.watch(orderProvider);
-
-        // Gunakan data live jika ada, fallback ke dummy jika kosong
-        final liveOrders = orderProv.availableOrders;
-        final displayOrders = liveOrders;
-
+        final displayOrders = orderProv.availableOrders;
         if (displayOrders.isEmpty) return const SizedBox.shrink();
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Container(
             decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF064E3B), Color(0xFF065F46), Color(0xFF047857)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              border: Border.all(color: primaryTeal.withValues(alpha: 0.08)),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF047857).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 10)),
+                BoxShadow(color: primaryTeal.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, 8)),
               ],
             ),
             child: Column(
@@ -725,256 +860,69 @@ final orderProv = ref.watch(orderProvider);
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
+                          color: primaryTeal.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(LucideIcons.zap, size: 16, color: Color(0xFFFFD700)),
+                        child: Icon(LucideIcons.zap, size: 18, color: primaryTeal),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("ORDER TERSEDIA",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 11, fontWeight: FontWeight.w900,
-                                color: amberGold, letterSpacing: 1.5,
-                              ),
+                            Text(
+                              "ORDER TERSEDIA",
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkText, letterSpacing: 0.8),
                             ),
                             Text(
-                              liveOrders.isNotEmpty 
-                                ? "Kec. ${liveOrders.first['district']?['name'] ?? ''} \u2022 ${displayOrders.length} pesanan" 
-                                : "",
-                              style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.w600),
+                              "${displayOrders.length} pesanan menunggu kurir",
+                              style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
                       ),
-                      if (liveOrders.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
-                              const SizedBox(width: 4),
-                              Text("LIVE ORDER",
-                                style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: const Color(0xFF10B981))),
-                            ],
-                          ),
-                        ),
                     ],
                   ),
                 ),
+                Divider(height: 1, color: Colors.grey.shade100),
 
                 // LIST ORDER
-                Container(
-                  constraints: const BoxConstraints(maxHeight: 280),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: displayOrders.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (ctx, index) {
-                      final order = displayOrders[index];
-                      final isTop = index == 0;
-                      
-                      // SUPER-SMART MAPPING: Mendukung CamelCase & SnakeCase
-                      final orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
-                      
-                      // KL HANYA BOLEH LIHAT DELIVERY FEE (Sesuai instruksi Jenderal)
-                      final price = double.tryParse((order['delivery_fee'] ?? order['deliveryFee'] ?? '0').toString()) ?? 0.0;
-                      
-                      // Alamat Jemput (Prioritas: address dari database + pickup note)
-                      final pickupRaw = order['address']?.toString() ?? order['customer']?['address']?.toString() ?? '-';
-                      final note = order['pickup_note']?.toString() ?? order['pickupNote']?.toString() ?? '';
-                      final pickup = note.isNotEmpty ? "$pickupRaw - Catatan: $note" : pickupRaw;
-                      
-                      final mitraName = (order['mitra']?['name'] ?? order['mitra_name'] ?? 'Mitra').toString();
-                      final mitraAddr = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
-                      
-                      final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1 || order['isFastTrack'] == true;
-                      
-                      // JARAK STATIS DARI DATABASE (Sesuai instruksi Jenderal)
-                      final distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
-
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.only(bottom: 4),
-                        padding: const EdgeInsets.all(14),
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(
-                          color: isTop ? const Color(0xFF1E293B) : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isTop 
-                              ? const Color(0xFF334155) 
-                              : (isFast ? Colors.red.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.04)), 
-                            width: isTop ? 1.5 : 1
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isTop 
-                                ? const Color(0xFF1E293B).withValues(alpha: 0.15) 
-                                : Colors.black.withValues(alpha: 0.02), 
-                              blurRadius: 10, 
-                              offset: const Offset(0, 4)
-                            )
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ROW 1: ORDER ID & BADGE
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: isTop ? const Color(0xFF334155) : const Color(0xFFFF8C42).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6)
-                                  ),
-                                  child: Text(
-                                    orderId, 
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 9, 
-                                      fontWeight: FontWeight.bold, 
-                                      color: isTop ? Colors.white70 : const Color(0xFFD35400)
-                                    ),
-                                  ),
-                                ),
-                                if (isFast)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(4)),
-                                    child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.red)),
-                                  )
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            
-                            // ROW 2: MITRA / ALAMAT JEMPUT
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(LucideIcons.store, size: 12, color: isTop ? Colors.white70 : primaryTeal),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: Text("$mitraName \u2013 $mitraAddr",
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 10, 
-                                      color: isTop ? Colors.white60 : textGrey, 
-                                      fontWeight: FontWeight.w500
-                                    ),
-                                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            
-                            // ROW 3: ALAMAT JEMPUTAN (Dari Customer)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(LucideIcons.mapPin, size: 12, color: isTop ? Colors.white70 : primaryTeal),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: Text(pickup,
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 10, 
-                                      color: isTop ? Colors.white70 : darkText, 
-                                      fontWeight: FontWeight.w600
-                                    ),
-                                    maxLines: 2, overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            
-                            const SizedBox(height: 12),
-                            const Divider(height: 1, color: Colors.white10),
-                            const SizedBox(height: 12),
-                            
-                            // ROW 4: JARAK & PENDAPATAN & TOMBOL AMBIL
-                            Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("KOMISI JASA ANTAR",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 8, 
-                                        fontWeight: FontWeight.w700, 
-                                        color: isTop ? Colors.white38 : textGrey, 
-                                        letterSpacing: 0.5
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.w900, 
-                                        fontSize: 15, 
-                                        color: isTop ? Colors.white : const Color(0xFFD35400)
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: [
-                                    const Icon(LucideIcons.navigation2, size: 11, color: Colors.white38),
-                                    const SizedBox(width: 4),
-                                    Text("${distance > 0 ? distance.toStringAsFixed(1) : '~'} km",
-                                      style: GoogleFonts.montserrat(fontSize: 10, color: isTop ? Colors.white54 : textGrey, fontWeight: FontWeight.w700),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    GestureDetector(
-                                      onTap: () async {
-                                        final provider = ref.read(orderProvider);
-                                        final success = await provider.acceptOrder(orderId);
-                                        if (!mounted) return;
-                                        if (success) {
-                                          NyutjiNotif.showSuccess(this.context, "Order #$orderId berhasil diambil!");
-                                          _scrollToTasks(); // Fokus ke Antrean Tugas
-                                          _refreshData(); // Langsung hilangkan dari list tersedia
-                                        } else {
-                                          final error = provider.errorMessage;
-                                          NyutjiNotif.showError(this.context, error ?? "Gagal mengambil order");
-                                        }
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(colors: [amberGold, const Color(0xFFD97706)]),
-                                          borderRadius: BorderRadius.circular(10),
-                                          boxShadow: [
-                                            BoxShadow(color: amberGold.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
-                                          ],
-                                        ),
-                                        child: Text("AMBIL",
-                                          style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: displayOrders.length,
+                  separatorBuilder: (_, __) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1, color: Colors.grey.shade100),
                   ),
+                  itemBuilder: (ctx, index) {
+                    final order = displayOrders[index];
+                    final orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
+                    final price = double.tryParse((order['delivery_fee'] ?? order['deliveryFee'] ?? '0').toString()) ?? 0.0;
+                    final pickupRaw = order['address']?.toString() ?? order['customer']?['address']?.toString() ?? '-';
+                    final note = order['pickup_note']?.toString() ?? order['pickupNote']?.toString() ?? '';
+                    final pickup = note.isNotEmpty ? "$pickupRaw\nCatatan: $note" : pickupRaw;
+                    final mitraName = (order['mitra']?['name'] ?? order['mitra_name'] ?? 'Mitra').toString();
+                    final mitraAddr = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
+                    final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1 || order['isFastTrack'] == true;
+                    final distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
+                    final serviceType = (order['service_type'] ?? order['serviceType'] ?? 'Reguler').toString();
+
+                    return _buildAvailableOrderItem(
+                      ctx: ctx,
+                      orderId: orderId,
+                      price: price,
+                      pickup: pickup,
+                      mitraName: mitraName,
+                      mitraAddr: mitraAddr,
+                      isFast: isFast,
+                      distance: distance,
+                      serviceType: serviceType,
+                    );
+                  },
                 ),
               ],
             ),
@@ -982,6 +930,206 @@ final orderProv = ref.watch(orderProvider);
         );
       },
     );
+  }
+
+  Widget _buildAvailableOrderItem({
+    required BuildContext ctx,
+    required String orderId,
+    required double price,
+    required String pickup,
+    required String mitraName,
+    required String mitraAddr,
+    required bool isFast,
+    required double distance,
+    required String serviceType,
+  }) {
+    // State slider per item (lokal, tidak butuh StatefulWidget)
+    return StatefulBuilder(
+      builder: (sbCtx, sbSetState) {
+        double _sliderValue = 0.0;
+        return StatefulBuilder(
+          builder: (_, setState2) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. JASA ANTAR — font 20px bold
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "Jasa Antar: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price)}",
+                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: primaryTeal),
+                      ),
+                    ),
+                    if (isFast)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
+                        child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.red)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // 2. Order Number
+                _buildInfoRow(LucideIcons.hash, "Order", orderId, Colors.grey.shade600),
+                const SizedBox(height: 8),
+
+                // 3. Lokasi Jemput Pelanggan
+                _buildInfoRow(LucideIcons.mapPin, "Jemput", pickup, const Color(0xFF0F766E)),
+                const SizedBox(height: 8),
+
+                // 4. Lokasi Antar Laundry
+                _buildInfoRow(LucideIcons.store, "Antar ke", "$mitraName — $mitraAddr", const Color(0xFF7C3AED)),
+                const SizedBox(height: 8),
+
+                // 5. Jarak
+                _buildInfoRow(LucideIcons.navigation2, "Jarak", "${distance > 0 ? distance.toStringAsFixed(1) : '~'} km", const Color(0xFF0284C7)),
+                const SizedBox(height: 8),
+
+                // 6. Jenis Layanan
+                _buildInfoRow(LucideIcons.layers, "Layanan", serviceType, Colors.grey.shade700),
+                const SizedBox(height: 16),
+
+                // 7. SLIDER KONFIRMASI "MAU AMBIL"
+                _buildSlideToConfirm(orderId),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value, Color color) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 8),
+        Text("$label: ", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+        Expanded(
+          child: Text(
+            value,
+            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSlideToConfirm(String orderId) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final trackWidth = constraints.maxWidth;
+        const thumbSize = 52.0;
+        const maxSlide = 1.0;
+        double _val = 0.0;
+
+        return StatefulBuilder(
+          builder: (_, setState) {
+            final thumbOffset = _val * (trackWidth - thumbSize);
+            final isDone = _val >= 0.85;
+
+            return GestureDetector(
+              onHorizontalDragUpdate: (d) {
+                final newVal = (_val + d.delta.dx / (trackWidth - thumbSize)).clamp(0.0, maxSlide);
+                setState(() => _val = newVal);
+              },
+              onHorizontalDragEnd: (_) {
+                if (_val >= 0.85) {
+                  // Konfirmasi ambil order
+                  _doAcceptOrder(orderId);
+                } else {
+                  // Snap kembali jika belum cukup
+                  setState(() => _val = 0.0);
+                }
+              },
+              child: Container(
+                height: thumbSize,
+                decoration: BoxDecoration(
+                  color: isDone ? primaryTeal.withValues(alpha: 0.15) : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(thumbSize / 2),
+                  border: Border.all(
+                    color: isDone ? primaryTeal.withValues(alpha: 0.4) : Colors.grey.shade300,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // Progress fill
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 50),
+                      width: thumbOffset + thumbSize,
+                      decoration: BoxDecoration(
+                        color: primaryTeal.withValues(alpha: isDone ? 0.18 : 0.08),
+                        borderRadius: BorderRadius.circular(thumbSize / 2),
+                      ),
+                    ),
+                    // Label teks di belakang
+                    Center(
+                      child: Opacity(
+                        opacity: (1.0 - _val * 2).clamp(0.0, 1.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(LucideIcons.chevronsRight, size: 16, color: textGrey),
+                            const SizedBox(width: 4),
+                            Text(
+                              "Mau Ambil",
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textGrey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Thumb
+                    Positioned(
+                      left: thumbOffset,
+                      top: 0,
+                      child: Container(
+                        width: thumbSize,
+                        height: thumbSize,
+                        decoration: BoxDecoration(
+                          color: isDone ? primaryTeal : Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryTeal.withValues(alpha: isDone ? 0.4 : 0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isDone ? LucideIcons.check : LucideIcons.chevronRight,
+                          size: 22,
+                          color: isDone ? Colors.white : primaryTeal,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _doAcceptOrder(String orderId) async {
+    final provider = ref.read(orderProvider);
+    final success = await provider.acceptOrder(orderId);
+    if (!mounted) return;
+    if (success) {
+      NyutjiNotif.showSuccess(this.context, "Order #$orderId berhasil diambil!");
+      _scrollToTasks();
+      _refreshData();
+    } else {
+      NyutjiNotif.showError(this.context, provider.errorMessage ?? "Gagal mengambil order");
+    }
   }
 
 
@@ -998,6 +1146,28 @@ final orderProv = ref.watch(orderProvider);
       final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
       return s == 'PACKING' || s == 'DELIVERING';
     }).length;
+
+    // Auto-switch tab: jika data baru muncul dan tab saat ini belum dipilih/auto-selected
+    if (!_hasDoneAutoSelect && activeOrders.isNotEmpty) {
+      _hasDoneAutoSelect = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final hasPickup = pickupCount > 0;
+        final hasDelivery = deliveryCount > 0;
+        int target = 0;
+        if (hasPickup && hasDelivery) {
+          target = 0; // Prioritaskan Jemput (Pickup) jika kedua-duanya ada
+        } else if (hasDelivery) {
+          target = 1; // Antar (Delivery)
+        } else {
+          target = 0; // Jemput
+        }
+        if (_tabController.index != target) {
+          setState(() => _tabController.index = target);
+          _tabController.animateTo(target);
+        }
+      });
+    }
 
     return Container(
       key: _taskSectionKey,
@@ -1063,11 +1233,11 @@ final orderProv = ref.watch(orderProvider);
                                         color: _tabController.index == 0 ? primaryTeal : textGrey,
                                       ),
                                     ),
+                                    // Dot merah Jemput (sesuai Rule II.20 — NyutjiDot)
                                     if (pickupCount > 0)
-                                      Container(
-                                        margin: const EdgeInsets.only(left: 4, bottom: 8),
-                                        width: 6, height: 6,
-                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 5, bottom: 10),
+                                        child: NyutjiDot.static(size: 6),
                                       ),
                                   ],
                                 ),
@@ -1095,11 +1265,11 @@ final orderProv = ref.watch(orderProvider);
                                         color: _tabController.index == 1 ? primaryTeal : textGrey,
                                       ),
                                     ),
+                                    // Dot merah Antar (sesuai Rule II.20 — NyutjiDot)
                                     if (deliveryCount > 0)
-                                      Container(
-                                        margin: const EdgeInsets.only(left: 4, bottom: 8),
-                                        width: 6, height: 6,
-                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 5, bottom: 10),
+                                        child: NyutjiDot.static(size: 6),
                                       ),
                                   ],
                                 ),
