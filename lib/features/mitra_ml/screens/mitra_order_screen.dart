@@ -1094,7 +1094,7 @@ final orderProv = ref.watch(orderProvider);
                   _showCourierPicker(orderId);
                 } else if (needsUpdate) {
                   final deliveryType = (o['delivery_type'] ?? o['deliveryType'] ?? '').toString();
-                  _showStatusUpdater(orderId, status, deliveryType);
+                  _showStatusUpdater(orderId, status, deliveryType, o);
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -1539,11 +1539,19 @@ final auth = ref.watch(authProvider);
     );
   }
 
-  void _showStatusUpdater(String orderId, String currentStatus, String deliveryType) async {
+  void _showStatusUpdater(String orderId, String currentStatus, String deliveryType, dynamic o) async {
     bool isSelfDrop = ['SELF_DROP', 'SELFDROP_SELFDELIVERY', 'SELF_SERVICE'].contains(deliveryType.toUpperCase());
     final stages = isSelfDrop 
         ? ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DONE'] 
         : ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE'];
+
+    final proofs = o['proofs'] as List? ?? [];
+    final bool hasWeighingProofByML = proofs.any((p) {
+      if (p is! Map) return false;
+      final stepVal = (p['step'] ?? '').toString().toUpperCase();
+      final uploaderRoleVal = (p['uploader_role'] ?? p['uploaderRole'] ?? '').toString().toUpperCase();
+      return stepVal == 'WEIGHING' && uploaderRoleVal == 'ML';
+    });
 
     final result = await showModalBottomSheet(
       context: context,
@@ -1553,6 +1561,7 @@ final auth = ref.watch(authProvider);
         orderId: orderId,
         currentStatus: currentStatus,
         stages: stages,
+        hasWeighingProofByML: hasWeighingProofByML,
       ),
     );
 
@@ -1971,11 +1980,13 @@ class _StatusUpdaterSheet extends ConsumerStatefulWidget {
   final String orderId;
   final String currentStatus;
   final List<String> stages;
+  final bool hasWeighingProofByML;
 
   const _StatusUpdaterSheet({
     required this.orderId,
     required this.currentStatus,
     required this.stages,
+    required this.hasWeighingProofByML,
   });
 
   @override
@@ -1996,7 +2007,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
   void initState() {
     super.initState();
     noteController = TextEditingController(text: "Berat timbangan cucian ... kg");
-    if (widget.currentStatus == 'WEIGHING') {
+    if (widget.currentStatus == 'WEIGHING' && !widget.hasWeighingProofByML) {
       selectedStage = 'WEIGHING';
     }
   }
@@ -2133,7 +2144,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                         final s = widget.stages[index];
                         final bool isCurrent = s == selectedStage;
                         final bool isPast = s == 'WEIGHING'
-                            ? StatusHelper.getProgressStep(s) < StatusHelper.getProgressStep(widget.currentStatus)
+                            ? (widget.hasWeighingProofByML || StatusHelper.getProgressStep(s) < StatusHelper.getProgressStep(widget.currentStatus))
                             : StatusHelper.getProgressStep(s) <= StatusHelper.getProgressStep(widget.currentStatus);
                         final Map<String, String> statusLabels = {
                           'WAITING_DROPOFF': 'Drop Off',
