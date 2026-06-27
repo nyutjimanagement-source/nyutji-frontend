@@ -1367,15 +1367,17 @@ final orderProv = ref.watch(orderProvider);
     final String laundryName = task['mitra']?['name']?.toString() ?? task['mitra_name']?.toString() ?? 'Mitra Laundry';
     final String laundryAddress = task['mitra']?['address']?.toString() ?? task['mitra_address']?.toString() ?? 'Alamat Laundry';
     
-    // Temukan proof PACKING dari Mitra Laundry jika ada
+    // Temukan proof PACKING dan PICKING_UP jika ada
     final proofs = task['proofs'] as List?;
     dynamic packingProof;
+    dynamic pickupProof;
     if (proofs != null) {
       for (var proof in proofs) {
         final step = (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
         if (step == 'PACKING') {
           packingProof = proof;
-          break;
+        } else if (step == 'PICKING_UP' || step == 'PICK_UP') {
+          pickupProof = proof;
         }
       }
     }
@@ -1469,7 +1471,7 @@ final orderProv = ref.watch(orderProvider);
                       ),
                       if (packingProof != null) ...[
                         const SizedBox(height: 8),
-                        _buildMitraPowPreview(packingProof),
+                        _buildNetworkPowPreview(packingProof, "Foto Bukti Packing Mitra:", "Packing Mitra", "PACKING"),
                       ],
                       const SizedBox(height: 12),
 
@@ -1480,8 +1482,8 @@ final orderProv = ref.watch(orderProvider);
                         address: address,
                         icon: LucideIcons.mapPin,
                       ),
-                      // Preview POW Kurir setelah upload (local image file)
-                      _buildCourierPowPreview(orderId),
+                      // Row POW Kurir (Jemput dari DB + Antar dari local/captured file)
+                      _buildCourierPowsRow(pickupProof, orderId),
                     ] else ...[
                       // Jemput di (Alamat Pelanggan)
                       _buildLinkedStepRow(
@@ -1490,8 +1492,8 @@ final orderProv = ref.watch(orderProvider);
                         address: address,
                         icon: LucideIcons.mapPin,
                       ),
-                      // Preview POW Kurir setelah upload (local image file)
-                      _buildCourierPowPreview(orderId),
+                      // Row POW Kurir (Hanya local captured file)
+                      _buildCourierPowsRow(null, orderId),
                       const SizedBox(height: 12),
 
                       // Antar ke (Laundry Mitra)
@@ -1657,7 +1659,7 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  Widget _buildMitraPowPreview(dynamic proof) {
+  Widget _buildNetworkPowPreview(dynamic proof, String label, String title, String stage) {
     final String path = (proof['file_url'] ?? proof['imageUrl'] ?? proof['image_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '');
     if (path.isEmpty) return const SizedBox.shrink();
     final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
@@ -1666,12 +1668,12 @@ final orderProv = ref.watch(orderProvider);
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Foto Bukti Packing Mitra:",
+          label,
           style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
         ),
         const SizedBox(height: 4),
         GestureDetector(
-          onTap: () => _showPowDialog([proof], ['PACKING'], "Packing Mitra"),
+          onTap: () => _showPowDialog([proof], [stage], title),
           child: Container(
             width: 80,
             height: 80,
@@ -1704,12 +1706,12 @@ final orderProv = ref.watch(orderProvider);
                   child: IgnorePointer(
                     child: Transform.rotate(
                       angle: -0.785,
-                      child: Text(
+                      child: const Text(
                         'Nyutji',
                         style: TextStyle(
                           fontSize: 6,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white.withValues(alpha: 0.35),
+                          color: Colors.white24,
                         ),
                       ),
                     ),
@@ -1721,12 +1723,12 @@ final orderProv = ref.watch(orderProvider);
                       alignment: Alignment.center,
                       child: Transform.rotate(
                         angle: -0.785,
-                        child: Text(
+                        child: const Text(
                           'Nyutji',
                           style: TextStyle(
                             fontSize: 7,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white.withValues(alpha: 0.4),
+                            color: Colors.white30,
                           ),
                         ),
                       ),
@@ -1738,12 +1740,12 @@ final orderProv = ref.watch(orderProvider);
                   child: IgnorePointer(
                     child: Transform.rotate(
                       angle: -0.785,
-                      child: Text(
+                      child: const Text(
                         'Nyutji',
                         style: TextStyle(
                           fontSize: 6,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white.withValues(alpha: 0.35),
+                          color: Colors.white24,
                         ),
                       ),
                     ),
@@ -1757,90 +1759,145 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  Widget _buildCourierPowPreview(String orderId) {
-    final imageFile = _taskCapturedImages[orderId];
-    if (imageFile == null) return const SizedBox.shrink();
+  Widget _buildCourierPowsRow(dynamic pickupProof, String orderId) {
+    final hasPickup = pickupProof != null;
+    final localDeliveryFile = _taskCapturedImages[orderId];
+    final hasDelivery = localDeliveryFile != null;
+
+    if (!hasPickup && !hasDelivery) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
         Text(
-          "Foto Bukti Kurir (Preview):",
+          "Foto Bukti Kurir:",
           style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
         ),
         const SizedBox(height: 4),
-        GestureDetector(
-          onTap: () => _showLocalPowDialog(imageFile),
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.file(
-                  imageFile,
-                  fit: BoxFit.cover,
-                ),
-                // Security Watermarks (Rule II.12)
-                Positioned(
-                  top: 10, left: -5,
-                  child: IgnorePointer(
-                    child: Transform.rotate(
-                      angle: -0.785,
-                      child: Text(
-                        'Nyutji',
-                        style: TextStyle(
-                          fontSize: 6,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white.withValues(alpha: 0.35),
-                        ),
-                      ),
-                    ),
+        Row(
+          children: [
+            if (hasPickup) ...[
+              GestureDetector(
+                onTap: () => _showPowDialog([pickupProof], ['PICKING_UP', 'PICK_UP'], "Jemput Kurir"),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
                   ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Transform.rotate(
-                        angle: -0.785,
-                        child: Text(
-                          'Nyutji',
-                          style: TextStyle(
-                            fontSize: 7,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white.withValues(alpha: 0.4),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: (pickupProof['file_url'] ?? '').toString().startsWith('http')
+                            ? (pickupProof['file_url'] ?? '').toString()
+                            : "${ApiConstants.rootUrl}/${(pickupProof['file_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '')}",
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey.shade100,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.teal),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 24, color: Colors.grey),
+                      ),
+                      // Watermarks
+                      Positioned(
+                        top: 10, left: -5,
+                        child: IgnorePointer(
+                          child: Transform.rotate(
+                            angle: -0.785,
+                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 10, right: -5,
-                  child: IgnorePointer(
-                    child: Transform.rotate(
-                      angle: -0.785,
-                      child: Text(
-                        'Nyutji',
-                        style: TextStyle(
-                          fontSize: 6,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white.withValues(alpha: 0.35),
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: const Text('Nyutji', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.white30)),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      Positioned(
+                        bottom: 10, right: -5,
+                        child: IgnorePointer(
+                          child: Transform.rotate(
+                            angle: -0.785,
+                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            if (hasDelivery) ...[
+              GestureDetector(
+                onTap: () => _showLocalPowDialog(localDeliveryFile),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.file(
+                        localDeliveryFile,
+                        fit: BoxFit.cover,
+                      ),
+                      // Watermarks
+                      Positioned(
+                        top: 10, left: -5,
+                        child: IgnorePointer(
+                          child: Transform.rotate(
+                            angle: -0.785,
+                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: const Text('Nyutji', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.white30)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 10, right: -5,
+                        child: IgnorePointer(
+                          child: Transform.rotate(
+                            angle: -0.785,
+                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );
