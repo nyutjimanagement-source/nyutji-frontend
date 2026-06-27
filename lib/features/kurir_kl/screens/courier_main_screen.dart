@@ -490,12 +490,13 @@ return Stack(
             // CARD ORDER TERSEDIA — paling atas, background putih
             _buildAvailableOrdersCard(),
             const SizedBox(height: 16),
-            _buildCompactStatsPanel(),
+            // GPS STRIP — ditukar ke atas
+            _buildGpsLocationStrip(),
             const SizedBox(height: 16),
             _buildDenseTaskSection(currentT),
             const SizedBox(height: 16),
-            // GPS STRIP — paling bawah
-            _buildGpsLocationStrip(),
+            // STATS PANEL — ditukar ke bawah
+            _buildCompactStatsPanel(),
             SizedBox(height: 24 + MediaQuery.of(context).padding.bottom),
           ],
         ),
@@ -680,7 +681,7 @@ final orderProv = ref.watch(orderProvider);
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              _buildCountRow("Ada $kecCount order di Kec. $districtName", const Color(0xFF0F766E), LucideIcons.mapPin),
+              _buildCountRow("Ada $kecCount order di Kec. $districtName", const Color(0xFF10B981), LucideIcons.mapPin),
               const SizedBox(height: 6),
               _buildCountRow("Ada $kotaCount order radius 15km lebih", const Color(0xFF0284C7), LucideIcons.circle),
               const SizedBox(height: 6),
@@ -702,7 +703,7 @@ final orderProv = ref.watch(orderProvider);
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w800, color: color),
+            style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: color),
           ),
         ),
       ],
@@ -954,13 +955,6 @@ final orderProv = ref.watch(orderProvider);
                 style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: primaryTeal),
               ),
             ),
-            if (isFast)
-              Container(
-                margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
-                child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.red)),
-              ),
           ],
         ),
         const SizedBox(height: 10),
@@ -997,7 +991,11 @@ final orderProv = ref.watch(orderProvider);
       children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 8),
-        Text("$label: ", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+        SizedBox(
+          width: 75,
+          child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+        ),
+        Text(": ", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
         Expanded(
           child: Text(
             value,
@@ -1012,18 +1010,20 @@ final orderProv = ref.watch(orderProvider);
     return LayoutBuilder(
       builder: (context, constraints) {
         final trackWidth = constraints.maxWidth;
-        const thumbSize = 52.0;
+        const containerHeight = 52.0;
+        const thumbSize = 42.0;
+        const margin = 5.0;
         const maxSlide = 1.0;
         double val = 0.0;
 
         return StatefulBuilder(
           builder: (_, setState) {
-            final thumbOffset = val * (trackWidth - thumbSize);
+            final thumbOffset = margin + val * (trackWidth - thumbSize - 2 * margin);
             final isDone = val >= 0.85;
 
             return GestureDetector(
               onHorizontalDragUpdate: (d) {
-                final newVal = (val + d.delta.dx / (trackWidth - thumbSize)).clamp(0.0, maxSlide);
+                final newVal = (val + d.delta.dx / (trackWidth - thumbSize - 2 * margin)).clamp(0.0, maxSlide);
                 setState(() => val = newVal);
               },
               onHorizontalDragEnd: (_) {
@@ -1036,10 +1036,10 @@ final orderProv = ref.watch(orderProvider);
                 }
               },
               child: Container(
-                height: thumbSize,
+                height: containerHeight,
                 decoration: BoxDecoration(
                   color: isDone ? primaryTeal.withValues(alpha: 0.15) : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(thumbSize / 2),
+                  borderRadius: BorderRadius.circular(containerHeight / 2),
                   border: Border.all(
                     color: isDone ? primaryTeal.withValues(alpha: 0.4) : Colors.grey.shade300,
                   ),
@@ -1049,10 +1049,10 @@ final orderProv = ref.watch(orderProvider);
                     // Progress fill
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 50),
-                      width: thumbOffset + thumbSize,
+                      width: thumbOffset + thumbSize + margin,
                       decoration: BoxDecoration(
                         color: primaryTeal.withValues(alpha: isDone ? 0.18 : 0.08),
-                        borderRadius: BorderRadius.circular(thumbSize / 2),
+                        borderRadius: BorderRadius.circular(containerHeight / 2),
                       ),
                     ),
                     // Label teks di belakang
@@ -1075,7 +1075,7 @@ final orderProv = ref.watch(orderProvider);
                     // Thumb
                     Positioned(
                       left: thumbOffset,
-                      top: 0,
+                      top: margin,
                       child: Container(
                         width: thumbSize,
                         height: thumbSize,
@@ -1085,14 +1085,14 @@ final orderProv = ref.watch(orderProvider);
                           boxShadow: [
                             BoxShadow(
                               color: primaryTeal.withValues(alpha: isDone ? 0.4 : 0.15),
-                              blurRadius: 8,
+                              blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
                           ],
                         ),
                         child: Icon(
                           isDone ? LucideIcons.check : LucideIcons.chevronRight,
-                          size: 22,
+                          size: 20,
                           color: isDone ? Colors.white : primaryTeal,
                         ),
                       ),
