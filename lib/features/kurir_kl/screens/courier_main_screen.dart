@@ -1367,9 +1367,21 @@ final orderProv = ref.watch(orderProvider);
     final String laundryName = task['mitra']?['name']?.toString() ?? task['mitra_name']?.toString() ?? 'Mitra Laundry';
     final String laundryAddress = task['mitra']?['address']?.toString() ?? task['mitra_address']?.toString() ?? 'Alamat Laundry';
     
+    // Temukan proof PACKING dari Mitra Laundry jika ada
+    final proofs = task['proofs'] as List?;
+    dynamic packingProof;
+    if (proofs != null) {
+      for (var proof in proofs) {
+        final step = (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
+        if (step == 'PACKING') {
+          packingProof = proof;
+          break;
+        }
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -1378,110 +1390,135 @@ final orderProv = ref.watch(orderProvider);
           BoxShadow(color: primaryTeal.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, 8)),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Row Jasa Jemput/Antar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                isDelivery ? "Jasa Antar: $priceText" : "Jasa Jemput: $priceText",
-                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal),
-              ),
-              if (isFast)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
-                  child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.red)),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Pitch sebelah kiri warna primaryTeal / merah untuk Fast Track
+            Container(
+              width: 6,
+              decoration: BoxDecoration(
+                color: isFast ? Colors.red : primaryTeal,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          
-          // Row Order Number
-          Row(
-            children: [
-              const Icon(LucideIcons.hash, size: 14, color: Colors.black),
-              const SizedBox(width: 6),
-              Text(
-                "Order: $orderId",
-                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          
-          // Row Nama Pelanggan
-          Row(
-            children: [
-              const Icon(LucideIcons.user, size: 14, color: Colors.black),
-              const SizedBox(width: 6),
-              Text(
-                "Pelanggan: $customerName",
-                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+            ),
+            // Isi Konten Card
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Row Jasa Jemput/Antar
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isDelivery ? "Jasa Antar: $priceText" : "Jasa Jemput: $priceText",
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal),
+                        ),
+                        if (isFast)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
+                            child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.red)),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    
+                    // Row Order Number
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.hash, size: 14, color: Colors.black),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Order: $orderId",
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    
+                    // Row Nama Pelanggan
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.user, size: 14, color: Colors.black),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Pelanggan: $customerName",
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    const Divider(color: Color(0xFFE5E7EB), height: 1, thickness: 1), // Partisi abu-abu
+                    const SizedBox(height: 12),
+
+                    if (isDelivery) ...[
+                      // Ambil dari (Laundry Mitra)
+                      _buildLinkedStepRow(
+                        label: "Ambil dari",
+                        title: laundryName,
+                        address: laundryAddress,
+                        icon: LucideIcons.store,
+                      ),
+                      if (packingProof != null) ...[
+                        const SizedBox(height: 8),
+                        _buildMitraPowPreview(packingProof),
+                      ],
+                      const SizedBox(height: 12),
+
+                      // Antar ke (Alamat Pelanggan)
+                      _buildLinkedStepRow(
+                        label: "Antar ke",
+                        title: customerName,
+                        address: address,
+                        icon: LucideIcons.mapPin,
+                      ),
+                      // Preview POW Kurir setelah upload (local image file)
+                      _buildCourierPowPreview(orderId),
+                    ] else ...[
+                      // Jemput di (Alamat Pelanggan)
+                      _buildLinkedStepRow(
+                        label: "Jemput di",
+                        title: customerName,
+                        address: address,
+                        icon: LucideIcons.mapPin,
+                      ),
+                      // Preview POW Kurir setelah upload (local image file)
+                      _buildCourierPowPreview(orderId),
+                      const SizedBox(height: 12),
+
+                      // Antar ke (Laundry Mitra)
+                      _buildLinkedStepRow(
+                        label: "Antar ke",
+                        title: laundryName,
+                        address: laundryAddress,
+                        icon: LucideIcons.store,
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+
+                    // Upload Foto Cucian
+                    _buildUploadPhotoSection(orderId),
+
+                    // Action Button Selesai Jemput/Antar (Kapsul)
+                    const SizedBox(height: 14),
+                    _buildActionButton(
+                      text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
+                      onPressed: _isUploading ? null : () => _completeTask(orderId, isDelivery),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-          
-          const SizedBox(height: 12),
-          const Divider(color: Color(0xFFE5E7EB), height: 1, thickness: 1), // Partisi abu-abu
-          const SizedBox(height: 12),
-
-          // Urutan Tugas
-          Text(
-            "URUTAN TUGAS",
-            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.8),
-          ),
-          const SizedBox(height: 10),
-
-          if (isDelivery) ...[
-            // Ambil dari (Laundry Mitra)
-            _buildLinkedStepRow(
-              label: "Ambil dari",
-              title: laundryName,
-              address: laundryAddress,
-              icon: LucideIcons.store,
-            ),
-            const SizedBox(height: 12),
-
-            // Antar ke (Alamat Pelanggan)
-            _buildLinkedStepRow(
-              label: "Antar ke",
-              title: customerName,
-              address: address,
-              icon: LucideIcons.mapPin,
-            ),
-          ] else ...[
-            // Jemput di (Alamat Pelanggan)
-            _buildLinkedStepRow(
-              label: "Jemput di",
-              title: customerName,
-              address: address,
-              icon: LucideIcons.mapPin,
-            ),
-            const SizedBox(height: 12),
-
-            // Antar ke (Laundry Mitra)
-            _buildLinkedStepRow(
-              label: "Antar ke",
-              title: laundryName,
-              address: laundryAddress,
-              icon: LucideIcons.store,
             ),
           ],
-          const SizedBox(height: 14),
-
-          // Upload Foto Cucian
-          _buildUploadPhotoSection(orderId),
-
-          // Action Button Selesai Jemput/Antar (Kapsul)
-          const SizedBox(height: 14),
-          _buildActionButton(
-            text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
-            onPressed: _isUploading ? null : () => _completeTask(orderId, isDelivery),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1552,11 +1589,7 @@ final orderProv = ref.watch(orderProvider);
             ],
           );
         }
-      ),
-    );
-  }
-
-  Widget _buildLinkedStepRow({
+       Widget _buildLinkedStepRow({
     required String label,
     required String title,
     required String address,
@@ -1620,6 +1653,478 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
+  Widget _buildMitraPowPreview(dynamic proof) {
+    final String path = (proof['file_url'] ?? proof['imageUrl'] ?? proof['image_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '');
+    if (path.isEmpty) return const SizedBox.shrink();
+    final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Foto Bukti Packing Mitra:",
+          style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
+        ),
+        const SizedBox(height: 4),
+        GestureDetector(
+          onTap: () => _showPowDialog([proof], ['PACKING'], "Packing Mitra"),
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey.shade100,
+                    child: const Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.teal),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 24, color: Colors.grey),
+                ),
+                // Security Watermarks (Rule II.12)
+                Positioned(
+                  top: 10, left: -5,
+                  child: IgnorePointer(
+                    child: Transform.rotate(
+                      angle: -0.785,
+                      child: Text(
+                        'Nyutji',
+                        style: TextStyle(
+                          fontSize: 6,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white.withValues(alpha: 0.35),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Transform.rotate(
+                        angle: -0.785,
+                        child: Text(
+                          'Nyutji',
+                          style: TextStyle(
+                            fontSize: 7,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 10, right: -5,
+                  child: IgnorePointer(
+                    child: Transform.rotate(
+                      angle: -0.785,
+                      child: Text(
+                        'Nyutji',
+                        style: TextStyle(
+                          fontSize: 6,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white.withValues(alpha: 0.35),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCourierPowPreview(String orderId) {
+    final imageFile = _taskCapturedImages[orderId];
+    if (imageFile == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text(
+          "Foto Bukti Kurir (Preview):",
+          style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
+        ),
+        const SizedBox(height: 4),
+        GestureDetector(
+          onTap: () => _showLocalPowDialog(imageFile),
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.file(
+                  imageFile,
+                  fit: BoxFit.cover,
+                ),
+                // Security Watermarks (Rule II.12)
+                Positioned(
+                  top: 10, left: -5,
+                  child: IgnorePointer(
+                    child: Transform.rotate(
+                      angle: -0.785,
+                      child: Text(
+                        'Nyutji',
+                        style: TextStyle(
+                          fontSize: 6,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white.withValues(alpha: 0.35),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Transform.rotate(
+                        angle: -0.785,
+                        child: Text(
+                          'Nyutji',
+                          style: TextStyle(
+                            fontSize: 7,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 10, right: -5,
+                  child: IgnorePointer(
+                    child: Transform.rotate(
+                      angle: -0.785,
+                      child: Text(
+                        'Nyutji',
+                        style: TextStyle(
+                          fontSize: 6,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white.withValues(alpha: 0.35),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title) {
+    if (proofs == null || proofs.isEmpty) return;
+
+    dynamic foundProof;
+    for (var proof in proofs.reversed) {
+      final step = (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
+      if (targetStages.contains(step)) {
+        foundProof = proof;
+        break;
+      }
+    }
+
+    if (foundProof == null) return;
+
+    final String path = (foundProof['file_url'] ?? foundProof['imageUrl'] ?? foundProof['image_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '');
+    final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) {
+        final screenH = MediaQuery.of(ctx).size.height;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Bukti $title",
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkText),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
+                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Foto + Watermarks
+                SizedBox(
+                  height: screenH * 0.55,
+                  child: InteractiveViewer(
+                    panEnabled: true,
+                    minScale: 0.8,
+                    maxScale: 5.0,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Positioned.fill(
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey.shade100,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.teal),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                        // Watermark 1
+                        Positioned(
+                          top: 40, left: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.38),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Watermark 2
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Align(
+                              alignment: const Alignment(0.2, 0.0),
+                              child: Transform.rotate(
+                                angle: -0.785,
+                                child: Text(
+                                  'Nyutji Management',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white.withValues(alpha: 0.42),
+                                    letterSpacing: 1.2,
+                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Watermark 3
+                        Positioned(
+                          bottom: 60, right: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.35),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLocalPowDialog(File file) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) {
+        final screenH = MediaQuery.of(ctx).size.height;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Bukti Foto Kurir",
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkText),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
+                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Foto + Watermarks
+                SizedBox(
+                  height: screenH * 0.55,
+                  child: InteractiveViewer(
+                    panEnabled: true,
+                    minScale: 0.8,
+                    maxScale: 5.0,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Positioned.fill(
+                          child: Image.file(
+                            file,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        // Watermark 1
+                        Positioned(
+                          top: 40, left: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.38),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Watermark 2
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Align(
+                              alignment: const Alignment(0.2, 0.0),
+                              child: Transform.rotate(
+                                angle: -0.785,
+                                child: Text(
+                                  'Nyutji Management',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white.withValues(alpha: 0.42),
+                                    letterSpacing: 1.2,
+                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Watermark 3
+                        Positioned(
+                          bottom: 60, right: -10,
+                          child: IgnorePointer(
+                            child: Transform.rotate(
+                              angle: -0.785,
+                              child: Text(
+                                'Nyutji Management',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white.withValues(alpha: 0.35),
+                                  letterSpacing: 1.0,
+                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildUploadPhotoSection(String orderId) {
     final hasImage = _taskCapturedImages[orderId] != null;
     return Column(
@@ -1661,84 +2166,6 @@ final orderProv = ref.watch(orderProvider);
             ),
           ),
         ),
-        if (hasImage) ...[
-          const SizedBox(height: 10),
-          Container(
-            height: 180,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: Image.file(
-                    _taskCapturedImages[orderId]!,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 30, left: -10,
-                  child: IgnorePointer(
-                    child: Transform.rotate(
-                      angle: -0.785,
-                      child: Text(
-                        'Nyutji Management',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white.withValues(alpha: 0.38),
-                          letterSpacing: 1.0,
-                          shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Align(
-                      alignment: const Alignment(0.2, 0.0),
-                      child: Transform.rotate(
-                        angle: -0.785,
-                        child: Text(
-                          'Nyutji Management',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white.withValues(alpha: 0.42),
-                            letterSpacing: 1.2,
-                            shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 40, right: -10,
-                  child: IgnorePointer(
-                    child: Transform.rotate(
-                      angle: -0.785,
-                      child: Text(
-                        'Nyutji Management',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white.withValues(alpha: 0.35),
-                          letterSpacing: 1.0,
-                          shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ]
       ],
     );
   }
