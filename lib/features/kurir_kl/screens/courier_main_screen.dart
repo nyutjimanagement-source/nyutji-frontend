@@ -1358,8 +1358,6 @@ final orderProv = ref.watch(orderProvider);
     
     final String pickupNote = task['pickup_note']?.toString() ?? task['pickupNote']?.toString() ?? "";
     final String address = pickupNote.isNotEmpty ? "$addressRaw\nCatatan: $pickupNote" : addressRaw;
-    final double distance = double.tryParse((task['distance'] ?? task['distance_km'] ?? '0').toString()) ?? 0.0;
-    final String serviceType = (task['service_type'] ?? task['serviceType'] ?? 'Reguler').toString().toUpperCase();
     
     // Status Order untuk membedakan Jemput vs Antar
     final String orderStatus = (task['status'] ?? task['order_status'] ?? '').toString().toUpperCase();
