@@ -1846,7 +1846,7 @@ final orderProv = ref.watch(orderProvider);
             ],
             if (hasDelivery) ...[
               GestureDetector(
-                onTap: () => _showLocalPowDialog(localDeliveryFile),
+                onTap: () => _showLocalPowDialog(localDeliveryFile, (task['orderNumber'] ?? task['order_number'] ?? '-').toString()),
                 child: Container(
                   width: 80,
                   height: 80,
@@ -1919,6 +1919,22 @@ final orderProv = ref.watch(orderProvider);
 
     final String path = (foundProof['file_url'] ?? foundProof['imageUrl'] ?? foundProof['image_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '');
     final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+
+    final String orderId = (foundProof['orderId'] ?? foundProof['order_id'] ?? '-').toString();
+    final String uploaderRole = (foundProof['uploader_role'] ?? foundProof['uploaderRole'] ?? 'PL').toString().toUpperCase();
+    final String uploaderLabel = uploaderRole == 'ML' ? 'Mitra Laundry'
+        : uploaderRole == 'KL' ? 'Kurir'
+        : 'Pelanggan';
+    String uploadedAt = '-';
+    try {
+      final dt = DateTime.tryParse(foundProof['createdAt']?.toString() ?? '');
+      if (dt != null) {
+        final local = dt.toLocal();
+        final months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        uploadedAt = '${local.day} ${months[local.month - 1]}, '
+            '${local.hour.toString().padLeft(2,'0')}:${local.minute.toString().padLeft(2,'0')} WIB';
+      }
+    } catch (_) {}
 
     showDialog(
       context: context,
@@ -2047,6 +2063,28 @@ final orderProv = ref.watch(orderProvider);
                             ),
                           ),
                         ),
+                        // Info overlay (No Order, Timestamp, Uploader)
+                        Positioned(
+                          bottom: 0, left: 0, right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                                Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -2059,7 +2097,16 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  void _showLocalPowDialog(File file) {
+  void _showLocalPowDialog(File file, String orderId) {
+    final String uploaderLabel = 'Kurir';
+    String uploadedAt = '-';
+    try {
+      final dt = DateTime.now();
+      final months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      uploadedAt = '${dt.day} ${months[dt.month - 1]}, '
+          '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')} WIB';
+    } catch (_) {}
+
     showDialog(
       context: context,
       barrierColor: Colors.black54,
@@ -2171,6 +2218,28 @@ final orderProv = ref.watch(orderProvider);
                                   shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
                                 ),
                               ),
+                            ),
+                          ),
+                        ),
+                        // Info overlay (No Order, Timestamp, Uploader)
+                        Positioned(
+                          bottom: 0, left: 0, right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                                Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                              ],
                             ),
                           ),
                         ),
