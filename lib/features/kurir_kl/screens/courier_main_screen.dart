@@ -1846,7 +1846,7 @@ final orderProv = ref.watch(orderProvider);
             ],
             if (hasDelivery) ...[
               GestureDetector(
-                onTap: () => _showLocalPowDialog(localDeliveryFile, (task['orderNumber'] ?? task['order_number'] ?? '-').toString()),
+                onTap: () => _showLocalPowDialog(localDeliveryFile, orderId),
                 child: Container(
                   width: 80,
                   height: 80,
@@ -2098,7 +2098,7 @@ final orderProv = ref.watch(orderProvider);
   }
 
   void _showLocalPowDialog(File file, String orderId) {
-    final String uploaderLabel = 'Kurir';
+    const String uploaderLabel = 'Kurir';
     String uploadedAt = '-';
     try {
       final dt = DateTime.now();
