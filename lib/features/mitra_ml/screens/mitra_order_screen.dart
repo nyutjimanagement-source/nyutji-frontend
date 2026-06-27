@@ -122,7 +122,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     return "Diterima";
   }
 
-  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title, {String? excludeUploaderRole}) {
+  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title) {
     if (proofs == null || proofs.isEmpty) {
       _showNoPowToast();
       return;
@@ -131,11 +131,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     dynamic foundProof;
     for (var proof in proofs.reversed) {
       final step = (proof['step'] ?? '').toString().toUpperCase();
-      final uploaderRole = (proof['uploader_role'] ?? proof['uploaderRole'] ?? '').toString().toUpperCase();
       if (targetStages.contains(step)) {
-        if (excludeUploaderRole != null && uploaderRole == excludeUploaderRole.toUpperCase()) {
-          continue;
-        }
         foundProof = proof;
         break;
       }
@@ -1345,7 +1341,7 @@ final orderProv = ref.watch(orderProvider);
               "label": "Selesai", 
               "icon": LucideIcons.checkCircle, 
               "active": isStep5,
-              "onTap": () => _showPowDialog(o['proofs'], ['DONE', 'DELIVERING'], "Selesai")
+              "onTap": () => _showPowDialog(o['proofs'], ['DONE'], "Selesai")
             },
           ]
         : [
@@ -1377,13 +1373,13 @@ final orderProv = ref.watch(orderProvider);
               "label": "Kirim", 
               "icon": LucideIcons.navigation, 
               "active": isStep4,
-              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERING'], "Kirim", excludeUploaderRole: 'KL')
+              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERING'], "Kirim")
             },
             {
               "label": "Selesai", 
               "icon": LucideIcons.checkCircle, 
               "active": isStep5,
-              "onTap": () => _showPowDialog(o['proofs'], ['DONE', 'DELIVERING'], "Selesai")
+              "onTap": () => _showPowDialog(o['proofs'], ['DONE'], "Selesai")
             },
           ];
 

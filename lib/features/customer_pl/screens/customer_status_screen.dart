@@ -383,7 +383,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
     return courierStr;
   }
 
-  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title, {String? excludeUploaderRole}) {
+  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title) {
     if (proofs == null || proofs.isEmpty) {
       _showNoPowToast();
       return;
@@ -392,11 +392,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
     dynamic foundProof;
     for (var proof in proofs.reversed) {
       final step = (proof['step'] ?? '').toString().toUpperCase();
-      final uploaderRole = (proof['uploader_role'] ?? proof['uploaderRole'] ?? '').toString().toUpperCase();
       if (targetStages.contains(step)) {
-        if (excludeUploaderRole != null && uploaderRole == excludeUploaderRole.toUpperCase()) {
-          continue;
-        }
         foundProof = proof;
         break;
       }
@@ -951,11 +947,11 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
 
                         // 5. KIRIM (Optional)
                         if (hasDelivery) {
-                          progressWidgets.add(Expanded(child: _buildModernProgress("Kirim", LucideIcons.navigation, isStep5, onTap: () => _showPowDialog(order['proofs'], ['DELIVERING'], "Kirim", excludeUploaderRole: 'KL'))));
+                          progressWidgets.add(Expanded(child: _buildModernProgress("Kirim", LucideIcons.navigation, isStep5, onTap: () => _showPowDialog(order['proofs'], ['DELIVERING'], "Kirim"))));
                         }
 
                         // 6. SELESAI
-                        progressWidgets.add(Expanded(child: _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID', 'DELIVERING'], "Selesai"))));
+                        progressWidgets.add(Expanded(child: _buildModernProgress("Selesai", LucideIcons.checkCircle, isStep6, onTap: () => _showPowDialog(order['proofs'], ['DONE', 'PAID'], "Selesai"))));
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,

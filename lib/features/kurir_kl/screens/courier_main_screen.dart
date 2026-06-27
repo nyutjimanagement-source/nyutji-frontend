@@ -2343,7 +2343,7 @@ final orderProv = ref.watch(orderProvider);
     setState(() => _isUploading = true);
     final provider = ref.read(orderProvider);
     
-    final step = isDelivery ? 'DELIVERING' : 'PICKING_UP';
+    final step = isDelivery ? 'DONE' : 'PICKING_UP';
     final uploadSuccess = await provider.uploadPOWImage(
       orderId, 
       XFile(_taskCapturedImages[orderId]!.path), 
