@@ -15,6 +15,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_loading_overlay.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_dot.dart';
 
 class MitraOrderScreen extends ConsumerStatefulWidget {
   const MitraOrderScreen({super.key});
@@ -482,21 +483,7 @@ final orderProv = ref.watch(orderProvider);
           )),
           if (hasCount) ...[
             const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                count.toString(),
-                style: GoogleFonts.montserrat(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            NyutjiDot.badge(count: count),
           ],
         ]),
       ),

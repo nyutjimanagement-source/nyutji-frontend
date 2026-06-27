@@ -690,10 +690,10 @@ final auth = ref.watch(authProvider);
                     children: [
                       const Divider(),
                       const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text("QRIS Milik Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
-                      ),
+                      //Align(
+                      //  alignment: Alignment.centerLeft,
+                      //  child: Text("QRIS Milik Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      //),
                       const SizedBox(height: 16),
                       
                       // Box Gambar QRIS

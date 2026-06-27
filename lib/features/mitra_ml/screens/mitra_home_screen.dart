@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/widgets/forecast_weather.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../core/widgets/nyutji_dot.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
@@ -448,10 +449,7 @@ final auth = ref.watch(authProvider);
                                     Text("Antrean Cucian Sekarang", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 1),
                                     if (hasOrder) ...[
                                       const SizedBox(width: 6),
-                                      Container(
-                                        width: 6, height: 6,
-                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                      ),
+                                      const NyutjiDot.static(size: 6),
                                     ]
                                   ],
                                 )
@@ -672,20 +670,9 @@ final orderProv = ref.watch(orderProvider);
                   Positioned(
                     right: -4,
                     top: -4,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        badgeCount.toString(),
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    child: NyutjiDot.badge(
+                      count: badgeCount,
+                      borderColor: Colors.white,
                     ),
                   ),
               ],
@@ -773,17 +760,10 @@ final orderProv = ref.watch(orderProvider);
       children: [
         Icon(LucideIcons.store, size: 20, color: isActive ? primaryTeal : textGrey.withValues(alpha: 0.6)),
         if (showRedDot)
-          Positioned(
+          const Positioned(
             top: -2,
             right: -2,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-            ),
+            child: NyutjiDot.static(),
           ),
       ],
     );
