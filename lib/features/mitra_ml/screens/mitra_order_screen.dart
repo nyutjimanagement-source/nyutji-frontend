@@ -1996,6 +1996,9 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
   void initState() {
     super.initState();
     noteController = TextEditingController(text: "Berat timbangan cucian ... kg");
+    if (widget.currentStatus == 'WEIGHING') {
+      selectedStage = 'WEIGHING';
+    }
   }
 
   @override
@@ -2129,7 +2132,9 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                       itemBuilder: (ctx, index) {
                         final s = widget.stages[index];
                         final bool isCurrent = s == selectedStage;
-                        final bool isPast = StatusHelper.getProgressStep(s) <= StatusHelper.getProgressStep(widget.currentStatus);
+                        final bool isPast = s == 'WEIGHING'
+                            ? StatusHelper.getProgressStep(s) < StatusHelper.getProgressStep(widget.currentStatus)
+                            : StatusHelper.getProgressStep(s) <= StatusHelper.getProgressStep(widget.currentStatus);
                         final Map<String, String> statusLabels = {
                           'WAITING_DROPOFF': 'Drop Off',
                           'WEIGHING': 'Penimbangan',
