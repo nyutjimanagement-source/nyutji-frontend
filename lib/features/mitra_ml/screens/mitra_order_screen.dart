@@ -122,7 +122,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     return "Diterima";
   }
 
-  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title) {
+  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title, {String? excludeUploaderRole}) {
     if (proofs == null || proofs.isEmpty) {
       _showNoPowToast();
       return;
@@ -130,7 +130,12 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
 
     dynamic foundProof;
     for (var proof in proofs.reversed) {
-      if (targetStages.contains(proof['step'])) {
+      final step = (proof['step'] ?? '').toString().toUpperCase();
+      final uploaderRole = (proof['uploader_role'] ?? proof['uploaderRole'] ?? '').toString().toUpperCase();
+      if (targetStages.contains(step)) {
+        if (excludeUploaderRole != null && uploaderRole == excludeUploaderRole.toUpperCase()) {
+          continue;
+        }
         foundProof = proof;
         break;
       }
@@ -1372,7 +1377,7 @@ final orderProv = ref.watch(orderProvider);
               "label": "Kirim", 
               "icon": LucideIcons.navigation, 
               "active": isStep4,
-              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERING'], "Kirim")
+              "onTap": () => _showPowDialog(o['proofs'], ['DELIVERING'], "Kirim", excludeUploaderRole: 'KL')
             },
             {
               "label": "Selesai", 
