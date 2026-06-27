@@ -73,7 +73,6 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   final Map<String, File?> _taskCapturedImages = {};
   bool _isUploading = false;
   String _gpsLocationText = "Mendeteksi lokasi...";
-  String _gpsRawCity = ""; // Nama kota/kab untuk filter order 1 kota
   double? _currentLat;  // GPS lat kurir
   double? _currentLng; // GPS lng kurir
   bool _hasDoneAutoSelect = false;
@@ -203,7 +202,6 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
         setState(() {
           _currentLat = pos.latitude;
           _currentLng = pos.longitude;
-          _gpsRawCity = city;
           _gpsLocationText = locStr;
         });
       }
@@ -730,7 +728,7 @@ final orderProv = ref.watch(orderProvider);
               color: const Color(0xFF0284C7).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(LucideIcons.mapPin, size: 14, color: const Color(0xFF0284C7)),
+            child: const Icon(LucideIcons.mapPin, size: 14, color: Color(0xFF0284C7)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -943,63 +941,53 @@ final orderProv = ref.watch(orderProvider);
     required double distance,
     required String serviceType,
   }) {
-    // State slider per item (lokal, tidak butuh StatefulWidget)
-    return StatefulBuilder(
-      builder: (sbCtx, sbSetState) {
-        double _sliderValue = 0.0;
-        return StatefulBuilder(
-          builder: (_, setState2) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. JASA ANTAR — font 20px bold
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "Jasa Antar: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price)}",
-                        style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: primaryTeal),
-                      ),
-                    ),
-                    if (isFast)
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
-                        child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.red)),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. JASA ANTAR — font 20px bold
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Text(
+                "Jasa Antar: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price)}",
+                style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: primaryTeal),
+              ),
+            ),
+            if (isFast)
+              Container(
+                margin: const EdgeInsets.only(left: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
+                child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.red)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
 
-                // 2. Order Number
-                _buildInfoRow(LucideIcons.hash, "Order", orderId, Colors.grey.shade600),
-                const SizedBox(height: 8),
+        // 2. Order Number
+        _buildInfoRow(LucideIcons.hash, "Order", orderId, Colors.grey.shade600),
+        const SizedBox(height: 8),
 
-                // 3. Lokasi Jemput Pelanggan
-                _buildInfoRow(LucideIcons.mapPin, "Jemput", pickup, const Color(0xFF0F766E)),
-                const SizedBox(height: 8),
+        // 3. Lokasi Jemput Pelanggan
+        _buildInfoRow(LucideIcons.mapPin, "Jemput", pickup, const Color(0xFF0F766E)),
+        const SizedBox(height: 8),
 
-                // 4. Lokasi Antar Laundry
-                _buildInfoRow(LucideIcons.store, "Antar ke", "$mitraName — $mitraAddr", const Color(0xFF7C3AED)),
-                const SizedBox(height: 8),
+        // 4. Lokasi Antar Laundry
+        _buildInfoRow(LucideIcons.store, "Antar ke", "$mitraName — $mitraAddr", const Color(0xFF7C3AED)),
+        const SizedBox(height: 8),
 
-                // 5. Jarak
-                _buildInfoRow(LucideIcons.navigation2, "Jarak", "${distance > 0 ? distance.toStringAsFixed(1) : '~'} km", const Color(0xFF0284C7)),
-                const SizedBox(height: 8),
+        // 5. Jarak
+        _buildInfoRow(LucideIcons.navigation2, "Jarak", "${distance > 0 ? distance.toStringAsFixed(1) : '~'} km", const Color(0xFF0284C7)),
+        const SizedBox(height: 8),
 
-                // 6. Jenis Layanan
-                _buildInfoRow(LucideIcons.layers, "Layanan", serviceType, Colors.grey.shade700),
-                const SizedBox(height: 16),
+        // 6. Jenis Layanan
+        _buildInfoRow(LucideIcons.layers, "Layanan", serviceType, Colors.grey.shade700),
+        const SizedBox(height: 16),
 
-                // 7. SLIDER KONFIRMASI "MAU AMBIL"
-                _buildSlideToConfirm(orderId),
-              ],
-            );
-          },
-        );
-      },
+        // 7. SLIDER KONFIRMASI "MAU AMBIL"
+        _buildSlideToConfirm(orderId),
+      ],
     );
   }
 
@@ -1026,25 +1014,25 @@ final orderProv = ref.watch(orderProvider);
         final trackWidth = constraints.maxWidth;
         const thumbSize = 52.0;
         const maxSlide = 1.0;
-        double _val = 0.0;
+        double val = 0.0;
 
         return StatefulBuilder(
           builder: (_, setState) {
-            final thumbOffset = _val * (trackWidth - thumbSize);
-            final isDone = _val >= 0.85;
+            final thumbOffset = val * (trackWidth - thumbSize);
+            final isDone = val >= 0.85;
 
             return GestureDetector(
               onHorizontalDragUpdate: (d) {
-                final newVal = (_val + d.delta.dx / (trackWidth - thumbSize)).clamp(0.0, maxSlide);
-                setState(() => _val = newVal);
+                final newVal = (val + d.delta.dx / (trackWidth - thumbSize)).clamp(0.0, maxSlide);
+                setState(() => val = newVal);
               },
               onHorizontalDragEnd: (_) {
-                if (_val >= 0.85) {
+                if (val >= 0.85) {
                   // Konfirmasi ambil order
                   _doAcceptOrder(orderId);
                 } else {
                   // Snap kembali jika belum cukup
-                  setState(() => _val = 0.0);
+                  setState(() => val = 0.0);
                 }
               },
               child: Container(
@@ -1070,7 +1058,7 @@ final orderProv = ref.watch(orderProvider);
                     // Label teks di belakang
                     Center(
                       child: Opacity(
-                        opacity: (1.0 - _val * 2).clamp(0.0, 1.0),
+                        opacity: (1.0 - val * 2).clamp(0.0, 1.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -1124,11 +1112,11 @@ final orderProv = ref.watch(orderProvider);
     final success = await provider.acceptOrder(orderId);
     if (!mounted) return;
     if (success) {
-      NyutjiNotif.showSuccess(this.context, "Order #$orderId berhasil diambil!");
+      NyutjiNotif.showSuccess(context, "Order #$orderId berhasil diambil!");
       _scrollToTasks();
       _refreshData();
     } else {
-      NyutjiNotif.showError(this.context, provider.errorMessage ?? "Gagal mengambil order");
+      NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengambil order");
     }
   }
 
