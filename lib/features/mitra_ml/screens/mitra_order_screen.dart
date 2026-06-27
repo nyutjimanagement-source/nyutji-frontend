@@ -2287,6 +2287,10 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                     alignment: Alignment.centerRight,
                                     child: InkWell(
                                       onTap: () async {
+                                        if (powImage == null) {
+                                          _showNotif("Wajib ambil foto progress sebelum menyimpan timbangan!", false);
+                                          return;
+                                        }
                                         setState(() { isUploading = true; });
                                         final provider = ref.read(orderProvider);
                                         
