@@ -28,6 +28,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   Map<String, Map<String, dynamic>> _operationalHours = {};
   Map<String, List<Map<String, dynamic>>> _chemicalConsumption = {};
   Map<String, List<Map<String, dynamic>>> _employeeAttendance = {};
+  Map<String, Map<String, dynamic>> _costingConfig = {};
 
   String _chemicalSort = "name_asc";
   String _employeeFilter = "all";
@@ -49,7 +50,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(() {
       if (mounted) {
         setState(() {});
@@ -96,6 +97,17 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           ),
         );
       }
+
+      // 4. Load Costing Config
+      final costCache = CacheService.get('mitra_costing_config');
+      if (costCache != null && costCache is Map) {
+        _costingConfig = costCache.map(
+          (key, value) => MapEntry(
+            key.toString(),
+            Map<String, dynamic>.from(value as Map),
+          ),
+        );
+      }
     } catch (e) {
       debugPrint("Error loading kinerja cache: $e");
     }
@@ -129,11 +141,22 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
             final List<dynamic> emp = item['employee_attendance'] ?? item['employeeAttendance'];
             _employeeAttendance[dateKey] = emp.map((e) => Map<String, dynamic>.from(e as Map)).toList();
           }
+
+          _costingConfig[dateKey] = {
+            "sewaTempatPerTahun": (item['sewa_tempat_per_tahun'] ?? item['sewaTempatPerTahun'] ?? 30000000.00).toDouble(),
+            "biayaBeliMesin": (item['biaya_beli_mesin'] ?? item['biayaBeliMesin'] ?? 50000000.00).toDouble(),
+            "tahunBeliMesin": (item['tahun_beli_mesin'] ?? item['tahunBeliMesin'] ?? 2023).toInt(),
+            "umurEkonomisMesin": (item['umur_ekonomis_mesin'] ?? item['umurEkonomisMesin'] ?? 5).toInt(),
+            "tarifGajiHarian": (item['tarif_gaji_harian'] ?? item['tarifGajiHarian'] ?? 100000.00).toDouble(),
+            "tarifParfum": (item['tarif_parfum'] ?? item['tarifParfum'] ?? 50000.00).toDouble(),
+            "tarifDeterjen": (item['tarif_deterjen'] ?? item['tarifDeterjen'] ?? 25000.00).toDouble(),
+          };
         }
         
         await CacheService.set('mitra_operasional_hours', _operationalHours);
         await CacheService.set('mitra_chemical_consumption', _chemicalConsumption);
         await CacheService.set('mitra_employee_attendance', _employeeAttendance);
+        await CacheService.set('mitra_costing_config', _costingConfig);
         
         if (mounted) setState(() {});
       }
@@ -147,6 +170,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
       final hours = _getOperationalInfoForDate(DateTime.parse(dateKey));
       final chemicals = _getChemicalsForDate(DateTime.parse(dateKey));
       final employees = _getEmployeesForDate(DateTime.parse(dateKey));
+      final costing = _getCostingConfigForDate(DateTime.parse(dateKey));
 
       await ApiService().saveMitraKinerja({
         "date": dateKey,
@@ -155,7 +179,14 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
         "closeTime": hours["closeTime"],
         "notes": hours["note"] ?? "",
         "chemicalConsumption": chemicals,
-        "employeeAttendance": employees
+        "employeeAttendance": employees,
+        "sewaTempatPerTahun": costing["sewaTempatPerTahun"],
+        "biayaBeliMesin": costing["biayaBeliMesin"],
+        "tahunBeliMesin": costing["tahunBeliMesin"],
+        "umurEkonomisMesin": costing["umurEkonomisMesin"],
+        "tarifGajiHarian": costing["tarifGajiHarian"],
+        "tarifParfum": costing["tarifParfum"],
+        "tarifDeterjen": costing["tarifDeterjen"]
       });
     } catch (e) {
       debugPrint("Error saving kinerja to server: $e");
@@ -277,11 +308,18 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           preferredSize: const Size.fromHeight(50),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final double tabWidth = constraints.maxWidth / 4;
+              const double minTabWidth = 95.0;
+              const double totalMinWidth = minTabWidth * 5;
+              final bool isScrollable = constraints.maxWidth < totalMinWidth;
+              
+              final double tabWidth = isScrollable ? minTabWidth : constraints.maxWidth / 5;
+              final double totalWidth = isScrollable ? totalMinWidth : constraints.maxWidth;
+              
               final int selectedIndex = _tabController.index;
               
-              return Container(
+              Widget tabBarContent = Container(
                 height: 50,
+                width: totalWidth,
                 color: Colors.white,
                 child: Stack(
                   children: [
@@ -291,6 +329,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                         _buildTabItem(1, "Jam Kerja", tabWidth),
                         _buildTabItem(2, "Konsumsi", tabWidth),
                         _buildTabItem(3, "Kehadiran", tabWidth),
+                        _buildTabItem(4, "Costing", tabWidth),
                       ],
                     ),
                     AnimatedPositioned(
@@ -320,6 +359,15 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                   ],
                 ),
               );
+
+              if (isScrollable) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: tabBarContent,
+                );
+              }
+              return tabBarContent;
             }
           ),
         ),
@@ -332,6 +380,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           _buildJamKerjaTab(),
           _buildKonsumsiTab(),
           _buildKehadiranTab(),
+          _buildCostingTab(),
         ],
       ),
     );
@@ -1779,6 +1828,344 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
           }
         );
       }
+    );
+  }
+
+  Widget _buildCostingTab() {
+    final costing = _getCostingConfigForDate(_activeDate);
+    final double sewaPerTahun = costing["sewaTempatPerTahun"] ?? 30000000.00;
+    final double biayaBeliMesin = costing["biayaBeliMesin"] ?? 50000000.00;
+    final int tahunBeliMesin = costing["tahunBeliMesin"] ?? 2023;
+    final int umurEkonomisMesin = costing["umurEkonomisMesin"] ?? 5;
+    final double tarifGajiHarian = costing["tarifGajiHarian"] ?? 100000.00;
+    final double tarifParfum = costing["tarifParfum"] ?? 50000.00;
+    final double tarifDeterjen = costing["tarifDeterjen"] ?? 25000.00;
+
+    final chemicals = _getChemicalsForDate(_activeDate);
+    double dailyVarCost = 0;
+    for (var chem in chemicals) {
+      final double pricePerUnit = (chem['name'] == 'Parfum') ? tarifParfum : tarifDeterjen;
+      final double usedAmount = (chem['used'] ?? 0.0) is num 
+          ? (chem['used'] as num).toDouble() 
+          : 0.0;
+      dailyVarCost += usedAmount * pricePerUnit;
+    }
+
+    final employees = _getEmployeesForDate(_activeDate);
+    int totalEmployees = employees.length;
+    double dailyOpCost = totalEmployees * tarifGajiHarian;
+
+    final double penyusutanPerTahun = umurEkonomisMesin > 0 ? (biayaBeliMesin / umurEkonomisMesin) : 0.0;
+    final double penyusutanPerBulan = penyusutanPerTahun / 12;
+    final double penyusutanPerHari = penyusutanPerTahun / 365;
+
+    final double sewaPerBulan = sewaPerTahun / 12;
+    final double sewaPerHari = sewaPerTahun / 365;
+
+    final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final bool isTodaySelected = _activeDate.year == today.year &&
+        _activeDate.month == today.month &&
+        _activeDate.day == today.day;
+    final bool isReadOnlyDate = !isTodaySelected;
+
+    return Column(
+      children: [
+        _buildActiveDateSelector(),
+        
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Parameter Costing Harian",
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkText),
+              ),
+              if (!isReadOnlyDate)
+                TextButton.icon(
+                  onPressed: () => _showEditCostingDialog(),
+                  icon: const Icon(LucideIcons.edit2, size: 14, color: primaryTeal),
+                  label: Text("Atur Biaya", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: primaryTeal)),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                ),
+            ],
+          ),
+        ),
+
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            physics: const BouncingScrollPhysics(),
+            children: [
+              _buildCostingCard(
+                title: "Biaya Sewa Tempat",
+                icon: LucideIcons.home,
+                children: [
+                  _buildCostRow("Sewa per Tahun", "Rp ${_formatCurrency(sewaPerTahun)}"),
+                  _buildCostRow("Estimasi per Bulan", "Rp ${_formatCurrency(sewaPerBulan)}"),
+                  _buildCostRow("Estimasi per Hari", "Rp ${_formatCurrency(sewaPerHari)}"),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildCostingCard(
+                title: "Biaya Beli Mesin Cuci/Dryer",
+                icon: LucideIcons.shoppingCart,
+                children: [
+                  _buildCostRow("Total Pembelian", "Rp ${_formatCurrency(biayaBeliMesin)}"),
+                  _buildCostRow("Tahun Pembelian", "$tahunBeliMesin"),
+                  _buildCostRow("Umur Ekonomis", "$umurEkonomisMesin Tahun"),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildCostingCard(
+                title: "Biaya Penyusutan Mesin",
+                icon: LucideIcons.activity,
+                children: [
+                  Text(
+                    "Rumus: Harga Beli / Umur Ekonomis (Garis Lurus)",
+                    style: GoogleFonts.montserrat(
+                        fontSize: 11, color: textGrey, fontStyle: FontStyle.italic, fontWeight: FontWeight.w400),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildCostRow("Penyusutan per Tahun", "Rp ${_formatCurrency(penyusutanPerTahun)}"),
+                  _buildCostRow("Penyusutan per Bulan", "Rp ${_formatCurrency(penyusutanPerBulan)}"),
+                  _buildCostRow("Penyusutan per Hari", "Rp ${_formatCurrency(penyusutanPerHari)}"),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildCostingCard(
+                title: "Biaya Variabel",
+                icon: LucideIcons.droplet,
+                children: [
+                  Text(
+                    "Diambil dari komponen Konsumsi pada tanggal terpilih.",
+                    style: GoogleFonts.montserrat(
+                        fontSize: 11, color: textGrey, fontStyle: FontStyle.italic, fontWeight: FontWeight.w400),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildCostRow("Tarif Parfum / Liter", "Rp ${_formatCurrency(tarifParfum)}"),
+                  _buildCostRow("Tarif Deterjen / Kg", "Rp ${_formatCurrency(tarifDeterjen)}"),
+                  _buildCostRow("Total Item Konsumsi", "${chemicals.length} Item"),
+                  _buildCostRow("Estimasi Biaya Harian", "Rp ${_formatCurrency(dailyVarCost)}", isBold: true),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildCostingCard(
+                title: "Biaya Operasional",
+                icon: LucideIcons.users,
+                children: [
+                  Text(
+                    "Diambil dari komponen jumlah Pegawai pada tanggal terpilih.",
+                    style: GoogleFonts.montserrat(
+                        fontSize: 11, color: textGrey, fontStyle: FontStyle.italic, fontWeight: FontWeight.w400),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildCostRow("Tarif Gaji Harian per Pegawai", "Rp ${_formatCurrency(tarifGajiHarian)}"),
+                  _buildCostRow("Jumlah Pegawai Aktif", "$totalEmployees Orang"),
+                  _buildCostRow("Estimasi Gaji Harian", "Rp ${_formatCurrency(dailyOpCost)}", isBold: true),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCostingCard({required String title, required IconData icon, required List<Widget> children}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primaryTeal.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 16, color: primaryTeal),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCostRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.montserrat(
+              fontSize: 12,
+              color: textGrey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 12,
+              color: isBold ? primaryTeal : Colors.black87,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _getCostingConfigForDate(DateTime date) {
+    final key = _getDateKey(date);
+    if (_costingConfig.containsKey(key)) {
+      return _costingConfig[key]!;
+    }
+    return {
+      "sewaTempatPerTahun": 30000000.00,
+      "biayaBeliMesin": 50000000.00,
+      "tahunBeliMesin": 2023,
+      "umurEkonomisMesin": 5,
+      "tarifGajiHarian": 100000.00,
+      "tarifParfum": 50000.00,
+      "tarifDeterjen": 25000.00,
+    };
+  }
+
+  String _formatCurrency(double value) {
+    final String intStr = value.round().toString();
+    final RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return intStr.replaceAllMapped(reg, (Match m) => "${m[1]}.");
+  }
+
+  void _showEditCostingDialog() {
+    final key = _getDateKey(_activeDate);
+    final currentConfig = _getCostingConfigForDate(_activeDate);
+
+    final sewaController = TextEditingController(text: (currentConfig["sewaTempatPerTahun"] ?? 30000000.00).toStringAsFixed(0));
+    final capexController = TextEditingController(text: (currentConfig["biayaBeliMesin"] ?? 50000000.00).toStringAsFixed(0));
+    final tahunController = TextEditingController(text: (currentConfig["tahunBeliMesin"] ?? 2023).toString());
+    final umurController = TextEditingController(text: (currentConfig["umurEkonomisMesin"] ?? 5).toString());
+    final gajiController = TextEditingController(text: (currentConfig["tarifGajiHarian"] ?? 100000.00).toStringAsFixed(0));
+    final parfumController = TextEditingController(text: (currentConfig["tarifParfum"] ?? 50000.00).toStringAsFixed(0));
+    final deterjenController = TextEditingController(text: (currentConfig["tarifDeterjen"] ?? 25000.00).toStringAsFixed(0));
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text("Atur Parameter Biaya", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
+          content: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDialogField("Sewa Tempat / Tahun (Rp)", sewaController, isNumber: true),
+                _buildDialogField("Biaya Beli Mesin (Capex) (Rp)", capexController, isNumber: true),
+                _buildDialogField("Tahun Pembelian Mesin", tahunController, isNumber: true),
+                _buildDialogField("Umur Ekonomis Mesin (Tahun)", umurController, isNumber: true),
+                _buildDialogField("Gaji Harian per Pegawai (Rp)", gajiController, isNumber: true),
+                _buildDialogField("Tarif Parfum / Liter (Rp)", parfumController, isNumber: true),
+                _buildDialogField("Tarif Deterjen / Kg (Rp)", deterjenController, isNumber: true),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text("Batal", style: GoogleFonts.montserrat(color: textGrey, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final double sewaVal = double.tryParse(sewaController.text) ?? 30000000.00;
+                final double capexVal = double.tryParse(capexController.text) ?? 50000000.00;
+                final int tahunVal = int.tryParse(tahunController.text) ?? 2023;
+                final int umurVal = int.tryParse(umurController.text) ?? 5;
+                final double gajiVal = double.tryParse(gajiController.text) ?? 100000.00;
+                final double parfumVal = double.tryParse(parfumController.text) ?? 50000.00;
+                final double deterjenVal = double.tryParse(deterjenController.text) ?? 25000.00;
+
+                _costingConfig[key] = {
+                  "sewaTempatPerTahun": sewaVal,
+                  "biayaBeliMesin": capexVal,
+                  "tahunBeliMesin": tahunVal,
+                  "umurEkonomisMesin": umurVal,
+                  "tarifGajiHarian": gajiVal,
+                  "tarifParfum": parfumVal,
+                  "tarifDeterjen": deterjenVal,
+                };
+
+                await CacheService.set('mitra_costing_config', _costingConfig);
+                setState(() {});
+                Navigator.pop(ctx);
+                _saveToServer(key);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryTeal,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text("Simpan", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildDialogField(String label, TextEditingController controller, {bool isNumber = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: textGrey)),
+          const SizedBox(height: 4),
+          TextField(
+            controller: controller,
+            keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+            style: GoogleFonts.montserrat(fontSize: 12),
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
