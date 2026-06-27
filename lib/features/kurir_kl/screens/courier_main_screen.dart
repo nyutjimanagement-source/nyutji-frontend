@@ -681,11 +681,11 @@ final orderProv = ref.watch(orderProvider);
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              _buildCountRow("Ada $kecCount order di Kec. $districtName", const Color(0xFF10B981), LucideIcons.mapPin),
+              _buildCountRow("Ada $kecCount order di Kec. $districtName", const Color(0xFF3F7D7E), LucideIcons.mapPin),
               const SizedBox(height: 6),
-              _buildCountRow("Ada $kotaCount order radius 15km lebih", const Color(0xFF0284C7), LucideIcons.circle),
+              _buildCountRow("Ada $kotaCount order radius 15km lebih", const Color(0xFFBF9F70), LucideIcons.circle),
               const SizedBox(height: 6),
-              _buildCountRow("Ada $radiusCount order radius 25km lebih", const Color(0xFF7C3AED), LucideIcons.globe),
+              _buildCountRow("Ada $radiusCount order radius 25km lebih", const Color(0xFFC3402E), LucideIcons.globe),
             ],
           ),
         );
@@ -695,14 +695,14 @@ final orderProv = ref.watch(orderProvider);
 
   Widget _buildCountRow(String text, Color color, IconData icon) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
             text,
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start,
             style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: color),
           ),
         ),
@@ -861,10 +861,10 @@ final orderProv = ref.watch(orderProvider);
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: primaryTeal.withValues(alpha: 0.08),
+                          color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(LucideIcons.zap, size: 18, color: primaryTeal),
+                        child: const Icon(LucideIcons.zap, size: 18, color: Colors.black),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -872,7 +872,7 @@ final orderProv = ref.watch(orderProvider);
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "ORDER TERSEDIA",
+                              "Order Tersedia",
                               style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkText, letterSpacing: 0.8),
                             ),
                             Text(
@@ -960,23 +960,23 @@ final orderProv = ref.watch(orderProvider);
         const SizedBox(height: 10),
 
         // 2. Order Number
-        _buildInfoRow(LucideIcons.hash, "Order", orderId, Colors.grey.shade600),
+        _buildInfoRow(LucideIcons.hash, "Order", orderId, Colors.black),
         const SizedBox(height: 8),
 
         // 3. Lokasi Jemput Pelanggan
-        _buildInfoRow(LucideIcons.mapPin, "Jemput", pickup, const Color(0xFF0F766E)),
+        _buildInfoRow(LucideIcons.mapPin, "Jemput", pickup, Colors.black),
         const SizedBox(height: 8),
 
         // 4. Lokasi Antar Laundry
-        _buildInfoRow(LucideIcons.store, "Antar ke", "$mitraName — $mitraAddr", const Color(0xFF7C3AED)),
+        _buildInfoRow(LucideIcons.store, "Antar ke", "$mitraName — $mitraAddr", Colors.black),
         const SizedBox(height: 8),
 
         // 5. Jarak
-        _buildInfoRow(LucideIcons.navigation2, "Jarak", "${distance > 0 ? distance.toStringAsFixed(1) : '~'} km", const Color(0xFF0284C7)),
+        _buildInfoRow(LucideIcons.navigation2, "Jarak", "${distance > 0 ? distance.toStringAsFixed(1) : '~'} km", Colors.black),
         const SizedBox(height: 8),
 
         // 6. Jenis Layanan
-        _buildInfoRow(LucideIcons.layers, "Layanan", serviceType, Colors.grey.shade700),
+        _buildInfoRow(LucideIcons.layers, "Layanan", serviceType, Colors.black),
         const SizedBox(height: 16),
 
         // 7. SLIDER KONFIRMASI "MAU AMBIL"
@@ -1062,11 +1062,11 @@ final orderProv = ref.watch(orderProvider);
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(LucideIcons.chevronsRight, size: 16, color: textGrey),
+                            Icon(LucideIcons.chevronsRight, size: 18, color: textGrey),
                             const SizedBox(width: 4),
                             Text(
                               "Mau Ambil",
-                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textGrey),
+                              style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w700, color: textGrey),
                             ),
                           ],
                         ),
@@ -1176,7 +1176,7 @@ final orderProv = ref.watch(orderProvider);
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(26),
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -1193,7 +1193,7 @@ final orderProv = ref.watch(orderProvider);
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(22),
                             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
                           ),
                         ),
@@ -1365,291 +1365,125 @@ final orderProv = ref.watch(orderProvider);
     final String orderStatus = (task['status'] ?? task['order_status'] ?? '').toString().toUpperCase();
     final bool isDelivery = orderStatus == 'DELIVERING';
 
+    final String priceText = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price);
+    final String laundryName = task['mitra']?['name']?.toString() ?? task['mitra_name']?.toString() ?? 'Mitra Laundry';
+    final String laundryAddress = task['mitra']?['address']?.toString() ?? task['mitra_address']?.toString() ?? 'Alamat Laundry';
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: primaryTeal.withValues(alpha: 0.05)),
-        boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.08), blurRadius: 24, offset: const Offset(0, 8))],
+        border: Border.all(color: primaryTeal.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(color: primaryTeal.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Status Strip Indicator
-            Container(
-              width: 8,
-              decoration: BoxDecoration(color: isFast ? Colors.red : primaryTeal, borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), bottomLeft: Radius.circular(20))),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ROW 1: ID & BADGE
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w800, color: textGrey)),
-                        if (isFast)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(4)),
-                            child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.red)),
-                          )
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    // ROW 2: NAME & PRICE
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            customerName, 
-                            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: darkText),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price),
-                          style: GoogleFonts.montserrat(fontWeight: FontWeight.w900, fontSize: 16, color: amberGold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // ROW 3: ADDRESS
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(LucideIcons.mapPin, size: 14, color: primaryTeal),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                address,
-                                style: GoogleFonts.montserrat(fontSize: 13, color: primaryTeal, fontWeight: FontWeight.w700),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text("${distance.toStringAsFixed(1)} Km \u2022 $serviceType", style: GoogleFonts.montserrat(fontSize: 11, color: primaryTeal, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => _openMap(address),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.15), shape: BoxShape.circle),
-                                child: Icon(LucideIcons.navigation, color: primaryTeal, size: 24),
-                              ),
-                              const SizedBox(height: 4),
-                              Text("Tekan Menuju Lokasi", 
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.montserrat(fontSize: 7, color: primaryTeal, fontWeight: FontWeight.w900, letterSpacing: -0.2)
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // URUTAN TUGAS KURIR (GENIUS FLOW)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: primaryTeal.withValues(alpha: 0.1)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("URUTAN TUGAS", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 1)),
-                          const SizedBox(height: 12),
-                          
-                          // JEMPUT / ANTAR
-                          _buildStepItem(
-                            isDelivery ? "Antar Cucian" : "Jemput Cucian", 
-                            LucideIcons.mapPin, 
-                            true, 
-                            onTap: () => _openMap(address)
-                          ),
-                          _buildStepDivider(),
-
-                          // UPLOAD FOTO
-                          _buildStepItem(
-                            "Upload Foto Cucian", 
-                            LucideIcons.camera, 
-                            _taskCapturedImages[orderId] != null,
-                            onTap: () => _captureTaskPhoto(orderId)
-                          ),
-                          
-                          if (_taskCapturedImages[orderId] != null) ...[
-                            const SizedBox(height: 12),
-                            Container(
-                              height: 180,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Stack(
-                                children: [
-                                  Positioned.fill(
-                                    child: Image.file(
-                                      _taskCapturedImages[orderId]!,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  // Watermark 1 — kiri atas
-                                  Positioned(
-                                    top: 30, left: -10,
-                                    child: IgnorePointer(
-                                      child: Transform.rotate(
-                                        angle: -0.785,
-                                        child: Text(
-                                          'Nyutji Management',
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white.withValues(alpha: 0.38),
-                                            letterSpacing: 1.0,
-                                            shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  // Watermark 2 — tengah
-                                  Positioned.fill(
-                                    child: IgnorePointer(
-                                      child: Align(
-                                        alignment: const Alignment(0.2, 0.0),
-                                        child: Transform.rotate(
-                                          angle: -0.785,
-                                          child: Text(
-                                            'Nyutji Management',
-                                            style: GoogleFonts.montserrat(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w900,
-                                              color: Colors.white.withValues(alpha: 0.42),
-                                              letterSpacing: 1.2,
-                                              shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  // Watermark 3 — kanan bawah
-                                  Positioned(
-                                    bottom: 40, right: -10,
-                                    child: IgnorePointer(
-                                      child: Transform.rotate(
-                                        angle: -0.785,
-                                        child: Text(
-                                          'Nyutji Management',
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white.withValues(alpha: 0.35),
-                                            letterSpacing: 1.0,
-                                            shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          _buildStepDivider(),
-
-                          // 3. SELESAI
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isUploading ? null : () async {
-                                  if (_taskCapturedImages[orderId] == null) {
-                                    NyutjiNotif.showError(context, "Wajib upload foto sebelum Selesai!");
-                                    return;
-                                  }
-                                  
-                                  setState(() => _isUploading = true);
-                                  final provider = ref.read(orderProvider);
-                                  
-                                  // Step 2: UPLOAD FOTO POW (Real via API)
-                                  final step = isDelivery ? 'DELIVERING' : 'PICKING_UP';
-                                  final uploadSuccess = await provider.uploadPOWImage(
-                                    orderId, 
-                                    XFile(_taskCapturedImages[orderId]!.path), 
-                                    step
-                                  );
-
-                                  if (!uploadSuccess) {
-                                    if (mounted) {
-                                      setState(() => _isUploading = false);
-                                      NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengunggah foto. Coba lagi.");
-                                    }
-                                    return;
-                                  }
-
-                                  // Step 3: Trigger NEXT STATUS (WEIGHING atau DONE)
-                                  final String nextStatus = isDelivery ? 'DONE' : 'WEIGHING';
-                                  final success = await provider.updateOrderStatus(orderId, nextStatus);
-                                  
-                                  if (mounted) {
-                                    setState(() => _isUploading = false);
-                                    if (success) {
-                                      _taskCapturedImages.remove(orderId);
-                                      if (isDelivery) {
-                                        NyutjiNotif.showSuccess(context, "Tugas Selesai! Cucian telah diterima pelanggan.");
-                                      } else {
-                                        NyutjiNotif.showSuccess(context, "Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).");
-                                      }
-                                      _refreshData();
-                                    } else {
-                                      NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal memperbarui status");
-                                    }
-                                  }
-                                },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryTeal,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                elevation: 4,
-                                shadowColor: primaryTeal.withValues(alpha: 0.3),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              child: _isUploading 
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : Text(isDelivery ? "SELESAI ANTAR" : "SELESAI JEMPUT", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row Jasa Jemput/Antar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                isDelivery ? "Jasa Antar: $priceText" : "Jasa Jemput: $priceText",
+                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal),
               ),
+              if (isFast)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
+                  child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.red)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // Row Order Number
+          Row(
+            children: [
+              const Icon(LucideIcons.hash, size: 14, color: Colors.black),
+              const SizedBox(width: 6),
+              Text(
+                "Order: $orderId",
+                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          
+          // Row Nama Pelanggan
+          Row(
+            children: [
+              const Icon(LucideIcons.user, size: 14, color: Colors.black),
+              const SizedBox(width: 6),
+              Text(
+                "Pelanggan: $customerName",
+                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          const Divider(color: Color(0xFFE5E7EB), height: 1, thickness: 1), // Partisi abu-abu
+          const SizedBox(height: 12),
+
+          // Urutan Tugas
+          Text(
+            "URUTAN TUGAS",
+            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.8),
+          ),
+          const SizedBox(height: 10),
+
+          if (isDelivery) ...[
+            // Ambil dari (Laundry Mitra)
+            _buildLinkedStepRow(
+              label: "Ambil dari",
+              title: laundryName,
+              address: laundryAddress,
+              icon: LucideIcons.store,
+            ),
+            const SizedBox(height: 12),
+
+            // Antar ke (Alamat Pelanggan)
+            _buildLinkedStepRow(
+              label: "Antar ke",
+              title: customerName,
+              address: address,
+              icon: LucideIcons.mapPin,
+            ),
+          ] else ...[
+            // Jemput di (Alamat Pelanggan)
+            _buildLinkedStepRow(
+              label: "Jemput di",
+              title: customerName,
+              address: address,
+              icon: LucideIcons.mapPin,
+            ),
+            const SizedBox(height: 12),
+
+            // Antar ke (Laundry Mitra)
+            _buildLinkedStepRow(
+              label: "Antar ke",
+              title: laundryName,
+              address: laundryAddress,
+              icon: LucideIcons.store,
             ),
           ],
-        ),
+          const SizedBox(height: 14),
+
+          // Upload Foto Cucian
+          _buildUploadPhotoSection(orderId),
+
+          // Action Button Selesai Jemput/Antar (Kapsul)
+          const SizedBox(height: 14),
+          _buildActionButton(
+            text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
+            onPressed: _isUploading ? null : () => _completeTask(orderId, isDelivery),
+          ),
+        ],
       ),
     );
   }
@@ -1724,41 +1558,269 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-
-  Widget _buildStepItem(String title, IconData icon, bool isDone, {VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: isDone ? accentGreen : primaryTeal),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title, 
-                style: GoogleFonts.montserrat(
-                  fontSize: 14, 
-                  fontWeight: isDone ? FontWeight.w800 : FontWeight.w600, 
-                  color: isDone ? accentGreen : darkText,
-                  decoration: onTap != null ? TextDecoration.underline : null,
-                  decorationColor: isDone ? accentGreen : primaryTeal,
-                )
-              ),
-            ),
-            if (isDone) const Icon(LucideIcons.checkCircle2, size: 16, color: Color(0xFF10B981)),
-          ],
+  Widget _buildLinkedStepRow({
+    required String label,
+    required String title,
+    required String address,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "$label:",
+          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: textGrey),
         ),
+        const SizedBox(height: 4),
+        InkWell(
+          onTap: () => _openMap(address),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, size: 16, color: const Color(0xFF0284C7)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0284C7),
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        address,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: darkText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(LucideIcons.externalLink, size: 14, color: Color(0xFF0284C7)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUploadPhotoSection(String orderId) {
+    final hasImage = _taskCapturedImages[orderId] != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => _captureTaskPhoto(orderId),
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: hasImage ? Colors.green.shade50 : const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: hasImage ? Colors.green.shade200 : Colors.grey.shade300),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.camera,
+                  size: 16,
+                  color: hasImage ? Colors.green.shade700 : Colors.black87,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Upload Foto Cucian",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: hasImage ? Colors.green.shade700 : Colors.black87,
+                    ),
+                  ),
+                ),
+                if (hasImage)
+                  Icon(LucideIcons.checkCircle2, size: 16, color: Colors.green.shade700)
+                else
+                  const Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
+        if (hasImage) ...[
+          const SizedBox(height: 10),
+          Container(
+            height: 180,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.file(
+                    _taskCapturedImages[orderId]!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 30, left: -10,
+                  child: IgnorePointer(
+                    child: Transform.rotate(
+                      angle: -0.785,
+                      child: Text(
+                        'Nyutji Management',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white.withValues(alpha: 0.38),
+                          letterSpacing: 1.0,
+                          shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Align(
+                      alignment: const Alignment(0.2, 0.0),
+                      child: Transform.rotate(
+                        angle: -0.785,
+                        child: Text(
+                          'Nyutji Management',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white.withValues(alpha: 0.42),
+                            letterSpacing: 1.2,
+                            shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 40, right: -10,
+                  child: IgnorePointer(
+                    child: Transform.rotate(
+                      angle: -0.785,
+                      child: Text(
+                        'Nyutji Management',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white.withValues(alpha: 0.35),
+                          letterSpacing: 1.0,
+                          shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ]
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required String text,
+    required VoidCallback? onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryTeal,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor: primaryTeal.withValues(alpha: 0.2),
+          shape: const StadiumBorder(),
+        ),
+        child: _isUploading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : Text(
+                text.toUpperCase(),
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              ),
       ),
     );
   }
 
-  Widget _buildStepDivider() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 30),
-      child: Divider(height: 1, color: primaryTeal.withValues(alpha: 0.1)),
+  Future<void> _completeTask(String orderId, bool isDelivery) async {
+    if (_taskCapturedImages[orderId] == null) {
+      NyutjiNotif.showError(context, "Wajib upload foto sebelum Selesai!");
+      return;
+    }
+    
+    setState(() => _isUploading = true);
+    final provider = ref.read(orderProvider);
+    
+    final step = isDelivery ? 'DELIVERING' : 'PICKING_UP';
+    final uploadSuccess = await provider.uploadPOWImage(
+      orderId, 
+      XFile(_taskCapturedImages[orderId]!.path), 
+      step
     );
-  }
 
+    if (!uploadSuccess) {
+      if (mounted) {
+        setState(() => _isUploading = false);
+        NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengunggah foto. Coba lagi.");
+      }
+      return;
+    }
+
+    final String nextStatus = isDelivery ? 'DONE' : 'WEIGHING';
+    final success = await provider.updateOrderStatus(orderId, nextStatus);
+    
+    if (mounted) {
+      setState(() => _isUploading = false);
+      if (success) {
+        _taskCapturedImages.remove(orderId);
+        if (isDelivery) {
+          NyutjiNotif.showSuccess(context, "Tugas Selesai! Cucian telah diterima pelanggan.");
+        } else {
+          NyutjiNotif.showSuccess(context, "Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).");
+        }
+        _refreshData();
+      } else {
+        NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal memperbarui status");
+      }
+    }
+  }
 }
+
+
