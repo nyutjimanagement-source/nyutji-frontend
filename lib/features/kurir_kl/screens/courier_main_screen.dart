@@ -1589,7 +1589,11 @@ final orderProv = ref.watch(orderProvider);
             ],
           );
         }
-       Widget _buildLinkedStepRow({
+      ),
+    );
+  }
+
+  Widget _buildLinkedStepRow({
     required String label,
     required String title,
     required String address,
