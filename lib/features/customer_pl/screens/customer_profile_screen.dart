@@ -318,8 +318,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     final user = auth.user;
     final mainAddress = user?['address']?.toString() ?? 'Pilih Lokasi Rumah';
     final addressDetail = user?['address_detail']?.toString() ?? '';
-    final district = user?['district_name']?.toString() ?? user?['owner_district_name']?.toString() ?? '-';
-    final city = user?['city_name']?.toString() ?? user?['owner_city_name']?.toString() ?? '-';
     final hasAddress = user?['address'] != null && 
                        user!['address'].toString().isNotEmpty && 
                        user['address'].toString() != 'Pilih Lokasi Rumah' &&
