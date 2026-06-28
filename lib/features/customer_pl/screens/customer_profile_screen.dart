@@ -13,6 +13,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../core/widgets/nyutji_dot.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -563,14 +564,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                   Text(title, style: NyutjiTheme.body(isDanger ? Colors.red : NyutjiTheme.darkText).copyWith(fontSize: 13, fontWeight: FontWeight.w700)),
                   if (showRedDot) ...[
                     const SizedBox(width: 6),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                    const NyutjiDot.static(size: 8),
                   ],
                 ],
               ),
