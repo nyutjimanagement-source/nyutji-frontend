@@ -49,6 +49,8 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   final Map<String, int> _selectedItems = {};
   
   final ScrollController _catScrollController = ScrollController();
+  final GlobalKey _scrollViewKey = GlobalKey();
+  final Map<String, GlobalKey> _categoryKeys = {};
 
   @override
   void initState() {
@@ -319,36 +321,61 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
     );
   }
 
+  void _scrollCategoryIntoView(String cat) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_catScrollController.hasClients) return;
+      final pillBox = _categoryKeys[cat]?.currentContext?.findRenderObject() as RenderBox?;
+      final scrollBox = _scrollViewKey.currentContext?.findRenderObject() as RenderBox?;
+      if (pillBox == null || scrollBox == null) return;
+
+      const double pad = 16.0;
+      final double viewW = _catScrollController.position.viewportDimension;
+
+      // Posisi kapsul relatif terhadap tepi kiri scroll view (sudah memperhitungkan offset scroll saat ini)
+      final pillLocal = pillBox.localToGlobal(Offset.zero, ancestor: scrollBox);
+      final double pillLeft = pillLocal.dx;
+      final double pillRight = pillLeft + pillBox.size.width;
+
+      double target = _catScrollController.offset;
+
+      if (pillRight > viewW - pad) {
+        // Terpotong di kanan: geser kanan secukupnya, rata margin kanan
+        target = target + pillRight - viewW + pad;
+      } else if (pillLeft < pad) {
+        // Terpotong di kiri: geser kiri secukupnya, rata margin kiri
+        target = target + pillLeft - pad;
+      }
+      // Sudah terlihat penuh: tidak perlu geser
+
+      _catScrollController.animateTo(
+        target.clamp(0.0, _catScrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
   Widget _buildCategorySelector() {
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: SingleChildScrollView(
+        key: _scrollViewKey,
         controller: _catScrollController,
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: _groupedData.keys.toList().asMap().entries.map((entry) {
-            int index = entry.key;
-            String cat = entry.value;
+          children: _groupedData.keys.map((cat) {
             bool isSelected = _selectedCategory == cat;
+            _categoryKeys.putIfAbsent(cat, () => GlobalKey());
             return Padding(
+              key: _categoryKeys[cat],
               padding: const EdgeInsets.only(right: 8),
               child: InkWell(
                 onTap: () {
                   setState(() => _selectedCategory = cat);
-                  if (_catScrollController.hasClients) {
-                    double targetOffset = index * 120.0;
-                    final maxScroll = _catScrollController.position.maxScrollExtent;
-                    if (targetOffset > maxScroll) targetOffset = maxScroll;
-                    if (targetOffset < 0) targetOffset = 0;
-                    _catScrollController.animateTo(
-                      targetOffset,
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeOutCubic,
-                    );
-                  }
+                  _scrollCategoryIntoView(cat);
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
