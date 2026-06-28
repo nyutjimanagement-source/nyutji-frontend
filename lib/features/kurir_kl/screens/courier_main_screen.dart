@@ -2182,6 +2182,10 @@ final orderProv = ref.watch(orderProvider);
 
   Widget _buildUploadPhotoSection(String orderId, dynamic task, bool isDelivery) {
     final hasImage = _taskCapturedImages[orderId] != null;
+    final bool isSuccessGreen = isDelivery
+        ? (hasImage && _simulatedCorrectLocation[orderId] == true)
+        : hasImage;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2191,16 +2195,16 @@ final orderProv = ref.watch(orderProvider);
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: hasImage ? Colors.green.shade50 : const Color(0xFFF3F4F6),
+              color: isSuccessGreen ? Colors.green.shade50 : const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: hasImage ? Colors.green.shade200 : Colors.grey.shade300),
+              border: Border.all(color: isSuccessGreen ? Colors.green.shade200 : Colors.grey.shade300),
             ),
             child: Row(
               children: [
                 Icon(
                   LucideIcons.camera,
                   size: 16,
-                  color: hasImage ? Colors.green.shade700 : Colors.black87,
+                  color: isSuccessGreen ? Colors.green.shade700 : Colors.black87,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -2209,11 +2213,11 @@ final orderProv = ref.watch(orderProvider);
                     style: GoogleFonts.montserrat(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: hasImage ? Colors.green.shade700 : Colors.black87,
+                      color: isSuccessGreen ? Colors.green.shade700 : Colors.black87,
                     ),
                   ),
                 ),
-                if (hasImage)
+                if (isSuccessGreen)
                   Icon(LucideIcons.checkCircle2, size: 16, color: Colors.green.shade700)
                 else
                   const Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey),
