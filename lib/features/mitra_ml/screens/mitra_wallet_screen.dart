@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../../data/services/api_service.dart';
 import '../../auth/screens/pin_screen.dart' as pin_screen;
 import 'mitra_profile_screen.dart';
 
@@ -23,6 +27,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
 
   String _selectedFilter = 'Mingguan'; 
   final List<String> _filters = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan'];
+  String? _dailyHeaderImageUrl;
 
   @override
   void initState() {
@@ -30,7 +35,38 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(walletProvider).fetchWallet();
       ref.read(orderProvider).fetchOrders();
+      _loadDailyHeaderImage();
     });
+  }
+
+  Future<void> _loadDailyHeaderImage() async {
+    try {
+      final auth = ref.read(authProvider);
+      final mitraId = auth.user?['identifier'];
+      if (mitraId != null) {
+        final api = ApiService();
+        final items = await api.getMitraItems(mitraId);
+        final photoItems = items.where((item) {
+          final photo = item['url_photo']?.toString();
+          return photo != null && photo.isNotEmpty;
+        }).toList();
+        
+        if (photoItems.isNotEmpty) {
+          final date = DateTime.now();
+          final seed = date.year * 10000 + date.month * 100 + date.day;
+          final random = Random(seed);
+          final selectedItem = photoItems[random.nextInt(photoItems.length)];
+          final urlPhoto = selectedItem['url_photo'];
+          if (mounted) {
+            setState(() {
+              _dailyHeaderImageUrl = "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/$urlPhoto";
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Gagal memuat gambar inventory harian: $e");
+    }
   }
 
   // --- CALCULATIONS ---
@@ -213,45 +249,97 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
   }
 
   Widget _buildHeader(BuildContext context, double balance, bool isLoading) {
+    final double topPadding = MediaQuery.of(context).padding.top + 20;
+ 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 20, 20, 30),
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF2DD4BF), Color(0xFF134E4A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Dompet Utama Mitra", style: GoogleFonts.montserrat(fontSize: 14, color: Colors.white70, fontWeight: FontWeight.w600)),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), 
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)), 
-                child: Row(
-                  children: [
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle)),
-                    const SizedBox(width: 6),
-                    Text("AKTIF", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+          // 1. Background Image (if available)
+          if (_dailyHeaderImageUrl != null)
+            Positioned.fill(
+              child: CachedNetworkImage(
+                imageUrl: _dailyHeaderImageUrl!,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(color: const Color(0xFF134E4A)),
+                errorWidget: (context, url, error) => Container(color: const Color(0xFF134E4A)),
+              ),
+            )
+          else
+            Positioned.fill(
+              child: Container(
+                color: const Color(0xFF134E4A),
+              ),
+            ),
+ 
+          // 2. Gradient Overlay (mempertahankan degradasi hitam ke hijau dari kanan ke kiri, transparan)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF134E4A).withValues(alpha: 0.65), // kiri (hijau tua transparan)
+                    Colors.black.withValues(alpha: 0.8),            // kanan (hitam transparan)
                   ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 ),
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 16),
-          Text("Total Kredit Tersedia", style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white60)),
-          const SizedBox(height: 4),
-          isLoading
-              ? const ShimmerLoading(height: 40, width: 200, borderRadius: 8, baseColor: Colors.white24, highlightColor: Colors.white54)
-              : Text(Formatters.currencyIdr(balance), style: GoogleFonts.montserrat(fontSize: 38, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1.5)),
+ 
+          // 3. Content
+          Padding(
+            padding: EdgeInsets.fromLTRB(20, topPadding, 20, 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Dompet Utama Mitra",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Total Kredit Tersedia",
+                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.white60),
+                ),
+                const SizedBox(height: 4),
+                isLoading
+                    ? const ShimmerLoading(
+                        height: 40,
+                        width: 200,
+                        borderRadius: 8,
+                        baseColor: Colors.white24,
+                        highlightColor: Colors.white54,
+                      )
+                    : Text(
+                        Formatters.currencyIdr(balance),
+                        style: GoogleFonts.montserrat(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -1.5,
+                        ),
+                      ),
+              ],
+            ),
+          ),
         ],
       ),
     );

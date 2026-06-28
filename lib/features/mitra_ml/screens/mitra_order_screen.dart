@@ -484,7 +484,7 @@ final orderProv = ref.watch(orderProvider);
           )),
           if (hasCount) ...[
             const SizedBox(width: 6),
-            NyutjiDot.badge(count: count),
+            NyutjiDot.badge(count: count, fontSize: 12),
           ],
         ]),
       ),

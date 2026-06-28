@@ -11,6 +11,7 @@ class NyutjiDot extends StatefulWidget {
   final String? text;
   final Color textColor;
   final Color? borderColor;
+  final double? fontSize;
 
   /// 1. Constructor untuk Dot Statis Pasif (contoh: indikator belum isi Bank/Alamat/PIN)
   const NyutjiDot.static({
@@ -21,6 +22,7 @@ class NyutjiDot extends StatefulWidget {
        count = null,
        text = null,
        textColor = Colors.white,
+       fontSize = null,
        borderColor = null;
 
   /// 2. Constructor untuk Dot Berkedip (contoh: status sistem atau peta online)
@@ -32,6 +34,7 @@ class NyutjiDot extends StatefulWidget {
        count = null,
        text = null,
        textColor = Colors.white,
+       fontSize = null,
        borderColor = null;
 
   /// 3. Constructor untuk Lencana Angka (contoh: Lonceng Notifikasi / Ikon Keranjang)
@@ -41,6 +44,7 @@ class NyutjiDot extends StatefulWidget {
     this.color = const Color(0xFFC3312E),
     this.textColor = Colors.white,
     this.borderColor,
+    this.fontSize,
   }) : type = NyutjiDotType.badge,
        size = 18.0,
        text = null;
@@ -54,6 +58,7 @@ class NyutjiDot extends StatefulWidget {
   }) : type = NyutjiDotType.text,
        size = 18.0,
        count = null,
+       fontSize = null,
        borderColor = null;
 
   @override
@@ -94,6 +99,7 @@ class _NyutjiDotState extends State<NyutjiDot> with SingleTickerProviderStateMix
     if (widget.type == NyutjiDotType.badge) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: widget.color,
           borderRadius: BorderRadius.circular(10),
@@ -106,7 +112,7 @@ class _NyutjiDotState extends State<NyutjiDot> with SingleTickerProviderStateMix
           '${widget.count}',
           style: GoogleFonts.montserrat(
             color: widget.textColor,
-            fontSize: 9,
+            fontSize: widget.fontSize ?? 9,
             fontWeight: FontWeight.bold,
             height: 1.1,
           ),
