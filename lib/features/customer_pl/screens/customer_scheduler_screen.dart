@@ -526,7 +526,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
         backgroundColor: const Color(0xFF403600),
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(icon: const Icon(LucideIcons.chevronLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
         title: Text("Jadwal Assistent Nyutji", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
       ),
       body: RefreshIndicator(

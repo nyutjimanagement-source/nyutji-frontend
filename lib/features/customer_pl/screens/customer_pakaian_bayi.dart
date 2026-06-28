@@ -543,7 +543,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
         backgroundColor: primaryTeal,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
           onPressed: () {
             if (_currentStep > 1) {
               setState(() => _currentStep--);
