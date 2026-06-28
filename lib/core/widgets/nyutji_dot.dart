@@ -97,28 +97,58 @@ class _NyutjiDotState extends State<NyutjiDot> with SingleTickerProviderStateMix
     }
 
     if (widget.type == NyutjiDotType.badge) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: widget.color,
-          borderRadius: BorderRadius.circular(10),
-          border: widget.borderColor != null 
-              ? Border.all(color: widget.borderColor!, width: 1.5) 
-              : null,
-        ),
-        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-        child: Text(
-          '${widget.count}',
-          style: GoogleFonts.montserrat(
-            color: widget.textColor,
-            fontSize: widget.fontSize ?? 9,
-            fontWeight: FontWeight.bold,
-            height: 1.1,
+      final int countVal = widget.count ?? 0;
+      final bool isSingleDigit = countVal < 10;
+      final double fs = widget.fontSize ?? 9;
+      final double badgeSize = fs + 10; // fs=12 -> 22, fs=9 -> 19
+      
+      if (isSingleDigit) {
+        return Container(
+          width: badgeSize,
+          height: badgeSize,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: widget.color,
+            shape: BoxShape.circle,
+            border: widget.borderColor != null 
+                ? Border.all(color: widget.borderColor!, width: 1.5) 
+                : null,
           ),
-          textAlign: TextAlign.center,
-        ),
-      );
+          child: Text(
+            '$countVal',
+            style: GoogleFonts.montserrat(
+              color: widget.textColor,
+              fontSize: fs,
+              fontWeight: FontWeight.bold,
+              height: 1.0,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        );
+      } else {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: widget.color,
+            borderRadius: BorderRadius.circular(10),
+            border: widget.borderColor != null 
+                ? Border.all(color: widget.borderColor!, width: 1.5) 
+                : null,
+          ),
+          constraints: BoxConstraints(minWidth: badgeSize, minHeight: badgeSize),
+          child: Text(
+            '$countVal',
+            style: GoogleFonts.montserrat(
+              color: widget.textColor,
+              fontSize: fs,
+              fontWeight: FontWeight.bold,
+              height: 1.0,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        );
+      }
     }
 
     if (widget.type == NyutjiDotType.text) {
