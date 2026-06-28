@@ -51,12 +51,6 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   final ScrollController _catScrollController = ScrollController();
 
   @override
-  void dispose() {
-    _catScrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   void initState() {
     super.initState();
     if (widget.initialSelected != null) {
@@ -68,6 +62,7 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
 
   @override
   void dispose() {
+    _catScrollController.dispose();
     for (var ctrl in _editControllers.values) {
       ctrl.dispose();
     }
