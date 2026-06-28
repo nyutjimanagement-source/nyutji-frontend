@@ -6,6 +6,8 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import '../../../data/services/api_service.dart';
 
 class CustomerOkBayarScreen extends ConsumerStatefulWidget {
   final int grandTotal;
@@ -15,6 +17,7 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
   final String speed;
   final String address;
   final String districtName;
+  final dynamic mitraId;
   final String mitraName;
   final int totalItems;
   final bool isPickup;
@@ -31,6 +34,7 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
     required this.speed,
     required this.address,
     required this.districtName,
+    required this.mitraId,
     required this.mitraName,
     required this.totalItems,
     required this.isPickup,
@@ -44,6 +48,40 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
+  bool _isLoadingQris = false;
+  String? _qrisPayload;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.selectedPayment == 'QRIS') {
+      _loadMitraQris();
+    }
+  }
+
+  Future<void> _loadMitraQris() async {
+    setState(() {
+      _isLoadingQris = true;
+    });
+    try {
+      final api = ApiService();
+      final qris = await api.getMitraQris(widget.mitraId);
+      if (mounted) {
+        setState(() {
+          _qrisPayload = qris;
+          _isLoadingQris = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading Mitra QRIS: $e");
+      if (mounted) {
+        setState(() {
+          _isLoadingQris = false;
+        });
+      }
+    }
+  }
+
   String _getShortenedAddress(String fullAddress) {
     if (fullAddress.isEmpty) return "";
     List<String> parts = fullAddress.split(',');
@@ -156,31 +194,43 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
             children: [
               // Header Nota
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 24),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                 decoration: const BoxDecoration(
                   color: Colors.transparent,
                 ),
-                child: Column(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(LucideIcons.fileText, color: NyutjiTheme.m3Primary, size: 36),
-                    const SizedBox(height: 10),
-                    Text(
-                      notaTitle, 
-                      style: GoogleFonts.montserrat(
-                        color: Colors.black87, 
-                        fontWeight: FontWeight.w900, 
-                        fontSize: 16,
-                        letterSpacing: -0.3,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            notaTitle, 
+                            style: GoogleFonts.montserrat(
+                              color: Colors.black87, 
+                              fontWeight: FontWeight.w900, 
+                              fontSize: 16,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            notaSubtitle, 
+                            style: GoogleFonts.montserrat(
+                              color: Colors.grey[600], 
+                              fontSize: 12, 
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      notaSubtitle, 
-                      style: GoogleFonts.montserrat(
-                        color: Colors.grey[600], 
-                        fontSize: 12, 
-                        fontWeight: FontWeight.w600,
-                      ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      LucideIcons.fileText, 
+                      color: NyutjiTheme.m3Primary.withValues(alpha: 0.8), 
+                      size: 28,
                     ),
                   ],
                 ),
@@ -223,24 +273,54 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
 
               if (widget.selectedPayment == 'QRIS')
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+                  padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
                   child: Column(
                     children: [
-                      Text("Scan QR Code di bawah ini:", style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: CachedNetworkImage(
-                          imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/300px-QR_code_for_mobile_English_Wikipedia.svg.png',
-                          width: 150,
-                          height: 150,
-                          errorWidget: (_, __, ___) => const Icon(LucideIcons.qrCode, size: 150, color: Colors.black87),
-                        ),
+                      Text(
+                        "Scan QR Code di bawah ini:", 
+                        style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold),
                       ),
+                      const SizedBox(height: 12),
+                      if (_isLoadingQris)
+                        const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (_qrisPayload != null && _qrisPayload!.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey[200]!, width: 1.5),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: QrImageView(
+                            data: _qrisPayload!,
+                            version: QrVersions.auto,
+                            size: 160.0,
+                            eyeStyle: const QrEyeStyle(
+                              eyeShape: QrEyeShape.square,
+                              color: Colors.black87,
+                            ),
+                            dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.square,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            "Mitra Laundry belum mengaktifkan pembayaran QRIS.",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12, 
+                              color: Colors.red[600], 
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                     ],
                   ),
                 ),

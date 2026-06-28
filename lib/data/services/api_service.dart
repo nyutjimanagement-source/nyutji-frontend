@@ -537,6 +537,25 @@ class ApiService {
     }
   }
 
+  Future<String?> getMitraQris(dynamic mitraId) async {
+    final cacheKey = 'mitra_qris_$mitraId';
+    try {
+      final response = await _dio.get("/mitras/$mitraId/qris");
+      final payload = response.data['qris_payload'];
+      if (payload != null) {
+        await CacheService.set(cacheKey, payload);
+      }
+      return payload;
+    } catch (e) {
+      debugPrint("Gagal mengambil mitra QRIS dari API, mencoba cache: $e");
+      final cached = CacheService.get(cacheKey);
+      if (cached != null && cached is String) {
+        return cached;
+      }
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>> updateMitraPricing(dynamic mitraId, List<Map<String, dynamic>> items) async {
     // Mengirim pembaruan harga ke backend (Sinkronisasi Database SQL)
     try {

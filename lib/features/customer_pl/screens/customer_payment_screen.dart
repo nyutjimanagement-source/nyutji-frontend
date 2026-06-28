@@ -181,6 +181,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
           speed: widget.speed,
           address: widget.address,
           districtName: widget.districtName,
+          mitraId: widget.mitraId,
           mitraName: widget.mitraName,
           totalItems: widget.totalItems,
           isPickup: widget.isPickup,
