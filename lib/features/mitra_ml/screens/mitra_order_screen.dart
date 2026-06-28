@@ -28,7 +28,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
   static const Color darkText = Color(0xFF111827);
   static const Color textGrey = Color(0xFF6B7280);
 
-  String currentFilter = "Same Day";
+  String currentFilter = "Reguler";
   final Set<String> _expandedIds = {};
   late PageController _pageController;
   late ScrollController _summaryScrollController;
@@ -425,7 +425,7 @@ final orderProv = ref.watch(orderProvider);
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  ...["Same Day", "Reguler", "Selesai"].map((f) {
+                  ...["Reguler", "Same Day", "Selesai"].map((f) {
                     int count = 0;
                     final allList = [...orderProv.activeOrders, ...orderProv.historyOrders];
                     for (var o in allList) {
@@ -617,16 +617,16 @@ final orderProv = ref.watch(orderProvider);
       child: Row(
         children: [
           _buildSummaryCard(
-            label: "Same Day",
-            value: "${currencyFormatter.format(totalSameDay)} | $countSameDay",
-            isActive: currentFilter == "Same Day",
-            activeColor: const Color(0xFFEA580C),
-            icon: LucideIcons.zap,
+            label: "Reguler",
+            value: "${currencyFormatter.format(totalReguler)} | $countReguler",
+            isActive: currentFilter == "Reguler",
+            activeColor: const Color(0xFF2563EB),
+            icon: LucideIcons.calendar,
             onTap: () {
               _animateScrolls(0);
-              if (currentFilter != "Same Day") {
+              if (currentFilter != "Reguler") {
                 setState(() {
-                  currentFilter = "Same Day";
+                  currentFilter = "Reguler";
                   _currentPage = 0;
                 });
                 if (_pageController.hasClients) _pageController.jumpToPage(0);
@@ -634,16 +634,16 @@ final orderProv = ref.watch(orderProvider);
             },
           ),
           _buildSummaryCard(
-            label: "Reguler",
-            value: "${currencyFormatter.format(totalReguler)} | $countReguler",
-            isActive: currentFilter == "Reguler",
-            activeColor: const Color(0xFF2563EB),
-            icon: LucideIcons.calendar,
+            label: "Same Day",
+            value: "${currencyFormatter.format(totalSameDay)} | $countSameDay",
+            isActive: currentFilter == "Same Day",
+            activeColor: const Color(0xFFEA580C),
+            icon: LucideIcons.zap,
             onTap: () {
               _animateScrolls(1);
-              if (currentFilter != "Reguler") {
+              if (currentFilter != "Same Day") {
                 setState(() {
-                  currentFilter = "Reguler";
+                  currentFilter = "Same Day";
                   _currentPage = 0;
                 });
                 if (_pageController.hasClients) _pageController.jumpToPage(0);
