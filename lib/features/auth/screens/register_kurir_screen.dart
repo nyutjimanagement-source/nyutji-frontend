@@ -91,6 +91,7 @@ class _RegisterKurirScreenState extends ConsumerState<RegisterKurirScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF3E0),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
             const SizedBox(height: 60),
@@ -100,7 +101,7 @@ class _RegisterKurirScreenState extends ConsumerState<RegisterKurirScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(LucideIcons.chevronLeft, color: primaryOrange),
+                    icon: const Icon(LucideIcons.arrowLeft, color: primaryOrange),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Spacer(),

@@ -80,6 +80,7 @@ class _RegisterPelangganScreenState extends ConsumerState<RegisterPelangganScree
     return Scaffold(
       backgroundColor: const Color(0xFFE8F5E9),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
             const SizedBox(height: 60),
@@ -89,7 +90,7 @@ class _RegisterPelangganScreenState extends ConsumerState<RegisterPelangganScree
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(LucideIcons.chevronLeft, color: primaryGreen),
+                    icon: const Icon(LucideIcons.arrowLeft, color: primaryGreen),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Spacer(),

@@ -236,6 +236,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF0F0),
       body: NestedScrollView(
+        physics: const BouncingScrollPhysics(),
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverToBoxAdapter(
@@ -248,7 +249,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(LucideIcons.chevronLeft, color: primaryColor),
+                            icon: const Icon(LucideIcons.arrowLeft, color: primaryColor),
                             onPressed: () => Navigator.pop(context),
                           ),
                           const Spacer(),

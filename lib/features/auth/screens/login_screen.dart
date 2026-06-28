@@ -209,6 +209,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
                 const SizedBox(height: 60),
