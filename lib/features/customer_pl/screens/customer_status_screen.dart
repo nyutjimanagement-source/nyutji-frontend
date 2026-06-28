@@ -833,13 +833,18 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                                     Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Icon(
-                                          (orderNote.toLowerCase().contains('timbangan') || orderNote.toLowerCase().contains('berat'))
-                                              ? LucideIcons.scale
-                                              : LucideIcons.info,
-                                          color: const Color(0xFF403600),
-                                          size: 16,
-                                        ),
+                                        (orderNote.toLowerCase().contains('timbangan') || orderNote.toLowerCase().contains('berat'))
+                                            ? Image.asset(
+                                                'assets/icons/scale.png',
+                                                width: 16,
+                                                height: 16,
+                                                color: const Color(0xFF403600),
+                                              )
+                                            : const Icon(
+                                                LucideIcons.info,
+                                                color: Color(0xFF403600),
+                                                size: 16,
+                                              ),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
