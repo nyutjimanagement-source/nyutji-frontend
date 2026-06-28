@@ -391,21 +391,16 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    auth.isLoading
-                    ? const ShimmerLoading(height: 18, width: 250, borderRadius: 4)
-                    : Text(mainAddress, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    if (addressDetail.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      auth.isLoading
-                      ? const ShimmerLoading(height: 14, width: 200, borderRadius: 4)
-                      : Text(addressDetail, style: NyutjiTheme.detail(Colors.grey[600]!), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    ],
-
-                    const SizedBox(height: 8),
-                    auth.isLoading
-                    ? const ShimmerLoading(height: 14, width: 150, borderRadius: 4)
-                    : Text("$district, $city", style: NyutjiTheme.detail(Colors.grey[400]!).copyWith(fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 16),
+                     auth.isLoading
+                     ? const ShimmerLoading(height: 18, width: 250, borderRadius: 4)
+                     : Text(mainAddress, style: NyutjiTheme.body(NyutjiTheme.darkText).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                     if (addressDetail.isNotEmpty) ...[
+                       const SizedBox(height: 4),
+                       auth.isLoading
+                       ? const ShimmerLoading(height: 14, width: 200, borderRadius: 4)
+                       : Text(addressDetail, style: NyutjiTheme.detail(Colors.grey[600]!)),
+                     ],
+                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
                          NyutjiNotif.showInfo(context, "Fitur Tambah Alamat akan segera hadir");
@@ -551,7 +546,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey[50]!, width: 1))
+          border: Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1))
         ),
         child: Row(
           children: [
