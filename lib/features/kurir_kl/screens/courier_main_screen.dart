@@ -1112,12 +1112,6 @@ final orderProv = ref.watch(orderProvider);
                                         color: _tabController.index == 0 ? primaryTeal : textGrey,
                                       ),
                                     ),
-                                    // Dot merah Jemput (sesuai Rule II.20 — NyutjiDot)
-                                    if (pickupCount > 0)
-                                      const Padding(
-                                        padding: EdgeInsets.only(left: 5, bottom: 10),
-                                        child: NyutjiDot.static(size: 6),
-                                      ),
                                   ],
                                 ),
                               ),
@@ -1144,12 +1138,6 @@ final orderProv = ref.watch(orderProvider);
                                         color: _tabController.index == 1 ? primaryTeal : textGrey,
                                       ),
                                     ),
-                                    // Dot merah Antar (sesuai Rule II.20 — NyutjiDot)
-                                    if (deliveryCount > 0)
-                                      const Padding(
-                                        padding: EdgeInsets.only(left: 5, bottom: 10),
-                                        child: NyutjiDot.static(size: 6),
-                                      ),
                                   ],
                                 ),
                               ),
