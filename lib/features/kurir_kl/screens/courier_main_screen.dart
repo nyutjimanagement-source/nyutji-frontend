@@ -70,6 +70,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   int _selectedNavIndex = 0;
   Timer? _refreshTimer;
   final Map<String, File?> _taskCapturedImages = {};
+  final Map<String, bool?> _simulatedCorrectLocation = {};
   bool _isUploading = false;
   String _gpsLocationText = "Mendeteksi lokasi...";
   bool _hasDoneAutoSelect = false;
@@ -270,20 +271,58 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     );
   }
 
-  Future<void> _captureTaskPhoto(String orderId) async {
+  Future<void> _captureTaskPhoto(String orderId, dynamic task, bool isDelivery) async {
     final ImagePicker picker = ImagePicker();
     final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
     
     if (photo != null) {
       if (mounted) NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
       final compressed = await NyutjiImagePicker.compressToWebP(photo);
+      if (mounted) {
+        NyutjiLoadingOverlay.hide(context);
+        NyutjiLoadingOverlay.show(context, message: "Mengambil Koordinat GPS & Mengunggah...");
+      }
+
+      double? capturedLat;
+      double? capturedLng;
+      try {
+        final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        capturedLat = pos.latitude;
+        capturedLng = pos.longitude;
+      } catch (e) {
+        capturedLat = -6.3456;
+        capturedLng = 106.7423;
+      }
+
+      final provider = ref.read(orderProvider);
+      final step = isDelivery ? 'DONE' : 'PICKING_UP';
+      final uploadSuccess = await provider.uploadPOWImage(
+        orderId, 
+        XFile(compressed?.path ?? photo.path), 
+        step,
+        lat: capturedLat,
+        lng: capturedLng,
+      );
+
       if (mounted) NyutjiLoadingOverlay.hide(context);
+
+      if (!uploadSuccess) {
+        if (mounted) {
+          NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengunggah foto POW");
+        }
+        return;
+      }
 
       if (mounted) {
         setState(() {
           _taskCapturedImages[orderId] = File(compressed?.path ?? photo.path);
         });
-        NyutjiNotif.showSuccess(context, "Foto berhasil diambil. Jangan lupa tekan Selesai.");
+        
+        if (isDelivery) {
+          _showSimulationBottomSheet(orderId, task);
+        } else {
+          NyutjiNotif.showSuccess(context, "Foto berhasil diunggah & disimpan.");
+        }
       }
     }
   }
@@ -1359,13 +1398,16 @@ final orderProv = ref.watch(orderProvider);
                     const SizedBox(height: 14),
 
                     // Upload Foto Cucian
-                    _buildUploadPhotoSection(orderId),
+                    _buildUploadPhotoSection(orderId, task, isDelivery),
 
                     // Action Button Selesai Jemput/Antar (Kapsul)
                     const SizedBox(height: 14),
                     _buildActionButton(
                       text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
-                      onPressed: _isUploading ? null : () => _completeTask(orderId, isDelivery),
+                      isEnabled: !isDelivery
+                          ? (_taskCapturedImages[orderId] != null && !_isUploading)
+                          : (_taskCapturedImages[orderId] != null && _simulatedCorrectLocation[orderId] == true && !_isUploading),
+                      onPressed: () => _completeTask(orderId, isDelivery),
                     ),
                   ],
                 ),
@@ -2138,13 +2180,13 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  Widget _buildUploadPhotoSection(String orderId) {
+  Widget _buildUploadPhotoSection(String orderId, dynamic task, bool isDelivery) {
     final hasImage = _taskCapturedImages[orderId] != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: () => _captureTaskPhoto(orderId),
+          onTap: () => _captureTaskPhoto(orderId, task, isDelivery),
           borderRadius: BorderRadius.circular(10),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -2185,17 +2227,23 @@ final orderProv = ref.watch(orderProvider);
 
   Widget _buildActionButton({
     required String text,
-    required VoidCallback? onPressed,
+    required bool isEnabled,
+    required VoidCallback onPressed,
   }) {
+    final Color btnColor = isEnabled ? primaryTeal : Colors.grey.shade400;
+    final Color txtColor = isEnabled ? Colors.white : Colors.white75;
+
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryTeal,
-          foregroundColor: Colors.white,
-          elevation: 2,
+          backgroundColor: btnColor,
+          foregroundColor: txtColor,
+          disabledBackgroundColor: Colors.grey.shade300,
+          disabledForegroundColor: Colors.grey.shade500,
+          elevation: isEnabled ? 2 : 0,
           shadowColor: primaryTeal.withValues(alpha: 0.2),
           shape: const StadiumBorder(),
         ),
@@ -2226,21 +2274,6 @@ final orderProv = ref.watch(orderProvider);
     setState(() => _isUploading = true);
     final provider = ref.read(orderProvider);
     
-    final step = isDelivery ? 'DONE' : 'PICKING_UP';
-    final uploadSuccess = await provider.uploadPOWImage(
-      orderId, 
-      XFile(_taskCapturedImages[orderId]!.path), 
-      step
-    );
-
-    if (!uploadSuccess) {
-      if (mounted) {
-        setState(() => _isUploading = false);
-        NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengunggah foto. Coba lagi.");
-      }
-      return;
-    }
-
     final String nextStatus = isDelivery ? 'DONE' : 'WEIGHING';
     final success = await provider.updateOrderStatus(orderId, nextStatus);
     
@@ -2248,6 +2281,7 @@ final orderProv = ref.watch(orderProvider);
       setState(() => _isUploading = false);
       if (success) {
         _taskCapturedImages.remove(orderId);
+        _simulatedCorrectLocation.remove(orderId);
         if (isDelivery) {
           NyutjiNotif.showSuccess(context, "Tugas Selesai! Cucian telah diterima pelanggan.");
         } else {
@@ -2258,6 +2292,242 @@ final orderProv = ref.watch(orderProvider);
         NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal memperbarui status");
       }
     }
+  }
+
+  void _showSimulationBottomSheet(String orderId, dynamic task) {
+    final double destLat = double.tryParse((task['pickupLat'] ?? task['pickup_lat'] ?? task['lat'] ?? task['latitude'] ?? '-6.34789').toString()) ?? -6.34789;
+    final double destLng = double.tryParse((task['pickupLng'] ?? task['pickup_lng'] ?? task['lng'] ?? task['longitude'] ?? '106.74012').toString()) ?? 106.74012;
+
+    final double wrongLat = destLat + 0.00456;
+    final double wrongLng = destLng - 0.00512;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(context).padding.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Simulasi Verifikasi GPS",
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: darkText,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "Pilih lokasi pengiriman kurir untuk memverifikasi apakah koordinat Anda sesuai dengan alamat antar pelanggan.",
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  color: textGrey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              _buildSimOptionCard(
+                title: "Lokasi Kurir Sesuai Alamat Antar (Benar)",
+                coords: "Lat: $destLat, Lng: $destLng",
+                isCorrect: true,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _simulatedCorrectLocation[orderId] = true;
+                  });
+                  NyutjiNotif.showSuccess(this.context, "Verifikasi Lokasi Berhasil! Koordinat kurir cocok dengan alamat antar.");
+                },
+              ),
+              const SizedBox(height: 12),
+
+              _buildSimOptionCard(
+                title: "Lokasi Kurir di Luar Radius Antar (Salah)",
+                coords: "Lat: $wrongLat, Lng: $wrongLng",
+                isCorrect: false,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _simulatedCorrectLocation[orderId] = false;
+                  });
+                  _showWrongLocationDialog();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSimOptionCard({
+    required String title,
+    required String coords,
+    required bool isCorrect,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isCorrect ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isCorrect ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
+                shape: BoxShape.circle,
+               ),
+               child: Icon(
+                 isCorrect ? LucideIcons.check : LucideIcons.x,
+                 color: isCorrect ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                 size: 18,
+               ),
+             ),
+             const SizedBox(width: 14),
+             Expanded(
+               child: Column(
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                   Text(
+                     title,
+                     style: GoogleFonts.montserrat(
+                       fontSize: 13,
+                       fontWeight: FontWeight.w700,
+                       color: darkText,
+                     ),
+                   ),
+                   const SizedBox(height: 2),
+                   Text(
+                     coords,
+                     style: GoogleFonts.montserrat(
+                       fontSize: 11,
+                       color: textGrey,
+                       fontWeight: FontWeight.w600,
+                     ),
+                   ),
+                 ],
+               ),
+             ),
+           ],
+         ),
+       ),
+     );
+   }
+
+  void _showWrongLocationDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFEF2F2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.alertTriangle,
+                    color: Color(0xFFDC2626),
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  "Lokasi Antar Salah",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF991B1B),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "Cek kembali Lokasi Alamat Antar sesuai koordinat Map",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    color: darkText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC2626),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      "OK",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

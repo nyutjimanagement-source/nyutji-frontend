@@ -351,10 +351,12 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> uploadPOWImage(String orderNumber, XFile image, String step) async {
+  Future<Map<String, dynamic>> uploadPOWImage(String orderNumber, XFile image, String step, {double? lat, double? lng}) async {
     final formData = FormData.fromMap({
       'step': step,
       'pow': await MultipartFile.fromFile(image.path, filename: image.name),
+      if (lat != null) 'lat': lat.toString(),
+      if (lng != null) 'lng': lng.toString(),
     });
     
     final response = await _dio.post("/orders/$orderNumber/pow", data: formData);

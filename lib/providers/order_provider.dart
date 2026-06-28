@@ -558,12 +558,12 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> uploadPOWImage(String orderId, XFile image, String step) async {
+  Future<bool> uploadPOWImage(String orderId, XFile image, String step, {double? lat, double? lng}) async {
     _isLoading = true;
     _errorMessage = null;
     _safeNotifyListeners();
     try {
-      await _api.uploadPOWImage(orderId, image, step);
+      await _api.uploadPOWImage(orderId, image, step, lat: lat, lng: lng);
       _isLoading = false;
       _safeNotifyListeners();
       return true;
