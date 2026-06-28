@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -99,7 +100,9 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) {
-        NyutjiNotif.showError(context, "Gagal memproses gambar.");
+        if (mounted) {
+          NyutjiNotif.showError(context, "Gagal memproses gambar.");
+        }
         return;
       }
       
@@ -377,6 +380,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
           ),
         ),
       ),
+    ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
