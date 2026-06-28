@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import '../../../providers/auth_provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../data/services/api_service.dart';
 import 'dart:io';
