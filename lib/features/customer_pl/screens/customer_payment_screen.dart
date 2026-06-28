@@ -185,6 +185,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
           totalItems: widget.totalItems,
           isPickup: widget.isPickup,
           selectedPayment: _selectedPayment,
+          pickupNote: widget.pickupNote,
           onPay: (finishDate) {
             _processPayment(grandTotal, finishDate);
           },

@@ -19,6 +19,7 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
   final int totalItems;
   final bool isPickup;
   final String selectedPayment;
+  final String pickupNote;
   final void Function(DateTime finishDate) onPay;
 
   const CustomerOkBayarScreen({
@@ -34,6 +35,7 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
     required this.totalItems,
     required this.isPickup,
     required this.selectedPayment,
+    this.pickupNote = '',
     required this.onPay,
   });
 
@@ -42,6 +44,32 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
+  String _getShortenedAddress(String fullAddress) {
+    if (fullAddress.isEmpty) return "";
+    List<String> parts = fullAddress.split(',');
+    
+    int stopIndex = -1;
+    for (int i = 0; i < parts.length; i++) {
+      String partLower = parts[i].toLowerCase();
+      if (partLower.contains('kota') || 
+          partLower.contains('kab.') || 
+          partLower.contains('kabupaten')) {
+        stopIndex = i;
+        break;
+      }
+    }
+    
+    if (stopIndex != -1) {
+      return parts.sublist(0, stopIndex + 1).map((e) => e.trim()).join(', ');
+    }
+    
+    if (parts.length > 2) {
+      return parts.sublist(0, parts.length - 2).map((e) => e.trim()).join(', ');
+    }
+    
+    return fullAddress.trim();
+  }
+
   Widget _notaRow(String label, String value, {bool isBold = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -64,7 +92,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
             flex: 6,
             child: Text(
               value, 
-              textAlign: TextAlign.end,
+              textAlign: TextAlign.left,
               style: GoogleFonts.montserrat(
                 fontSize: 13, 
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w600, 
@@ -169,14 +197,14 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
                     
                     // SMART SUMMARY LOGIC
                     if (widget.orderType == 'pickup') ...[
-                      _notaRow("Alamat Pickup", "${widget.address}, ${widget.districtName}"),
+                      _notaRow("Alamat Pickup", "${_getShortenedAddress(widget.address)}, ${widget.districtName}"),
                       _notaRow("Mitra Laundry", widget.mitraName),
                       _notaRow("Pengantaran", "Kurir Antar ke Alamat Pelanggan"),
                     ] else ...[
                       _notaRow("Lokasi Laundry", widget.mitraName),
                       _notaRow("Metode Antar", "Mandiri oleh Pelanggan"),
                       if (widget.dropMethod == 'courier')
-                        _notaRow("Alamat Pengiriman", widget.address)
+                        _notaRow("Alamat Pengiriman", _getShortenedAddress(widget.address))
                       else
                         _notaRow("Pengambilan", "Diambil Sendiri oleh Pelanggan"),
                     ],
@@ -185,6 +213,8 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
                     _notaRow("Est. Selesai", DateFormat('dd MMM yyyy').format(finishDate)),
                     const Divider(height: 24, thickness: 1, color: Color(0xFFF3F4F6)),
                     _notaRow("Items Cucian", "${widget.totalItems} Items (Kiloan & Satuan)"),
+                    if (widget.pickupNote.trim().isNotEmpty)
+                      _notaRow("Notes Pelanggan", widget.pickupNote.trim()),
                     _notaRow(widget.isPickup ? "Est. Total Biaya" : "Total Biaya", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(widget.grandTotal), isBold: true),
                     _notaRow("Metode Bayar", widget.selectedPayment, isBold: true),
                   ],
