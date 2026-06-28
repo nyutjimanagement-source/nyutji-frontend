@@ -561,9 +561,9 @@ final orderProv = ref.watch(orderProvider);
   }
 
   void _animateSummaryScrollForFilter(String filter) {
-    if (filter == "Same Day") {
+    if (filter == "Reguler") {
       _animateScrolls(0);
-    } else if (filter == "Reguler") {
+    } else if (filter == "Same Day") {
       _animateScrolls(1);
     } else if (filter == "Selesai") {
       _animateScrolls(2);

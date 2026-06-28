@@ -47,6 +47,14 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
   final Set<String> _selectedForEdit = {};
   final Map<String, TextEditingController> _editControllers = {};
   final Map<String, int> _selectedItems = {};
+  
+  final ScrollController _catScrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _catScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -321,17 +329,31 @@ class _MitraPricingScreenState extends ConsumerState<MitraPricingScreen> {
       color: Colors.transparent,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: SingleChildScrollView(
+        controller: _catScrollController,
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: _groupedData.keys.map((cat) {
+          children: _groupedData.keys.toList().asMap().entries.map((entry) {
+            int index = entry.key;
+            String cat = entry.value;
             bool isSelected = _selectedCategory == cat;
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: InkWell(
                 onTap: () {
                   setState(() => _selectedCategory = cat);
+                  if (_catScrollController.hasClients) {
+                    double targetOffset = index * 120.0;
+                    final maxScroll = _catScrollController.position.maxScrollExtent;
+                    if (targetOffset > maxScroll) targetOffset = maxScroll;
+                    if (targetOffset < 0) targetOffset = 0;
+                    _catScrollController.animateTo(
+                      targetOffset,
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOutCubic,
+                    );
+                  }
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
