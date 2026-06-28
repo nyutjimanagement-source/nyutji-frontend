@@ -627,7 +627,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       pinned: true,
       backgroundColor: primaryTeal,
       elevation: 0,
-      leading: IconButton(icon: const Icon(LucideIcons.chevronLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
+      leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
       title: Text(widget.orderType == 'pickup' ? cT['title_pickup'] : cT['title_drop'], style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
       centerTitle: true,
     );
