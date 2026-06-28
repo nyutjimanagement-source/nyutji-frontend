@@ -1019,11 +1019,18 @@ final orderProv = ref.watch(orderProvider);
       final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
       if (isSelfDrop) return false;
       final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
-      return s == 'SEARCHING' || s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
+      return s == 'SEARCHING' ||
+             s == 'WAITING_DROPOFF' || 
+             s == 'COURIER_ACCEPTED' || 
+             s == 'PICKING_UP' || 
+             s == 'WEIGHING' || 
+             s == 'WASH_START' || 
+             s == 'IN_PROGRESS' || 
+             s == 'PACKING';
     }).length;
     final deliveryCount = activeOrders.where((o) {
       final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
-      return s == 'PACKING' || s == 'DELIVERING';
+      return s == 'DELIVERING';
     }).length;
 
     // Auto-switch tab: jika data baru muncul dan tab saat ini belum dipilih/auto-selected
@@ -1168,11 +1175,18 @@ final orderProv = ref.watch(orderProvider);
                   final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
                   if (isSelfDrop) return false;
                   
-                  // Pickup tasks are: WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP
-                  return s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
+                  // Pickup tasks are: WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP, WEIGHING, WASH_START, IN_PROGRESS, PACKING
+                  return s == 'SEARCHING' ||
+                         s == 'WAITING_DROPOFF' || 
+                         s == 'COURIER_ACCEPTED' || 
+                         s == 'PICKING_UP' || 
+                         s == 'WEIGHING' || 
+                         s == 'WASH_START' || 
+                         s == 'IN_PROGRESS' || 
+                         s == 'PACKING';
                 } else {
-                  // Delivery tasks are biasanya PACKING, DELIVERING
-                  return s == 'PACKING' || s == 'DELIVERING';
+                  // Delivery tasks are: DELIVERING
+                  return s == 'DELIVERING';
                 }
               }).toList();
 
@@ -1220,8 +1234,9 @@ final orderProv = ref.watch(orderProvider);
     final String orderId = (task['order_number'] ?? task['orderNumber'] ?? task['identifier'] ?? task['id'] ?? '-').toString();
     final String customerName = task['customer']?['name']?.toString() ?? task['customer_name']?.toString() ?? 'Pelanggan';
     
-    // KL HANYA BOLEH LIHAT DELIVERY FEE
-    final double price = double.tryParse((task['delivery_fee'] ?? task['deliveryFee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
+    // KL HANYA BOLEH LIHAT DELIVERY FEE (Jemput & Antar masing-masing 50%)
+    final double rawPrice = double.tryParse((task['delivery_fee'] ?? task['deliveryFee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
+    final double price = rawPrice * 0.5;
     final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
     
     // Alamat & Pickup Note (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
@@ -1241,6 +1256,10 @@ final orderProv = ref.watch(orderProvider);
     // Status Order untuk membedakan Jemput vs Antar
     final String orderStatus = (task['status'] ?? task['order_status'] ?? '').toString().toUpperCase();
     final bool isDelivery = orderStatus == 'DELIVERING';
+    final bool isPickupCompleted = orderStatus == 'WEIGHING' ||
+        orderStatus == 'WASH_START' ||
+        orderStatus == 'IN_PROGRESS' ||
+        orderStatus == 'PACKING';
 
     final String priceText = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price);
     final String laundryName = task['mitra']?['name']?.toString() ?? task['mitra_name']?.toString() ?? 'Mitra Laundry';
@@ -1371,8 +1390,8 @@ final orderProv = ref.watch(orderProvider);
                         address: address,
                         icon: LucideIcons.mapPin,
                       ),
-                      // Row POW Kurir (Hanya local captured file)
-                      _buildCourierPowsRow(null, orderId),
+                      // Row POW Kurir (Jemput dari DB + local captured file)
+                      _buildCourierPowsRow(pickupProof, orderId),
                       const SizedBox(height: 12),
 
                       // Antar ke (Laundry Mitra)
@@ -1386,15 +1405,20 @@ final orderProv = ref.watch(orderProvider);
                     const SizedBox(height: 14),
 
                     // Upload Foto Cucian
-                    _buildUploadPhotoSection(orderId, task, isDelivery),
+                    _buildUploadPhotoSection(
+                      orderId, 
+                      task, 
+                      isDelivery, 
+                      isClickable: isDelivery ? true : !isPickupCompleted,
+                    ),
 
                     // Action Button Selesai Jemput/Antar (Kapsul)
                     const SizedBox(height: 14),
                     _buildActionButton(
                       text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
-                      isEnabled: !isDelivery
-                          ? (_taskCapturedImages[orderId] != null && !_isUploading)
-                          : (_taskCapturedImages[orderId] != null && _simulatedCorrectLocation[orderId] == true && !_isUploading),
+                      isEnabled: isDelivery
+                          ? (_taskCapturedImages[orderId] != null && _simulatedCorrectLocation[orderId] == true && !_isUploading)
+                          : (!isPickupCompleted && _taskCapturedImages[orderId] != null && !_isUploading),
                       onPressed: () => _completeTask(orderId, isDelivery),
                     ),
                   ],
@@ -2168,17 +2192,17 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  Widget _buildUploadPhotoSection(String orderId, dynamic task, bool isDelivery) {
+  Widget _buildUploadPhotoSection(String orderId, dynamic task, bool isDelivery, {bool isClickable = true}) {
     final hasImage = _taskCapturedImages[orderId] != null;
-    final bool isSuccessGreen = isDelivery
+    final bool isSuccessGreen = isClickable && (isDelivery
         ? (hasImage && _simulatedCorrectLocation[orderId] == true)
-        : hasImage;
+        : hasImage);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: () => _captureTaskPhoto(orderId, task, isDelivery),
+          onTap: isClickable ? () => _captureTaskPhoto(orderId, task, isDelivery) : null,
           borderRadius: BorderRadius.circular(10),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
