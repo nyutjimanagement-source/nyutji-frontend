@@ -1219,15 +1219,15 @@ final orderProv = ref.watch(orderProvider);
     final String laundryName = task['mitra']?['name']?.toString() ?? task['mitra_name']?.toString() ?? 'Mitra Laundry';
     final String laundryAddress = task['mitra']?['address']?.toString() ?? task['mitra_address']?.toString() ?? 'Alamat Laundry';
     
-    // Temukan proof PACKING dan PICKING_UP jika ada
+    // Temukan proof DELIVERING dan PICKING_UP jika ada
     final proofs = task['proofs'] as List?;
-    dynamic packingProof;
+    dynamic deliveringProof;
     dynamic pickupProof;
     if (proofs != null) {
       for (var proof in proofs) {
         final step = (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
-        if (step == 'PACKING') {
-          packingProof = proof;
+        if (step == 'DELIVERING') {
+          deliveringProof = proof;
         } else if (step == 'PICKING_UP' || step == 'PICK_UP') {
           pickupProof = proof;
         }
@@ -1321,9 +1321,9 @@ final orderProv = ref.watch(orderProvider);
                         address: laundryAddress,
                         icon: LucideIcons.store,
                       ),
-                      if (packingProof != null) ...[
+                      if (deliveringProof != null) ...[
                         const SizedBox(height: 8),
-                        _buildNetworkPowPreview(packingProof, "Foto Bukti Packing Mitra:", "Packing Mitra", "PACKING"),
+                        _buildNetworkPowPreview(deliveringProof, "Foto Cucian yang Diambil", "Pengiriman Mitra", "DELIVERING"),
                       ],
                       const SizedBox(height: 12),
 
