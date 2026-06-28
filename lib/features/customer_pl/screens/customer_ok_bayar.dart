@@ -8,6 +8,11 @@ import '../../../providers/auth_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../data/services/api_service.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 
 class CustomerOkBayarScreen extends ConsumerStatefulWidget {
   final int grandTotal;
@@ -50,6 +55,7 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
 class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
   bool _isLoadingQris = false;
   String? _qrisPayload;
+  final GlobalKey _boundaryKey = GlobalKey();
 
   @override
   void initState() {
@@ -78,6 +84,43 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
         setState(() {
           _isLoadingQris = false;
         });
+      }
+    }
+  }
+
+  Future<void> _captureAndSaveReceipt() async {
+    try {
+      final RenderRepaintBoundary? boundary = _boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        NyutjiNotif.showError(context, "Gagal menangkap layar nota.");
+        return;
+      }
+      
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        NyutjiNotif.showError(context, "Gagal memproses gambar.");
+        return;
+      }
+      
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+      final directory = await getApplicationDocumentsDirectory();
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String filePath = '${directory.path}/nota_$timestamp.png';
+      
+      final File imgFile = File(filePath);
+      await imgFile.writeAsBytes(pngBytes);
+      
+      if (mounted) {
+        NyutjiNotif.showSuccess(
+          context, 
+          "Nota berhasil disimpan ke folder dokumen lokal!"
+        );
+      }
+    } catch (e) {
+      debugPrint("Gagal menyimpan gambar: $e");
+      if (mounted) {
+        NyutjiNotif.showError(context, "Gagal menyimpan gambar: $e");
       }
     }
   }
@@ -185,56 +228,62 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(20),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header Nota
-              Container(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            notaTitle, 
-                            style: GoogleFonts.montserrat(
-                              color: Colors.black87, 
-                              fontWeight: FontWeight.w900, 
-                              fontSize: 16,
-                              letterSpacing: -0.3,
+        child: RepaintBoundary(
+          key: _boundaryKey,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header Nota
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              notaTitle, 
+                              style: GoogleFonts.montserrat(
+                                color: Colors.black87, 
+                                fontWeight: FontWeight.w900, 
+                                fontSize: 16,
+                                letterSpacing: -0.3,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            notaSubtitle, 
-                            style: GoogleFonts.montserrat(
-                              color: Colors.grey[600], 
-                              fontSize: 12, 
-                              fontWeight: FontWeight.w600,
+                            const SizedBox(height: 4),
+                            Text(
+                              notaSubtitle, 
+                              style: GoogleFonts.montserrat(
+                                color: Colors.grey[600], 
+                                fontSize: 12, 
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(
-                      LucideIcons.fileText, 
-                      color: NyutjiTheme.m3Primary.withValues(alpha: 0.8), 
-                      size: 28,
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      IconButton(
+                        icon: Icon(
+                          LucideIcons.fileText, 
+                          color: NyutjiTheme.m3Primary.withValues(alpha: 0.8), 
+                          size: 28,
+                        ),
+                        tooltip: "Simpan Gambar",
+                        onPressed: _captureAndSaveReceipt,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
               
               // Isi Nota
