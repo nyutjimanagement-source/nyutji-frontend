@@ -442,33 +442,6 @@ return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.u
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Consumer(
-            builder: (context, ref, _) {
-final orderProv = ref.watch(orderProvider);
-return Stack(
-              children: [
-                IconButton(
-                  onPressed: () => orderProv.resetNotif('KL'),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: Icon(LucideIcons.bell, color: textGrey, size: 20),
-                ),
-                if (orderProv.notifCountKL > 0)
-                  Positioned(
-                    right: 0, top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
-                      child: Text(
-                        orderProv.notifCountKL > 9 ? "9+" : orderProv.notifCountKL.toString(),
-                        style: const TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-})
         ],
       ),
     );
@@ -484,9 +457,6 @@ return Stack(
         child: Column(
           children: [
             const SizedBox(height: 8),
-            // ORDER COUNT INFO — 3 tingkat
-            _buildOrderCountInfo(),
-            const SizedBox(height: 12),
             // CARD ORDER TERSEDIA — paling atas, background putih
             _buildAvailableOrdersCard(),
             const SizedBox(height: 16),
@@ -601,44 +571,6 @@ final auth = ref.watch(authProvider);
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Consumer(
-            builder: (context, ref, _) {
-final orderProv = ref.watch(orderProvider);
-              final bool hasNewOrder = orderProv.availableOrders.isNotEmpty;
-              final bool hasActiveTask = orderProv.activeOrders.isNotEmpty;
-              final bool showRedDot = hasNewOrder || hasActiveTask;
-              
-              return Stack(
-                children: [
-                  IconButton(
-                    onPressed: () => orderProv.resetNotif('KL'),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(LucideIcons.bell, color: textGrey, size: 22),
-                  ),
-                  if (orderProv.notifCountKL > 0 || showRedDot)
-                    Positioned(
-                      right: 2, top: 2,
-                      child: Container(
-                        width: orderProv.notifCountKL > 0 ? 14 : 10,
-                        height: orderProv.notifCountKL > 0 ? 14 : 10,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
-                        child: orderProv.notifCountKL > 0
-                            ? Text(
-                                orderProv.notifCountKL > 9 ? "9+" : orderProv.notifCountKL.toString(),
-                                style: const TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.bold),
-                              )
-                            : null,
-                      ),
-                    ),
-                ],
-              );
-            },
-          )
-        ],
-      ),
     );
   }
   // === INFO 3 TINGKAT ORDER COUNT ===
@@ -1528,70 +1460,101 @@ final orderProv = ref.watch(orderProvider);
 
   // === BOTTOM NAV ===
   Widget _buildBottomNav(Map<String, dynamic> currentT) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final tabWidth = constraints.maxWidth / 4;
-          return Stack(
-            children: [
-              BottomNavigationBar(
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(icon: const Icon(LucideIcons.clipboardList, size: 22), activeIcon: const Icon(LucideIcons.clipboardList, size: 22), label: currentT['home']),
-                  BottomNavigationBarItem(icon: const Icon(LucideIcons.history, size: 22), activeIcon: const Icon(LucideIcons.history, size: 22), label: currentT['history']),
-                  BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
-                  BottomNavigationBarItem(icon: const Icon(LucideIcons.user, size: 22), activeIcon: const Icon(LucideIcons.user, size: 22), label: currentT['profile']),
-                ],
-                currentIndex: _selectedNavIndex,
-                selectedItemColor: primaryTeal,
-                unselectedItemColor: textGrey.withValues(alpha: 0.6),
-                showUnselectedLabels: true,
-                onTap: (index) {
-                  if (!isOnline && index != 0) return; // Disable other tabs when offline
-                  _pageController.animateToPage(
-                    index,
+    return Consumer(
+      builder: (context, ref, _) {
+        final orderProv = ref.watch(orderProvider);
+        final bool hasAlert = orderProv.availableOrders.isNotEmpty || orderProv.activeOrders.isNotEmpty;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final tabWidth = constraints.maxWidth / 4;
+              return Stack(
+                children: [
+                  BottomNavigationBar(
+                    items: <BottomNavigationBarItem>[
+                      BottomNavigationBarItem(
+                        icon: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(LucideIcons.clipboardList, size: 22),
+                            if (hasAlert)
+                              const Positioned(
+                                right: -4, top: -4,
+                                child: NyutjiDot.blinking(),
+                              ),
+                          ],
+                        ),
+                        activeIcon: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(LucideIcons.clipboardList, size: 22),
+                            if (hasAlert)
+                              const Positioned(
+                                right: -4, top: -4,
+                                child: NyutjiDot.blinking(),
+                              ),
+                          ],
+                        ),
+                        label: currentT['home'],
+                      ),
+                      BottomNavigationBarItem(icon: const Icon(LucideIcons.history, size: 22), activeIcon: const Icon(LucideIcons.history, size: 22), label: currentT['history']),
+                      BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
+                      BottomNavigationBarItem(icon: const Icon(LucideIcons.user, size: 22), activeIcon: const Icon(LucideIcons.user, size: 22), label: currentT['profile']),
+                    ],
+                    currentIndex: _selectedNavIndex,
+                    selectedItemColor: primaryTeal,
+                    unselectedItemColor: textGrey.withValues(alpha: 0.6),
+                    showUnselectedLabels: true,
+                    onTap: (index) {
+                      if (!isOnline && index != 0) return;
+                      _pageController.animateToPage(
+                        index,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOutQuint,
+                      );
+                    },
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    type: BottomNavigationBarType.fixed,
+                    selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
+                    unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+                  ),
+                  AnimatedPositioned(
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeOutQuint,
-                  );
-                },
-                backgroundColor: Colors.white,
-                elevation: 0,
-                type: BottomNavigationBarType.fixed,
-                selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
-                unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
-              ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOutQuint,
-                top: 0,
-                left: (tabWidth * _selectedNavIndex) + (tabWidth / 2) - 30,
-                child: Container(
-                  height: 3,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    color: primaryTeal,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(3),
-                      bottomRight: Radius.circular(3),
+                    top: 0,
+                    left: (tabWidth * _selectedNavIndex) + (tabWidth / 2) - 30,
+                    child: Container(
+                      height: 3,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        color: primaryTeal,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(3),
+                          bottomRight: Radius.circular(3),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryTeal.withValues(alpha: 0.5),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          )
+                        ],
+                      ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryTeal.withValues(alpha: 0.5),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      )
-                    ]
                   ),
-                ),
-              ),
-            ],
-          );
-        }
-      ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
