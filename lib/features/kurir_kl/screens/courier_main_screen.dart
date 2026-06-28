@@ -2231,7 +2231,7 @@ final orderProv = ref.watch(orderProvider);
     required VoidCallback onPressed,
   }) {
     final Color btnColor = isEnabled ? primaryTeal : Colors.grey.shade400;
-    final Color txtColor = isEnabled ? Colors.white : Colors.white75;
+    final Color txtColor = isEnabled ? Colors.white : Colors.white70;
 
     return SizedBox(
       width: double.infinity,
