@@ -89,6 +89,31 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
   }
 
   Future<void> _captureAndSaveReceipt() async {
+    // 1. Tampilkan dialog konfirmasi terlebih dahulu
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("Simpan Nota", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Text("Apakah Anda ingin menyimpan Nota Estimasi Transaksi ini sebagai gambar di penyimpanan lokal?", style: GoogleFonts.montserrat(fontSize: 13)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text("Batal", style: GoogleFonts.montserrat(color: Colors.grey[600], fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: NyutjiTheme.m3Primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text("Simpan", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
     try {
       // Berikan sedikit delay agar painting frame selesai (mencegah error !debugNeedsPaint)
       await Future.delayed(const Duration(milliseconds: 50));
@@ -111,7 +136,26 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
       }
       
       final Uint8List pngBytes = byteData.buffer.asUint8List();
-      final directory = await getApplicationDocumentsDirectory();
+      
+      Directory? directory;
+      String folderName = "Dokumen";
+      
+      try {
+        if (Platform.isAndroid) {
+          // Cari folder Downloads publik
+          directory = await getDownloadsDirectory();
+          folderName = "Downloads";
+        } else if (Platform.isIOS) {
+          directory = await getApplicationDocumentsDirectory();
+          folderName = "Documents (Files)";
+        }
+      } catch (e) {
+        debugPrint("Gagal mendeteksi folder khusus: $e");
+      }
+      
+      // Fallback ke Application Documents jika null
+      directory ??= await getApplicationDocumentsDirectory();
+      
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final String filePath = '${directory.path}/nota_$timestamp.png';
       
@@ -121,7 +165,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
       if (mounted) {
         NyutjiNotif.showSuccess(
           context, 
-          "Nota berhasil disimpan ke folder dokumen lokal!"
+          "Nota berhasil disimpan ke folder $folderName handphone Anda!\n(Nama file: nota_$timestamp.png)"
         );
       }
     } catch (e) {
