@@ -1255,13 +1255,18 @@ final orderProv = ref.watch(orderProvider);
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        (orderNote.toLowerCase().contains('timbangan') || orderNote.toLowerCase().contains('berat'))
-                            ? LucideIcons.scale
-                            : LucideIcons.info,
-                        color: primaryTeal,
-                        size: 16,
-                      ),
+                      (orderNote.toLowerCase().contains('timbangan') || orderNote.toLowerCase().contains('berat'))
+                          ? Image.asset(
+                              'assets/icons/scale.png',
+                              width: 16,
+                              height: 16,
+                              color: primaryTeal,
+                            )
+                          : Icon(
+                              LucideIcons.info,
+                              color: primaryTeal,
+                              size: 16,
+                            ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
