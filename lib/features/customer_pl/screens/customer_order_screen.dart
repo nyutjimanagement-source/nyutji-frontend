@@ -33,7 +33,6 @@ class CustomerOrderScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
-  static const Color accentGold = Color(0xFFF59E0B);
   String _pickupAddress = 'Jl. Kebayoran No 12, Jakarta';
   String _pickupNote = '';
   String _serviceSpeed = 'regular';
@@ -135,95 +134,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
 
 
 
-  void _resumeDraft(Map<String, dynamic> draft) {
-    // 1. Ekstrak data
-    final draftItems = draft['items'] as List?;
-    if (draftItems == null || draftItems.isEmpty) return;
-    
-    final mitra = draft['mitra'];
-    if (mitra == null) return;
 
-    final String mitraIdStr = (draft['mitraId'] ?? draft['mitra_id']).toString();
-    final String districtName = mitra['district_name'] ?? mitra['owner_district_name'] ?? '';
-    final String cityName = mitra['city_name'] ?? mitra['owner_city_name'] ?? '';
-    final String districtCode = draft['district_code'] ?? 'NYJ';
-
-    // 2. Ambil harga terbaru mitra dari _mitras live data (jika ada)
-    final currentMitra = _mitras.firstWhere(
-      (m) => m['id'].toString() == mitraIdStr,
-      orElse: () => mitra,
-    );
-
-    List<Map<String, dynamic>> updatedItems = [];
-    double newTotalPrice = 0.0;
-    int newTotalItems = 0;
-
-    final List? liveItems = currentMitra['items'] as List?;
-    
-    for (var dItem in draftItems) {
-      // Cari item di live data untuk harga terbaru
-      final liveItem = liveItems?.firstWhere(
-        (i) => i['name'] == dItem['itemName'],
-        orElse: () => null
-      );
-      
-      bool isFast = draft['serviceType'] == 'SAME_DAY';
-      double pricePerUnit = double.tryParse(dItem['pricePerUnit']?.toString() ?? '0') ?? 0.0;
-      
-      // Update dengan harga baru jika ada
-      if (liveItem != null) {
-        double pReg = double.tryParse(liveItem['price_regular']?.toString() ?? liveItem['price']?.toString() ?? '0') ?? 0.0;
-        double? pFastRaw = double.tryParse(liveItem['price_fast']?.toString() ?? '');
-        double pFast = (pFastRaw == null || pFastRaw == 0) ? pReg : pFastRaw;
-        pricePerUnit = isFast ? pFast : pReg;
-      }
-      
-      final qty = int.tryParse(dItem['qty']?.toString() ?? '1') ?? 1;
-      updatedItems.add({
-        'name': dItem['itemName'],
-        'count': qty,
-        'unit': dItem['unit'],
-        'price': pricePerUnit,
-        'category': dItem['category'],
-      });
-      
-      newTotalPrice += (pricePerUnit * qty);
-      newTotalItems += qty;
-    }
-
-    final double lat = double.tryParse(draft['pickupLat']?.toString() ?? '0') ?? 0.0;
-    final double lng = double.tryParse(draft['pickupLng']?.toString() ?? '0') ?? 0.0;
-    final double mitraLat = NyutjiParser.toDouble(mitra['lat']);
-    final double mitraLng = NyutjiParser.toDouble(mitra['lng']);
-    final isPickup = draft['deliveryType'] == 'PICKUP';
-
-    final String orderIdStr = (draft['orderNumber'] ?? draft['order_number'] ?? draft['id'] ?? '').toString();
-
-    Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerPaymentScreen(
-      totalPrice: newTotalPrice.toInt(),
-      totalItems: newTotalItems,
-      address: draft['address'] ?? '',
-      isPickup: isPickup,
-      mitraId: mitraIdStr,
-      mitraName: mitra['name'] ?? 'Mitra',
-      orderType: isPickup ? 'pickup' : 'drop',
-      speed: draft['serviceType'] == 'SAME_DAY' ? 'fast' : 'regular',
-      distance: NyutjiParser.toDouble(draft['distance']),
-      dropMethod: isPickup ? '' : (draft['deliveryType'] == 'SELFDROP_SELFDELIVERY' ? 'self' : 'courier'),
-      selectedItemsList: updatedItems,
-      districtName: districtName,
-      districtCode: districtCode,
-      cityName: cityName,
-      lat: lat,
-      lng: lng,
-      mitraLat: mitraLat,
-      mitraLng: mitraLng,
-      pickupNote: draft['pickupNote'] ?? '',
-      mitraAddress: mitra['address'] ?? '',
-      mitraDistrict: districtName,
-      draftOrderNumber: orderIdStr,
-    )));
-  }
 
 
   Future<void> _loadLiveMitras({String? forcedCity}) async {
