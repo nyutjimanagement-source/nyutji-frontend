@@ -2202,7 +2202,7 @@ final orderProv = ref.watch(orderProvider);
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: isClickable ? () => _captureTaskPhoto(orderId, task, isDelivery) : null,
+          onTap: (isClickable && !isSuccessGreen) ? () => _captureTaskPhoto(orderId, task, isDelivery) : null,
           borderRadius: BorderRadius.circular(10),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
