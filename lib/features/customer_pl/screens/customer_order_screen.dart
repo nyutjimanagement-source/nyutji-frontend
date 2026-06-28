@@ -831,35 +831,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       leading: IconButton(icon: const Icon(LucideIcons.chevronLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
       title: Text(widget.orderType == 'pickup' ? cT['title_pickup'] : cT['title_drop'], style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
       centerTitle: true,
-      actions: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(LucideIcons.shoppingBag, color: Colors.white, size: 20), 
-              onPressed: () {
-                _showDraftBottomSheet();
-              }
-            ),
-            Positioned(
-              right: 8, top: 8,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle),
-                constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    final draftsCount = ref.watch(orderProvider).draftOrders.length;
-                    if (draftsCount == 0) return const SizedBox.shrink();
-                    return Text('$draftsCount', style: const TextStyle(color: Colors.black, fontSize: 8, fontWeight: FontWeight.bold), textAlign: TextAlign.center);
-                  }
-                ),
-              ),
-            )
-          ],
-        ),
-        const SizedBox(width: 8),
-      ],
     );
   }
 
