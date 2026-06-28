@@ -73,8 +73,6 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   final Map<String, File?> _taskCapturedImages = {};
   bool _isUploading = false;
   String _gpsLocationText = "Mendeteksi lokasi...";
-  double? _currentLat;  // GPS lat kurir
-  double? _currentLng; // GPS lng kurir
   bool _hasDoneAutoSelect = false;
 
   // Clean Emerald Glass Palette
@@ -200,8 +198,6 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
         }
         
         setState(() {
-          _currentLat = pos.latitude;
-          _currentLng = pos.longitude;
           _gpsLocationText = locStr;
         });
       }
@@ -210,17 +206,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     }
   }
 
-  // Haversine distance (km) antara dua koordinat
-  double _haversineKm(double lat1, double lng1, double lat2, double lng2) {
-    const r = 6371.0; // Earth's radius in km
-    final dLat = (lat2 - lat1) * math.pi / 180;
-    final dLng = (lng2 - lng1) * math.pi / 180;
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(lat1 * math.pi / 180) * math.cos(lat2 * math.pi / 180) *
-        math.sin(dLng / 2) * math.sin(dLng / 2);
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return r * c;
-  }
+
 
   Future<void> _refreshData({bool force = false}) async {
     if (!mounted || !isOnline) return;
