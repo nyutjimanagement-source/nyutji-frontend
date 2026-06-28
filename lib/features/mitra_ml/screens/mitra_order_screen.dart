@@ -1262,7 +1262,7 @@ final orderProv = ref.watch(orderProvider);
                               height: 16,
                               color: primaryTeal,
                             )
-                          : Icon(
+                          : const Icon(
                               LucideIcons.info,
                               color: primaryTeal,
                               size: 16,
