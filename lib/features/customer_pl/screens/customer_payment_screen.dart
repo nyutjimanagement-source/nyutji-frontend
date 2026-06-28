@@ -460,43 +460,53 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
     final mitraLabel = mitraParts.isNotEmpty ? mitraParts.join(' · ') : widget.mitraName;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Judul Nota Estimasi Transaksi - transparent background
-          Text(
-            invoiceTitle, 
-            style: GoogleFonts.montserrat(
-              fontSize: 15, 
-              fontWeight: FontWeight.w900, 
-              color: Colors.black87,
-              letterSpacing: -0.3,
+          Text(invoiceTitle, style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.black87)),
+          const SizedBox(height: 12),
+
+          // --- BLOK LOKASI ELEGAN ---
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F7F7),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: NyutjiTheme.m3Primary.withValues(alpha: 0.12)),
+            ),
+            child: Column(
+              children: [
+                if (!widget.isPickup && widget.dropMethod == 'courier') ...[
+                  _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1, color: Color(0xFFDDEEEE)),
+                  ),
+                  _locationRow(LucideIcons.mapPin, "Lokasi Pengantaran", pickupLabel),
+                ] else if (!widget.isPickup && widget.dropMethod == 'self') ...[
+                  _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
+                ] else ...[
+                  _locationRow(LucideIcons.mapPin, "Lokasi Penjemputan", pickupLabel),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 1, color: Color(0xFFDDEEEE)),
+                  ),
+                  _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-
-          // --- LOKASI DETAIL ---
-          if (!widget.isPickup && widget.dropMethod == 'courier') ...[
-            _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
-            const SizedBox(height: 14),
-            _locationRow(LucideIcons.mapPin, "Lokasi Pengantaran", pickupLabel),
-          ] else if (!widget.isPickup && widget.dropMethod == 'self') ...[
-            _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
-          ] else ...[
-            _locationRow(LucideIcons.mapPin, "Lokasi Penjemputan", pickupLabel),
-            const SizedBox(height: 14),
-            _locationRow(LucideIcons.store, "Lokasi Laundry", mitraLabel),
-          ],
-          
-          const Divider(height: 40, thickness: 1, color: Color(0xFFF3F4F6)),
+          const Divider(height: 32),
           
           // Section a: Layanan Laundry
           _invoiceSectionHeader(LucideIcons.shirt, "Layanan Laundry - ${widget.mitraName}"),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _invoiceDetailRow("Jenis Kecepatan", speedLabel),
           
           Padding(
@@ -505,22 +515,15 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
               ? Text("Item tidak terbaca, silakan kembali.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.red))
               : Column(
                   children: widget.selectedItemsList.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: Text(
-                            "• ${item['name'] ?? item['item_name'] ?? 'Item'}", 
-                            style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[700]),
-                          ),
+                          child: Text("• ${item['name'] ?? item['item_name'] ?? 'Item'}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[700]), maxLines: 2, overflow: TextOverflow.ellipsis),
                         ),
-                        const SizedBox(width: 16),
-                        Text(
-                          "${item['count'] ?? item['qty'] ?? 0} ${item['unit'] ?? ''}", 
-                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
-                        ),
+                        const SizedBox(width: 12),
+                        Text("${item['count'] ?? item['qty'] ?? 0} ${item['unit'] ?? ''}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
                       ],
                     ),
                   )).toList(),
@@ -530,33 +533,30 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
           _invoiceDetailRow("Subtotal Laundry", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(widget.totalPrice), isBold: true),
           
           if (widget.pickupNote.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text("Catatan Pelanggan", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                 const SizedBox(height: 4),
-                Text(
-                  widget.pickupNote, 
-                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
-                ),
+                Text(widget.pickupNote, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
             ),
           ],
           
-          const Divider(height: 32, thickness: 1, color: Color(0xFFF3F4F6)),
+          const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: Color(0xFFF0F0F0))),
           
           if (widget.isPickup || (!widget.isPickup && widget.dropMethod == 'courier')) ...[
             // Section b: Layanan Kurir
-            _invoiceSectionHeader(LucideIcons.truck, "Layanan Kurir - Menunggu Penugasan"),
-            const SizedBox(height: 16),
+            _invoiceSectionHeader(LucideIcons.truck, "Layanan Kurir - Menunggu Penugasan Kurir"),
+            const SizedBox(height: 12),
             _invoiceDetailRow("Layanan Kurir", courierServiceName),
             _invoiceDetailRow("Jarak Antar", "${_calculatedDistance.toStringAsFixed(1)} Km"),
             _invoiceDetailRow("Biaya Kurir", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(courierFee), isBold: true, isLoading: _isLoadingPrice),
             
-            const Divider(height: 32, thickness: 1, color: Color(0xFFF3F4F6)),
+            const Divider(height: 40),
           ] else ...[
-            const SizedBox(height: 8),
+            const Divider(height: 40),
           ],
           
           Row(
@@ -579,7 +579,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
       children: [
         Icon(icon, size: 14, color: primaryTeal),
         const SizedBox(width: 8),
-        Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal, letterSpacing: 0.5))),
+        Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal, letterSpacing: 0.5), overflow: TextOverflow.ellipsis)),
       ],
     );
   }
@@ -603,7 +603,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
             children: [
               Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: primaryTeal, letterSpacing: 0.5)),
               const SizedBox(height: 2),
-              Text(value.isNotEmpty ? value : '-', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
+              Text(value.isNotEmpty ? value : '-', style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87), overflow: TextOverflow.ellipsis, maxLines: 2),
             ],
           ),
         ),
@@ -613,32 +613,14 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
 
   Widget _invoiceDetailRow(String label, String value, {bool isBold = false, bool isLoading = false}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            flex: 4,
-            child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 6,
-            child: isLoading 
-              ? const Align(
-                  alignment: Alignment.centerRight,
-                  child: ShimmerLoading(height: 16, width: 80, borderRadius: 4),
-                )
-              : Text(
-                  value, 
-                  textAlign: TextAlign.end,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13, 
-                    fontWeight: isBold ? FontWeight.bold : FontWeight.w500, 
-                    color: Colors.black87,
-                  ),
-                ),
-          ),
+          Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+          isLoading 
+            ? const ShimmerLoading(height: 16, width: 80, borderRadius: 4)
+            : Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w500, color: Colors.black87)),
         ],
       ),
     );
