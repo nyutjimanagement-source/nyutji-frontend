@@ -1421,7 +1421,7 @@ final orderProv = ref.watch(orderProvider);
                             if (hasAlert)
                               const Positioned(
                                 right: -4, top: -4,
-                                child: NyutjiDot.blinking(),
+                                child: NyutjiDot.static(),
                               ),
                           ],
                         ),
@@ -1432,7 +1432,7 @@ final orderProv = ref.watch(orderProvider);
                             if (hasAlert)
                               const Positioned(
                                 right: -4, top: -4,
-                                child: NyutjiDot.blinking(),
+                                child: NyutjiDot.static(),
                               ),
                           ],
                         ),
