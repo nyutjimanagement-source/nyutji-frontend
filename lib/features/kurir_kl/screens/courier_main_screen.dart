@@ -571,78 +571,13 @@ final auth = ref.watch(authProvider);
               ],
             ),
           ),
-    );
-  }
-  // === INFO 3 TINGKAT ORDER COUNT ===
-  Widget _buildOrderCountInfo() {
-    return Consumer(
-      builder: (context, ref, _) {
-        final orderProv = ref.watch(orderProvider);
-        final auth = ref.watch(authProvider);
-        final available = orderProv.availableOrders;
-        final districtName = auth.user?['district_name']?.toString() ?? auth.user?['owner_district_name']?.toString() ?? '';
-        final myDistrictCode = (auth.user?['district_code'] ?? auth.user?['owner_district_code'] ?? '').toString().toUpperCase();
-
-        // Tingkat 1: order di kecamatan KL register
-        final int kecCount = available.where((o) {
-          final oDistCode = (o['district_code'] ?? o['district']?['code'] ?? '').toString().toUpperCase();
-          if (oDistCode.isEmpty || myDistrictCode.isEmpty) return false;
-          // Bandingkan 3 digit pertama dari kode kecamatan
-          return oDistCode.substring(0, math.min(3, oDistCode.length)) == 
-                 myDistrictCode.substring(0, math.min(3, myDistrictCode.length));
-        }).length;
-
-        // Tingkat 2: order di kota/kab yang sama (satu kota/kab)
-        final int kotaCount = available.length;
-
-        // Tingkat 3: radius ~40km dari posisi GPS kurir
-        int radiusCount = available.length; // default semua jika GPS belum ada
-        if (_currentLat != null && _currentLng != null) {
-          radiusCount = available.where((o) {
-            final oLat = double.tryParse((o['pickupLat'] ?? o['pickup_lat'] ?? o['lat'] ?? o['latitude'] ?? '').toString());
-            final oLng = double.tryParse((o['pickupLng'] ?? o['pickup_lng'] ?? o['lng'] ?? o['longitude'] ?? '').toString());
-            if (oLat == null || oLng == null) return true;
-            final distance = _haversineKm(_currentLat!, _currentLng!, oLat, oLng);
-            return distance <= 40.0;
-          }).length;
-        }
-
-        if (kecCount == 0 && kotaCount == 0 && radiusCount == 0) return const SizedBox.shrink();
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              _buildCountRow("Ada $kecCount order di Kec. $districtName", const Color(0xFF3F7D7E), LucideIcons.mapPin),
-              const SizedBox(height: 6),
-              _buildCountRow("Ada $kotaCount order radius 15km lebih", const Color(0xFFBF9F70), LucideIcons.circle),
-              const SizedBox(height: 6),
-              _buildCountRow("Ada $radiusCount order radius 25km lebih", const Color(0xFFC3402E), LucideIcons.globe),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCountRow(String text, Color color, IconData icon) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            text,
-            textAlign: TextAlign.start,
-            style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w800, color: color),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   // GPS STRIP — paling bawah layar
+
   Widget _buildGpsLocationStrip() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
