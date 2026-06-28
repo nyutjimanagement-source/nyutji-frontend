@@ -90,9 +90,14 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
 
   Future<void> _captureAndSaveReceipt() async {
     try {
+      // Berikan sedikit delay agar painting frame selesai (mencegah error !debugNeedsPaint)
+      await Future.delayed(const Duration(milliseconds: 50));
+
       final RenderRepaintBoundary? boundary = _boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) {
-        NyutjiNotif.showError(context, "Gagal menangkap layar nota.");
+        if (mounted) {
+          NyutjiNotif.showError(context, "Gagal menangkap layar nota.");
+        }
         return;
       }
       
