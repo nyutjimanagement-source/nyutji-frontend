@@ -44,13 +44,34 @@ class CustomerOkBayarScreen extends ConsumerStatefulWidget {
 class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
   Widget _notaRow(String label, String value, {bool isBold = false}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 105, child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]))),
-          const Text(" :  ", style: TextStyle(fontSize: 13, color: Colors.grey)),
-          Expanded(child: Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.black87))),
+          Expanded(
+            flex: 4,
+            child: Text(
+              label, 
+              style: GoogleFonts.montserrat(
+                fontSize: 13, 
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 6,
+            child: Text(
+              value, 
+              textAlign: TextAlign.end,
+              style: GoogleFonts.montserrat(
+                fontSize: 13, 
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w600, 
+                color: Colors.black87,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -99,32 +120,44 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(20),
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 5)),
-            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Header Nota
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  color: NyutjiTheme.m3Primary.withValues(alpha: 0.9),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
                 ),
                 child: Column(
                   children: [
-                    const Icon(LucideIcons.fileText, color: Colors.white, size: 30),
-                    const SizedBox(height: 8),
-                    Text(notaTitle, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                    Text(notaSubtitle, style: GoogleFonts.montserrat(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+                    Icon(LucideIcons.fileText, color: NyutjiTheme.m3Primary, size: 36),
+                    const SizedBox(height: 10),
+                    Text(
+                      notaTitle, 
+                      style: GoogleFonts.montserrat(
+                        color: Colors.black87, 
+                        fontWeight: FontWeight.w900, 
+                        fontSize: 16,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      notaSubtitle, 
+                      style: GoogleFonts.montserrat(
+                        color: Colors.grey[600], 
+                        fontSize: 12, 
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
               
               // Isi Nota
               Padding(
@@ -150,7 +183,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
 
                     _notaRow("Tgl Pesan", DateFormat('dd MMM yyyy, HH:mm').format(now)),
                     _notaRow("Est. Selesai", DateFormat('dd MMM yyyy').format(finishDate)),
-                    const Divider(height: 24),
+                    const Divider(height: 24, thickness: 1, color: Color(0xFFF3F4F6)),
                     _notaRow("Items Cucian", "${widget.totalItems} Items (Kiloan & Satuan)"),
                     _notaRow(widget.isPickup ? "Est. Total Biaya" : "Total Biaya", NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(widget.grandTotal), isBold: true),
                     _notaRow("Metode Bayar", widget.selectedPayment, isBold: true),
