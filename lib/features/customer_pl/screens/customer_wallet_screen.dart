@@ -262,7 +262,7 @@ final wallet = ref.watch(walletProvider);
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
+              icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
               onPressed: () {
                 if (Navigator.canPop(context)) {
                   Navigator.pop(context);

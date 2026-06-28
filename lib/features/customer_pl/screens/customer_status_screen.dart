@@ -118,7 +118,7 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
           children: [
             if (showBack)
               IconButton(
-                icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
+                icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
                 onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/customer_main', (route) => false),
               ),
             Expanded(
