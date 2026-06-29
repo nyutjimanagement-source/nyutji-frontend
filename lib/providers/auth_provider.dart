@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import '../core/utils/formatters.dart';
 import '../data/services/api_service.dart';
 import '../data/services/cache_service.dart';
+import '../data/services/fcm_service.dart';
 import '../../main.dart'; // Import navigatorKey
 
 class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
@@ -254,6 +255,12 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       _safeNotifyListenersPostFrame();
+      
+      // Unggah token FCM secara asinkron saat session restored
+      FcmService().uploadTokenToServer().catchError((e) {
+        debugPrint("Gagal mengunggah token FCM saat status restored: $e");
+      });
+
       return true;
     }
     return false;
@@ -371,6 +378,12 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
 
         _isLoading = false;
         _safeNotifyListeners();
+        
+        // Unggah token FCM secara asinkron
+        FcmService().uploadTokenToServer().catchError((e) {
+          debugPrint("Gagal mengunggah token FCM setelah login: $e");
+        });
+
         return true;
       }
     } catch (e) {

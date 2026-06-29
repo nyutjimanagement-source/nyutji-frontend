@@ -626,6 +626,31 @@ class ApiService {
     return response.data;
   }
 
+  // --- FCM TOKEN ENDPOINT ---
+  Future<Map<String, dynamic>> updateFcmToken(String token) async {
+    final response = await _dio.post("/users/fcm-token", data: {'token': token});
+    return response.data;
+  }
+
+  // --- FITUR CHAT & TELEPON (VOIP) ---
+  Future<Map<String, dynamic>> sendChatMessage(String orderNumber, String channel, String message) async {
+    final response = await _dio.post("/chats/$orderNumber/$channel/messages", data: {'message': message});
+    return response.data;
+  }
+
+  Future<List<dynamic>> getChatMessages(String orderNumber, String channel) async {
+    final response = await _dio.get("/chats/$orderNumber/$channel/messages");
+    return response.data['data'] ?? [];
+  }
+
+  Future<Map<String, dynamic>> initiateCall(String orderNumber, String channel) async {
+    final response = await _dio.post("/calls/initiate", data: {
+      'orderNumber': orderNumber,
+      'channel': channel
+    });
+    return response.data;
+  }
+
   String? _extractJson(String text) {
     final startBrace = text.indexOf('{');
     final startBracket = text.indexOf('[');

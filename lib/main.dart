@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'data/services/fcm_service.dart';
+
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_util.dart';
 
@@ -24,6 +27,14 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox('offline_queue');
   await Hive.openBox('nyutji_cache');
+
+  // Inisialisasi Firebase & FCM Notifikasi secara aman
+  try {
+    await Firebase.initializeApp();
+    await FcmService().initNotifications();
+  } catch (e) {
+    debugPrint("Firebase initialization failed: $e");
+  }
   
   // Inisialisasi Background Sync
   // BackgroundSyncService.initialize();
