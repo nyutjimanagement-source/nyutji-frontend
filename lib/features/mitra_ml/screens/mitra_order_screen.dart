@@ -54,7 +54,23 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     super.dispose();
   }
 
-  // Progress step moved to StatusHelper
+  bool _isFromSpecialMenus(dynamic o) {
+    final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List?;
+    if (items != null && items.isNotEmpty) {
+      for (var it in items) {
+        if (it is Map) {
+          final note = (it['notes'] ?? '').toString().toLowerCase();
+          if (note.contains('cuci khusus premium') ||
+              note.contains('shoecare premium') ||
+              note.contains('dry cleaning premium') ||
+              note.contains('baby care laundry premium')) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
 
   bool _isPremiumOrder(dynamic o) {
     final items = o['orderItems'] as List? ?? o['order_items'] as List? ?? o['items'] as List?;
@@ -1547,9 +1563,13 @@ final auth = ref.watch(authProvider);
 
   void _showStatusUpdater(String orderId, String currentStatus, String deliveryType, dynamic o) async {
     bool isSelfDrop = ['SELF_DROP', 'SELFDROP_SELFDELIVERY', 'SELF_SERVICE'].contains(deliveryType.toUpperCase());
-    final stages = isSelfDrop 
+    final List<String> stages = isSelfDrop 
         ? ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DONE'] 
         : ['WAITING_DROPOFF', 'WEIGHING', 'WASH_START', 'IRONING', 'PACKING', 'DELIVERING', 'DONE'];
+
+    if (_isFromSpecialMenus(o)) {
+      stages.remove('WEIGHING');
+    }
 
     final proofs = o['proofs'] as List? ?? [];
     final bool hasWeighingProofByML = proofs.any((p) {
@@ -2013,7 +2033,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
   void initState() {
     super.initState();
     noteController = TextEditingController(text: "Berat timbangan cucian ... kg");
-    if (widget.currentStatus == 'WEIGHING' && !widget.hasWeighingProofByML) {
+    if (widget.stages.contains('WEIGHING') && widget.currentStatus == 'WEIGHING' && !widget.hasWeighingProofByML) {
       selectedStage = 'WEIGHING';
     }
   }
