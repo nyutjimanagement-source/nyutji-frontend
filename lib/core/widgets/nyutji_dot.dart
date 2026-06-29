@@ -136,7 +136,7 @@ class _NyutjiDotState extends State<NyutjiDot> with SingleTickerProviderStateMix
                 ? Border.all(color: widget.borderColor!, width: 1.5) 
                 : null,
           ),
-          constraints: BoxConstraints(minWidth: badgeSize, minHeight: badgeSize),
+          constraints: const BoxConstraints(minWidth: badgeSize, minHeight: badgeSize),
           child: Text(
             '$countVal',
             style: GoogleFonts.montserrat(
