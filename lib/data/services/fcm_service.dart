@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 import '../../main.dart';
@@ -73,7 +72,7 @@ class FcmService {
           final callerName = data['callerName'] ?? 'Panggilan Masuk';
           
           final context = navigatorKey.currentContext;
-          if (context != null) {
+          if (context != null && context.mounted) {
             IncomingCallOverlay.show(context, callerName, roomId);
           }
         }
@@ -88,7 +87,7 @@ class FcmService {
           final callerName = data['callerName'] ?? 'Panggilan Masuk';
           
           final context = navigatorKey.currentContext;
-          if (context != null) {
+          if (context != null && context.mounted) {
             IncomingCallOverlay.show(context, callerName, roomId);
           }
         }

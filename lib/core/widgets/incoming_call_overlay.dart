@@ -10,11 +10,11 @@ class IncomingCallOverlay extends StatefulWidget {
   final VoidCallback onDismiss;
 
   const IncomingCallOverlay({
-    Key? key,
+    super.key,
     required this.callerName,
     required this.roomId,
     required this.onDismiss,
-  }) : super(key: key);
+  });
 
   static OverlayEntry? _currentOverlayEntry;
 
@@ -106,7 +106,7 @@ class _IncomingCallOverlayState extends State<IncomingCallOverlay> with SingleTi
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: Container(
-        color: Colors.black.withOpacity(0.75),
+        color: Colors.black.withValues(alpha: 0.75),
         alignment: Alignment.center,
         child: Material(
           color: Colors.transparent,
@@ -125,7 +125,7 @@ class _IncomingCallOverlayState extends State<IncomingCallOverlay> with SingleTi
                         height: 120 + (_pulseController.value * 40),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF0D9488).withOpacity((1.0 - _pulseController.value) * 0.4),
+                          color: const Color(0xFF0D9488).withValues(alpha: (1.0 - _pulseController.value) * 0.4),
                         ),
                       ),
                       Container(
