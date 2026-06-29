@@ -151,7 +151,7 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Implementasi**:
   1. **Dot Pasif (Mandatory Verification)**: Gunakan `const NyutjiDot.static()` (misal untuk penanda menu profil yang belum diisi).
   2. **Dot Berkedip (System Status / Map)**: Gunakan `const NyutjiDot.blinking()` dengan durasi kedip 1200ms terkelola internal.
-  3. **Lencana Angka (Notification count)**: Gunakan `NyutjiDot.badge(count: jumlahData)` untuk bel/keranjang belanja.
+  3. **Lencana Angka (Notification count)**: Gunakan `NyutjiDot.badge(count: jumlahData)` untuk bel/keranjang belanja/tab pesanan. Ukuran lencana angka distandarkan secara seragam: `fs` (font size) = Default 9, `badgeSize` = `fs + 10` = 19.0. Jika angka 2 digit atau lebih (>= 10), lebar minimum wadah adalah 19.0 (minWidth: 19.0).
   4. **Lencana Teks (Promo label)**: Gunakan `const NyutjiDot.text(text: "PROMO")` untuk tag promo berukuran mikro.
 
 ---

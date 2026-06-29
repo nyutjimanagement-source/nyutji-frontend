@@ -44,9 +44,9 @@ class NyutjiDot extends StatefulWidget {
     this.color = const Color(0xFFC3312E),
     this.textColor = Colors.white,
     this.borderColor,
-    this.fontSize,
   }) : type = NyutjiDotType.badge,
        size = 18.0,
+       fontSize = null,
        text = null;
 
   /// 4. Constructor untuk Lencana Teks (contoh: label "PROMO")
@@ -99,8 +99,8 @@ class _NyutjiDotState extends State<NyutjiDot> with SingleTickerProviderStateMix
     if (widget.type == NyutjiDotType.badge) {
       final int countVal = widget.count ?? 0;
       final bool isSingleDigit = countVal < 10;
-      final double fs = widget.fontSize ?? 9;
-      final double badgeSize = fs + 10; // fs=12 -> 22, fs=9 -> 19
+      const double fs = 9;
+      const double badgeSize = 19.0; // fs + 10
       
       if (isSingleDigit) {
         return Container(
