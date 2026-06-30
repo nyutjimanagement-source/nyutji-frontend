@@ -1148,6 +1148,10 @@ final orderProv = ref.watch(orderProvider);
   }
 
   Widget _buildChatCallButtons(dynamic order, String status) {
+    if (status == 'DONE' || status == 'PAID' || status == 'COMPLETED') {
+      return const SizedBox.shrink();
+    }
+
     final orderNumber = (order['order_number'] ?? order['orderNumber'] ?? '').toString();
     final customerName = (order['customer'] is Map ? order['customer']['name'] : null) ??
         order['customer_name'] ?? 'Pelanggan';
