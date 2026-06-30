@@ -88,7 +88,6 @@ class FcmService {
   FcmService._internal();
 
   bool _initialized = false;
-  // TODO: Set to false if values.xml is fixed
   static const bool disableFcm = true; 
 
   Future<void> initNotifications() async {
