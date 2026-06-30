@@ -88,9 +88,15 @@ class FcmService {
   FcmService._internal();
 
   bool _initialized = false;
+  // TODO: Set to false if values.xml is fixed
+  static const bool disableFcm = true; 
 
   Future<void> initNotifications() async {
     if (_initialized) return;
+    if (disableFcm) {
+      debugPrint("FCM Initialization disabled temporarily.");
+      return;
+    }
 
     try {
       if (Firebase.apps.isEmpty) {
@@ -176,6 +182,7 @@ class FcmService {
   }
 
   Future<void> uploadTokenToServer() async {
+    if (disableFcm) return;
     try {
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {

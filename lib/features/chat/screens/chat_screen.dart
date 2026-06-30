@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -42,6 +43,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _msgController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Timer? _refreshTimer;
+  bool _isFirstLoad = true;
 
   String _myId = '';
   String _myName = '';
@@ -59,9 +61,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Future<void> _loadUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
+    
+    String myId = '';
+    String myName = '';
+    
+    final userDataStr = prefs.getString('user_data');
+    if (userDataStr != null) {
+      try {
+        final userData = jsonDecode(userDataStr);
+        myId = (userData['identifier'] ?? userData['email'] ?? userData['phone_number'] ?? '').toString();
+        myName = (userData['name'] ?? '').toString();
+      } catch (e) {
+        debugPrint('Error parsing user_data: $e');
+      }
+    }
+    
     setState(() {
-      _myId = prefs.getString('identifier') ?? '';
-      _myName = prefs.getString('name') ?? '';
+      _myId = myId;
+      _myName = myName;
       _myRole = prefs.getString('role') ?? '';
     });
     // Muat pesan setelah user info tersedia
@@ -79,7 +96,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     await ref
         .read(chatProvider)
         .fetchMessages(widget.orderNumber, widget.channel, force: force);
-    _scrollToBottom();
+    if (mounted) {
+      setState(() {
+        _isFirstLoad = false;
+      });
+      _scrollToBottom();
+    }
   }
 
   void _scrollToBottom({bool animated = true}) {
@@ -202,7 +224,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: RefreshIndicator(
               color: _primaryTeal,
               onRefresh: () => _fetchMessages(force: true),
-              child: provider.isLoading && provider.messages.isEmpty
+              child: provider.isLoading && _isFirstLoad
                   ? _buildSkeletonLoading()
                   : provider.messages.isEmpty
                       ? _buildEmptyState()
