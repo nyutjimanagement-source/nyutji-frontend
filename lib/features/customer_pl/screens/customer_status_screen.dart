@@ -10,6 +10,8 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../chat/screens/chat_screen.dart';
+import '../../chat/utils/chat_utils.dart';
 
 class CustomerStatusScreen extends ConsumerStatefulWidget {
   const CustomerStatusScreen({super.key});
@@ -870,6 +872,11 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                           ),
                       ],
                     ),
+                    if (!isDraft && !isFinished) ...[
+                      const SizedBox(height: 16),
+                      // ── CHAT & CALL BUTTONS ──────────────────────────────
+                      _buildChatCallButtons(order, s),
+                    ],
                     if (!isDraft) ...[
                       const SizedBox(height: 24),
                       // PROGRESS HEADER
@@ -997,6 +1004,107 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                   ],
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatCallButtons(Map<String, dynamic> order, String status) {
+    final orderNumber = (order['order_number'] ?? order['orderNumber'] ?? '').toString();
+    final mitraName = (order['mitra'] is Map ? order['mitra']['name'] : null) ??
+        order['mitra_name'] ?? 'Mitra';
+    final mitraPhoto = ChatUtils.extractPhoto(order['mitra_name'] ?? order['mitra']);
+    
+    // Parse Courier Name using ChatUtils
+    final courierName = ChatUtils.extractName(order['courier_name'] ?? order['courier']);
+    final courierPhoto = ChatUtils.extractPhoto(order['courier_name'] ?? order['courier']);
+    
+    final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString();
+    final isCourierNeeded = ChatUtils.isCourierNeeded(rawDel, status);
+    
+    final hasCourier = isCourierNeeded && courierName.isNotEmpty && courierName != 'null' && courierName != '-' && courierName != 'Belum Ada' && courierName != 'Kurir';
+
+    return Row(
+      children: [
+        // Chat dengan Mitra
+        Expanded(
+          child: _chatCallBtn(
+            icon: LucideIcons.messageCircle,
+            label: 'Chat Mitra',
+            color: const Color(0xFF0D9488),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(
+                  orderNumber: orderNumber,
+                  channel: 'PL_ML',
+                  partnerName: mitraName,
+                  partnerRole: 'ML',
+                  partnerPhoto: mitraPhoto,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        // Chat dengan Kurir (hanya jika kurir sudah assigned)
+        if (hasCourier) ...[
+          Expanded(
+            child: _chatCallBtn(
+              icon: LucideIcons.messageSquare,
+              label: 'Chat Kurir',
+              color: const Color(0xFF7C3AED),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    orderNumber: orderNumber,
+                    channel: 'PL_KL',
+                    partnerName: courierName,
+                    partnerRole: 'KL',
+                    partnerPhoto: courierPhoto,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _chatCallBtn({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

@@ -16,6 +16,8 @@ import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_loading_overlay.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_dot.dart';
+import '../../chat/screens/chat_screen.dart';
+import '../../chat/utils/chat_utils.dart';
 
 class MitraOrderScreen extends ConsumerStatefulWidget {
   const MitraOrderScreen({super.key});
@@ -1100,6 +1102,11 @@ final orderProv = ref.watch(orderProvider);
         // ── Progress Cucian ──
         _buildProgressCucian(orderId, status, accentColor, o),
 
+        const SizedBox(height: 24),
+        
+        // ── Chat & Call Buttons ──
+        _buildChatCallButtons(o, status),
+
         // ── Action Buttons ──
         if (needsCourier || needsUpdate) ...[
           const SizedBox(height: 24),
@@ -1137,6 +1144,107 @@ final orderProv = ref.watch(orderProvider);
           ),
         ],
       ]),
+    );
+  }
+
+  Widget _buildChatCallButtons(dynamic order, String status) {
+    final orderNumber = (order['order_number'] ?? order['orderNumber'] ?? '').toString();
+    final customerName = (order['customer'] is Map ? order['customer']['name'] : null) ??
+        order['customer_name'] ?? 'Pelanggan';
+    final customerPhoto = ChatUtils.extractPhoto(order['customer_name'] ?? order['customer']);
+        
+    // Parse Courier Name using ChatUtils
+    final courierName = ChatUtils.extractName(order['courier_name'] ?? order['courier']);
+    final courierPhoto = ChatUtils.extractPhoto(order['courier_name'] ?? order['courier']);
+    
+    final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString();
+    final isCourierNeeded = ChatUtils.isCourierNeeded(rawDel, status);
+    
+    final hasCourier = isCourierNeeded && courierName.isNotEmpty && courierName != 'null' && courierName != '-' && courierName != 'Belum Ada' && courierName != 'Kurir';
+
+    return Row(
+      children: [
+        // Chat dengan Pelanggan
+        Expanded(
+          child: _chatCallBtn(
+            icon: LucideIcons.messageCircle,
+            label: 'Chat Pelanggan',
+            color: const Color(0xFF0D9488),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(
+                  orderNumber: orderNumber,
+                  channel: 'PL_ML', // Channel is Customer-Mitra
+                  partnerName: customerName,
+                  partnerRole: 'PL',
+                  partnerPhoto: customerPhoto,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        // Chat dengan Kurir (hanya jika kurir sudah assigned)
+        if (hasCourier) ...[
+          Expanded(
+            child: _chatCallBtn(
+              icon: LucideIcons.messageSquare,
+              label: 'Chat Kurir',
+              color: const Color(0xFF7C3AED),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    orderNumber: orderNumber,
+                    channel: 'KL_ML', // Channel is Courier-Mitra
+                    partnerName: courierName,
+                    partnerRole: 'KL',
+                    partnerPhoto: courierPhoto,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _chatCallBtn({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

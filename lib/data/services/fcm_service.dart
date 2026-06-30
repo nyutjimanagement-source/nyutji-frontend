@@ -1,9 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'api_service.dart';
 import '../../main.dart';
 import '../../core/widgets/incoming_call_overlay.dart';
+import '../../core/widgets/nyutji_notif.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -15,18 +17,68 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     debugPrint("Firebase bg init error: $e");
   }
   debugPrint("Handling a background message: ${message.messageId}");
-  
+
   final data = message.data;
+
+  // Simpan notif ke Hive saat background
+  await _saveNotificationToHive(data, message.notification);
+
   if (data['type'] == 'INCOMING_CALL') {
     final roomId = data['roomId'] ?? '';
     final callerName = data['callerName'] ?? 'Panggilan Masuk';
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = navigatorKey.currentContext;
       if (context != null) {
         IncomingCallOverlay.show(context, callerName, roomId);
       }
     });
+  }
+}
+
+/// Simpan notifikasi ke Hive box nyutji_notifications (untuk background handler)
+Future<void> _saveNotificationToHive(
+  Map<String, dynamic> data,
+  RemoteNotification? notification,
+) async {
+  try {
+    if (!Hive.isBoxOpen('nyutji_notifications')) {
+      await Hive.openBox('nyutji_notifications');
+    }
+    final box = Hive.box('nyutji_notifications');
+    final rawList = box.get('all_notifications', defaultValue: []) as List;
+
+    final String type = data['type']?.toString() ?? 'info';
+    final String notifType = type == 'INCOMING_CALL'
+        ? 'call'
+        : type == 'NEW_CHAT_MESSAGE'
+            ? 'chat'
+            : type == 'ORDER_STATUS_UPDATED'
+                ? 'order_status'
+                : 'info';
+
+    final notifMap = {
+      'id': '${DateTime.now().millisecondsSinceEpoch}',
+      'type': notifType,
+      'title': notification?.title ?? data['title'] ?? 'Notifikasi Nyutji',
+      'body': notification?.body ?? data['body'] ?? '',
+      'data': {
+        if (data['orderNumber'] != null) 'orderNumber': data['orderNumber'].toString(),
+        if (data['channel'] != null) 'channel': data['channel'].toString(),
+        if (data['roomId'] != null) 'roomId': data['roomId'].toString(),
+        if (data['callerName'] != null) 'callerName': data['callerName'].toString(),
+      },
+      'createdAt': DateTime.now().toIso8601String(),
+      'isRead': false,
+    };
+
+    rawList.insert(0, notifMap);
+
+    // Batasi max 50 notif
+    final trimmed = rawList.take(50).toList();
+    await box.put('all_notifications', trimmed);
+  } catch (e) {
+    debugPrint('[FCM] Gagal simpan notif ke Hive: $e');
   }
 }
 
@@ -39,14 +91,14 @@ class FcmService {
 
   Future<void> initNotifications() async {
     if (_initialized) return;
-    
+
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       }
-      
+
       final messaging = FirebaseMessaging.instance;
-      
+
       // Request permission untuk push notification
       await messaging.requestPermission(
         alert: true,
@@ -63,43 +115,63 @@ class FcmService {
 
       // Foreground message listener
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint('Got a message whilst in the foreground!');
-        debugPrint('Message data: ${message.data}');
-
-        final data = message.data;
-        if (data['type'] == 'INCOMING_CALL') {
-          final roomId = data['roomId'] ?? '';
-          final callerName = data['callerName'] ?? 'Panggilan Masuk';
-          
-          final context = navigatorKey.currentContext;
-          if (context != null && context.mounted) {
-            IncomingCallOverlay.show(context, callerName, roomId);
-          }
-        }
+        debugPrint('FCM Foreground message: ${message.data}');
+        _handleForegroundMessage(message);
       });
 
       // App opened from notification listener
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        debugPrint('A new onMessageOpenedApp event was published!');
-        final data = message.data;
-        if (data['type'] == 'INCOMING_CALL') {
-          final roomId = data['roomId'] ?? '';
-          final callerName = data['callerName'] ?? 'Panggilan Masuk';
-          
-          final context = navigatorKey.currentContext;
-          if (context != null && context.mounted) {
-            IncomingCallOverlay.show(context, callerName, roomId);
-          }
-        }
+        debugPrint('FCM onMessageOpenedApp: ${message.data}');
+        _handleForegroundMessage(message);
       });
 
       _initialized = true;
       debugPrint("FCM Service initialized successfully.");
-      
+
       // Upload token ke server jika user aktif
       await uploadTokenToServer();
     } catch (e) {
       debugPrint("Gagal menginisialisasi FCM Service: $e");
+    }
+  }
+
+  void _handleForegroundMessage(RemoteMessage message) {
+    final data = message.data;
+    final context = navigatorKey.currentContext;
+
+    // Simpan ke Hive secara async
+    _saveNotificationToHive(data, message.notification);
+
+    if (data['type'] == 'INCOMING_CALL') {
+      final roomId = data['roomId'] ?? '';
+      final callerName = data['callerName'] ?? 'Panggilan Masuk';
+
+      if (context != null && context.mounted) {
+        IncomingCallOverlay.show(context, callerName, roomId);
+      }
+    } else if (data['type'] == 'NEW_CHAT_MESSAGE') {
+      // Tampilkan in-app banner untuk pesan chat baru
+      final senderName = data['senderName'] ?? 'Seseorang';
+      final msgPreview = data['message'] ?? 'Pesan baru';
+      final orderNumber = data['orderNumber'] ?? '';
+
+      if (context != null && context.mounted) {
+        NyutjiNotif.showInfo(
+          context,
+          '$senderName: $msgPreview${orderNumber.isNotEmpty ? ' (#$orderNumber)' : ''}',
+        );
+      }
+    } else if (data['type'] == 'ORDER_STATUS_UPDATED') {
+      // Tampilkan in-app banner untuk update status pesanan
+      final status = data['newStatus'] ?? '';
+      final orderNumber = data['orderNumber'] ?? '';
+
+      if (context != null && context.mounted) {
+        NyutjiNotif.showInfo(
+          context,
+          'Pesanan #$orderNumber: Status diperbarui ke $status',
+        );
+      }
     }
   }
 

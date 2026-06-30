@@ -19,6 +19,7 @@ import 'features/mitra_ml/screens/mitra_home_screen.dart';
 import 'features/kurir_kl/screens/courier_main_screen.dart';
 import 'features/admin_ad/screens/admin_main_screen.dart';
 import 'features/mitra_ml/screens/mitra_kendala_screen.dart';
+import 'features/notifications/screens/notification_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,7 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox('offline_queue');
   await Hive.openBox('nyutji_cache');
+  await Hive.openBox('nyutji_notifications');
 
   // Inisialisasi Firebase & FCM Notifikasi secara aman
   try {
@@ -108,6 +110,9 @@ class NyutjiApp extends ConsumerWidget {
               break;
             case '/mitra_report_issue':
               page = const MitraKendalaScreen();
+              break;
+            case '/notifications':
+              page = const NotificationScreen();
               break;
             default:
               page = const SplashScreen();
