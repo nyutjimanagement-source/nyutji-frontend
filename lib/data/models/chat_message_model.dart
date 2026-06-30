@@ -36,12 +36,12 @@ class ChatMessageModel {
           json['sender_role']?.toString() ??
           '',
       message: json['message']?.toString() ?? '',
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
-          : json['created_at'] != null
-              ? DateTime.tryParse(json['created_at'].toString()) ??
-                  DateTime.now()
-              : DateTime.now(),
+      createdAt: () {
+        final dateStr = (json['createdAt'] ?? json['created_at'])?.toString();
+        if (dateStr == null) return DateTime.now();
+        final parsed = DateTime.tryParse(dateStr) ?? DateTime.now();
+        return parsed.toLocal();
+      }(),
     );
   }
 
