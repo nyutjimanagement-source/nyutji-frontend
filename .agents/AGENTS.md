@@ -237,3 +237,13 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Format**: Gunakan tipe prefiks standar (seperti `feat:`, `fix:`, `style:`, `refactor:`, `docs:`) diikuti dengan penjelasan dalam bahasa Indonesia.
   * *Contoh*: `feat: tambah bubble merah draft pesanan pada keranjang di home screen PL`
   * *Contoh*: `fix: perbaikan type-safety parsing data cache`
+
+---
+
+## VI. Standar Notifikasi & Firebase Cloud Messaging (FCM)
+
+### 1. Prinsip 1 Token = 1 Fisik HP (Token Uniqueness)
+* **Aturan**: Sebuah Token FCM mutlak terikat secara eksklusif pada **Fisik HP (Device)** dan hanya boleh dimiliki oleh 1 akun aktif dalam satu waktu.
+* **Alasan**: Baik untuk keperluan **Live Production** maupun simulasi di 1 HP, jika dua akun memegang token yang sama di database, notifikasi akan bocor/nyasar ke akun lain yang sedang login di HP tersebut.
+* **Implementasi**: Backend **wajib** melakukan *Sapu Bersih* saat update token (updateFcmToken). Sebelum menyimpan token untuk user yang sedang login, cari semua baris di tabel users yang memiliki token serupa, dan set menjadi NULL (kecuali user tersebut). Ini menjamin bahwa token ditransfer secara eksklusif ke user terakhir yang login di HP itu.
+
