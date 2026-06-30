@@ -234,3 +234,7 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Format**: Gunakan tipe prefiks standar (seperti `feat:`, `fix:`, `style:`, `refactor:`, `docs:`) diikuti dengan penjelasan dalam bahasa Indonesia.
   * *Contoh*: `feat: tambah bubble merah draft pesanan pada keranjang di home screen PL`
   * *Contoh*: `fix: perbaikan type-safety parsing data cache`
+
+### 21. Format Waktu Lokal (Local Time Parsing)
+* **Aturan**: Saat mem-parsing timestamp (seperti createdAt) dari database backend untuk ditampilkan di UI (terutama pada fitur Chat, Riwayat Order, atau Notifikasi), dilarang langsung menggunakan DateFormat dari package intl pada objek UTC mentah tanpa mengonversinya ke zona waktu lokal pengguna.
+* **Solusi**: Wajib menggunakan ekstensi .toLocal() pada instance DateTime sebelum diformat agar waktu otomatis beradaptasi dengan zona waktu perangkat (misal: WIB/Jakarta UTC+7). Contoh: DateTime.tryParse(dateStr)?.toLocal().
