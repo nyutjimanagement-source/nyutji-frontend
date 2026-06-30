@@ -88,7 +88,7 @@ class FcmService {
   FcmService._internal();
 
   bool _initialized = false;
-  static const bool disableFcm = true; 
+  static const bool disableFcm = false; 
 
   Future<void> initNotifications() async {
     if (_initialized) return;
