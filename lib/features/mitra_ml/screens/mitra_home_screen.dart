@@ -267,9 +267,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
       }
     }
     
-    final url = photoUrl.toString().startsWith('http') 
-        ? photoUrl.toString()
-        : "${ApiConstants.rootUrl}/$photoUrl";
+    final url = ApiConstants.profilePhotoUrl(photoUrl);
         
     return Image.network(
       url, 

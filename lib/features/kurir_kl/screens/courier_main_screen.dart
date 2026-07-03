@@ -30,6 +30,7 @@ import '../../chat/utils/chat_utils.dart';
 
 // --- MODELS ---
 enum CourierTaskType { pickup, delivery }
+
 enum CourierTaskStatus { assigned, onTheWay, arrived, completed }
 
 // Model: Order tersedia di kecamatan KL
@@ -53,21 +54,23 @@ class AvailableOrder {
   });
 }
 
-  // Models for available orders are kept as they are used for parsing available orders API
-  // but we will use dynamic Maps for tasks
-  
+// Models for available orders are kept as they are used for parsing available orders API
+// but we will use dynamic Maps for tasks
+
 // --- SCREEN ---
 class CourierMainScreen extends ConsumerStatefulWidget {
   const CourierMainScreen({super.key});
 
-  @override ConsumerState<CourierMainScreen> createState() => _CourierMainScreenState();
+  @override
+  ConsumerState<CourierMainScreen> createState() => _CourierMainScreenState();
 }
 
-class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with SingleTickerProviderStateMixin {
+class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
+    with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _taskSectionKey = GlobalKey(); 
+  final GlobalKey _taskSectionKey = GlobalKey();
   bool isOnline = true;
   int _selectedNavIndex = 0;
   Timer? _refreshTimer;
@@ -133,14 +136,22 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
   void _autoSelectTab() {
     final activeOrders = ref.read(orderProvider).activeOrders;
     final hasPickup = activeOrders.any((o) {
-      final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
-      final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+      final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '')
+          .toString()
+          .toUpperCase();
+      final isSelfDrop = rawDel == 'SELF_DROP' ||
+          rawDel == 'SELFDROP_SELFDELIVERY' ||
+          rawDel == 'SELF_SERVICE';
       if (isSelfDrop) return false;
-      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
-      return s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP';
+      final s =
+          (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      return s == 'WAITING_DROPOFF' ||
+          s == 'COURIER_ACCEPTED' ||
+          s == 'PICKING_UP';
     });
     final hasDelivery = activeOrders.any((o) {
-      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      final s =
+          (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
       return s == 'PACKING' || s == 'DELIVERING';
     });
     // Default: Jemput jika ada, atau Antar jika hanya delivery yang ada
@@ -170,35 +181,49 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
         if (mounted) setState(() => _gpsLocationText = "GPS Diblokir");
         return;
       }
-      
-      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      final url = Uri.parse("https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.latitude}&lon=${pos.longitude}&zoom=18&addressdetails=1");
-      final response = await http.get(url, headers: {'User-Agent': 'NyutjiApp/1.0'});
+
+      final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      final url = Uri.parse(
+          "https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.latitude}&lon=${pos.longitude}&zoom=18&addressdetails=1");
+      final response =
+          await http.get(url, headers: {'User-Agent': 'NyutjiApp/1.0'});
       if (response.statusCode == 200 && mounted) {
         final data = json.decode(response.body);
         final address = data['address'] ?? {};
-        String kelurahan = address['village'] ?? address['suburb'] ?? address['neighbourhood'] ?? "";
-        String kecamatan = address['subdistrict'] ?? address['city_district'] ?? "";
-        String city = address['city'] ?? address['regency'] ?? address['county'] ?? "";
-        
-        kecamatan = kecamatan.replaceAll(RegExp(r'^kecamatan\s+', caseSensitive: false), '').trim();
+        String kelurahan = address['village'] ??
+            address['suburb'] ??
+            address['neighbourhood'] ??
+            "";
+        String kecamatan =
+            address['subdistrict'] ?? address['city_district'] ?? "";
+        String city =
+            address['city'] ?? address['regency'] ?? address['county'] ?? "";
+
+        kecamatan = kecamatan
+            .replaceAll(RegExp(r'^kecamatan\s+', caseSensitive: false), '')
+            .trim();
         if (kecamatan.isEmpty && kelurahan.isNotEmpty) kecamatan = kelurahan;
-        
+
         if (city.toLowerCase().startsWith('kabupaten ')) {
-          city = city.replaceAll(RegExp(r'^kabupaten\s+', caseSensitive: false), 'Kab. ');
-        } else if (!city.toLowerCase().startsWith('kota ') && !city.toLowerCase().startsWith('kab.')) {
+          city = city.replaceAll(
+              RegExp(r'^kabupaten\s+', caseSensitive: false), 'Kab. ');
+        } else if (!city.toLowerCase().startsWith('kota ') &&
+            !city.toLowerCase().startsWith('kab.')) {
           city = "Kota $city";
         }
-        
+
         String locStr = "";
-        if (kelurahan.isNotEmpty && kecamatan.isNotEmpty && kelurahan != kecamatan) {
-           locStr = "$kelurahan/$kecamatan - $city";
+        if (kelurahan.isNotEmpty &&
+            kecamatan.isNotEmpty &&
+            kelurahan != kecamatan) {
+          locStr = "$kelurahan/$kecamatan - $city";
         } else if (kecamatan.isNotEmpty) {
-           locStr = "$kecamatan - $city";
+          locStr = "$kecamatan - $city";
         } else {
-           locStr = city;
+          locStr = city;
         }
-        
+
         setState(() {
           _gpsLocationText = locStr;
         });
@@ -208,18 +233,16 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     }
   }
 
-
-
   Future<void> _refreshData({bool force = false}) async {
     if (!mounted || !isOnline) return;
-    
+
     setState(() {
       _hasDoneAutoSelect = false;
     });
 
     ref.read(walletProvider).fetchWallet(force: force);
     ref.read(orderProvider).fetchOrders(force: force);
-    
+
     // Fetch order tersedia di KL (Marketplace)
     final auth = ref.read(authProvider);
     final district = auth.user?['district_name']?.toString() ?? '';
@@ -248,7 +271,8 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
 
   Future<void> _openMap(String address) async {
     final query = Uri.encodeComponent(address);
-    final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$query");
+    final url =
+        Uri.parse("https://www.google.com/maps/search/?api=1&query=$query");
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     }
@@ -273,22 +297,28 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     );
   }
 
-  Future<void> _captureTaskPhoto(String orderId, dynamic task, bool isDelivery) async {
+  Future<void> _captureTaskPhoto(
+      String orderId, dynamic task, bool isDelivery) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
-    
+    final XFile? photo =
+        await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+
     if (photo != null) {
-      if (mounted) NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
+      if (mounted) {
+        NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
+      }
       final compressed = await NyutjiImagePicker.compressToWebP(photo);
       if (mounted) {
         NyutjiLoadingOverlay.hide(context);
-        NyutjiLoadingOverlay.show(context, message: "Mengambil Koordinat GPS & Mengunggah...");
+        NyutjiLoadingOverlay.show(context,
+            message: "Mengambil Koordinat GPS & Mengunggah...");
       }
 
       double? capturedLat;
       double? capturedLng;
       try {
-        final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        final pos = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high);
         capturedLat = pos.latitude;
         capturedLng = pos.longitude;
       } catch (e) {
@@ -299,8 +329,8 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
       final provider = ref.read(orderProvider);
       final step = isDelivery ? 'DONE' : 'PICKING_UP';
       final uploadSuccess = await provider.uploadPOWImage(
-        orderId, 
-        XFile(compressed?.path ?? photo.path), 
+        orderId,
+        XFile(compressed?.path ?? photo.path),
         step,
         lat: capturedLat,
         lng: capturedLng,
@@ -310,7 +340,8 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
 
       if (!uploadSuccess) {
         if (mounted) {
-          NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengunggah foto POW");
+          NyutjiNotif.showError(
+              context, provider.errorMessage ?? "Gagal mengunggah foto POW");
         }
         return;
       }
@@ -319,11 +350,12 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
         setState(() {
           _taskCapturedImages[orderId] = File(compressed?.path ?? photo.path);
         });
-        
+
         if (isDelivery) {
           _showSimulationBottomSheet(orderId, task);
         } else {
-          NyutjiNotif.showSuccess(context, "Foto berhasil diunggah & disimpan.");
+          NyutjiNotif.showSuccess(
+              context, "Foto berhasil diunggah & disimpan.");
         }
       }
     }
@@ -350,18 +382,38 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
             const SizedBox(height: 8),
             Expanded(
               child: ColorFiltered(
-                colorFilter: isOnline 
-                  ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-                  : const ColorFilter.matrix(<double>[
-                      0.2126, 0.7152, 0.0722, 0, 0,
-                      0.2126, 0.7152, 0.0722, 0, 0,
-                      0.2126, 0.7152, 0.0722, 0, 0,
-                      0,      0,      0,      1, 0,
-                    ]),
+                colorFilter: isOnline
+                    ? const ColorFilter.mode(
+                        Colors.transparent, BlendMode.multiply)
+                    : const ColorFilter.matrix(<double>[
+                        0.2126,
+                        0.7152,
+                        0.0722,
+                        0,
+                        0,
+                        0.2126,
+                        0.7152,
+                        0.0722,
+                        0,
+                        0,
+                        0.2126,
+                        0.7152,
+                        0.0722,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                      ]),
                 child: PageView(
                   controller: _pageController,
-                  physics: isOnline ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
-                  onPageChanged: (index) => setState(() => _selectedNavIndex = index),
+                  physics: isOnline
+                      ? const BouncingScrollPhysics()
+                      : const NeverScrollableScrollPhysics(),
+                  onPageChanged: (index) =>
+                      setState(() => _selectedNavIndex = index),
                   children: tabs,
                 ),
               ),
@@ -377,31 +429,39 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen> with Sing
     if (_selectedNavIndex == 0) {
       return _buildCompactHeader(currentT);
     } else if (_selectedNavIndex == 1) {
-      return Consumer(
-        builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-return _buildPageTitleHeader("Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history, auth: auth, forceIcon: true);
-});
+      return Consumer(builder: (context, ref, _) {
+        final auth = ref.watch(authProvider);
+        return _buildPageTitleHeader(
+            "Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history,
+            auth: auth, forceIcon: true);
+      });
     } else if (_selectedNavIndex == 2) {
-      return Consumer(
-        builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-return _buildPageTitleHeader("Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet, auth: auth, forceIcon: true);
-});
+      return Consumer(builder: (context, ref, _) {
+        final auth = ref.watch(authProvider);
+        return _buildPageTitleHeader(
+            "Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet,
+            auth: auth, forceIcon: true);
+      });
     } else {
-      return Consumer(
-        builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.user, auth: auth, forceIcon: false);
-});
+      return Consumer(builder: (context, ref, _) {
+        final auth = ref.watch(authProvider);
+        return _buildPageTitleHeader(
+            auth.user?['name'] ?? "Profil Kurir", LucideIcons.user,
+            auth: auth, forceIcon: false);
+      });
     }
   }
 
-  Widget _buildPageTitleHeader(String title, IconData icon, {AuthProvider? auth, bool forceIcon = false}) {
+  Widget _buildPageTitleHeader(String title, IconData icon,
+      {AuthProvider? auth, bool forceIcon = false}) {
     final photoUrl = auth?.user?['profile_photo'];
     final localPhoto = auth?.temporaryLocalPhoto;
-    final district = auth?.user?['owner_district_name'] ?? auth?.user?['district_name'] ?? auth?.user?['district_code'] ?? "";
-    final city = auth?.user?['owner_city_name'] ?? auth?.user?['city_name'] ?? "";
+    final district = auth?.user?['owner_district_name'] ??
+        auth?.user?['district_name'] ??
+        auth?.user?['district_code'] ??
+        "";
+    final city =
+        auth?.user?['owner_city_name'] ?? auth?.user?['city_name'] ?? "";
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -409,42 +469,48 @@ return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.u
       child: Row(
         children: [
           GestureDetector(
-            onTap: () { if (auth != null && !forceIcon) _pickImage(auth); },
+            onTap: () {
+              if (auth != null && !forceIcon) _pickImage(auth);
+            },
             child: Container(
-              width: 60, height: 60,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                shape: BoxShape.circle, 
+                shape: BoxShape.circle,
                 color: primaryTeal.withValues(alpha: 0.1),
                 border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                image: !forceIcon ? (kIsWeb
-                  ? (auth?.temporaryWebBytes != null
-                      ? DecorationImage(image: MemoryImage(auth!.temporaryWebBytes), fit: BoxFit.cover)
-                      : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                          ? DecorationImage(
-                              image: CachedNetworkImageProvider(
-                                photoUrl.toString().startsWith('http') 
-                                  ? photoUrl.toString()
-                                  : "${ApiConstants.rootUrl}/$photoUrl"
-                              ), 
-                              fit: BoxFit.cover
-                            ) 
-                          : null)
-                  : (localPhoto != null
-                    ? DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)
-                    : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                        ? DecorationImage(
-                            image: CachedNetworkImageProvider(
-                              photoUrl.toString().startsWith('http') 
-                                ? photoUrl.toString()
-                                : "${ApiConstants.rootUrl}/$photoUrl"
-                            ), 
-                            fit: BoxFit.cover
-                          ) 
-                        : null)) : null,
+                image: !forceIcon
+                    ? (kIsWeb
+                        ? (auth?.temporaryWebBytes != null
+                            ? DecorationImage(
+                                image: MemoryImage(auth!.temporaryWebBytes),
+                                fit: BoxFit.cover)
+                            : (photoUrl != null &&
+                                    photoUrl.toString().isNotEmpty)
+                                ? DecorationImage(
+                                    image: CachedNetworkImageProvider(
+                                        ApiConstants.profilePhotoUrl(photoUrl)),
+                                    fit: BoxFit.cover)
+                                : null)
+                        : (localPhoto != null
+                            ? DecorationImage(
+                                image: FileImage(File(localPhoto)),
+                                fit: BoxFit.cover)
+                            : (photoUrl != null &&
+                                    photoUrl.toString().isNotEmpty)
+                                ? DecorationImage(
+                                    image: CachedNetworkImageProvider(
+                                        ApiConstants.profilePhotoUrl(photoUrl)),
+                                    fit: BoxFit.cover)
+                                : null))
+                    : null,
               ),
-              child: (forceIcon || (localPhoto == null && auth?.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty))) 
-                ? Icon(icon, color: primaryTeal, size: 18) 
-                : null,
+              child: (forceIcon ||
+                      (localPhoto == null &&
+                          auth?.temporaryWebBytes == null &&
+                          (photoUrl == null || photoUrl.toString().isEmpty)))
+                  ? Icon(icon, color: primaryTeal, size: 18)
+                  : null,
             ),
           ),
           const SizedBox(width: 14),
@@ -453,18 +519,29 @@ return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.u
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-              Text(
-                auth != null ? (auth.user?['name'] ?? "Abang Kurir") : "Abang Kurir Jago",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 0.2),
-              ),
-              Text(
-                auth != null ? "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district${city.isNotEmpty ? ' - $city' : ''}" : "Nyutji Logistics Team",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
-              ),
+                Text(
+                  auth != null
+                      ? (auth.user?['name'] ?? "Abang Kurir")
+                      : "Abang Kurir Jago",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.montserrat(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: darkText,
+                      letterSpacing: 0.2),
+                ),
+                Text(
+                  auth != null
+                      ? "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district${city.isNotEmpty ? ' - $city' : ''}"
+                      : "Nyutji Logistics Team",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.montserrat(
+                      fontSize: 10,
+                      color: textGrey,
+                      fontWeight: FontWeight.w600),
+                ),
               ],
             ),
           ),
@@ -479,7 +556,8 @@ return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.u
       onRefresh: () => _refreshData(force: true),
       child: SingleChildScrollView(
         controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics()),
         child: Column(
           children: [
             const SizedBox(height: 8),
@@ -512,53 +590,66 @@ return _buildPageTitleHeader(auth.user?['name'] ?? "Profil Kurir", LucideIcons.u
               children: [
                 Consumer(
                   builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
+                    final auth = ref.watch(authProvider);
                     final photoUrl = auth.user?['profile_photo'];
                     final localPhoto = auth.temporaryLocalPhoto;
                     return GestureDetector(
                       onTap: () => _pickImage(auth),
                       child: Container(
-                        width: 60, height: 60,
+                        width: 60,
+                        height: 60,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle, 
+                          shape: BoxShape.circle,
                           color: primaryTeal.withValues(alpha: 0.1),
-                          border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                          border:
+                              Border.all(color: Colors.grey[300]!, width: 1.5),
                         ),
                         child: kIsWeb
                             ? (auth.temporaryWebBytes != null
-                                ? Container(decoration: BoxDecoration(shape: BoxShape.circle, image: DecorationImage(image: MemoryImage(auth.temporaryWebBytes), fit: BoxFit.cover)))
-                                : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                    ? Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          image: DecorationImage(
-                                              image: CachedNetworkImageProvider(
-                                                photoUrl.toString().startsWith('http') 
-                                                  ? photoUrl.toString()
-                                                  : "${ApiConstants.rootUrl}/$photoUrl"
-                                              ), 
-                                              fit: BoxFit.cover
-                                            )
-                                          ),
-                                      ) 
-                                    : Icon(LucideIcons.user, color: primaryTeal, size: 20))
-                            : (localPhoto != null
-                              ? Container(decoration: BoxDecoration(shape: BoxShape.circle, image: DecorationImage(image: FileImage(File(localPhoto)), fit: BoxFit.cover)))
-                              : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                                  ? Container(
-                                      decoration: BoxDecoration(
+                                ? Container(
+                                    decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         image: DecorationImage(
-                                            image: CachedNetworkImageProvider(
-                                              photoUrl.toString().startsWith('http') 
-                                                ? photoUrl.toString()
-                                                : "${ApiConstants.rootUrl}/$photoUrl"
-                                            ), 
-                                            fit: BoxFit.cover
-                                          )
-                                        ),
-                                    ) 
-                                  : Icon(LucideIcons.user, color: primaryTeal, size: 20)),
+                                            image: MemoryImage(
+                                                auth.temporaryWebBytes),
+                                            fit: BoxFit.cover)))
+                                : (photoUrl != null &&
+                                        photoUrl.toString().isNotEmpty)
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(
+                                                image:
+                                                    CachedNetworkImageProvider(
+                                                  ApiConstants.profilePhotoUrl(
+                                                      photoUrl),
+                                                ),
+                                                fit: BoxFit.cover)),
+                                      )
+                                    : Icon(LucideIcons.user,
+                                        color: primaryTeal, size: 20))
+                            : (localPhoto != null
+                                ? Container(
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                            image: FileImage(File(localPhoto)),
+                                            fit: BoxFit.cover)))
+                                : (photoUrl != null &&
+                                        photoUrl.toString().isNotEmpty)
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(
+                                                image:
+                                                    CachedNetworkImageProvider(
+                                                        ApiConstants
+                                                            .profilePhotoUrl(
+                                                                photoUrl)),
+                                                fit: BoxFit.cover)),
+                                      )
+                                    : Icon(LucideIcons.user,
+                                        color: primaryTeal, size: 20)),
                       ),
                     );
                   },
@@ -569,28 +660,35 @@ final auth = ref.watch(authProvider);
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Consumer(
-                        builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-                          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? auth.user?['district_code'] ?? "";
-                          final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "";
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                auth.user?['name'] ?? "Abang Kurir", 
+                      Consumer(builder: (context, ref, _) {
+                        final auth = ref.watch(authProvider);
+                        final district = auth.user?['owner_district_name'] ??
+                            auth.user?['district_name'] ??
+                            auth.user?['district_code'] ??
+                            "";
+                        final city = auth.user?['owner_city_name'] ??
+                            auth.user?['city_name'] ??
+                            "";
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(auth.user?['name'] ?? "Abang Kurir",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: darkText)
-                              ),
-                              Text(
-                                "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district${city.isNotEmpty ? ' - $city' : ''}",
-                                style: GoogleFonts.montserrat(fontSize: 10, color: textGrey, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          );
-                        }
-                      ),
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: darkText)),
+                            Text(
+                              "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district${city.isNotEmpty ? ' - $city' : ''}",
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 10,
+                                  color: textGrey,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -612,7 +710,12 @@ final auth = ref.watch(authProvider);
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Row(
         children: [
@@ -622,7 +725,8 @@ final auth = ref.watch(authProvider);
               color: const Color(0xFF0284C7).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(LucideIcons.mapPin, size: 14, color: Color(0xFF0284C7)),
+            child: const Icon(LucideIcons.mapPin,
+                size: 14, color: Color(0xFF0284C7)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -631,11 +735,19 @@ final auth = ref.watch(authProvider);
               children: [
                 Text(
                   "Anda sekarang berada di",
-                  style: GoogleFonts.montserrat(fontSize: 10, color: const Color(0xFF6B7280), fontWeight: FontWeight.w500),
+                  style: GoogleFonts.montserrat(
+                      fontSize: 10,
+                      color: const Color(0xFF6B7280),
+                      fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  _gpsLocationText.isEmpty ? "Mendeteksi lokasi..." : _gpsLocationText,
-                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF111827)),
+                  _gpsLocationText.isEmpty
+                      ? "Mendeteksi lokasi..."
+                      : _gpsLocationText,
+                  style: GoogleFonts.montserrat(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF111827)),
                 ),
               ],
             ),
@@ -646,56 +758,71 @@ final auth = ref.watch(authProvider);
   }
 
   Widget _buildCompactStatsPanel() {
-    return Consumer(
-      builder: (context, ref, _) {
-final orderProv = ref.watch(orderProvider);
-        final history = orderProv.historyOrders;
-        final today = DateTime.now();
-        
-        final todayOrders = history.where((o) {
-          if (o['updatedAt'] == null && o['updated_at'] == null) return false;
-          final dt = DateTime.tryParse(o['updatedAt']?.toString() ?? o['updated_at']?.toString() ?? '');
-          if (dt == null) return false;
-          final localDt = dt.toLocal();
-          return localDt.year == today.year && localDt.month == today.month && localDt.day == today.day;
-        }).toList();
+    return Consumer(builder: (context, ref, _) {
+      final orderProv = ref.watch(orderProvider);
+      final history = orderProv.historyOrders;
+      final today = DateTime.now();
 
-        final int completedTasks = todayOrders.length;
-        double totalDistance = 0.0;
-        for (var o in todayOrders) {
-           totalDistance += double.tryParse((o['distance'] ?? o['distance_km'] ?? '0').toString()) ?? 0.0;
-        }
+      final todayOrders = history.where((o) {
+        if (o['updatedAt'] == null && o['updated_at'] == null) return false;
+        final dt = DateTime.tryParse(
+            o['updatedAt']?.toString() ?? o['updated_at']?.toString() ?? '');
+        if (dt == null) return false;
+        final localDt = dt.toLocal();
+        return localDt.year == today.year &&
+            localDt.month == today.month &&
+            localDt.day == today.day;
+      }).toList();
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: primaryTeal.withValues(alpha: 0.05)),
-              boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.06), blurRadius: 24, offset: const Offset(0, 8))],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Consumer(
-                  builder: (context, ref, _) {
-                    final wallet = ref.watch(walletProvider);
-                    return _buildStatCol("Pendapatan", Formatters.currencyIdr(wallet.balance), LucideIcons.wallet, Colors.green[700]!);
-                  }
-                ),
-                Container(width: 1, height: 30, color: Colors.grey[200]),
-                _buildStatCol("Selesai", "$completedTasks Tugas", LucideIcons.checkSquare, primaryTeal),
-                Container(width: 1, height: 30, color: Colors.grey[200]),
-                _buildStatCol("Jarak Tempuh", "${totalDistance.toStringAsFixed(1).replaceAll('.0', '')} Km", LucideIcons.navigation, Colors.blue[700]!),
-              ],
-            ),
-          ),
-        );
+      final int completedTasks = todayOrders.length;
+      double totalDistance = 0.0;
+      for (var o in todayOrders) {
+        totalDistance += double.tryParse(
+                (o['distance'] ?? o['distance_km'] ?? '0').toString()) ??
+            0.0;
       }
-    );
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: primaryTeal.withValues(alpha: 0.05)),
+            boxShadow: [
+              BoxShadow(
+                  color: primaryTeal.withValues(alpha: 0.06),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8))
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Consumer(builder: (context, ref, _) {
+                final wallet = ref.watch(walletProvider);
+                return _buildStatCol(
+                    "Pendapatan",
+                    Formatters.currencyIdr(wallet.balance),
+                    LucideIcons.wallet,
+                    Colors.green[700]!);
+              }),
+              Container(width: 1, height: 30, color: Colors.grey[200]),
+              _buildStatCol("Selesai", "$completedTasks Tugas",
+                  LucideIcons.checkSquare, primaryTeal),
+              Container(width: 1, height: 30, color: Colors.grey[200]),
+              _buildStatCol(
+                  "Jarak Tempuh",
+                  "${totalDistance.toStringAsFixed(1).replaceAll('.0', '')} Km",
+                  LucideIcons.navigation,
+                  Colors.blue[700]!),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildStatCol(String label, String value, IconData icon, Color color) {
@@ -707,17 +834,29 @@ final orderProv = ref.watch(orderProvider);
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
-                boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))],
+                border:
+                    Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                      color: color.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4))
+                ],
               ),
               child: Icon(icon, size: 12, color: color),
             ),
             const SizedBox(width: 4),
-            Text(label, style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
+            Text(label,
+                style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    color: textGrey,
+                    fontWeight: FontWeight.w600)),
           ],
         ),
         const SizedBox(height: 6),
-        Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkText)),
+        Text(value,
+            style: GoogleFonts.montserrat(
+                fontSize: 13, fontWeight: FontWeight.w900, color: darkText)),
       ],
     );
   }
@@ -729,21 +868,22 @@ final orderProv = ref.watch(orderProvider);
     if (fullAddress.isEmpty || fullAddress == '-') return fullAddress;
     final parts = fullAddress.split(',');
     if (parts.length <= 2) return fullAddress;
-    
+
     String jalan = parts[0].trim();
     String kecamatan = "";
-    
+
     for (var part in parts) {
-      if (part.toLowerCase().contains('kec.') || part.toLowerCase().contains('kecamatan')) {
+      if (part.toLowerCase().contains('kec.') ||
+          part.toLowerCase().contains('kecamatan')) {
         kecamatan = part.trim();
         break;
       }
     }
-    
+
     if (kecamatan.isNotEmpty) {
       return "$jalan, $kecamatan";
     }
-    
+
     return "${parts[0].trim()}, ${parts[1].trim()}";
   }
 
@@ -765,7 +905,10 @@ final orderProv = ref.watch(orderProvider);
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: primaryTeal.withValues(alpha: 0.08)),
               boxShadow: [
-                BoxShadow(color: primaryTeal.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, 8)),
+                BoxShadow(
+                    color: primaryTeal.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8)),
               ],
             ),
             child: Column(
@@ -782,7 +925,8 @@ final orderProv = ref.watch(orderProvider);
                           color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(LucideIcons.zap, size: 18, color: Colors.black),
+                        child: const Icon(LucideIcons.zap,
+                            size: 18, color: Colors.black),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -791,11 +935,18 @@ final orderProv = ref.watch(orderProvider);
                           children: [
                             Text(
                               "Order Tersedia",
-                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkText, letterSpacing: 0.8),
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: darkText,
+                                  letterSpacing: 0.8),
                             ),
                             Text(
                               "${displayOrders.length} pesanan menunggu kurir",
-                              style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w500),
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  color: textGrey,
+                                  fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -817,18 +968,47 @@ final orderProv = ref.watch(orderProvider);
                   ),
                   itemBuilder: (ctx, index) {
                     final order = displayOrders[index];
-                    final orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
-                    final price = double.tryParse((order['delivery_fee'] ?? order['deliveryFee'] ?? '0').toString()) ?? 0.0;
-                    final pickupRaw = order['address']?.toString() ?? order['customer']?['address']?.toString() ?? '-';
+                    final orderId = (order['order_number'] ??
+                            order['orderNumber'] ??
+                            order['identifier'] ??
+                            order['id'] ??
+                            '-')
+                        .toString();
+                    final price = double.tryParse((order['delivery_fee'] ??
+                                order['deliveryFee'] ??
+                                '0')
+                            .toString()) ??
+                        0.0;
+                    final pickupRaw = order['address']?.toString() ??
+                        order['customer']?['address']?.toString() ??
+                        '-';
                     final shortPickupAddr = _simplifyAddress(pickupRaw);
-                    final note = order['pickup_note']?.toString() ?? order['pickupNote']?.toString() ?? '';
-                    final pickup = note.isNotEmpty ? "$shortPickupAddr\nCatatan: $note" : shortPickupAddr;
-                    final mitraName = (order['mitra']?['name'] ?? order['mitra_name'] ?? 'Mitra').toString();
-                    final mitraAddrRaw = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
+                    final note = order['pickup_note']?.toString() ??
+                        order['pickupNote']?.toString() ??
+                        '';
+                    final pickup = note.isNotEmpty
+                        ? "$shortPickupAddr\nCatatan: $note"
+                        : shortPickupAddr;
+                    final mitraName = (order['mitra']?['name'] ??
+                            order['mitra_name'] ??
+                            'Mitra')
+                        .toString();
+                    final mitraAddrRaw = (order['mitra']?['address'] ??
+                            order['mitra_address'] ??
+                            '-')
+                        .toString();
                     final mitraAddr = _simplifyAddress(mitraAddrRaw);
-                    final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1 || order['isFastTrack'] == true;
-                    final distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
-                    final serviceType = (order['service_type'] ?? order['serviceType'] ?? 'Reguler').toString();
+                    final isFast = order['is_fast_track'] == true ||
+                        order['is_fast_track'] == 1 ||
+                        order['isFastTrack'] == true;
+                    final distance = double.tryParse(
+                            (order['distance'] ?? order['distance_km'] ?? '0')
+                                .toString()) ??
+                        0.0;
+                    final serviceType = (order['service_type'] ??
+                            order['serviceType'] ??
+                            'Reguler')
+                        .toString();
 
                     return _buildAvailableOrderItem(
                       ctx: ctx,
@@ -872,7 +1052,10 @@ final orderProv = ref.watch(orderProvider);
             Expanded(
               child: Text(
                 "Jasa Antar: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price)}",
-                style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: primaryTeal),
+                style: GoogleFonts.montserrat(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: primaryTeal),
               ),
             ),
           ],
@@ -889,20 +1072,27 @@ final orderProv = ref.watch(orderProvider);
 
         // 4. Lokasi Antar Laundry
         _buildRichInfoRow(
-          LucideIcons.store, 
-          "Antar ke", 
-          TextSpan(
-            children: [
-              TextSpan(text: "$mitraName — ", style: const TextStyle(fontWeight: FontWeight.w800)),
-              TextSpan(text: mitraAddr, style: const TextStyle(fontWeight: FontWeight.w500)),
-            ],
-          ),
-          Colors.black
-        ),
+            LucideIcons.store,
+            "Antar ke",
+            TextSpan(
+              children: [
+                TextSpan(
+                    text: "$mitraName — ",
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                TextSpan(
+                    text: mitraAddr,
+                    style: const TextStyle(fontWeight: FontWeight.w500)),
+              ],
+            ),
+            Colors.black),
         const SizedBox(height: 8),
 
         // 5. Jarak
-        _buildInfoRow(LucideIcons.navigation2, "Jarak", "${distance > 0 ? distance.toStringAsFixed(1) : '~'} km", Colors.black),
+        _buildInfoRow(
+            LucideIcons.navigation2,
+            "Jarak",
+            "${distance > 0 ? distance.toStringAsFixed(1) : '~'} km",
+            Colors.black),
         const SizedBox(height: 8),
 
         // 6. Jenis Layanan
@@ -923,20 +1113,26 @@ final orderProv = ref.watch(orderProvider);
         const SizedBox(width: 8),
         SizedBox(
           width: 75,
-          child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+          child: Text(label,
+              style: GoogleFonts.montserrat(
+                  fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
         ),
-        Text(": ", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+        Text(": ",
+            style: GoogleFonts.montserrat(
+                fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+            style: GoogleFonts.montserrat(
+                fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRichInfoRow(IconData icon, String label, InlineSpan valueSpan, Color color) {
+  Widget _buildRichInfoRow(
+      IconData icon, String label, InlineSpan valueSpan, Color color) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -944,9 +1140,13 @@ final orderProv = ref.watch(orderProvider);
         const SizedBox(width: 8),
         SizedBox(
           width: 75,
-          child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+          child: Text(label,
+              style: GoogleFonts.montserrat(
+                  fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
         ),
-        Text(": ", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+        Text(": ",
+            style: GoogleFonts.montserrat(
+                fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
         Expanded(
           child: RichText(
             text: TextSpan(
@@ -971,12 +1171,15 @@ final orderProv = ref.watch(orderProvider);
 
         return StatefulBuilder(
           builder: (_, setState) {
-            final thumbOffset = margin + val * (trackWidth - thumbSize - 2 * margin);
+            final thumbOffset =
+                margin + val * (trackWidth - thumbSize - 2 * margin);
             final isDone = val >= 0.85;
 
             return GestureDetector(
               onHorizontalDragUpdate: (d) {
-                final newVal = (val + d.delta.dx / (trackWidth - thumbSize - 2 * margin)).clamp(0.0, maxSlide);
+                final newVal =
+                    (val + d.delta.dx / (trackWidth - thumbSize - 2 * margin))
+                        .clamp(0.0, maxSlide);
                 setState(() => val = newVal);
               },
               onHorizontalDragEnd: (_) {
@@ -991,10 +1194,14 @@ final orderProv = ref.watch(orderProvider);
               child: Container(
                 height: containerHeight,
                 decoration: BoxDecoration(
-                  color: isDone ? primaryTeal.withValues(alpha: 0.15) : Colors.grey.shade100,
+                  color: isDone
+                      ? primaryTeal.withValues(alpha: 0.15)
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(containerHeight / 2),
                   border: Border.all(
-                    color: isDone ? primaryTeal.withValues(alpha: 0.4) : Colors.grey.shade300,
+                    color: isDone
+                        ? primaryTeal.withValues(alpha: 0.4)
+                        : Colors.grey.shade300,
                   ),
                 ),
                 child: Stack(
@@ -1004,8 +1211,10 @@ final orderProv = ref.watch(orderProvider);
                       duration: const Duration(milliseconds: 50),
                       width: thumbOffset + thumbSize + margin,
                       decoration: BoxDecoration(
-                        color: primaryTeal.withValues(alpha: isDone ? 0.18 : 0.08),
-                        borderRadius: BorderRadius.circular(containerHeight / 2),
+                        color:
+                            primaryTeal.withValues(alpha: isDone ? 0.18 : 0.08),
+                        borderRadius:
+                            BorderRadius.circular(containerHeight / 2),
                       ),
                     ),
                     // Label teks di belakang
@@ -1015,11 +1224,15 @@ final orderProv = ref.watch(orderProvider);
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(LucideIcons.chevronsRight, size: 18, color: textGrey),
+                            Icon(LucideIcons.chevronsRight,
+                                size: 18, color: textGrey),
                             const SizedBox(width: 4),
                             Text(
                               "Mau Ambil",
-                              style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.w700, color: textGrey),
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: textGrey),
                             ),
                           ],
                         ),
@@ -1037,7 +1250,8 @@ final orderProv = ref.watch(orderProvider);
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: primaryTeal.withValues(alpha: isDone ? 0.4 : 0.15),
+                              color: primaryTeal.withValues(
+                                  alpha: isDone ? 0.4 : 0.15),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -1069,29 +1283,35 @@ final orderProv = ref.watch(orderProvider);
       _scrollToTasks();
       _refreshData();
     } else {
-      NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal mengambil order");
+      NyutjiNotif.showError(
+          context, provider.errorMessage ?? "Gagal mengambil order");
     }
   }
-
 
   Widget _buildDenseTaskSection(Map<String, dynamic> currentT) {
     final activeOrders = ref.watch(orderProvider).activeOrders;
     final pickupCount = activeOrders.where((o) {
-      final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
-      final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+      final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '')
+          .toString()
+          .toUpperCase();
+      final isSelfDrop = rawDel == 'SELF_DROP' ||
+          rawDel == 'SELFDROP_SELFDELIVERY' ||
+          rawDel == 'SELF_SERVICE';
       if (isSelfDrop) return false;
-      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      final s =
+          (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
       return s == 'SEARCHING' ||
-             s == 'WAITING_DROPOFF' || 
-             s == 'COURIER_ACCEPTED' || 
-             s == 'PICKING_UP' || 
-             s == 'WEIGHING' || 
-             s == 'WASH_START' || 
-             s == 'IN_PROGRESS' || 
-             s == 'PACKING';
+          s == 'WAITING_DROPOFF' ||
+          s == 'COURIER_ACCEPTED' ||
+          s == 'PICKING_UP' ||
+          s == 'WEIGHING' ||
+          s == 'WASH_START' ||
+          s == 'IN_PROGRESS' ||
+          s == 'PACKING';
     }).length;
     final deliveryCount = activeOrders.where((o) {
-      final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+      final s =
+          (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
       return s == 'DELIVERING';
     }).length;
 
@@ -1124,10 +1344,15 @@ final orderProv = ref.watch(orderProvider);
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(currentT['current_tasks'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: darkText, letterSpacing: 1.0)),
+            child: Text(currentT['current_tasks'],
+                style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: darkText,
+                    letterSpacing: 1.0)),
           ),
           const SizedBox(height: 12),
-          
+
           // Modern Pill Segmented Control
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1138,114 +1363,140 @@ final orderProv = ref.watch(orderProvider);
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(26),
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final halfWidth = constraints.maxWidth / 2;
-                  return Stack(
-                    children: [
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOutCubic,
-                        left: _tabController.index == 0 ? 0 : halfWidth,
-                        right: _tabController.index == 0 ? halfWidth : 0,
-                        top: 0,
-                        bottom: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
-                          ),
+              child: LayoutBuilder(builder: (context, constraints) {
+                final halfWidth = constraints.maxWidth / 2;
+                return Stack(
+                  children: [
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      left: _tabController.index == 0 ? 0 : halfWidth,
+                      right: _tabController.index == 0 ? halfWidth : 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2))
+                          ],
                         ),
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                setState(() => _tabController.index = 0);
-                                _tabController.animateTo(0);
-                              },
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(LucideIcons.arrowDownToLine, size: 14, color: _tabController.index == 0 ? primaryTeal : textGrey),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "Jemput (Pickup)",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 13,
-                                        fontWeight: _tabController.index == 0 ? FontWeight.w800 : FontWeight.w600,
-                                        color: _tabController.index == 0 ? primaryTeal : textGrey,
-                                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              setState(() => _tabController.index = 0);
+                              _tabController.animateTo(0);
+                            },
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(LucideIcons.arrowDownToLine,
+                                      size: 14,
+                                      color: _tabController.index == 0
+                                          ? primaryTeal
+                                          : textGrey),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Jemput (Pickup)",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 13,
+                                      fontWeight: _tabController.index == 0
+                                          ? FontWeight.w800
+                                          : FontWeight.w600,
+                                      color: _tabController.index == 0
+                                          ? primaryTeal
+                                          : textGrey,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          Expanded(
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () {
-                                setState(() => _tabController.index = 1);
-                                _tabController.animateTo(1);
-                              },
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(LucideIcons.send, size: 14, color: _tabController.index == 1 ? primaryTeal : textGrey),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "Antar (Delivery)",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 13,
-                                        fontWeight: _tabController.index == 1 ? FontWeight.w800 : FontWeight.w600,
-                                        color: _tabController.index == 1 ? primaryTeal : textGrey,
-                                      ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              setState(() => _tabController.index = 1);
+                              _tabController.animateTo(1);
+                            },
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(LucideIcons.send,
+                                      size: 14,
+                                      color: _tabController.index == 1
+                                          ? primaryTeal
+                                          : textGrey),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Antar (Delivery)",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 13,
+                                      fontWeight: _tabController.index == 1
+                                          ? FontWeight.w800
+                                          : FontWeight.w600,
+                                      color: _tabController.index == 1
+                                          ? primaryTeal
+                                          : textGrey,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  );
-                }
-              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }),
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Dense List View (Real Data)
           Consumer(
             builder: (context, ref, _) {
-final orderProv = ref.watch(orderProvider);
+              final orderProv = ref.watch(orderProvider);
               final activeOrders = orderProv.activeOrders;
               bool isPickupTab = _tabController.index == 0;
-              
+
               final filtered = activeOrders.where((o) {
                 // Sesuai Tabel Database: menggunakan kolom 'status'
-                final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+                final s = (o['status'] ?? o['order_status'] ?? '')
+                    .toString()
+                    .toUpperCase();
                 if (isPickupTab) {
-                  final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
-                  final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+                  final String rawDel =
+                      (o['deliveryType'] ?? o['delivery_type'] ?? '')
+                          .toString()
+                          .toUpperCase();
+                  final isSelfDrop = rawDel == 'SELF_DROP' ||
+                      rawDel == 'SELFDROP_SELFDELIVERY' ||
+                      rawDel == 'SELF_SERVICE';
                   if (isSelfDrop) return false;
-                  
+
                   // Pickup tasks are: WAITING_DROPOFF, COURIER_ACCEPTED, PICKING_UP, WEIGHING, WASH_START, IN_PROGRESS, PACKING
                   return s == 'SEARCHING' ||
-                         s == 'WAITING_DROPOFF' || 
-                         s == 'COURIER_ACCEPTED' || 
-                         s == 'PICKING_UP' || 
-                         s == 'WEIGHING' || 
-                         s == 'WASH_START' || 
-                         s == 'IN_PROGRESS' || 
-                         s == 'PACKING';
+                      s == 'WAITING_DROPOFF' ||
+                      s == 'COURIER_ACCEPTED' ||
+                      s == 'PICKING_UP' ||
+                      s == 'WEIGHING' ||
+                      s == 'WASH_START' ||
+                      s == 'IN_PROGRESS' ||
+                      s == 'PACKING';
                 } else {
                   // Delivery tasks are: DELIVERING
                   return s == 'DELIVERING';
@@ -1260,7 +1511,8 @@ final orderProv = ref.watch(orderProvider);
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.clipboardCheck, size: 48, color: Colors.grey[300]),
+                      Icon(LucideIcons.clipboardCheck,
+                          size: 48, color: Colors.grey[300]),
                       const SizedBox(height: 16),
                       Text(
                         "Tidak ada antrean tugas",
@@ -1293,47 +1545,77 @@ final orderProv = ref.watch(orderProvider);
 
   Widget _buildDenseTaskCard(dynamic task, Map<String, dynamic> currentT) {
     // Sinkronisasi Super-Smart: Mendukung SnakeCase & CamelCase dari Database
-    final String orderId = (task['order_number'] ?? task['orderNumber'] ?? task['identifier'] ?? task['id'] ?? '-').toString();
-    final String customerName = task['customer']?['name']?.toString() ?? task['customer_name']?.toString() ?? 'Pelanggan';
-    
+    final String orderId = (task['order_number'] ??
+            task['orderNumber'] ??
+            task['identifier'] ??
+            task['id'] ??
+            '-')
+        .toString();
+    final String customerName = task['customer']?['name']?.toString() ??
+        task['customer_name']?.toString() ??
+        'Pelanggan';
+
     // KL HANYA BOLEH LIHAT DELIVERY FEE (Jemput & Antar masing-masing 50%)
-    final double rawPrice = double.tryParse((task['delivery_fee'] ?? task['deliveryFee'] ?? task['total_price'] ?? '0').toString()) ?? 0.0;
+    final double rawPrice = double.tryParse((task['delivery_fee'] ??
+                task['deliveryFee'] ??
+                task['total_price'] ??
+                '0')
+            .toString()) ??
+        0.0;
     final double price = rawPrice * 0.5;
-    final bool isFast = task['is_fast_track'] == true || task['is_fast_track'] == 1 || task['isFastTrack'] == true;
-    
+    final bool isFast = task['is_fast_track'] == true ||
+        task['is_fast_track'] == 1 ||
+        task['isFastTrack'] == true;
+
     // Alamat & Pickup Note (MENGGUNAKAN WARNA MERAH SEBAGAI REMINDER)
-    String addressRaw = task['address']?.toString() ?? task['customer']?['address']?.toString() ?? "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416"; 
-    if (addressRaw != "-" && addressRaw.isNotEmpty && addressRaw != "Alamat Pelanggan") {
+    String addressRaw = task['address']?.toString() ??
+        task['customer']?['address']?.toString() ??
+        "Jl. Salak Raya No.23, Pd. Benda, Kec. Pamulang, Kota Tangerang Selatan, Banten 15416";
+    if (addressRaw != "-" &&
+        addressRaw.isNotEmpty &&
+        addressRaw != "Alamat Pelanggan") {
       final parts = addressRaw.split(',');
       if (parts.length > 2) {
-        addressRaw = "${parts[0].trim()}, ${parts[1].trim()}, ${parts[2].trim()}";
+        addressRaw =
+            "${parts[0].trim()}, ${parts[1].trim()}, ${parts[2].trim()}";
       } else if (parts.length > 1) {
         addressRaw = "${parts[0].trim()}, ${parts[1].trim()}";
       }
     }
-    
-    final String pickupNote = task['pickup_note']?.toString() ?? task['pickupNote']?.toString() ?? "";
-    final String address = pickupNote.isNotEmpty ? "$addressRaw\nCatatan: $pickupNote" : addressRaw;
-    
+
+    final String pickupNote =
+        task['pickup_note']?.toString() ?? task['pickupNote']?.toString() ?? "";
+    final String address = pickupNote.isNotEmpty
+        ? "$addressRaw\nCatatan: $pickupNote"
+        : addressRaw;
+
     // Status Order untuk membedakan Jemput vs Antar
-    final String orderStatus = (task['status'] ?? task['order_status'] ?? '').toString().toUpperCase();
+    final String orderStatus =
+        (task['status'] ?? task['order_status'] ?? '').toString().toUpperCase();
     final bool isDelivery = orderStatus == 'DELIVERING';
     final bool isPickupCompleted = orderStatus == 'WEIGHING' ||
         orderStatus == 'WASH_START' ||
         orderStatus == 'IN_PROGRESS' ||
         orderStatus == 'PACKING';
 
-    final String priceText = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price);
-    final String laundryName = task['mitra']?['name']?.toString() ?? task['mitra_name']?.toString() ?? 'Mitra Laundry';
-    final String laundryAddress = task['mitra']?['address']?.toString() ?? task['mitra_address']?.toString() ?? 'Alamat Laundry';
-    
+    final String priceText =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0)
+            .format(price);
+    final String laundryName = task['mitra']?['name']?.toString() ??
+        task['mitra_name']?.toString() ??
+        'Mitra Laundry';
+    final String laundryAddress = task['mitra']?['address']?.toString() ??
+        task['mitra_address']?.toString() ??
+        'Alamat Laundry';
+
     // Temukan proof DELIVERING dan PICKING_UP jika ada
     final proofs = task['proofs'] as List?;
     dynamic deliveringProof;
     dynamic pickupProof;
     if (proofs != null) {
       for (var proof in proofs) {
-        final step = (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
+        final step =
+            (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
         if (step == 'DELIVERING') {
           deliveringProof = proof;
         } else if (step == 'PICKING_UP' || step == 'PICK_UP') {
@@ -1349,7 +1631,10 @@ final orderProv = ref.watch(orderProvider);
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: primaryTeal.withValues(alpha: 0.08)),
         boxShadow: [
-          BoxShadow(color: primaryTeal.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, 8)),
+          BoxShadow(
+              color: primaryTeal.withValues(alpha: 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 8)),
         ],
       ),
       child: IntrinsicHeight(
@@ -1379,46 +1664,69 @@ final orderProv = ref.watch(orderProvider);
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          isDelivery ? "Jasa Antar: $priceText" : "Jasa Jemput: $priceText",
-                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal),
+                          isDelivery
+                              ? "Jasa Antar: $priceText"
+                              : "Jasa Jemput: $priceText",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: primaryTeal),
                         ),
                         if (isFast)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
-                            child: Text("FAST TRACK", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.red)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(6)),
+                            child: Text("FAST TRACK",
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.red)),
                           ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    
+
                     // Row Order Number
                     Row(
                       children: [
-                        const Icon(LucideIcons.hash, size: 14, color: Colors.black),
+                        const Icon(LucideIcons.hash,
+                            size: 14, color: Colors.black),
                         const SizedBox(width: 6),
                         Text(
                           "Order: $orderId",
-                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey),
+                          style: GoogleFonts.montserrat(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: textGrey),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    
+
                     // Row Nama Pelanggan
                     Row(
                       children: [
-                        const Icon(LucideIcons.user, size: 14, color: Colors.black),
+                        const Icon(LucideIcons.user,
+                            size: 14, color: Colors.black),
                         const SizedBox(width: 6),
                         Text(
                           "Pelanggan: $customerName",
-                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+                          style: GoogleFonts.montserrat(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: darkText),
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    const Divider(color: Color(0xFFE5E7EB), height: 1, thickness: 1), // Partisi abu-abu
+                    const Divider(
+                        color: Color(0xFFE5E7EB),
+                        height: 1,
+                        thickness: 1), // Partisi abu-abu
                     const SizedBox(height: 12),
 
                     if (isDelivery) ...[
@@ -1431,7 +1739,11 @@ final orderProv = ref.watch(orderProvider);
                       ),
                       if (deliveringProof != null) ...[
                         const SizedBox(height: 8),
-                        _buildNetworkPowPreview(deliveringProof, "Foto Cucian yang Diambil", "Pengiriman Mitra", "DELIVERING"),
+                        _buildNetworkPowPreview(
+                            deliveringProof,
+                            "Foto Cucian yang Diambil",
+                            "Pengiriman Mitra",
+                            "DELIVERING"),
                       ],
                       const SizedBox(height: 12),
 
@@ -1472,9 +1784,9 @@ final orderProv = ref.watch(orderProvider);
 
                     // Upload Foto Cucian
                     _buildUploadPhotoSection(
-                      orderId, 
-                      task, 
-                      isDelivery, 
+                      orderId,
+                      task,
+                      isDelivery,
                       isClickable: isDelivery ? true : !isPickupCompleted,
                     ),
 
@@ -1483,8 +1795,12 @@ final orderProv = ref.watch(orderProvider);
                     _buildActionButton(
                       text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
                       isEnabled: isDelivery
-                          ? (_taskCapturedImages[orderId] != null && _simulatedCorrectLocation[orderId] == true && !_isUploading)
-                          : (!isPickupCompleted && _taskCapturedImages[orderId] != null && !_isUploading),
+                          ? (_taskCapturedImages[orderId] != null &&
+                              _simulatedCorrectLocation[orderId] == true &&
+                              !_isUploading)
+                          : (!isPickupCompleted &&
+                              _taskCapturedImages[orderId] != null &&
+                              !_isUploading),
                       onPressed: () => _completeTask(orderId, isDelivery),
                     ),
                   ],
@@ -1498,11 +1814,18 @@ final orderProv = ref.watch(orderProvider);
   }
 
   Widget _buildChatCallButtons(dynamic order, bool isDelivery) {
-    final orderNumber = (order['order_number'] ?? order['orderNumber'] ?? '').toString();
-    final customerName = ChatUtils.extractName(order['customer_name'] ?? order['customer'], fallback: 'Pelanggan');
-    final customerPhoto = ChatUtils.extractPhoto(order['customer_name'] ?? order['customer']);
-    final mitraName = ChatUtils.extractName(order['mitra_name'] ?? order['mitra'], fallback: 'Mitra');
-    final mitraPhoto = ChatUtils.extractPhoto(order['mitra_name'] ?? order['mitra']);
+    final orderNumber =
+        (order['order_number'] ?? order['orderNumber'] ?? '').toString();
+    final customerName = ChatUtils.extractName(
+        order['customer_name'] ?? order['customer'],
+        fallback: 'Pelanggan');
+    final customerPhoto =
+        ChatUtils.extractPhoto(order['customer_name'] ?? order['customer']);
+    final mitraName = ChatUtils.extractName(
+        order['mitra_name'] ?? order['mitra'],
+        fallback: 'Mitra');
+    final mitraPhoto =
+        ChatUtils.extractPhoto(order['mitra_name'] ?? order['mitra']);
 
     return Row(
       children: [
@@ -1588,19 +1911,25 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-
   // === BOTTOM NAV ===
   Widget _buildBottomNav(Map<String, dynamic> currentT) {
     return Consumer(
       builder: (context, ref, _) {
         final orderProv = ref.watch(orderProvider);
-        final bool hasAlert = orderProv.availableOrders.isNotEmpty || orderProv.activeOrders.isNotEmpty;
+        final bool hasAlert = orderProv.availableOrders.isNotEmpty ||
+            orderProv.activeOrders.isNotEmpty;
 
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
+            border: Border(
+                top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5))
+            ],
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -1616,7 +1945,8 @@ final orderProv = ref.watch(orderProvider);
                             const Icon(LucideIcons.clipboardList, size: 22),
                             if (hasAlert)
                               const Positioned(
-                                right: -4, top: -4,
+                                right: -4,
+                                top: -4,
                                 child: NyutjiDot.static(),
                               ),
                           ],
@@ -1627,16 +1957,26 @@ final orderProv = ref.watch(orderProvider);
                             const Icon(LucideIcons.clipboardList, size: 22),
                             if (hasAlert)
                               const Positioned(
-                                right: -4, top: -4,
+                                right: -4,
+                                top: -4,
                                 child: NyutjiDot.static(),
                               ),
                           ],
                         ),
                         label: currentT['home'],
                       ),
-                      BottomNavigationBarItem(icon: const Icon(LucideIcons.history, size: 22), activeIcon: const Icon(LucideIcons.history, size: 22), label: currentT['history']),
-                      BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
-                      BottomNavigationBarItem(icon: const Icon(LucideIcons.user, size: 22), activeIcon: const Icon(LucideIcons.user, size: 22), label: currentT['profile']),
+                      BottomNavigationBarItem(
+                          icon: const Icon(LucideIcons.history, size: 22),
+                          activeIcon: const Icon(LucideIcons.history, size: 22),
+                          label: currentT['history']),
+                      BottomNavigationBarItem(
+                          icon: const Icon(LucideIcons.wallet, size: 22),
+                          activeIcon: const Icon(LucideIcons.wallet, size: 22),
+                          label: currentT['wallet']),
+                      BottomNavigationBarItem(
+                          icon: const Icon(LucideIcons.user, size: 22),
+                          activeIcon: const Icon(LucideIcons.user, size: 22),
+                          label: currentT['profile']),
                     ],
                     currentIndex: _selectedNavIndex,
                     selectedItemColor: primaryTeal,
@@ -1653,8 +1993,10 @@ final orderProv = ref.watch(orderProvider);
                     backgroundColor: Colors.white,
                     elevation: 0,
                     type: BottomNavigationBarType.fixed,
-                    selectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 10),
-                    unselectedLabelStyle: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 9),
+                    selectedLabelStyle: GoogleFonts.montserrat(
+                        fontWeight: FontWeight.w800, fontSize: 10),
+                    unselectedLabelStyle: GoogleFonts.montserrat(
+                        fontWeight: FontWeight.w700, fontSize: 9),
                   ),
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 400),
@@ -1700,7 +2042,8 @@ final orderProv = ref.watch(orderProvider);
       children: [
         Text(
           "$label:",
-          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: textGrey),
+          style: GoogleFonts.montserrat(
+              fontSize: 12, fontWeight: FontWeight.w600, color: textGrey),
         ),
         const SizedBox(height: 4),
         InkWell(
@@ -1744,7 +2087,8 @@ final orderProv = ref.watch(orderProvider);
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(LucideIcons.externalLink, size: 14, color: Color(0xFF0284C7)),
+                const Icon(LucideIcons.externalLink,
+                    size: 14, color: Color(0xFF0284C7)),
               ],
             ),
           ),
@@ -1753,17 +2097,23 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  Widget _buildNetworkPowPreview(dynamic proof, String label, String title, String stage) {
-    final String path = (proof['file_url'] ?? proof['imageUrl'] ?? proof['image_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '');
+  Widget _buildNetworkPowPreview(
+      dynamic proof, String label, String title, String stage) {
+    final String path =
+        (proof['file_url'] ?? proof['imageUrl'] ?? proof['image_url'] ?? '')
+            .toString()
+            .replaceAll(RegExp(r'^/+'), '');
     if (path.isEmpty) return const SizedBox.shrink();
-    final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+    final imageUrl =
+        path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
+          style: GoogleFonts.montserrat(
+              fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
         ),
         const SizedBox(height: 4),
         GestureDetector(
@@ -1788,15 +2138,20 @@ final orderProv = ref.watch(orderProvider);
                       child: SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.teal),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 1.5, color: Colors.teal),
                       ),
                     ),
                   ),
-                  errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 24, color: Colors.grey),
+                  errorWidget: (context, url, error) => const Icon(
+                      Icons.broken_image,
+                      size: 24,
+                      color: Colors.grey),
                 ),
                 // Security Watermarks (Rule II.12)
                 Positioned(
-                  top: 10, left: -5,
+                  top: 10,
+                  left: -5,
                   child: IgnorePointer(
                     child: Transform.rotate(
                       angle: -0.785,
@@ -1830,7 +2185,8 @@ final orderProv = ref.watch(orderProvider);
                   ),
                 ),
                 Positioned(
-                  bottom: 10, right: -5,
+                  bottom: 10,
+                  right: -5,
                   child: IgnorePointer(
                     child: Transform.rotate(
                       angle: -0.785,
@@ -1866,14 +2222,16 @@ final orderProv = ref.watch(orderProvider);
         const SizedBox(height: 8),
         Text(
           "Foto Bukti Kurir:",
-          style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
+          style: GoogleFonts.montserrat(
+              fontSize: 11, fontWeight: FontWeight.w600, color: textGrey),
         ),
         const SizedBox(height: 4),
         Row(
           children: [
             if (hasPickup) ...[
               GestureDetector(
-                onTap: () => _showPowDialog([pickupProof], ['PICKING_UP', 'PICK_UP'], "Jemput Kurir"),
+                onTap: () => _showPowDialog(
+                    [pickupProof], ['PICKING_UP', 'PICK_UP'], "Jemput Kurir"),
                 child: Container(
                   width: 80,
                   height: 80,
@@ -1886,7 +2244,9 @@ final orderProv = ref.watch(orderProvider);
                     fit: StackFit.expand,
                     children: [
                       CachedNetworkImage(
-                        imageUrl: (pickupProof['file_url'] ?? '').toString().startsWith('http')
+                        imageUrl: (pickupProof['file_url'] ?? '')
+                                .toString()
+                                .startsWith('http')
                             ? (pickupProof['file_url'] ?? '').toString()
                             : "${ApiConstants.rootUrl}/${(pickupProof['file_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '')}",
                         fit: BoxFit.cover,
@@ -1896,19 +2256,28 @@ final orderProv = ref.watch(orderProvider);
                             child: SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.teal),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 1.5, color: Colors.teal),
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 24, color: Colors.grey),
+                        errorWidget: (context, url, error) => const Icon(
+                            Icons.broken_image,
+                            size: 24,
+                            color: Colors.grey),
                       ),
                       // Watermarks
                       Positioned(
-                        top: 10, left: -5,
+                        top: 10,
+                        left: -5,
                         child: IgnorePointer(
                           child: Transform.rotate(
                             angle: -0.785,
-                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
+                            child: const Text('Nyutji',
+                                style: TextStyle(
+                                    fontSize: 6,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white24)),
                           ),
                         ),
                       ),
@@ -1918,17 +2287,26 @@ final orderProv = ref.watch(orderProvider);
                             alignment: Alignment.center,
                             child: Transform.rotate(
                               angle: -0.785,
-                              child: const Text('Nyutji', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.white30)),
+                              child: const Text('Nyutji',
+                                  style: TextStyle(
+                                      fontSize: 7,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white30)),
                             ),
                           ),
                         ),
                       ),
                       Positioned(
-                        bottom: 10, right: -5,
+                        bottom: 10,
+                        right: -5,
                         child: IgnorePointer(
                           child: Transform.rotate(
                             angle: -0.785,
-                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
+                            child: const Text('Nyutji',
+                                style: TextStyle(
+                                    fontSize: 6,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white24)),
                           ),
                         ),
                       ),
@@ -1958,11 +2336,16 @@ final orderProv = ref.watch(orderProvider);
                       ),
                       // Watermarks
                       Positioned(
-                        top: 10, left: -5,
+                        top: 10,
+                        left: -5,
                         child: IgnorePointer(
                           child: Transform.rotate(
                             angle: -0.785,
-                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
+                            child: const Text('Nyutji',
+                                style: TextStyle(
+                                    fontSize: 6,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white24)),
                           ),
                         ),
                       ),
@@ -1972,17 +2355,26 @@ final orderProv = ref.watch(orderProvider);
                             alignment: Alignment.center,
                             child: Transform.rotate(
                               angle: -0.785,
-                              child: const Text('Nyutji', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.white30)),
+                              child: const Text('Nyutji',
+                                  style: TextStyle(
+                                      fontSize: 7,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white30)),
                             ),
                           ),
                         ),
                       ),
                       Positioned(
-                        bottom: 10, right: -5,
+                        bottom: 10,
+                        right: -5,
                         child: IgnorePointer(
                           child: Transform.rotate(
                             angle: -0.785,
-                            child: const Text('Nyutji', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold, color: Colors.white24)),
+                            child: const Text('Nyutji',
+                                style: TextStyle(
+                                    fontSize: 6,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white24)),
                           ),
                         ),
                       ),
@@ -1997,12 +2389,14 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  void _showPowDialog(List<dynamic>? proofs, List<String> targetStages, String title) {
+  void _showPowDialog(
+      List<dynamic>? proofs, List<String> targetStages, String title) {
     if (proofs == null || proofs.isEmpty) return;
 
     dynamic foundProof;
     for (var proof in proofs.reversed) {
-      final step = (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
+      final step =
+          (proof['step'] ?? proof['stage'] ?? '').toString().toUpperCase();
       if (targetStages.contains(step)) {
         foundProof = proof;
         break;
@@ -2011,22 +2405,47 @@ final orderProv = ref.watch(orderProvider);
 
     if (foundProof == null) return;
 
-    final String path = (foundProof['file_url'] ?? foundProof['imageUrl'] ?? foundProof['image_url'] ?? '').toString().replaceAll(RegExp(r'^/+'), '');
-    final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+    final String path = (foundProof['file_url'] ??
+            foundProof['imageUrl'] ??
+            foundProof['image_url'] ??
+            '')
+        .toString()
+        .replaceAll(RegExp(r'^/+'), '');
+    final imageUrl =
+        path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
 
-    final String orderId = (foundProof['orderId'] ?? foundProof['order_id'] ?? '-').toString();
-    final String uploaderRole = (foundProof['uploader_role'] ?? foundProof['uploaderRole'] ?? 'PL').toString().toUpperCase();
-    final String uploaderLabel = uploaderRole == 'ML' ? 'Mitra Laundry'
-        : uploaderRole == 'KL' ? 'Kurir'
-        : 'Pelanggan';
+    final String orderId =
+        (foundProof['orderId'] ?? foundProof['order_id'] ?? '-').toString();
+    final String uploaderRole =
+        (foundProof['uploader_role'] ?? foundProof['uploaderRole'] ?? 'PL')
+            .toString()
+            .toUpperCase();
+    final String uploaderLabel = uploaderRole == 'ML'
+        ? 'Mitra Laundry'
+        : uploaderRole == 'KL'
+            ? 'Kurir'
+            : 'Pelanggan';
     String uploadedAt = '-';
     try {
       final dt = DateTime.tryParse(foundProof['createdAt']?.toString() ?? '');
       if (dt != null) {
         final local = dt.toLocal();
-        final months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        final months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'Mei',
+          'Jun',
+          'Jul',
+          'Agu',
+          'Sep',
+          'Okt',
+          'Nov',
+          'Des'
+        ];
         uploadedAt = '${local.day} ${months[local.month - 1]}, '
-            '${local.hour.toString().padLeft(2,'0')}:${local.minute.toString().padLeft(2,'0')} WIB';
+            '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')} WIB';
       }
     } catch (_) {}
 
@@ -2037,7 +2456,8 @@ final orderProv = ref.watch(orderProvider);
         final screenH = MediaQuery.of(ctx).size.height;
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -2055,15 +2475,20 @@ final orderProv = ref.watch(orderProvider);
                       Expanded(
                         child: Text(
                           "Bukti $title",
-                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkText),
+                          style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: darkText),
                         ),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(ctx),
                         child: Container(
                           padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
-                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                          decoration: BoxDecoration(
+                              color: Colors.grey[100], shape: BoxShape.circle),
+                          child: const Icon(Icons.close,
+                              size: 18, color: Colors.black54),
                         ),
                       ),
                     ],
@@ -2089,18 +2514,21 @@ final orderProv = ref.watch(orderProvider);
                                 child: SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.teal),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.teal),
                                 ),
                               ),
                             ),
                             errorWidget: (context, url, error) => const Center(
-                              child: Icon(Icons.broken_image_outlined, size: 52, color: Colors.grey),
+                              child: Icon(Icons.broken_image_outlined,
+                                  size: 52, color: Colors.grey),
                             ),
                           ),
                         ),
                         // Watermark 1
                         Positioned(
-                          top: 40, left: -10,
+                          top: 40,
+                          left: -10,
                           child: IgnorePointer(
                             child: Transform.rotate(
                               angle: -0.785,
@@ -2111,7 +2539,10 @@ final orderProv = ref.watch(orderProvider);
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white.withValues(alpha: 0.38),
                                   letterSpacing: 1.0,
-                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  shadows: [
+                                    const Shadow(
+                                        color: Colors.black38, blurRadius: 4)
+                                  ],
                                 ),
                               ),
                             ),
@@ -2131,7 +2562,10 @@ final orderProv = ref.watch(orderProvider);
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white.withValues(alpha: 0.42),
                                     letterSpacing: 1.2,
-                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                    shadows: [
+                                      const Shadow(
+                                          color: Colors.black38, blurRadius: 4)
+                                    ],
                                   ),
                                 ),
                               ),
@@ -2140,7 +2574,8 @@ final orderProv = ref.watch(orderProvider);
                         ),
                         // Watermark 3
                         Positioned(
-                          bottom: 60, right: -10,
+                          bottom: 60,
+                          right: -10,
                           child: IgnorePointer(
                             child: Transform.rotate(
                               angle: -0.785,
@@ -2151,7 +2586,10 @@ final orderProv = ref.watch(orderProvider);
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white.withValues(alpha: 0.35),
                                   letterSpacing: 1.0,
-                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  shadows: [
+                                    const Shadow(
+                                        color: Colors.black38, blurRadius: 4)
+                                  ],
                                 ),
                               ),
                             ),
@@ -2159,7 +2597,9 @@ final orderProv = ref.watch(orderProvider);
                         ),
                         // Info overlay (No Order, Timestamp, Uploader)
                         Positioned(
-                          bottom: 0, left: 0, right: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
                           child: Container(
                             padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
                             decoration: const BoxDecoration(
@@ -2172,9 +2612,17 @@ final orderProv = ref.watch(orderProvider);
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                                Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
-                                Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                Text(orderId,
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white)),
+                                Text(uploadedAt,
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 10, color: Colors.white70)),
+                                Text('oleh: $uploaderLabel',
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 10, color: Colors.white70)),
                               ],
                             ),
                           ),
@@ -2196,9 +2644,22 @@ final orderProv = ref.watch(orderProvider);
     String uploadedAt = '-';
     try {
       final dt = DateTime.now();
-      final months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des'
+      ];
       uploadedAt = '${dt.day} ${months[dt.month - 1]}, '
-          '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')} WIB';
+          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} WIB';
     } catch (_) {}
 
     showDialog(
@@ -2208,7 +2669,8 @@ final orderProv = ref.watch(orderProvider);
         final screenH = MediaQuery.of(ctx).size.height;
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -2226,15 +2688,20 @@ final orderProv = ref.watch(orderProvider);
                       Expanded(
                         child: Text(
                           "Bukti Foto Kurir",
-                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkText),
+                          style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: darkText),
                         ),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(ctx),
                         child: Container(
                           padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(color: Colors.grey[100], shape: BoxShape.circle),
-                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                          decoration: BoxDecoration(
+                              color: Colors.grey[100], shape: BoxShape.circle),
+                          child: const Icon(Icons.close,
+                              size: 18, color: Colors.black54),
                         ),
                       ),
                     ],
@@ -2258,7 +2725,8 @@ final orderProv = ref.watch(orderProvider);
                         ),
                         // Watermark 1
                         Positioned(
-                          top: 40, left: -10,
+                          top: 40,
+                          left: -10,
                           child: IgnorePointer(
                             child: Transform.rotate(
                               angle: -0.785,
@@ -2269,7 +2737,10 @@ final orderProv = ref.watch(orderProvider);
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white.withValues(alpha: 0.38),
                                   letterSpacing: 1.0,
-                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  shadows: [
+                                    const Shadow(
+                                        color: Colors.black38, blurRadius: 4)
+                                  ],
                                 ),
                               ),
                             ),
@@ -2289,7 +2760,10 @@ final orderProv = ref.watch(orderProvider);
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white.withValues(alpha: 0.42),
                                     letterSpacing: 1.2,
-                                    shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                    shadows: [
+                                      const Shadow(
+                                          color: Colors.black38, blurRadius: 4)
+                                    ],
                                   ),
                                 ),
                               ),
@@ -2298,7 +2772,8 @@ final orderProv = ref.watch(orderProvider);
                         ),
                         // Watermark 3
                         Positioned(
-                          bottom: 60, right: -10,
+                          bottom: 60,
+                          right: -10,
                           child: IgnorePointer(
                             child: Transform.rotate(
                               angle: -0.785,
@@ -2309,7 +2784,10 @@ final orderProv = ref.watch(orderProvider);
                                   fontWeight: FontWeight.w900,
                                   color: Colors.white.withValues(alpha: 0.35),
                                   letterSpacing: 1.0,
-                                  shadows: [const Shadow(color: Colors.black38, blurRadius: 4)],
+                                  shadows: [
+                                    const Shadow(
+                                        color: Colors.black38, blurRadius: 4)
+                                  ],
                                 ),
                               ),
                             ),
@@ -2317,7 +2795,9 @@ final orderProv = ref.watch(orderProvider);
                         ),
                         // Info overlay (No Order, Timestamp, Uploader)
                         Positioned(
-                          bottom: 0, left: 0, right: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
                           child: Container(
                             padding: const EdgeInsets.fromLTRB(16, 32, 16, 14),
                             decoration: const BoxDecoration(
@@ -2330,9 +2810,17 @@ final orderProv = ref.watch(orderProvider);
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(orderId, style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                                Text(uploadedAt, style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
-                                Text('oleh: $uploaderLabel', style: GoogleFonts.montserrat(fontSize: 10, color: Colors.white70)),
+                                Text(orderId,
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white)),
+                                Text(uploadedAt,
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 10, color: Colors.white70)),
+                                Text('oleh: $uploaderLabel',
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 10, color: Colors.white70)),
                               ],
                             ),
                           ),
@@ -2349,31 +2837,41 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  Widget _buildUploadPhotoSection(String orderId, dynamic task, bool isDelivery, {bool isClickable = true}) {
+  Widget _buildUploadPhotoSection(String orderId, dynamic task, bool isDelivery,
+      {bool isClickable = true}) {
     final hasImage = _taskCapturedImages[orderId] != null;
-    final bool isSuccessGreen = isClickable && (isDelivery
-        ? (hasImage && _simulatedCorrectLocation[orderId] == true)
-        : hasImage);
+    final bool isSuccessGreen = isClickable &&
+        (isDelivery
+            ? (hasImage && _simulatedCorrectLocation[orderId] == true)
+            : hasImage);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: (isClickable && !isSuccessGreen) ? () => _captureTaskPhoto(orderId, task, isDelivery) : null,
+          onTap: (isClickable && !isSuccessGreen)
+              ? () => _captureTaskPhoto(orderId, task, isDelivery)
+              : null,
           borderRadius: BorderRadius.circular(10),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: isSuccessGreen ? Colors.green.shade50 : const Color(0xFFF3F4F6),
+              color: isSuccessGreen
+                  ? Colors.green.shade50
+                  : const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isSuccessGreen ? Colors.green.shade200 : Colors.grey.shade300),
+              border: Border.all(
+                  color: isSuccessGreen
+                      ? Colors.green.shade200
+                      : Colors.grey.shade300),
             ),
             child: Row(
               children: [
                 Icon(
                   LucideIcons.camera,
                   size: 16,
-                  color: isSuccessGreen ? Colors.green.shade700 : Colors.black87,
+                  color:
+                      isSuccessGreen ? Colors.green.shade700 : Colors.black87,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -2382,14 +2880,18 @@ final orderProv = ref.watch(orderProvider);
                     style: GoogleFonts.montserrat(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isSuccessGreen ? Colors.green.shade700 : Colors.black87,
+                      color: isSuccessGreen
+                          ? Colors.green.shade700
+                          : Colors.black87,
                     ),
                   ),
                 ),
                 if (isSuccessGreen)
-                  Icon(LucideIcons.checkCircle2, size: 16, color: Colors.green.shade700)
+                  Icon(LucideIcons.checkCircle2,
+                      size: 16, color: Colors.green.shade700)
                 else
-                  const Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey),
+                  const Icon(LucideIcons.chevronRight,
+                      size: 16, color: Colors.grey),
               ],
             ),
           ),
@@ -2424,7 +2926,8 @@ final orderProv = ref.watch(orderProvider);
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               )
             : Text(
                 text.toUpperCase(),
@@ -2443,33 +2946,48 @@ final orderProv = ref.watch(orderProvider);
       NyutjiNotif.showError(context, "Wajib upload foto sebelum Selesai!");
       return;
     }
-    
+
     setState(() => _isUploading = true);
     final provider = ref.read(orderProvider);
-    
+
     final String nextStatus = isDelivery ? 'DONE' : 'WEIGHING';
     final success = await provider.updateOrderStatus(orderId, nextStatus);
-    
+
     if (mounted) {
       setState(() => _isUploading = false);
       if (success) {
         _taskCapturedImages.remove(orderId);
         _simulatedCorrectLocation.remove(orderId);
         if (isDelivery) {
-          NyutjiNotif.showSuccess(context, "Tugas Selesai! Cucian telah diterima pelanggan.");
+          NyutjiNotif.showSuccess(
+              context, "Tugas Selesai! Cucian telah diterima pelanggan.");
         } else {
-          NyutjiNotif.showSuccess(context, "Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).");
+          NyutjiNotif.showSuccess(context,
+              "Tugas Selesai! Pesanan diteruskan ke Mitra (Timbangan).");
         }
         _refreshData();
       } else {
-        NyutjiNotif.showError(context, provider.errorMessage ?? "Gagal memperbarui status");
+        NyutjiNotif.showError(
+            context, provider.errorMessage ?? "Gagal memperbarui status");
       }
     }
   }
 
   void _showSimulationBottomSheet(String orderId, dynamic task) {
-    final double destLat = double.tryParse((task['pickupLat'] ?? task['pickup_lat'] ?? task['lat'] ?? task['latitude'] ?? '-6.34789').toString()) ?? -6.34789;
-    final double destLng = double.tryParse((task['pickupLng'] ?? task['pickup_lng'] ?? task['lng'] ?? task['longitude'] ?? '106.74012').toString()) ?? 106.74012;
+    final double destLat = double.tryParse((task['pickupLat'] ??
+                task['pickup_lat'] ??
+                task['lat'] ??
+                task['latitude'] ??
+                '-6.34789')
+            .toString()) ??
+        -6.34789;
+    final double destLng = double.tryParse((task['pickupLng'] ??
+                task['pickup_lng'] ??
+                task['lng'] ??
+                task['longitude'] ??
+                '106.74012')
+            .toString()) ??
+        106.74012;
 
     final double wrongLat = destLat + 0.00456;
     final double wrongLng = destLng - 0.00512;
@@ -2485,7 +3003,8 @@ final orderProv = ref.watch(orderProvider);
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           clipBehavior: Clip.antiAlias,
-          padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(context).padding.bottom),
+          padding: EdgeInsets.fromLTRB(
+              24, 24, 24, 24 + MediaQuery.of(context).padding.bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2519,7 +3038,6 @@ final orderProv = ref.watch(orderProvider);
                 ),
               ),
               const SizedBox(height: 20),
-              
               _buildSimOptionCard(
                 title: "Lokasi Kurir Sesuai Alamat Antar (Benar)",
                 coords: "Lat: $destLat, Lng: $destLng",
@@ -2529,11 +3047,11 @@ final orderProv = ref.watch(orderProvider);
                   setState(() {
                     _simulatedCorrectLocation[orderId] = true;
                   });
-                  NyutjiNotif.showSuccess(this.context, "Verifikasi Lokasi Berhasil! Koordinat kurir cocok dengan alamat antar.");
+                  NyutjiNotif.showSuccess(this.context,
+                      "Verifikasi Lokasi Berhasil! Koordinat kurir cocok dengan alamat antar.");
                 },
               ),
               const SizedBox(height: 12),
-
               _buildSimOptionCard(
                 title: "Lokasi Kurir di Luar Radius Antar (Salah)",
                 coords: "Lat: $wrongLat, Lng: $wrongLng",
@@ -2568,7 +3086,8 @@ final orderProv = ref.watch(orderProvider);
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isCorrect ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
+            color:
+                isCorrect ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
             width: 1.5,
           ),
           boxShadow: [
@@ -2584,45 +3103,49 @@ final orderProv = ref.watch(orderProvider);
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isCorrect ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
+                color: isCorrect
+                    ? const Color(0xFFD1FAE5)
+                    : const Color(0xFFFEE2E2),
                 shape: BoxShape.circle,
-               ),
-               child: Icon(
-                 isCorrect ? LucideIcons.check : LucideIcons.x,
-                 color: isCorrect ? const Color(0xFF065F46) : const Color(0xFF991B1B),
-                 size: 18,
-               ),
-             ),
-             const SizedBox(width: 14),
-             Expanded(
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   Text(
-                     title,
-                     style: GoogleFonts.montserrat(
-                       fontSize: 13,
-                       fontWeight: FontWeight.w700,
-                       color: darkText,
-                     ),
-                   ),
-                   const SizedBox(height: 2),
-                   Text(
-                     coords,
-                     style: GoogleFonts.montserrat(
-                       fontSize: 11,
-                       color: textGrey,
-                       fontWeight: FontWeight.w600,
-                     ),
-                   ),
-                 ],
-               ),
-             ),
-           ],
-         ),
-       ),
-     );
-   }
+              ),
+              child: Icon(
+                isCorrect ? LucideIcons.check : LucideIcons.x,
+                color: isCorrect
+                    ? const Color(0xFF065F46)
+                    : const Color(0xFF991B1B),
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: darkText,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    coords,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 11,
+                      color: textGrey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showWrongLocationDialog() {
     showDialog(
@@ -2703,5 +3226,3 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 }
-
-

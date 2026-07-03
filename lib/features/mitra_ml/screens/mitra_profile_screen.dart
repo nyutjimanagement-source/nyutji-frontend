@@ -20,11 +20,12 @@ class MitraProfileScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? currentT;
   const MitraProfileScreen({super.key, this.currentT});
 
-  @override ConsumerState<MitraProfileScreen> createState() => _MitraProfileScreenState();
+  @override
+  ConsumerState<MitraProfileScreen> createState() => _MitraProfileScreenState();
 }
 
 class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
-  static const primaryTeal = Color(0xFF1E5655); 
+  static const primaryTeal = Color(0xFF1E5655);
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
 
@@ -46,14 +47,15 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _oldPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _bankAccountController = TextEditingController();
   final TextEditingController _accountNameController = TextEditingController();
   final TextEditingController _fbController = TextEditingController();
   final TextEditingController _igController = TextEditingController();
-  
+
   bool _isUpdatingAccount = false;
   bool _obscureOld = true;
   bool _obscureNew = true;
@@ -67,10 +69,15 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
       if (auth.user != null && mounted) {
         setState(() {
           _fullAddressController.text = auth.user!['address'] ?? '';
-          _selectedDistrict = auth.user!['owner_district_name'] ?? auth.user!['district_name'] ?? '';
-          _selectedCity = auth.user!['owner_city_name'] ?? auth.user!['city_name'] ?? '';
-          _selectedLat = double.tryParse(auth.user!['lat']?.toString() ?? '0.0') ?? 0.0;
-          _selectedLng = double.tryParse(auth.user!['lng']?.toString() ?? '0.0') ?? 0.0;
+          _selectedDistrict = auth.user!['owner_district_name'] ??
+              auth.user!['district_name'] ??
+              '';
+          _selectedCity =
+              auth.user!['owner_city_name'] ?? auth.user!['city_name'] ?? '';
+          _selectedLat =
+              double.tryParse(auth.user!['lat']?.toString() ?? '0.0') ?? 0.0;
+          _selectedLng =
+              double.tryParse(auth.user!['lng']?.toString() ?? '0.0') ?? 0.0;
         });
       }
     });
@@ -115,30 +122,34 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
     );
   }
 
-  Widget _buildProfileImage(AuthProvider auth, dynamic photoUrl, String? localPhoto) {
-    if (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) {
+  Widget _buildProfileImage(
+      AuthProvider auth, dynamic photoUrl, String? localPhoto) {
+    if (localPhoto == null &&
+        auth.temporaryWebBytes == null &&
+        (photoUrl == null || photoUrl.toString().isEmpty)) {
       return const Icon(LucideIcons.store, color: Colors.white, size: 20);
     }
-    
+
     if (kIsWeb) {
       if (auth.temporaryWebBytes != null) {
-        return Image.memory(auth.temporaryWebBytes!, fit: BoxFit.cover, gaplessPlayback: true);
+        return Image.memory(auth.temporaryWebBytes!,
+            fit: BoxFit.cover, gaplessPlayback: true);
       }
     } else {
       if (localPhoto != null) {
-        return Image.file(File(localPhoto), fit: BoxFit.cover, gaplessPlayback: true);
+        return Image.file(File(localPhoto),
+            fit: BoxFit.cover, gaplessPlayback: true);
       }
     }
-    
-    final url = photoUrl.toString().startsWith('http') 
-        ? photoUrl.toString()
-        : "${ApiConstants.rootUrl}/$photoUrl";
-        
+
+    final url = ApiConstants.profilePhotoUrl(photoUrl);
+
     return Image.network(
-      url, 
-      fit: BoxFit.cover, 
+      url,
+      fit: BoxFit.cover,
       gaplessPlayback: true,
-      errorBuilder: (_, __, ___) => const Icon(LucideIcons.store, color: Colors.white, size: 20),
+      errorBuilder: (_, __, ___) =>
+          const Icon(LucideIcons.store, color: Colors.white, size: 20),
     );
   }
 
@@ -152,60 +163,77 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             color: Colors.white,
-            child: Consumer(
-              builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-                final photoUrl = auth.user?['profile_photo'];
-                final localPhoto = auth.temporaryLocalPhoto;
-                final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "Kecamatan";
-                final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "Kota/Kabupaten";
-                
-                return Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => _pickImage(auth),
-                      child: Container(
-                        width: 60, height: 60,
-                        decoration: BoxDecoration(
-                          color: primaryTeal.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipOval(
-                          child: _buildProfileImage(auth, photoUrl, localPhoto),
-                        ),
+            child: Consumer(builder: (context, ref, _) {
+              final auth = ref.watch(authProvider);
+              final photoUrl = auth.user?['profile_photo'];
+              final localPhoto = auth.temporaryLocalPhoto;
+              final district = auth.user?['owner_district_name'] ??
+                  auth.user?['district_name'] ??
+                  "Kecamatan";
+              final city = auth.user?['owner_city_name'] ??
+                  auth.user?['city_name'] ??
+                  "Kota/Kabupaten";
+
+              return Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _pickImage(auth),
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: primaryTeal.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: ClipOval(
+                        child: _buildProfileImage(auth, photoUrl, localPhoto),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(auth.user?['name'] ?? "Berkah Laundry", style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: darkText)),
-                          Text("ID: ${auth.user?['identifier'] ?? '-'}", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 2),
-                          Text("$district - $city", style: GoogleFonts.montserrat(fontSize: 12, color: primaryTeal, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    )
-                  ],
-                );
-              }
-            ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(auth.user?['name'] ?? "Berkah Laundry",
+                            style: GoogleFonts.montserrat(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: darkText)),
+                        Text("ID: ${auth.user?['identifier'] ?? '-'}",
+                            style: GoogleFonts.montserrat(
+                                fontSize: 13,
+                                color: textGrey,
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 2),
+                        Text("$district - $city",
+                            style: GoogleFonts.montserrat(
+                                fontSize: 12,
+                                color: primaryTeal,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  )
+                ],
+              );
+            }),
           ),
           const SizedBox(height: 16),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[200]!)),
             child: Material(
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(16),
               clipBehavior: Clip.antiAlias,
               child: Column(
-              children: [
-                _buildExpandableAddressMenu(auth),
-                const Divider(height: 1),
-                Consumer(
-                  builder: (context, ref, _) {
+                children: [
+                  _buildExpandableAddressMenu(auth),
+                  const Divider(height: 1),
+                  Consumer(builder: (context, ref, _) {
                     final wallet = ref.watch(walletProvider);
                     final hasPin = wallet.hasPin;
                     return InkWell(
@@ -213,48 +241,55 @@ final auth = ref.watch(authProvider);
                         Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const MitraKeamananPinScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const MitraKeamananPinScreen(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
                               const begin = Offset(1.0, 0.0);
                               const end = Offset.zero;
                               const curve = Curves.easeOutCubic;
-                              final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                              return SlideTransition(position: animation.drive(tween), child: child);
+                              final tween = Tween(begin: begin, end: end)
+                                  .chain(CurveTween(curve: curve));
+                              return SlideTransition(
+                                  position: animation.drive(tween),
+                                  child: child);
                             },
                           ),
                         );
                       },
-                      child: _buildMenuItem(LucideIcons.shieldAlert, "Keamanan PIN", false, showRedDot: !hasPin),
+                      child: _buildMenuItem(
+                          LucideIcons.shieldAlert, "Keamanan PIN", false,
+                          showRedDot: !hasPin),
                     );
-                  }
-                ),
-                const Divider(height: 1),
-                _buildExpandableCourierMenu(),
-                const Divider(height: 1),
-                _buildExpandableAccountMenu(auth),
-                const Divider(height: 1),
-                _buildExpandableQrisMenu(auth),
-                const Divider(height: 1),
-                Consumer(
-                  builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-return GestureDetector(
-                    onTap: () async {
-                      try {
-                        ref.invalidate(orderProvider);
-                        ref.invalidate(walletProvider);
-                        await auth.logout();
-                        if (!context.mounted) return;
-                        Navigator.pushReplacementNamed(context, '/login');
-                      } catch (e) {
-                        if (!context.mounted) return;
-                      }
-                    },
-                    child: _buildMenuItem(LucideIcons.logOut, widget.currentT?['logout'] ?? 'Keluar Akun', true),
-                  );
-})
-              ],
-            ),
+                  }),
+                  const Divider(height: 1),
+                  _buildExpandableCourierMenu(),
+                  const Divider(height: 1),
+                  _buildExpandableAccountMenu(auth),
+                  const Divider(height: 1),
+                  _buildExpandableQrisMenu(auth),
+                  const Divider(height: 1),
+                  Consumer(builder: (context, ref, _) {
+                    final auth = ref.watch(authProvider);
+                    return GestureDetector(
+                      onTap: () async {
+                        try {
+                          ref.invalidate(orderProvider);
+                          ref.invalidate(walletProvider);
+                          await auth.logout();
+                          if (!context.mounted) return;
+                          Navigator.pushReplacementNamed(context, '/login');
+                        } catch (e) {
+                          if (!context.mounted) return;
+                        }
+                      },
+                      child: _buildMenuItem(LucideIcons.logOut,
+                          widget.currentT?['logout'] ?? 'Keluar Akun', true),
+                    );
+                  })
+                ],
+              ),
             ), // Closing Material
           ),
           const SizedBox(height: 40),
@@ -264,9 +299,12 @@ return GestureDetector(
   }
 
   Widget _buildExpandableAddressMenu(AuthProvider auth) {
-    final hasAddress = (auth.user?['address'] != null && auth.user!['address'].toString().isNotEmpty) &&
-                       ((double.tryParse(auth.user?['lat']?.toString() ?? '0.0') ?? 0.0) != 0.0) &&
-                       ((double.tryParse(auth.user?['lng']?.toString() ?? '0.0') ?? 0.0) != 0.0);
+    final hasAddress = (auth.user?['address'] != null &&
+            auth.user!['address'].toString().isNotEmpty) &&
+        ((double.tryParse(auth.user?['lat']?.toString() ?? '0.0') ?? 0.0) !=
+            0.0) &&
+        ((double.tryParse(auth.user?['lng']?.toString() ?? '0.0') ?? 0.0) !=
+            0.0);
 
     return Column(
       children: [
@@ -278,7 +316,11 @@ return GestureDetector(
               children: [
                 const Icon(LucideIcons.mapPin, size: 20, color: darkText),
                 const SizedBox(width: 12),
-                Text("Lokasi Operasional Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Lokasi Operasional Laundry",
+                    style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: darkText)),
                 if (!hasAddress) ...[
                   const SizedBox(width: 6),
                   Container(
@@ -291,7 +333,12 @@ return GestureDetector(
                   ),
                 ],
                 const Spacer(),
-                Icon(_isAddressExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+                Icon(
+                    _isAddressExpanded
+                        ? LucideIcons.chevronUp
+                        : LucideIcons.chevronDown,
+                    size: 16,
+                    color: Colors.grey[400]),
               ],
             ),
           ),
@@ -311,65 +358,129 @@ return GestureDetector(
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Alamat Lengkap", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                          Text("Alamat Lengkap",
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: textGrey,
+                                  letterSpacing: 0.5)),
                           InkWell(
                             onTap: () => _showLocationPicker(auth),
-                            child: Text("Ubah Alamat ?", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue)),
+                            child: Text("Ubah Alamat ?",
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      auth.isLoading 
+                      auth.isLoading
                           ? const ShimmerLoading(height: 60, borderRadius: 12)
                           : TextField(
                               controller: _fullAddressController,
                               onChanged: (_) {
-                                if (!_hasUnsavedLocationChanges) setState(() => _hasUnsavedLocationChanges = true);
+                                if (!_hasUnsavedLocationChanges) {
+                                  setState(
+                                      () => _hasUnsavedLocationChanges = true);
+                                }
                               },
                               maxLines: 2,
-                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
                               decoration: InputDecoration(
-                                hintText: "Masukkan Alamat Lengkap (Jl, No, Gang, dsb)",
-                                hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
+                                hintText:
+                                    "Masukkan Alamat Lengkap (Jl, No, Gang, dsb)",
+                                hintStyle: GoogleFonts.montserrat(
+                                    fontSize: 12, color: Colors.grey[400]),
                                 filled: true,
                                 fillColor: Colors.grey[50],
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryTeal)),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        const BorderSide(color: primaryTeal)),
                               ),
                             ),
                       const SizedBox(height: 16),
-                      Text("Kecamatan dan Kab/Kota", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      Text("Kecamatan dan Kab/Kota",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: textGrey,
+                              letterSpacing: 0.5)),
                       const SizedBox(height: 8),
-                      auth.isLoading 
+                      auth.isLoading
                           ? const ShimmerLoading(height: 50, borderRadius: 12)
                           : TextField(
-                              controller: TextEditingController(text: _selectedDistrict.isEmpty ? "Belum Set Lokasi" : "$_selectedDistrict, $_selectedCity"),
+                              controller: TextEditingController(
+                                  text: _selectedDistrict.isEmpty
+                                      ? "Belum Set Lokasi"
+                                      : "$_selectedDistrict, $_selectedCity"),
                               readOnly: true,
-                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[700]),
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.grey[100],
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
                               ),
                             ),
                       const SizedBox(height: 16),
-                      Text("Latitude / Longitude", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
+                      Text("Latitude / Longitude",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: textGrey,
+                              letterSpacing: 0.5)),
                       const SizedBox(height: 8),
-                      auth.isLoading 
+                      auth.isLoading
                           ? const ShimmerLoading(height: 50, borderRadius: 12)
                           : TextField(
-                              controller: TextEditingController(text: _selectedLat == 0.0 ? "Belum Set Lokasi" : "$_selectedLat, $_selectedLng"),
+                              controller: TextEditingController(
+                                  text: _selectedLat == 0.0
+                                      ? "Belum Set Lokasi"
+                                      : "$_selectedLat, $_selectedLng"),
                               readOnly: true,
-                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[700]),
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.grey[100],
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
-                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[200]!)),
                               ),
                             ),
                       const SizedBox(height: 20),
@@ -377,18 +488,29 @@ return GestureDetector(
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isUpdatingLocation ? null : () => _handleUpdateLocation(auth),
+                            onPressed: _isUpdatingLocation
+                                ? null
+                                : () => _handleUpdateLocation(auth),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryTeal,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                               elevation: 4,
                               shadowColor: primaryTeal.withValues(alpha: 0.3),
                             ),
-                            child: _isUpdatingLocation 
-                              ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                              : Text("Save Update", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                            child: _isUpdatingLocation
+                                ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
+                                : Text("Save Update",
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1)),
                           ),
                         ),
                     ],
@@ -401,101 +523,136 @@ return GestureDetector(
   }
 
   Widget _buildExpandableCourierMenu() {
-    return Consumer(
-      builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-        final pendingUsers = auth.pendingApprovals;
-        final activeCouriers = List.from(auth.couriers);
-        activeCouriers.sort((a, b) => (a['name']?.toString() ?? '').compareTo(b['name']?.toString() ?? ''));
+    return Consumer(builder: (context, ref, _) {
+      final auth = ref.watch(authProvider);
+      final pendingUsers = auth.pendingApprovals;
+      final activeCouriers = List.from(auth.couriers);
+      activeCouriers.sort((a, b) =>
+          (a['name']?.toString() ?? '').compareTo(b['name']?.toString() ?? ''));
 
-        return Column(
-          children: [
-            InkWell(
-              onTap: () => setState(() => _isCourierMenuExpanded = !_isCourierMenuExpanded),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const Icon(LucideIcons.users, size: 18, color: darkText),
-                    const SizedBox(width: 12),
-                    Text("Kelola Kurir Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
-                    if (activeCouriers.isEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
+      return Column(
+        children: [
+          InkWell(
+            onTap: () => setState(
+                () => _isCourierMenuExpanded = !_isCourierMenuExpanded),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.users, size: 18, color: darkText),
+                  const SizedBox(width: 12),
+                  Text("Kelola Kurir Laundry",
+                      style: GoogleFonts.montserrat(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: darkText)),
+                  if (activeCouriers.isEmpty) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
                       ),
-                    ],
-                    if (pendingUsers.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: const Color(0xFFC3312E), borderRadius: BorderRadius.circular(10)),
-                        child: Text(pendingUsers.length.toString(), style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                      )
-                    ],
-                    const Spacer(),
-                    Icon(_isCourierMenuExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+                    ),
                   ],
-                ),
+                  if (pendingUsers.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFC3312E),
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Text(pendingUsers.length.toString(),
+                          style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                  const Spacer(),
+                  Icon(
+                      _isCourierMenuExpanded
+                          ? LucideIcons.chevronUp
+                          : LucideIcons.chevronDown,
+                      size: 16,
+                      color: Colors.grey[400]),
+                ],
               ),
             ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: _isCourierMenuExpanded
-                  ? Container(
-                      width: double.infinity,
-                      color: Colors.grey[50],
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (pendingUsers.isNotEmpty) ...[
-                            Text("Antrean Pendaftaran (${pendingUsers.length})", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: primaryTeal)),
-                            const SizedBox(height: 8),
-                            ...pendingUsers.map((u) => _buildCompactPendingCard(u, auth)),
-                            const SizedBox(height: 12),
-                          ],
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Daftar Anggota Aktif (${activeCouriers.length})",
-                              textAlign: TextAlign.left,
-                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
-                            ),
-                          ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: _isCourierMenuExpanded
+                ? Container(
+                    width: double.infinity,
+                    color: Colors.grey[50],
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (pendingUsers.isNotEmpty) ...[
+                          Text("Antrean Pendaftaran (${pendingUsers.length})",
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryTeal)),
                           const SizedBox(height: 8),
-                          if (activeCouriers.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text("Belum ada anggota kurir", style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontStyle: FontStyle.italic)),
-                            )
-                          else
-                            ...activeCouriers.map((u) => _buildCompactActiveCard(u)),
-                          const SizedBox(height: 8),
+                          ...pendingUsers
+                              .map((u) => _buildCompactPendingCard(u, auth)),
+                          const SizedBox(height: 12),
                         ],
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            )
-          ],
-        );
-      }
-    );
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Daftar Anggota Aktif (${activeCouriers.length})",
+                            textAlign: TextAlign.left,
+                            style: GoogleFonts.montserrat(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: darkText),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (activeCouriers.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text("Belum ada anggota kurir",
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    color: textGrey,
+                                    fontStyle: FontStyle.italic)),
+                          )
+                        else
+                          ...activeCouriers
+                              .map((u) => _buildCompactActiveCard(u)),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          )
+        ],
+      );
+    });
   }
 
   Widget _buildExpandableAccountMenu(AuthProvider auth) {
-    final hasBank = (auth.user?['bank_name'] != null && auth.user!['bank_name'].toString().isNotEmpty) && 
-                    (auth.user?['bank_account'] != null && auth.user!['bank_account'].toString().isNotEmpty) && 
-                    (auth.user?['account_name'] != null && auth.user!['account_name'].toString().isNotEmpty);
-    
-    final hasSocial = (auth.user?['facebook'] != null && auth.user!['facebook'].toString().isNotEmpty) && 
-                      (auth.user?['instagram'] != null && auth.user!['instagram'].toString().isNotEmpty);
+    final hasBank = (auth.user?['bank_name'] != null &&
+            auth.user!['bank_name'].toString().isNotEmpty) &&
+        (auth.user?['bank_account'] != null &&
+            auth.user!['bank_account'].toString().isNotEmpty) &&
+        (auth.user?['account_name'] != null &&
+            auth.user!['account_name'].toString().isNotEmpty);
+
+    final hasSocial = (auth.user?['facebook'] != null &&
+            auth.user!['facebook'].toString().isNotEmpty) &&
+        (auth.user?['instagram'] != null &&
+            auth.user!['instagram'].toString().isNotEmpty);
 
     return Column(
       children: [
@@ -507,7 +664,11 @@ final auth = ref.watch(authProvider);
               children: [
                 const Icon(LucideIcons.settings, size: 18, color: darkText),
                 const SizedBox(width: 12),
-                Text("Pengaturan Akun", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                Text("Pengaturan Akun",
+                    style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: darkText)),
                 if (!hasBank) ...[
                   const SizedBox(width: 6),
                   Container(
@@ -520,7 +681,12 @@ final auth = ref.watch(authProvider);
                   ),
                 ],
                 const Spacer(),
-                Icon(_isAccountExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+                Icon(
+                    _isAccountExpanded
+                        ? LucideIcons.chevronUp
+                        : LucideIcons.chevronDown,
+                    size: 16,
+                    color: Colors.grey[400]),
               ],
             ),
           ),
@@ -537,83 +703,137 @@ final auth = ref.watch(authProvider);
                     children: [
                       const Divider(),
                       const SizedBox(height: 12),
-                      
+
                       // AKUN LAMA
-                      Text("Akun Lama", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
+                      Text("Akun Lama",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: darkText)),
                       const SizedBox(height: 12),
-                      _buildReadOnlyField("Nomor Handphone Lama", auth.user?['phone_number'] ?? '-'),
+                      _buildReadOnlyField("Nomor Handphone Lama",
+                          auth.user?['phone_number'] ?? '-'),
                       const SizedBox(height: 12),
                       _buildReadOnlyField("Kata Sandi Lama", "********"),
                       const SizedBox(height: 12),
                       _buildReadOnlyField("Email", auth.user?['email'] ?? '-'),
-                      
+
                       if (hasBank) ...[
                         const SizedBox(height: 12),
-                        _buildReadOnlyField("Informasi Bank", "${auth.user!['bank_name']} - ${auth.user!['bank_account']}\na.n ${auth.user!['account_name']}"),
+                        _buildReadOnlyField("Informasi Bank",
+                            "${auth.user!['bank_name']} - ${auth.user!['bank_account']}\na.n ${auth.user!['account_name']}"),
                       ],
                       if (hasSocial) ...[
                         const SizedBox(height: 12),
                         _buildReadOnlyField("Facebook", auth.user!['facebook']),
                         const SizedBox(height: 12),
-                        _buildReadOnlyField("Instagram", auth.user!['instagram']),
+                        _buildReadOnlyField(
+                            "Instagram", auth.user!['instagram']),
                       ],
-                      
+
                       const SizedBox(height: 24),
 
                       // UPDATE AKUN
-                      Text("Update Akun", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
+                      Text("Update Akun",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: darkText)),
                       const SizedBox(height: 12),
-                      _buildInputField("Nomor Handphone Baru", _phoneController, hint: "contoh: 08123456789", isNumber: true),
+                      _buildInputField("Nomor Handphone Baru", _phoneController,
+                          hint: "contoh: 08123456789", isNumber: true),
                       const SizedBox(height: 12),
-                      _buildPasswordField("Kata Sandi Lama", _oldPasswordController, _obscureOld, () => setState(() => _obscureOld = !_obscureOld)),
+                      _buildPasswordField(
+                          "Kata Sandi Lama",
+                          _oldPasswordController,
+                          _obscureOld,
+                          () => setState(() => _obscureOld = !_obscureOld)),
                       const SizedBox(height: 12),
-                      _buildPasswordField("Kata Sandi Baru", _newPasswordController, _obscureNew, () => setState(() => _obscureNew = !_obscureNew)),
+                      _buildPasswordField(
+                          "Kata Sandi Baru",
+                          _newPasswordController,
+                          _obscureNew,
+                          () => setState(() => _obscureNew = !_obscureNew)),
                       const SizedBox(height: 12),
-                      _buildPasswordField("Kata Sandi Konfirmasi", _confirmPasswordController, _obscureConfirm, () => setState(() => _obscureConfirm = !_obscureConfirm)),
+                      _buildPasswordField(
+                          "Kata Sandi Konfirmasi",
+                          _confirmPasswordController,
+                          _obscureConfirm,
+                          () => setState(
+                              () => _obscureConfirm = !_obscureConfirm)),
                       const SizedBox(height: 12),
-                      _buildInputField("Email Baru", _emailController, hint: "contoh: nama@email.com"),
+                      _buildInputField("Email Baru", _emailController,
+                          hint: "contoh: nama@email.com"),
                       const SizedBox(height: 24),
 
                       if (!hasBank) ...[
                         // INFORMASI BANK
-                        Text("Informasi Bank", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
+                        Text("Informasi Bank",
+                            style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: darkText)),
                         const SizedBox(height: 12),
-                        _buildInputField("Nama Bank", _bankNameController, hint: "contoh: BCA / BNI / MANDIRI", isWarning: true),
+                        _buildInputField("Nama Bank", _bankNameController,
+                            hint: "contoh: BCA / BNI / MANDIRI",
+                            isWarning: true),
                         const SizedBox(height: 12),
-                        _buildInputField("Nomor Rekening", _bankAccountController, hint: "contoh: 1234567890", isNumber: true, isWarning: true),
+                        _buildInputField(
+                            "Nomor Rekening", _bankAccountController,
+                            hint: "contoh: 1234567890",
+                            isNumber: true,
+                            isWarning: true),
                         const SizedBox(height: 12),
-                        _buildInputField("Nama Pemilik (Sesuai Rekening)", _accountNameController, hint: "contoh: Budi Santoso", isWarning: true),
+                        _buildInputField("Nama Pemilik (Sesuai Rekening)",
+                            _accountNameController,
+                            hint: "contoh: Budi Santoso", isWarning: true),
                         const SizedBox(height: 24),
                       ],
 
                       if (!hasSocial) ...[
                         // SOCIAL MEDIA
-                        Text("Social Media Account", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900, color: darkText)),
+                        Text("Social Media Account",
+                            style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: darkText)),
                         const SizedBox(height: 12),
-                        _buildInputField("Facebook", _fbController, hint: "URL profil Facebook"),
+                        _buildInputField("Facebook", _fbController,
+                            hint: "URL profil Facebook"),
                         const SizedBox(height: 12),
-                        _buildInputField("Instagram", _igController, hint: "@username"),
+                        _buildInputField("Instagram", _igController,
+                            hint: "@username"),
                         const SizedBox(height: 24),
                       ],
 
                       // CATATAN
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                const Icon(LucideIcons.info, size: 14, color: Colors.blue),
+                                const Icon(LucideIcons.info,
+                                    size: 14, color: Colors.blue),
                                 const SizedBox(width: 8),
-                                Text("Catatan Penting:", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blue)),
+                                Text("Catatan Penting:",
+                                    style: GoogleFonts.montserrat(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue)),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            _buildBulletNote("Gunakan format nomor handphone 08xyz (tanpa +62) agar saat aktivasi PIN tidak terjadi kegagalan"),
-                            _buildBulletNote("Nomor handphone sekaligus No WA aktif untuk pengiriman Notifikasi"),
-                            _buildBulletNote("Email akan digunakan mengirim Laporan Transaksi Bulanan"),
+                            _buildBulletNote(
+                                "Gunakan format nomor handphone 08xyz (tanpa +62) agar saat aktivasi PIN tidak terjadi kegagalan"),
+                            _buildBulletNote(
+                                "Nomor handphone sekaligus No WA aktif untuk pengiriman Notifikasi"),
+                            _buildBulletNote(
+                                "Email akan digunakan mengirim Laporan Transaksi Bulanan"),
                           ],
                         ),
                       ),
@@ -622,18 +842,29 @@ final auth = ref.watch(authProvider);
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _isUpdatingAccount ? null : () => _handleUpdateAccount(auth),
+                          onPressed: _isUpdatingAccount
+                              ? null
+                              : () => _handleUpdateAccount(auth),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryTeal,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                             elevation: 4,
                             shadowColor: primaryTeal.withValues(alpha: 0.3),
                           ),
-                          child: _isUpdatingAccount 
-                            ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : Text("UPDATE AKUN", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                          child: _isUpdatingAccount
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2))
+                              : Text("UPDATE AKUN",
+                                  style: GoogleFonts.montserrat(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1)),
                         ),
                       ),
                     ],
@@ -646,8 +877,10 @@ final auth = ref.watch(authProvider);
   }
 
   Widget _buildExpandableQrisMenu(AuthProvider auth) {
-    final hasQris = auth.user?['qris_payload'] != null && auth.user!['qris_payload'].toString().isNotEmpty;
-    final displayPayload = _tempQrisPayload ?? (hasQris ? auth.user!['qris_payload'].toString() : null);
+    final hasQris = auth.user?['qris_payload'] != null &&
+        auth.user!['qris_payload'].toString().isNotEmpty;
+    final displayPayload = _tempQrisPayload ??
+        (hasQris ? auth.user!['qris_payload'].toString() : null);
 
     return Column(
       children: [
@@ -659,7 +892,11 @@ final auth = ref.watch(authProvider);
               children: [
                 const Icon(LucideIcons.qrCode, size: 18, color: darkText),
                 const SizedBox(width: 12),
-                Text("QRIS Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText)),
+                Text("QRIS Laundry",
+                    style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: darkText)),
                 if (!hasQris) ...[
                   const SizedBox(width: 6),
                   Container(
@@ -672,7 +909,12 @@ final auth = ref.watch(authProvider);
                   ),
                 ],
                 const Spacer(),
-                Icon(_isQrisExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 16, color: Colors.grey[400]),
+                Icon(
+                    _isQrisExpanded
+                        ? LucideIcons.chevronUp
+                        : LucideIcons.chevronDown,
+                    size: 16,
+                    color: Colors.grey[400]),
               ],
             ),
           ),
@@ -695,7 +937,7 @@ final auth = ref.watch(authProvider);
                       //  child: Text("QRIS Milik Laundry", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: textGrey, letterSpacing: 0.5)),
                       //),
                       const SizedBox(height: 16),
-                      
+
                       // Box Gambar QRIS
                       Container(
                         width: 200,
@@ -723,10 +965,12 @@ final auth = ref.watch(authProvider);
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(LucideIcons.qrCode, size: 48, color: Colors.grey[500]),
+                                      Icon(LucideIcons.qrCode,
+                                          size: 48, color: Colors.grey[500]),
                                       const SizedBox(height: 12),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16),
                                         child: Text(
                                           "QRIS Laundry Belum Diupload",
                                           textAlign: TextAlign.center,
@@ -775,16 +1019,24 @@ final auth = ref.watch(authProvider);
                             ),
                             const SizedBox(width: 16),
                             ElevatedButton(
-                              onPressed: _isUpdatingQris ? null : () => _handleSaveQris(auth),
+                              onPressed: _isUpdatingQris
+                                  ? null
+                                  : () => _handleSaveQris(auth),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryTeal,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
                                 elevation: 0,
                               ),
                               child: _isUpdatingQris
-                                  ? const SizedBox(height: 14, width: 14, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  ? const SizedBox(
+                                      height: 14,
+                                      width: 14,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white, strokeWidth: 2))
                                   : Text(
                                       "Simpan",
                                       style: GoogleFonts.montserrat(
@@ -799,7 +1051,8 @@ final auth = ref.watch(authProvider);
                         InkWell(
                           onTap: () => _openQrisScanner(),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
                             child: Text(
                               "Upload Gambar QRIS",
                               style: GoogleFonts.montserrat(
@@ -840,7 +1093,7 @@ final auth = ref.watch(authProvider);
     if (_tempQrisPayload == null || _tempQrisPayload!.isEmpty) return;
 
     setState(() => _isUpdatingQris = true);
-    
+
     final success = await auth.updateProfile({
       'qris_payload': _tempQrisPayload,
     });
@@ -853,7 +1106,8 @@ final auth = ref.watch(authProvider);
           _tempQrisPayload = null;
         });
       } else {
-        _showBeautifulNotif(auth.lastErrorMessage ?? "Gagal menyimpan QRIS", false);
+        _showBeautifulNotif(
+            auth.lastErrorMessage ?? "Gagal menyimpan QRIS", false);
       }
     }
   }
@@ -865,7 +1119,10 @@ final auth = ref.watch(authProvider);
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text("• ", style: TextStyle(fontSize: 13, color: Colors.blue)),
-          Expanded(child: Text(text, style: GoogleFonts.montserrat(fontSize: 13, color: Colors.blueGrey))),
+          Expanded(
+              child: Text(text,
+                  style: GoogleFonts.montserrat(
+                      fontSize: 13, color: Colors.blueGrey))),
         ],
       ),
     );
@@ -875,45 +1132,67 @@ final auth = ref.watch(authProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textGrey)),
+        Text(label,
+            style: GoogleFonts.montserrat(
+                fontSize: 13, fontWeight: FontWeight.w700, color: textGrey)),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(12)),
-          child: Text(value, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+          decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(12)),
+          child: Text(value,
+              style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600)),
         ),
       ],
     );
   }
 
-  Widget _buildInputField(String label, TextEditingController controller, {String hint = "", bool isNumber = false, bool isWarning = false}) {
+  Widget _buildInputField(String label, TextEditingController controller,
+      {String hint = "", bool isNumber = false, bool isWarning = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText)),
+        Text(label,
+            style: GoogleFonts.montserrat(
+                fontSize: 13, fontWeight: FontWeight.w700, color: darkText)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
-          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
+          style:
+              GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
+            hintStyle:
+                GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
             filled: true,
-            fillColor: isWarning ? Colors.red.withValues(alpha: 0.05) : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            fillColor:
+                isWarning ? Colors.red.withValues(alpha: 0.05) : Colors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: isWarning ? Colors.red.withValues(alpha: 0.3) : Colors.grey[300]!),
+              borderSide: BorderSide(
+                  color: isWarning
+                      ? Colors.red.withValues(alpha: 0.3)
+                      : Colors.grey[300]!),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: isWarning ? Colors.red.withValues(alpha: 0.2) : Colors.grey[300]!),
+              borderSide: BorderSide(
+                  color: isWarning
+                      ? Colors.red.withValues(alpha: 0.2)
+                      : Colors.grey[300]!),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: isWarning ? Colors.red : primaryTeal),
+              borderSide:
+                  BorderSide(color: isWarning ? Colors.red : primaryTeal),
             ),
           ),
         ),
@@ -921,27 +1200,40 @@ final auth = ref.watch(authProvider);
     );
   }
 
-  Widget _buildPasswordField(String label, TextEditingController controller, bool isObscure, VoidCallback toggle) {
+  Widget _buildPasswordField(String label, TextEditingController controller,
+      bool isObscure, VoidCallback toggle) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText)),
+        Text(label,
+            style: GoogleFonts.montserrat(
+                fontSize: 13, fontWeight: FontWeight.w700, color: darkText)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           obscureText: isObscure,
-          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
+          style:
+              GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             hintText: "minimal 6 digit",
-            hintStyle: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
+            hintStyle:
+                GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[400]),
             filled: true,
             fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primaryTeal)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: primaryTeal)),
             suffixIcon: IconButton(
-              icon: Icon(isObscure ? LucideIcons.eyeOff : LucideIcons.eye, color: Colors.grey.shade600, size: 20),
+              icon: Icon(isObscure ? LucideIcons.eyeOff : LucideIcons.eye,
+                  color: Colors.grey.shade600, size: 20),
               onPressed: toggle,
             ),
           ),
@@ -962,7 +1254,14 @@ final auth = ref.watch(authProvider);
     final fb = _fbController.text.trim();
     final ig = _igController.text.trim();
 
-    if (phone.isEmpty && newPass.isEmpty && email.isEmpty && bankName.isEmpty && bankAcc.isEmpty && accountName.isEmpty && fb.isEmpty && ig.isEmpty) {
+    if (phone.isEmpty &&
+        newPass.isEmpty &&
+        email.isEmpty &&
+        bankName.isEmpty &&
+        bankAcc.isEmpty &&
+        accountName.isEmpty &&
+        fb.isEmpty &&
+        ig.isEmpty) {
       _showBeautifulNotif("Tidak ada perubahan yang dilakukan", false);
       return;
     }
@@ -977,7 +1276,8 @@ final auth = ref.watch(authProvider);
         return;
       }
       if (oldPass.isEmpty) {
-        _showBeautifulNotif("Harap isi Kata Sandi Lama untuk mengubah sandi!", false);
+        _showBeautifulNotif(
+            "Harap isi Kata Sandi Lama untuk mengubah sandi!", false);
         return;
       }
     }
@@ -998,7 +1298,7 @@ final auth = ref.watch(authProvider);
     if (ig.isNotEmpty) payload['instagram'] = ig;
 
     final success = await auth.updateProfile(payload);
-    
+
     if (mounted) {
       setState(() => _isUpdatingAccount = false);
       if (success) {
@@ -1015,7 +1315,8 @@ final auth = ref.watch(authProvider);
         _igController.clear();
         setState(() => _isAccountExpanded = false);
       } else {
-        _showBeautifulNotif(auth.lastErrorMessage ?? "Gagal memperbarui akun", false);
+        _showBeautifulNotif(
+            auth.lastErrorMessage ?? "Gagal memperbarui akun", false);
       }
     }
   }
@@ -1024,23 +1325,27 @@ final auth = ref.watch(authProvider);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!)),
       child: Row(
         children: [
           Container(
-            width: 32, height: 32,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: primaryTeal.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             clipBehavior: Clip.antiAlias,
-            child: (user['profile_photo'] != null && user['profile_photo'].toString().isNotEmpty)
+            child: (user['profile_photo'] != null &&
+                    user['profile_photo'].toString().isNotEmpty)
                 ? Image.network(
-                    user['profile_photo'].toString().startsWith('http') 
-                      ? user['profile_photo'].toString() 
-                      : "${ApiConstants.rootUrl}/${user['profile_photo']}",
+                    ApiConstants.profilePhotoUrl(user['profile_photo']),
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(LucideIcons.user, size: 14, color: primaryTeal),
+                    errorBuilder: (_, __, ___) => const Icon(LucideIcons.user,
+                        size: 14, color: primaryTeal),
                   )
                 : const Icon(LucideIcons.user, size: 14, color: primaryTeal),
           ),
@@ -1049,28 +1354,42 @@ final auth = ref.watch(authProvider);
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(user['name'] ?? 'Tanpa Nama', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkText)),
-                Text(user['phone_number'] ?? '-', style: GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
+                Text(user['name'] ?? 'Tanpa Nama',
+                    style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: darkText)),
+                Text(user['phone_number'] ?? '-',
+                    style:
+                        GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
               ],
             ),
           ),
           Row(
             children: [
               GestureDetector(
-                onTap: () => _handleApproval(user['identifier'], 'REJECTED', user['name'] ?? 'Pendaftar', auth),
+                onTap: () => _handleApproval(user['identifier'], 'REJECTED',
+                    user['name'] ?? 'Pendaftar', auth),
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(color: const Color(0xFFC3312E).withValues(alpha: 0.1), shape: BoxShape.circle),
-                  child: const Icon(LucideIcons.x, size: 14, color: Color(0xFFC3312E)),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFC3312E).withValues(alpha: 0.1),
+                      shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.x,
+                      size: 14, color: Color(0xFFC3312E)),
                 ),
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () => _handleApproval(user['identifier'], 'APPROVED', user['name'] ?? 'Pendaftar', auth),
+                onTap: () => _handleApproval(user['identifier'], 'APPROVED',
+                    user['name'] ?? 'Pendaftar', auth),
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(color: primaryTeal.withValues(alpha: 0.1), shape: BoxShape.circle),
-                  child: const Icon(LucideIcons.check, size: 14, color: primaryTeal),
+                  decoration: BoxDecoration(
+                      color: primaryTeal.withValues(alpha: 0.1),
+                      shape: BoxShape.circle),
+                  child: const Icon(LucideIcons.check,
+                      size: 14, color: primaryTeal),
                 ),
               ),
             ],
@@ -1084,23 +1403,27 @@ final auth = ref.watch(authProvider);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!)),
       child: Row(
         children: [
           Container(
-            width: 32, height: 32,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: Colors.grey[100],
               shape: BoxShape.circle,
             ),
             clipBehavior: Clip.antiAlias,
-            child: (user['profile_photo'] != null && user['profile_photo'].toString().isNotEmpty)
+            child: (user['profile_photo'] != null &&
+                    user['profile_photo'].toString().isNotEmpty)
                 ? Image.network(
-                    user['profile_photo'].toString().startsWith('http') 
-                      ? user['profile_photo'].toString() 
-                      : "${ApiConstants.rootUrl}/${user['profile_photo']}",
+                    ApiConstants.profilePhotoUrl(user['profile_photo']),
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(LucideIcons.user, size: 14, color: textGrey),
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(LucideIcons.user, size: 14, color: textGrey),
                   )
                 : const Icon(LucideIcons.user, size: 14, color: textGrey),
           ),
@@ -1109,8 +1432,14 @@ final auth = ref.watch(authProvider);
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(user['name'] ?? 'Tanpa Nama', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: darkText)),
-                Text(user['phone_number'] ?? '-', style: GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
+                Text(user['name'] ?? 'Tanpa Nama',
+                    style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: darkText)),
+                Text(user['phone_number'] ?? '-',
+                    style:
+                        GoogleFonts.montserrat(fontSize: 10, color: textGrey)),
               ],
             ),
           ),
@@ -1118,7 +1447,11 @@ final auth = ref.watch(authProvider);
             children: [
               Icon(LucideIcons.star, size: 12, color: Colors.orange[400]),
               const SizedBox(width: 4),
-              Text("5.0", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.bold, color: darkText)),
+              Text("5.0",
+                  style: GoogleFonts.montserrat(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: darkText)),
             ],
           )
         ],
@@ -1126,7 +1459,8 @@ final auth = ref.watch(authProvider);
     );
   }
 
-  Future<void> _handleApproval(dynamic identifier, String action, String name, AuthProvider auth) async {
+  Future<void> _handleApproval(
+      dynamic identifier, String action, String name, AuthProvider auth) async {
     final success = await auth.processUserApproval(identifier, action);
     if (success && mounted) {
       if (action == 'APPROVED') {
@@ -1161,7 +1495,9 @@ final auth = ref.watch(authProvider);
         _fullAddressController.text = result.address;
         _hasUnsavedLocationChanges = true;
       });
-      if(mounted) _showBeautifulNotif("Lokasi GPS terpilih: $_selectedDistrict", true);
+      if (mounted) {
+        _showBeautifulNotif("Lokasi GPS terpilih: $_selectedDistrict", true);
+      }
     }
   }
 
@@ -1172,7 +1508,7 @@ final auth = ref.watch(authProvider);
     }
 
     setState(() => _isUpdatingLocation = true);
-    
+
     final success = await auth.updateLocation({
       'address': _fullAddressController.text,
       'district_name': _selectedDistrict,
@@ -1195,14 +1531,19 @@ final auth = ref.watch(authProvider);
     }
   }
 
-  Widget _buildMenuItem(IconData icon, String title, bool isLogout, {bool showRedDot = false}) {
+  Widget _buildMenuItem(IconData icon, String title, bool isLogout,
+      {bool showRedDot = false}) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Icon(icon, size: 18, color: isLogout ? Colors.red : darkText),
           const SizedBox(width: 12),
-          Text(title, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: isLogout ? Colors.red : darkText)),
+          Text(title,
+              style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: isLogout ? Colors.red : darkText)),
           if (showRedDot) ...[
             const SizedBox(width: 6),
             Container(

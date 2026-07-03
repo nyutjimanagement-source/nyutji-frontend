@@ -17,16 +17,7 @@ class NyutjiImagePicker {
   }) async {
     final ImagePicker picker = ImagePicker();
     
-    String? finalImageUrl;
-    if (currentImageUrl != null && currentImageUrl.isNotEmpty) {
-      if (currentImageUrl.startsWith('http')) {
-        finalImageUrl = currentImageUrl;
-      } else if (!currentImageUrl.contains('uploads/')) {
-        finalImageUrl = "${ApiConstants.rootUrl}/uploads/profiles/$currentImageUrl";
-      } else {
-        finalImageUrl = "${ApiConstants.rootUrl}/$currentImageUrl";
-      }
-    }
+    final String finalImageUrl = ApiConstants.profilePhotoUrl(currentImageUrl);
 
     return showModalBottomSheet(
       context: context,
@@ -55,7 +46,7 @@ class NyutjiImagePicker {
               ),
               const SizedBox(height: 24),
 
-              if (finalImageUrl != null) ...[
+              if (finalImageUrl.isNotEmpty) ...[
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
