@@ -750,6 +750,12 @@ return _buildFinItem(Icons.account_balance_wallet, currentT['pay_label'], Format
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Image.asset(
+                                'assets/images/546597.webp',
+                                width: 200,
+                                fit: BoxFit.contain,
+                              ),
+                              const SizedBox(height: 20),
                               Text(
                                 "Belum ada order Nyutji.", 
                                 style: GoogleFonts.montserrat(color: Colors.grey, fontWeight: FontWeight.w500),

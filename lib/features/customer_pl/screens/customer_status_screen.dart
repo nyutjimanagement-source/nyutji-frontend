@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -156,22 +158,28 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
         children: [
           _buildPremiumHeader("Status Pesanan"),
           Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(28),
-                      decoration: BoxDecoration(
-                        color: primaryTeal.withValues(alpha: 0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(LucideIcons.package, size: 56, color: primaryTeal.withValues(alpha: 0.5)),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final imageWidth = math.min(300.0, constraints.maxWidth);
+                        return Image.asset(
+                          'assets/images/54000407.webp',
+                          width: imageWidth,
+                          fit: BoxFit.fitWidth,
+                          alignment: Alignment.topCenter,
+                        );
+                      },
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
                     Text("Belum Ada Pesanan Aktif",
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkBg)),
                     const SizedBox(height: 10),
                     Text(
