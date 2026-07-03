@@ -1201,7 +1201,7 @@ final orderProv = ref.watch(orderProvider);
                 MaterialPageRoute(
                   builder: (_) => ChatScreen(
                     orderNumber: orderNumber,
-                    channel: 'KL_ML', // Channel is Courier-Mitra
+                    channel: 'ML_KL', // Channel is Courier-Mitra
                     partnerName: courierName,
                     partnerRole: 'KL',
                     partnerPhoto: courierPhoto,
@@ -2166,6 +2166,16 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    int activeIndex = widget.stages.indexOf(widget.currentStatus);
+    if (activeIndex == -1) {
+      if (widget.currentStatus == 'DONE' || widget.currentStatus == 'PAID') {
+        activeIndex = widget.stages.length;
+      }
+    }
+    if (widget.currentStatus == 'WEIGHING' && !widget.hasWeighingProofByML) {
+      activeIndex = widget.stages.indexOf('WEIGHING') - 1;
+    }
+
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
 
@@ -2281,9 +2291,8 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                       itemBuilder: (ctx, index) {
                         final s = widget.stages[index];
                         final bool isCurrent = s == selectedStage;
-                        final bool isPast = s == 'WEIGHING'
-                            ? (widget.hasWeighingProofByML || StatusHelper.getProgressStep(s) < StatusHelper.getProgressStep(widget.currentStatus))
-                            : StatusHelper.getProgressStep(s) <= StatusHelper.getProgressStep(widget.currentStatus);
+                        final bool isPast = index <= activeIndex;
+                        final bool isAllowed = index == activeIndex + 1;
                         final Map<String, String> statusLabels = {
                           'WAITING_DROPOFF': 'Drop Off',
                           'WEIGHING': 'Penimbangan',
@@ -2305,7 +2314,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                         String label = statusLabels[s] ?? s.replaceAll('_', ' ');
 
                         return InkWell(
-                          onTap: isPast ? null : () async {
+                          onTap: !isAllowed ? null : () async {
                             if (powImage == null) {
                               _showNotif("Wajib ambil foto progress sebelum update status!", false);
                               return;

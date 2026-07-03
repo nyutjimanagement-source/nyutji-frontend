@@ -723,6 +723,31 @@ final orderProv = ref.watch(orderProvider);
   }
 
   // ============================================================
+  // === HELPER UNTUK ALAMAT ====================================
+  // ============================================================
+  String _simplifyAddress(String fullAddress) {
+    if (fullAddress.isEmpty || fullAddress == '-') return fullAddress;
+    final parts = fullAddress.split(',');
+    if (parts.length <= 2) return fullAddress;
+    
+    String jalan = parts[0].trim();
+    String kecamatan = "";
+    
+    for (var part in parts) {
+      if (part.toLowerCase().contains('kec.') || part.toLowerCase().contains('kecamatan')) {
+        kecamatan = part.trim();
+        break;
+      }
+    }
+    
+    if (kecamatan.isNotEmpty) {
+      return "$jalan, $kecamatan";
+    }
+    
+    return "${parts[0].trim()}, ${parts[1].trim()}";
+  }
+
+  // ============================================================
   // === CARD ORDER TERSEDIA (PREMIUM MARKETPLACE) — PUTIH ======
   // ============================================================
   Widget _buildAvailableOrdersCard() {
@@ -795,10 +820,12 @@ final orderProv = ref.watch(orderProvider);
                     final orderId = (order['order_number'] ?? order['orderNumber'] ?? order['identifier'] ?? order['id'] ?? '-').toString();
                     final price = double.tryParse((order['delivery_fee'] ?? order['deliveryFee'] ?? '0').toString()) ?? 0.0;
                     final pickupRaw = order['address']?.toString() ?? order['customer']?['address']?.toString() ?? '-';
+                    final shortPickupAddr = _simplifyAddress(pickupRaw);
                     final note = order['pickup_note']?.toString() ?? order['pickupNote']?.toString() ?? '';
-                    final pickup = note.isNotEmpty ? "$pickupRaw\nCatatan: $note" : pickupRaw;
+                    final pickup = note.isNotEmpty ? "$shortPickupAddr\nCatatan: $note" : shortPickupAddr;
                     final mitraName = (order['mitra']?['name'] ?? order['mitra_name'] ?? 'Mitra').toString();
-                    final mitraAddr = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
+                    final mitraAddrRaw = (order['mitra']?['address'] ?? order['mitra_address'] ?? '-').toString();
+                    final mitraAddr = _simplifyAddress(mitraAddrRaw);
                     final isFast = order['is_fast_track'] == true || order['is_fast_track'] == 1 || order['isFastTrack'] == true;
                     final distance = double.tryParse((order['distance'] ?? order['distance_km'] ?? '0').toString()) ?? 0.0;
                     final serviceType = (order['service_type'] ?? order['serviceType'] ?? 'Reguler').toString();
@@ -861,7 +888,17 @@ final orderProv = ref.watch(orderProvider);
         const SizedBox(height: 8),
 
         // 4. Lokasi Antar Laundry
-        _buildInfoRow(LucideIcons.store, "Antar ke", "$mitraName — $mitraAddr", Colors.black),
+        _buildRichInfoRow(
+          LucideIcons.store, 
+          "Antar ke", 
+          TextSpan(
+            children: [
+              TextSpan(text: "$mitraName — ", style: const TextStyle(fontWeight: FontWeight.w800)),
+              TextSpan(text: mitraAddr, style: const TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+          Colors.black
+        ),
         const SizedBox(height: 8),
 
         // 5. Jarak
@@ -893,6 +930,29 @@ final orderProv = ref.watch(orderProvider);
           child: Text(
             value,
             style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRichInfoRow(IconData icon, String label, InlineSpan valueSpan, Color color) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 75,
+          child: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+        ),
+        Text(": ", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.montserrat(fontSize: 13, color: darkText),
+              children: [valueSpan],
+            ),
           ),
         ),
       ],
@@ -1457,7 +1517,7 @@ final orderProv = ref.watch(orderProvider);
               MaterialPageRoute(
                 builder: (_) => ChatScreen(
                   orderNumber: orderNumber,
-                  channel: 'KL_ML', // Channel is Courier-Mitra
+                  channel: 'ML_KL', // Channel is Courier-Mitra
                   partnerName: mitraName,
                   partnerRole: 'ML',
                   partnerPhoto: mitraPhoto,
