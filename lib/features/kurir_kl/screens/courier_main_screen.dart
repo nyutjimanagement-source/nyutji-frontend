@@ -1522,9 +1522,13 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.clipboardCheck,
-                          size: 48, color: Colors.grey[300]),
-                      const SizedBox(height: 16),
+                      Image.asset(
+                        'assets/images/u8dtu3u.webp',
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 12),
                       Text(
                         "Tidak ada antrean tugas",
                         style: GoogleFonts.montserrat(
