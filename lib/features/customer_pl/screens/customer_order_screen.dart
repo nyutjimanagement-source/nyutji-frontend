@@ -394,6 +394,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     setState(() {
       _itemCounts[itemId] = (_itemCounts[itemId] ?? 0) + delta;
       if (_itemCounts[itemId]! < 0) _itemCounts[itemId] = 0;
+      if (_itemCounts[itemId]! > 10) _itemCounts[itemId] = 10;
     });
   }
 
@@ -401,6 +402,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     setState(() {
       _itemCounts[itemId] = value;
       if (_itemCounts[itemId]! < 0) _itemCounts[itemId] = 0;
+      if (_itemCounts[itemId]! > 10) _itemCounts[itemId] = 10;
     });
   }
 
@@ -1125,12 +1127,41 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       
       Widget? actionWidget;
       if (isKiloan) {
-        actionWidget = GestureDetector(
-          onTap: _showImageSourceSheet,
-          child: Text(
-            "Unggah Foto", 
-            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF403600), decoration: TextDecoration.underline, decorationColor: const Color(0xFF403600)),
-          ),
+        actionWidget = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: _showImageSourceSheet,
+              child: Text(
+                "Unggah Foto", 
+                style: GoogleFonts.montserrat(
+                  fontSize: 11, 
+                  fontWeight: FontWeight.bold, 
+                  color: const Color(0xFF403600), 
+                  decoration: TextDecoration.underline, 
+                  decorationColor: const Color(0xFF403600)
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Tooltip(
+              message: "Foto untuk menghitung beratisasi AI estimasi Kilogram berdasarkan gambar yang diunggah",
+              triggerMode: TooltipTriggerMode.tap,
+              preferBelow: false,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              textStyle: GoogleFonts.montserrat(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w500),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                LucideIcons.info,
+                size: 13,
+                color: Color(0xFF403600),
+              ),
+            ),
+          ],
         );
       }
 
@@ -1151,12 +1182,15 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       return const SizedBox.shrink();
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double cardWidth = screenWidth - 40;
+    final double viewportFraction = cardWidth / screenWidth;
+
+    return SizedBox(
+      height: 380, // uniform height for PageView Category cards
+      child: PageView(
+        controller: PageController(viewportFraction: viewportFraction.clamp(0.8, 0.95)),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         children: children,
       ),
     );
@@ -1178,8 +1212,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     if (validItems.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      width: 320, // fixed width agar proporsional sejajar kiri-kanan
-      margin: const EdgeInsets.only(right: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1192,7 +1225,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Header Category
           Padding(
@@ -1215,52 +1247,56 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
           ),
           const Divider(height: 1, color: Color(0xFFE5E7EB)),
           // Vertical List of Items inside this category card!
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: validItems.map((item) {
-                return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
-              }).toList(),
-            ),
-          ),
-          
-          // Image preview untuk Kiloan
-          if (isKiloan && _orderImage != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: Stack(
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.file(_orderImage!, height: 120, width: double.infinity, fit: BoxFit.cover),
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ...validItems.map((item) {
+                    return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
+                  }).toList(),
+                  
+                  // Image preview untuk Kiloan
+                  if (isKiloan && _orderImage != null) ...[
+                    const SizedBox(height: 16),
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(_orderImage!, height: 120, width: double.infinity, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: GestureDetector(
+                            onTap: () => setState(() => _orderImage = null),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                              child: const Icon(LucideIcons.x, color: Colors.white, size: 12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: GestureDetector(
-                      onTap: () => setState(() => _orderImage = null),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                        child: const Icon(LucideIcons.x, color: Colors.white, size: 12),
-                      ),
-                    ),
-                  ),
+                  ],
                 ],
               ),
             ),
+          ),
         ],
       ),
     );
@@ -1407,8 +1443,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
             child: Slider(
               value: count.toDouble(),
               min: 0,
-              max: 20,
-              divisions: 20,
+              max: 10,
+              divisions: 10,
               onChanged: onSliderChanged,
             ),
           ),
