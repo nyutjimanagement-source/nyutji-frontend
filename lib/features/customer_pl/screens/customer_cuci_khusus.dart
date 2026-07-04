@@ -615,15 +615,11 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                       Text(
                         item['name'], 
                         style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item['desc'], 
                         style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
