@@ -390,19 +390,21 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     return baseTotal.toInt();
   }
 
-  void _updateItemCount(dynamic itemId, int delta) {
+  void _updateItemCount(dynamic itemId, int delta, {required bool isKiloan}) {
+    final int maxVal = isKiloan ? 20 : 10;
     setState(() {
       _itemCounts[itemId] = (_itemCounts[itemId] ?? 0) + delta;
       if (_itemCounts[itemId]! < 0) _itemCounts[itemId] = 0;
-      if (_itemCounts[itemId]! > 10) _itemCounts[itemId] = 10;
+      if (_itemCounts[itemId]! > maxVal) _itemCounts[itemId] = maxVal;
     });
   }
 
-  void _setItemCount(dynamic itemId, int value) {
+  void _setItemCount(dynamic itemId, int value, {required bool isKiloan}) {
+    final int maxVal = isKiloan ? 20 : 10;
     setState(() {
       _itemCounts[itemId] = value;
       if (_itemCounts[itemId]! < 0) _itemCounts[itemId] = 0;
-      if (_itemCounts[itemId]! > 10) _itemCounts[itemId] = 10;
+      if (_itemCounts[itemId]! > maxVal) _itemCounts[itemId] = maxVal;
     });
   }
 
@@ -1176,23 +1178,13 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       if (catCard is! SizedBox) {
         children.add(catCard);
       }
-    });
-
-    if (children.isEmpty) {
+    });    if (children.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double cardWidth = screenWidth - 40;
-    final double viewportFraction = cardWidth / screenWidth;
-
-    return SizedBox(
-      height: 380, // uniform height for PageView Category cards
-      child: PageView(
-        controller: PageController(viewportFraction: viewportFraction.clamp(0.8, 0.95)),
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        children: children,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 
@@ -1212,7 +1204,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     if (validItems.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1225,6 +1217,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header Category
           Padding(
@@ -1247,56 +1240,54 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
           ),
           const Divider(height: 1, color: Color(0xFFE5E7EB)),
           // Vertical List of Items inside this category card!
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                ...validItems.map((item) {
+                  return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
+                }).toList(),
+              ],
+            ),
+          ),
+          
+          // Image preview untuk Kiloan
+          if (isKiloan && _orderImage != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              child: Stack(
                 children: [
-                  ...validItems.map((item) {
-                    return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
-                  }).toList(),
-                  
-                  // Image preview untuk Kiloan
-                  if (isKiloan && _orderImage != null) ...[
-                    const SizedBox(height: 16),
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.file(_orderImage!, height: 120, width: double.infinity, fit: BoxFit.cover),
-                        ),
-                        Positioned(
-                          bottom: 8,
-                          left: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: GestureDetector(
-                            onTap: () => setState(() => _orderImage = null),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                              child: const Icon(LucideIcons.x, color: Colors.white, size: 12),
-                            ),
-                          ),
-                        ),
-                      ],
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.file(_orderImage!, height: 180, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                     ),
-                  ],
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _orderImage = null),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
         ],
       ),
     );
@@ -1309,6 +1300,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     String itemId = item['id']?.toString() ?? '0';
     int count = _itemCounts[itemId] ?? 0;
     String unit = isKiloan ? 'Kg' : 'Pcs';
+    final int maxQty = isKiloan ? 20 : 10;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1398,9 +1390,10 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
           _buildHybridCounter(
             itemId: itemId,
             count: count,
-            onIncrement: () => _updateItemCount(itemId, 1),
-            onDecrement: () => _updateItemCount(itemId, -1),
-            onSliderChanged: (val) => _setItemCount(itemId, val.toInt()),
+            maxQty: maxQty,
+            onIncrement: () => _updateItemCount(itemId, 1, isKiloan: isKiloan),
+            onDecrement: () => _updateItemCount(itemId, -1, isKiloan: isKiloan),
+            onSliderChanged: (val) => _setItemCount(itemId, val.toInt(), isKiloan: isKiloan),
           ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF3F4F6)),
@@ -1412,6 +1405,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   Widget _buildHybridCounter({
     required String itemId,
     required int count,
+    required int maxQty,
     required VoidCallback onIncrement,
     required VoidCallback onDecrement,
     required ValueChanged<double> onSliderChanged,
@@ -1443,8 +1437,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
             child: Slider(
               value: count.toDouble(),
               min: 0,
-              max: 10,
-              divisions: 10,
+              max: maxQty.toDouble(),
+              divisions: maxQty,
               onChanged: onSliderChanged,
             ),
           ),
