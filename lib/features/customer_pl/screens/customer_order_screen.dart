@@ -1213,12 +1213,22 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 20,
+          )
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Category
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(icon, size: 20, color: primaryTeal),
@@ -1226,7 +1236,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                 Expanded(
                   child: Text(
                     title, 
-                    style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900),
+                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
                     maxLines: 1, 
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1235,12 +1245,11 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
           // Horizontal Scrollable Cards
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
             child: Row(
               children: validItems.map((item) {
                 return _buildHorizontalServiceCard(item as Map<String, dynamic>, isKiloan);
@@ -1258,23 +1267,16 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     final double priceFast = (pFastRaw == null || pFastRaw == 0) ? priceReg : pFastRaw;
     String itemId = item['id']?.toString() ?? '0';
     int count = _itemCounts[itemId] ?? 0;
-    String unit = item['unit']?.toString() ?? (isKiloan ? 'Kg' : 'Pcs');
+    String unit = isKiloan ? 'Kg' : 'Pcs';
 
     return Container(
       width: 280,
-      margin: const EdgeInsets.only(right: 14),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1298,15 +1300,15 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: count > 0 ? primaryTeal.withValues(alpha: 0.1) : const Color(0xFFF3F4F6),
+                  color: count > 0 ? primaryTeal.withValues(alpha: 0.1) : const Color(0xFFE5E7EB),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   "$count $unit",
                   style: GoogleFonts.montserrat(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: count > 0 ? primaryTeal : Colors.grey[600],
+                    color: count > 0 ? primaryTeal : Colors.grey[700],
                   ),
                 ),
               ),
@@ -1320,11 +1322,11 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               children: [
                 Text(
                   "Reguler:",
-                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
                 ),
                 Text(
                   "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg",
-                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
+                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal),
                 ),
               ],
             ),
@@ -1334,11 +1336,11 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               children: [
                 Text(
                   "Fast Track:",
-                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
                 ),
                 Text(
                   "Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg",
-                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFFD97706)),
+                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
                 ),
               ],
             ),
@@ -1348,16 +1350,16 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               children: [
                 Text(
                   "Harga:",
-                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
                 ),
                 Text(
                   "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Pcs",
-                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
+                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           // Slider Counter Hybrid
           _buildHybridCounter(
             itemId: itemId,
