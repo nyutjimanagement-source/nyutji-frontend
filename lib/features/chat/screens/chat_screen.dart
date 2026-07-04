@@ -20,6 +20,9 @@ final chatProvider = ChangeNotifierProvider.autoDispose<ChatProvider>(
 );
 
 class ChatScreen extends ConsumerStatefulWidget {
+  static String? activeOrderNumber;
+  static String? activeChannel;
+
   final String orderNumber;
   final String channel; // 'PL_ML', 'PL_KL', atau 'ML_KL'
   final String partnerName;
@@ -55,6 +58,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    ChatScreen.activeOrderNumber = widget.orderNumber;
+    ChatScreen.activeChannel = widget.channel;
     _loadUserInfo();
   }
 
@@ -162,6 +167,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    if (ChatScreen.activeOrderNumber == widget.orderNumber &&
+        ChatScreen.activeChannel == widget.channel) {
+      ChatScreen.activeOrderNumber = null;
+      ChatScreen.activeChannel = null;
+    }
     _refreshTimer?.cancel();
     _msgController.dispose();
     _scrollController.dispose();

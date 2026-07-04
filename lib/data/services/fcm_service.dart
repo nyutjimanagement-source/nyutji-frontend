@@ -2,10 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'api_service.dart';
 import '../../main.dart';
 import '../../core/widgets/incoming_call_overlay.dart';
 import '../../core/widgets/nyutji_notif.dart';
+import '../../features/chat/screens/chat_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -155,28 +157,43 @@ class FcmService {
         IncomingCallOverlay.show(context, callerName, roomId);
       }
     } else if (data['type'] == 'NEW_CHAT_MESSAGE') {
-      // Tampilkan in-app banner untuk pesan chat baru
       final senderName = data['senderName'] ?? 'Seseorang';
       final msgPreview = data['message'] ?? 'Pesan baru';
       final orderNumber = data['orderNumber'] ?? '';
+      final channel = data['channel'] ?? '';
 
-      if (context != null && context.mounted) {
-        NyutjiNotif.showInfo(
-          context,
-          '$senderName: $msgPreview${orderNumber.isNotEmpty ? ' (#$orderNumber)' : ''}',
-        );
-      }
-    } else if (data['type'] == 'ORDER_STATUS_UPDATED') {
-      // Tampilkan in-app banner untuk update status pesanan
-      final status = data['newStatus'] ?? '';
-      final orderNumber = data['orderNumber'] ?? '';
+      // Cek apakah user sedang membuka ChatScreen untuk order dan channel ini
+      final bool isChatOpen = ChatScreen.activeOrderNumber == orderNumber &&
+          ChatScreen.activeChannel == channel;
 
-      if (context != null && context.mounted) {
-        NyutjiNotif.showInfo(
-          context,
-          'Pesanan #$orderNumber: Status diperbarui ke $status',
-        );
+      if (isChatOpen) {
+        // Sedang chatting: mainkan suara "wuikk-wuikk" (bubble pop), jangan tampilkan banner
+        _playChatBubbleSound();
+      } else {
+        // Tidak sedang di room chat ini: tampilkan banner notifikasi
+        if (context != null && context.mounted) {
+          NyutjiNotif.showInfo(
+            context,
+            '$senderName: $msgPreview${orderNumber.isNotEmpty ? ' (#$orderNumber)' : ''}',
+          );
+        }
       }
+    } else {
+      // Tampilkan banner umum untuk status update dan notifikasi lainnya
+      final title = message.notification?.title ?? data['title'];
+      final body = message.notification?.body ?? data['body'];
+      if (title != null && body != null && context != null && context.mounted) {
+        NyutjiNotif.showInfo(context, '$title: $body');
+      }
+    }
+  }
+
+  void _playChatBubbleSound() async {
+    try {
+      final player = AudioPlayer();
+      await player.play(UrlSource('https://assets.mixkit.co/active_storage/sfx/2005/2005-84.wav'));
+    } catch (e) {
+      debugPrint("Gagal memutar suara bubble chat: $e");
     }
   }
 
