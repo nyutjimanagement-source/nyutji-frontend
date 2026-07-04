@@ -157,6 +157,11 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 ### 21. Format Waktu Lokal (Local Time Parsing)
 * **Aturan**: Saat mem-parsing timestamp (seperti createdAt) dari database backend untuk ditampilkan di UI (terutama pada fitur Chat, Riwayat Order, atau Notifikasi), dilarang langsung menggunakan DateFormat dari package intl pada objek UTC mentah tanpa mengonversinya ke zona waktu lokal pengguna.
 * **Solusi**: Wajib menggunakan ekstensi .toLocal() pada instance DateTime sebelum diformat agar waktu otomatis beradaptasi dengan zona waktu perangkat (misal: WIB/Jakarta UTC+7). Contoh: DateTime.tryParse(dateStr)?.toLocal().
+
+### 22. Pelarangan Penggunaan Metode Deprecated withOpacity (Linter Cleanliness)
+* **Aturan**: Dilarang menggunakan metode `.withOpacity(double)` untuk memodifikasi opasitas warna pada Flutter.
+* **Alasan**: Metode `withOpacity` telah usang (*deprecated*) pada rilis SDK Flutter/Dart terbaru dan memicu peringatan *linter* `deprecated_member_use` yang menumpuk.
+* **Solusi**: Wajib mengganti penggunaannya dengan metode modern `.withValues(alpha: double)` (misalnya: `Colors.white.withValues(alpha: 0.9)`).
 ---
 
 ## III. Standar Database & Relasi Tabel
