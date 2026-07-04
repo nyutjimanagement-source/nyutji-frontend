@@ -682,7 +682,8 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
             ),
             child: Text(
               value,
-              style: GoogleFonts.firaCode(
+              style: TextStyle(
+                fontFamily: 'monospace',
                 fontSize: 11,
                 color: isJson ? const Color(0xFF9CDCFE) : darkText,
               ),
@@ -777,9 +778,10 @@ void loop() {
               physics: const BouncingScrollPhysics(),
               child: Text(
                 arduinoCode,
-                style: GoogleFonts.firaCode(
+                style: const TextStyle(
+                  fontFamily: 'monospace',
                   fontSize: 10,
-                  color: const Color(0xFFD4D4D4),
+                  color: Color(0xFFD4D4D4),
                 ),
               ),
             ),
