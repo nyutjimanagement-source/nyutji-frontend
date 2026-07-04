@@ -1254,7 +1254,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                 children: [
                   ...validItems.map((item) {
                     return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
-                  }).toList(),
+                  }),
                   
                   // Image preview untuk Kiloan
                   if (isKiloan && _orderImage != null) ...[
