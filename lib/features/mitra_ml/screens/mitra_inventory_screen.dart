@@ -97,7 +97,7 @@ class _MitraInventoryScreenState extends ConsumerState<MitraInventoryScreen> {
                   onTap: widget.onBackTap,
                   child: const Row(
                     children: [
-                      Icon(LucideIcons.chevronLeft, size: 24, color: NyutjiTheme.mlPrimary),
+                      Icon(LucideIcons.arrowLeft, size: 24, color: NyutjiTheme.mlPrimary),
                       SizedBox(width: 4),
                     ],
                   ),
