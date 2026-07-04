@@ -483,6 +483,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       body: Stack(
         children: [
           CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
           _buildCompactAppbar(cT),
           SliverToBoxAdapter(
@@ -1178,13 +1179,19 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       if (catCard is! SizedBox) {
         children.add(catCard);
       }
-    });    if (children.isEmpty) {
+    });
+
+    if (children.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: children,
+    return SizedBox(
+      height: 420, // uniform height for PageView Category cards
+      child: PageView(
+        controller: PageController(viewportFraction: 1.0),
+        physics: const BouncingScrollPhysics(),
+        children: children,
+      ),
     );
   }
 
@@ -1204,7 +1211,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     if (validItems.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1217,7 +1224,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Header Category
           Padding(
@@ -1240,54 +1246,56 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
           ),
           const Divider(height: 1, color: Color(0xFFE5E7EB)),
           // Vertical List of Items inside this category card!
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                ...validItems.map((item) {
-                  return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
-                }).toList(),
-              ],
-            ),
-          ),
-          
-          // Image preview untuk Kiloan
-          if (isKiloan && _orderImage != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: Stack(
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.file(_orderImage!, height: 180, width: double.infinity, fit: BoxFit.cover),
-                  ),
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                  ...validItems.map((item) {
+                    return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
+                  }).toList(),
+                  
+                  // Image preview untuk Kiloan
+                  if (isKiloan && _orderImage != null) ...[
+                    const SizedBox(height: 16),
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(_orderImage!, height: 120, width: double.infinity, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: GestureDetector(
+                            onTap: () => setState(() => _orderImage = null),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                              child: const Icon(LucideIcons.x, color: Colors.white, size: 12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: GestureDetector(
-                      onTap: () => setState(() => _orderImage = null),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                        child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
-                      ),
-                    ),
-                  ),
+                  ],
                 ],
               ),
             ),
+          ),
         ],
       ),
     );
