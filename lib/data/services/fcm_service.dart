@@ -30,7 +30,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final callerName = data['callerName'] ?? 'Panggilan Masuk';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = navigatorKey.currentContext;
+      final context = navigatorKey.currentState?.overlay?.context;
       if (context != null) {
         IncomingCallOverlay.show(context, callerName, roomId);
       }
@@ -144,7 +144,7 @@ class FcmService {
 
   void _handleForegroundMessage(RemoteMessage message) {
     final data = message.data;
-    final context = navigatorKey.currentContext;
+    final context = navigatorKey.currentState?.overlay?.context;
 
     // Simpan ke Hive secara async
     _saveNotificationToHive(data, message.notification);
