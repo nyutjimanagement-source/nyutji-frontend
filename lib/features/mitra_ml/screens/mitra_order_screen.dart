@@ -1799,20 +1799,21 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
   // ── Progress Bar ──────────────────────────────────
   // Steps disesuaikan 3 jenis layanan:
   // PICKUP → 4 steps (ada Kirim)
-  // SELF_DROP + kurir → 4 steps (ada Kirim)
-  // SELF_DROP tanpa kurir → 3 steps (no Kirim = Ambil Mandiri)
+  // SELF_DROP + kurir antar balik → 4 steps (ada Kirim)
+  // SELFDROP_SELFDELIVERY = ambil sendiri → 3 steps (no Kirim)
   Widget _buildProgressCucian(
       String orderId, String status, Color accentColor, dynamic o) {
     final int step = StatusHelper.getProgressStep(status);
     final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '')
         .toString()
         .toUpperCase();
+    // Hanya SELFDROP_SELFDELIVERY/SELF_SERVICE yang tidak perlu step Kirim
+    final bool noDeliveryStep =
+        rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+    // isSelfDrop untuk keperluan step 1 (diterima langsung tanpa picking)
     final bool isSelfDrop = rawDel == 'SELF_DROP' ||
         rawDel == 'SELFDROP_SELFDELIVERY' ||
         rawDel == 'SELF_SERVICE';
-    final isSelfDropPickup = rawDel == 'SELFDROP_SELFDELIVERY' ||
-        (rawDel == 'SELF_DROP' &&
-            (double.tryParse(o['deliveryFee']?.toString() ?? '0') ?? 0.0) == 0);
 
     bool isStep1 =
         step >= 2 || (isSelfDrop && status.toUpperCase() == 'WAITING_DROPOFF');
@@ -1822,8 +1823,9 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     bool isStep5 = step >= 6;
 
     final bool isPremium = _isPremiumOrder(o);
+    final String packingLabel = 'Packing';
 
-    List<Map<String, dynamic>> steps = isSelfDropPickup
+    List<Map<String, dynamic>> steps = noDeliveryStep
         ? [
             {
               "label": isPremium ? "Diterima" : "Timbang",
@@ -1851,11 +1853,11 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
                   o['proofs'], ['WASH_START', 'IN_PROGRESS'], "Cuci")
             },
             {
-              "label": "Packing",
+              "label": packingLabel,
               "icon": LucideIcons.package,
               "active": isStep3,
               "onTap": () =>
-                  _showPowDialog(o['proofs'], ['IRONING', 'PACKING'], "Packing")
+                  _showPowDialog(o['proofs'], ['IRONING', 'PACKING'], packingLabel)
             },
             {
               "label": "Selesai",
@@ -1891,11 +1893,11 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
                   o['proofs'], ['WASH_START', 'IN_PROGRESS'], "Cuci")
             },
             {
-              "label": "Packing",
+              "label": packingLabel,
               "icon": LucideIcons.package,
               "active": isStep3,
               "onTap": () =>
-                  _showPowDialog(o['proofs'], ['IRONING', 'PACKING'], "Packing")
+                  _showPowDialog(o['proofs'], ['IRONING', 'PACKING'], packingLabel)
             },
             {
               "label": "Kirim",
@@ -1911,6 +1913,8 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
               "onTap": () => _showPowDialog(o['proofs'], ['DONE'], "Selesai")
             },
           ];
+
+
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
@@ -2142,29 +2146,30 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
 
   void _showStatusUpdater(String orderId, String currentStatus,
       String deliveryType, dynamic o) async {
-    bool isSelfDrop = ['SELF_DROP', 'SELFDROP_SELFDELIVERY', 'SELF_SERVICE']
-        .contains(deliveryType.toUpperCase());
-    final List<String> stages = isSelfDrop
-        ? [
-            'WAITING_DROPOFF',
-            'WEIGHING',
-            'WASH_START',
-            'IRONING',
-            'PACKING',
-            'DONE'
-          ]
-        : [
-            'WAITING_DROPOFF',
-            'WEIGHING',
-            'WASH_START',
-            'IRONING',
-            'PACKING',
-            'DELIVERING',
-            'DONE'
-          ];
+    final String deliveryUp = deliveryType.toUpperCase();
+    final bool isPickup = deliveryUp == 'PICKUP';
+    final bool hasDelivery = deliveryUp == 'PICKUP' || deliveryUp == 'SELF_DROP';
+
+    List<String> stages = ['WAITING_DROPOFF'];
+    if (isPickup) {
+      stages.add('PICKING_UP');
+    }
+    stages.addAll([
+      'WEIGHING',
+      'WASH_START',
+      'IRONING',
+      'PACKING',
+    ]);
+    if (hasDelivery) {
+      stages.add('DELIVERING');
+    }
+    stages.add('DONE');
 
     if (_isFromSpecialMenus(o)) {
+      // Premium tidak perlu WEIGHING (sudah di-handle saat order)
       stages.remove('WEIGHING');
+      // Premium: IRONING & PACKING digabung, hapus IRONING terpisah
+      stages.remove('IRONING');
     }
 
     final proofs = o['proofs'] as List? ?? [];
@@ -2884,7 +2889,29 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
     int activeIndex = widget.stages.indexOf(widget.currentStatus);
     if (activeIndex == -1) {
       if (widget.currentStatus == 'DONE' || widget.currentStatus == 'PAID') {
+        // Semua step sudah selesai
         activeIndex = widget.stages.length;
+      } else if (widget.currentStatus == 'WEIGHING') {
+        // Jika status DB adalah WEIGHING tetapi stages tidak memiliki WEIGHING (cucian premium),
+        // maka status terakhir yang dianggap selesai adalah sebelum WASH_START.
+        // Untuk PICKUP: 'PICKING_UP'
+        // Untuk drop: 'WAITING_DROPOFF'
+        if (widget.stages.contains('PICKING_UP')) {
+          activeIndex = widget.stages.indexOf('PICKING_UP');
+        } else {
+          activeIndex = widget.stages.indexOf('WAITING_DROPOFF');
+        }
+      }
+      // SEARCHING, COURIER_ACCEPTED: belum ada di stages list, artinya
+      // belum ada step selesai → activeIndex tetap -1 (chip WAITING_DROPOFF bisa diklik)
+    } else {
+      // Jika statusnya adalah PICKING_UP, tetapi ini adalah order premium (tidak ada WEIGHING),
+      // kita ingin agar Mitra tidak bisa langsung melompat ke WASH_START sebelum kurir menyelesaikan pickup (menjadi WEIGHING).
+      // Oleh karena itu, jika currentStatus adalah PICKING_UP dan stages tidak memiliki WEIGHING:
+      if (widget.currentStatus == 'PICKING_UP' && !widget.stages.contains('WEIGHING')) {
+        // Anggap activeIndex adalah WAITING_DROPOFF (index 0) agar yang "allowed" berikutnya adalah PICKING_UP,
+        // bukan WASH_START.
+        activeIndex = widget.stages.indexOf('WAITING_DROPOFF');
       }
     }
     if (widget.currentStatus == 'WEIGHING' && !widget.hasWeighingProofByML) {
@@ -3024,6 +3051,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                         final bool isAllowed = index == activeIndex + 1;
                         final Map<String, String> statusLabels = {
                           'WAITING_DROPOFF': 'Drop Off',
+                          'PICKING_UP': 'Dijemput Kurir',
                           'WEIGHING': 'Penimbangan',
                           'WASH_START': 'Proses Cuci',
                           'IRONING': 'Proses Setrika',
@@ -3033,6 +3061,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                         };
                         final Map<String, String> statusEmojis = {
                           'WAITING_DROPOFF': '🕒',
+                          'PICKING_UP': '🛵',
                           'WEIGHING': '📋',
                           'WASH_START': '▶️',
                           'IRONING': '💨',

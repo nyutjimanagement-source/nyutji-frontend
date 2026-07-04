@@ -1010,6 +1010,9 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
                             'Reguler')
                         .toString();
 
+                    final isDeliveryTask = order['status']?.toString().toUpperCase() == 'DELIVERING' ||
+                        order['order_status']?.toString().toUpperCase() == 'DELIVERING';
+
                     return _buildAvailableOrderItem(
                       ctx: ctx,
                       orderId: orderId,
@@ -1020,6 +1023,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
                       isFast: isFast,
                       distance: distance,
                       serviceType: serviceType,
+                      isDeliveryTask: isDeliveryTask,
                     );
                   },
                 ),
@@ -1041,6 +1045,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
     required bool isFast,
     required double distance,
     required String serviceType,
+    bool isDeliveryTask = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1051,7 +1056,9 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
           children: [
             Expanded(
               child: Text(
-                "Jasa Antar: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price)}",
+                isDeliveryTask
+                    ? "Jasa Antar Balik: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price)}"
+                    : "Jasa Jemput: ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(price)}",
                 style: GoogleFonts.montserrat(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -1066,21 +1073,25 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
         _buildInfoRow(LucideIcons.hash, "Order", orderId, Colors.black),
         const SizedBox(height: 8),
 
-        // 3. Lokasi Jemput Pelanggan
-        _buildInfoRow(LucideIcons.mapPin, "Jemput", pickup, Colors.black),
+        // 3. Lokasi Jemput
+        _buildInfoRow(
+            LucideIcons.mapPin,
+            isDeliveryTask ? "Jemput dari" : "Jemput di",
+            isDeliveryTask ? "$mitraName ($mitraAddr)" : pickup,
+            Colors.black),
         const SizedBox(height: 8),
 
-        // 4. Lokasi Antar Laundry
+        // 4. Lokasi Antar
         _buildRichInfoRow(
-            LucideIcons.store,
-            "Antar ke",
+            isDeliveryTask ? LucideIcons.user : LucideIcons.store,
+            isDeliveryTask ? "Kirim ke" : "Antar ke",
             TextSpan(
               children: [
                 TextSpan(
-                    text: "$mitraName — ",
+                    text: isDeliveryTask ? "Pelanggan — " : "$mitraName — ",
                     style: const TextStyle(fontWeight: FontWeight.w800)),
                 TextSpan(
-                    text: mitraAddr,
+                    text: isDeliveryTask ? pickup : mitraAddr,
                     style: const TextStyle(fontWeight: FontWeight.w500)),
               ],
             ),
