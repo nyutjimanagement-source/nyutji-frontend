@@ -397,6 +397,13 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     });
   }
 
+  void _setItemCount(dynamic itemId, int value) {
+    setState(() {
+      _itemCounts[itemId] = value;
+      if (_itemCounts[itemId]! < 0) _itemCounts[itemId] = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Gunakan try-catch di level tertinggi build untuk menangkap error gaib di mode Release
@@ -1097,7 +1104,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               const SizedBox(height: 12),
               Text("Daftar Harga Masih Kosong", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
             ]
-
           ],
         ),
       );
@@ -1116,7 +1122,6 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     List<Widget> children = [];
     groupedItems.forEach((category, items) {
       bool isKiloan = category.toLowerCase().contains("kiloan");
-      int currentPage = _categoryPages[category] ?? 0;
       
       Widget? actionWidget;
       if (isKiloan) {
@@ -1130,13 +1135,11 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       }
 
       children.add(
-        _buildPaginatedTable(
+        _buildHorizontalServiceList(
           items, 
           category, 
           isKiloan ? LucideIcons.layers : LucideIcons.shirt, 
           isKiloan, 
-          currentPage, 
-          (idx) => setState(() => _categoryPages[category] = idx),
           actionWidget: actionWidget,
         )
       );
@@ -1144,7 +1147,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       if (isKiloan && _orderImage != null) {
         children.add(
           Padding(
-            padding: const EdgeInsets.only(top: 16.0),
+            padding: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 20, right: 20),
             child: Stack(
               children: [
                 ClipRRect(
@@ -1187,233 +1190,240 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
           )
         );
       }
-      
-      children.add(const SizedBox(height: 24));
     });
 
     return Column(children: children);
   }
 
-  Widget _buildPaginatedTable(List<dynamic> items, String title, IconData icon, bool isKiloan, int currentPage, Function(int) onPageChanged, {Widget? actionWidget}) {
-    const int perPage = 5;
-    List<List<dynamic>> chunks = [];
-    for (var i = 0; i < items.length; i += perPage) {
-      chunks.add(items.sublist(i, i + perPage > items.length ? items.length : i + perPage));
-    }
-    final pageItems = chunks.isNotEmpty ? chunks[currentPage.clamp(0, chunks.length - 1)] : [];
+  Widget _buildHorizontalServiceList(
+    List<dynamic> items, 
+    String title, 
+    IconData icon, 
+    bool isKiloan, 
+    {Widget? actionWidget}
+  ) {
+    // 4. buat smart dinamis daftar harga, ketika harga Rp 0, tidak usah ditampilkan
+    final validItems = items.where((item) {
+      final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
+      return priceReg > 0;
+    }).toList();
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity! < 0 && currentPage < chunks.length - 1) {
-          onPageChanged(currentPage + 1);
-        } else if (details.primaryVelocity! > 0 && currentPage > 0) {
-          onPageChanged(currentPage - 1);
-        }
-      },
-      child: AnimatedSize(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 20)]),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(icon, size: 20, color: primaryTeal),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(title, style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ),
-                    if (actionWidget != null) actionWidget,
-                    const SizedBox(width: 8),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                color: const Color(0xFFF9FAFB),
-                child: Row(
-                  children: isKiloan ? [
-                    Expanded(flex: 3, child: Text("SERVICE", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                    Expanded(flex: 4, child: Center(child: Text("REGULAR / FAST", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
-                  ] : [
-                    Expanded(flex: 3, child: Text("NAMA BARANG", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500]))),
-                    Expanded(flex: 2, child: Center(child: Text("HARGA", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.grey[500])))),
-                  ],
-                ),
-              ),
-              // ANIMATEDSIZE + ANIMATEDSWITCHER: identik dengan ML Pricing Screen
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(begin: const Offset(0.15, 0), end: Offset.zero).animate(animation),
-                    child: child,
+    if (validItems.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Category
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: primaryTeal),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title, 
+                    style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w900),
+                    maxLines: 1, 
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                child: Column(
-                  key: ValueKey(currentPage),
-                  mainAxisSize: MainAxisSize.min,
-                  children: pageItems.map((item) => isKiloan ? _buildKiloanRow(item as Map<String, dynamic>) : _buildSatuanRow(item as Map<String, dynamic>)).toList(),
-                ),
-              ),
-              // INDIKATOR TITIK DENGAN PANAH PAGINASI
-              if (chunks.length > 1)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Tombol Kiri
-                      IconButton(
-                        icon: const Icon(LucideIcons.chevronLeft, size: 20),
-                        color: currentPage > 0 ? primaryTeal : Colors.grey[300],
-                        onPressed: currentPage > 0 ? () => onPageChanged(currentPage - 1) : null,
-                      ),
-                      const SizedBox(width: 8),
-                      // Titik-titik Paginasi Animasi (seperti di mitra_pricing_screen.dart)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(chunks.length, (index) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: currentPage == index ? 12 : 6, 
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: currentPage == index ? primaryTeal : Colors.grey[300],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        )),
-                      ),
-                      const SizedBox(width: 8),
-                      // Tombol Kanan
-                      IconButton(
-                        icon: const Icon(LucideIcons.chevronRight, size: 20),
-                        color: currentPage < chunks.length - 1 ? primaryTeal : Colors.grey[300],
-                        onPressed: currentPage < chunks.length - 1 ? () => onPageChanged(currentPage + 1) : null,
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 8),
-            ],
+                if (actionWidget != null) actionWidget,
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 8),
+          // Horizontal Scrollable Cards
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Row(
+              children: validItems.map((item) {
+                return _buildHorizontalServiceCard(item as Map<String, dynamic>, isKiloan);
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-
-  Widget _buildKiloanRow(Map<String, dynamic> item) {
+  Widget _buildHorizontalServiceCard(Map<String, dynamic> item, bool isKiloan) {
     final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
     final double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
     final double priceFast = (pFastRaw == null || pFastRaw == 0) ? priceReg : pFastRaw;
     String itemId = item['id']?.toString() ?? '0';
     int count = _itemCounts[itemId] ?? 0;
-    
+    String unit = item['unit']?.toString() ?? (isKiloan ? 'Kg' : 'Pcs');
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
-      child: Row(
+      width: 280,
+      margin: const EdgeInsets.only(right: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            flex: 3, 
-            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis)
-          ),
-          Expanded(
-            flex: 5, // Perbesar flex agar muat harga jutaan + counter
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Flexible( // Gunakan Flexible agar teks harga tidak memaksakan ruang jika terlalu panjang
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: const Color(0xFFD97706)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ],
+          // Row for Name & Badge count
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  item['name'] ?? '',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: darkBg,
                   ),
                 ),
-                const SizedBox(width: 8),
-                // TOMBOL COUNTING
-                Container(
-                  decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
-                      SizedBox(width: 28, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)))),
-                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
-                    ],
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: count > 0 ? primaryTeal.withValues(alpha: 0.1) : const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "$count $unit",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: count > 0 ? primaryTeal : Colors.grey[600],
                   ),
-                )
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Price Info
+          if (isKiloan) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Reguler:",
+                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg",
+                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
+                ),
               ],
-            )
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Fast Track:",
+                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  "Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg",
+                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFFD97706)),
+                ),
+              ],
+            ),
+          ] else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Harga:",
+                  style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  "Rp ${NumberFormat.decimalPattern('id_ID').format(price)} /Pcs",
+                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 16),
+          // Slider Counter Hybrid
+          _buildHybridCounter(
+            itemId: itemId,
+            count: count,
+            onIncrement: () => _updateItemCount(itemId, 1),
+            onDecrement: () => _updateItemCount(itemId, -1),
+            onSliderChanged: (val) => _setItemCount(itemId, val.toInt()),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSatuanRow(Map<String, dynamic> item) {
-    final double price = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
-    String itemId = item['id']?.toString() ?? '0';
-    int count = _itemCounts[itemId] ?? 0;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3, 
-            child: Text(item['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87), maxLines: 2, overflow: TextOverflow.ellipsis)
+  Widget _buildHybridCounter({
+    required String itemId,
+    required int count,
+    required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
+    required ValueChanged<double> onSliderChanged,
+  }) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: onDecrement,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(LucideIcons.minus, size: 14, color: Colors.black54),
           ),
-          Expanded(
-            flex: 4, 
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Flexible(
-                  child: Text("Rp ${NumberFormat.decimalPattern('id_ID').format(price)} /Pcs", 
-                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: primaryTeal),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // TOMBOL COUNTING
-                Container(
-                  decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey[200]!)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _ctrBtn(LucideIcons.minus, () => _updateItemCount(itemId, -1)),
-                      SizedBox(width: 28, child: Center(child: Text("$count", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)))),
-                      _ctrBtn(LucideIcons.plus, () => _updateItemCount(itemId, 1)),
-                    ],
-                  ),
-                )
-              ],
-            )
+        ),
+        Expanded(
+          child: SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 4.0,
+              activeTrackColor: primaryTeal,
+              inactiveTrackColor: const Color(0xFFF3F4F6),
+              thumbColor: primaryTeal,
+              overlayColor: primaryTeal.withValues(alpha: 0.12),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
+            ),
+            child: Slider(
+              value: count.toDouble(),
+              min: 0,
+              max: 20,
+              divisions: 20,
+              onChanged: onSliderChanged,
+            ),
           ),
-        ],
-      ),
+        ),
+        GestureDetector(
+          onTap: onIncrement,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(LucideIcons.plus, size: 14, color: Colors.black54),
+          ),
+        ),
+      ],
     );
-  }
-
-  Widget _ctrBtn(IconData icon, VoidCallback onTap) {
-    return InkWell(onTap: onTap, child: Padding(padding: const EdgeInsets.all(6), child: Icon(icon, size: 14, color: Colors.black54)));
   }
 
   Widget _buildCompactFooter(Map<String, dynamic> cT, AuthProvider auth) {
