@@ -38,12 +38,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
-/// Simpan notifikasi ke Hive box nyutji_notifications (untuk background handler)
 Future<void> _saveNotificationToHive(
   Map<String, dynamic> data,
   RemoteNotification? notification,
 ) async {
   try {
+    try {
+      await Hive.initFlutter();
+    } catch (_) {}
+
     if (!Hive.isBoxOpen('nyutji_notifications')) {
       await Hive.openBox('nyutji_notifications');
     }
