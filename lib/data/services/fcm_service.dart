@@ -45,12 +45,8 @@ Future<void> _saveNotificationToHive(
 ) async {
   try {
     try {
-      Hive.path;
-    } catch (_) {
-      try {
-        await Hive.initFlutter();
-      } catch (_) {}
-    }
+      await Hive.initFlutter();
+    } catch (_) {}
 
     if (!Hive.isBoxOpen('nyutji_notifications')) {
       await Hive.openBox('nyutji_notifications');
