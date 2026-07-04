@@ -452,7 +452,14 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
     validReviews.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
     
     final totalReviews = validReviews.length;
-    final top3 = validReviews.take(3).toList();
+    
+    // Chunk validReviews into lists of 3 reviews (pages)
+    List<List<Map<String, dynamic>>> reviewPages = [];
+    for (var i = 0; i < validReviews.length; i += 3) {
+      reviewPages.add(
+        validReviews.sublist(i, i + 3 > validReviews.length ? validReviews.length : i + 3)
+      );
+    }
 
     showModalBottomSheet(
       context: context,
@@ -486,83 +493,89 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
                   Text("Penilaian Layanan ($totalReviews)", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               
-              if (top3.isEmpty)
+              if (reviewPages.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text("Belum ada review.", style: GoogleFonts.montserrat(color: Colors.grey)),
                 )
               else
                 SizedBox(
-                  height: 135,
+                  height: 310, // Memberikan ruang cukup untuk 3 baris list card vertikal
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     child: Row(
-                      children: top3.map((rv) {
-                        final DateTime dt = rv['date'] as DateTime;
-                        const List<String> monthNames = [
-                          '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
-                        ];
-                        final String dateStr = "${dt.day} ${monthNames[dt.month]}";
-                        
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: reviewPages.map((page) {
                         return Container(
-                          width: MediaQuery.of(ctx).size.width * 0.75,
-                          margin: const EdgeInsets.only(right: 12),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey[200]!)
-                          ),
+                          width: MediaQuery.of(ctx).size.width * 0.85,
+                          margin: const EdgeInsets.only(right: 16),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: page.map((rv) {
+                              final DateTime dt = rv['date'] as DateTime;
+                              const List<String> monthNames = [
+                                '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+                              ];
+                              final String dateStr = "${dt.day} ${monthNames[dt.month]}";
+                              
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: bgColor,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.grey[200]!)
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Flexible(
-                                          child: Text(
-                                            rv['customerName'],
-                                            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText),
-                                            overflow: TextOverflow.ellipsis,
+                                        Expanded(
+                                          child: Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  rv['customerName'],
+                                                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "($dateStr)",
+                                                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey[500]),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          "($dateStr)",
-                                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey[500]),
+                                        const SizedBox(width: 8),
+                                        Row(
+                                          children: List.generate(5, (index) {
+                                            return Icon(
+                                              index < rv['rating'] ? Icons.star : Icons.star_border,
+                                              color: index < rv['rating'] ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
+                                              size: 12,
+                                            );
+                                          }),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Row(
-                                    children: List.generate(5, (index) {
-                                      return Icon(
-                                        index < rv['rating'] ? Icons.star : Icons.star_border,
-                                        color: index < rv['rating'] ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
-                                        size: 14,
-                                      );
-                                    }),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  physics: const BouncingScrollPhysics(),
-                                  child: Text(
-                                    rv['comment'],
-                                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[700], height: 1.5),
-                                  ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      rv['comment'],
+                                      style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700], height: 1.4),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                              );
+                            }).toList(),
                           ),
                         );
                       }).toList(),
