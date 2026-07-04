@@ -1290,7 +1290,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                   style: GoogleFonts.montserrat(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: darkBg,
+                    color: Colors.black87,
                   ),
                 ),
               ),
@@ -1351,7 +1351,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
                   style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  "Rp ${NumberFormat.decimalPattern('id_ID').format(price)} /Pcs",
+                  "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Pcs",
                   style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w800, color: primaryTeal),
                 ),
               ],
