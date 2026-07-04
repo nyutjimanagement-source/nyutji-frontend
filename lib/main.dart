@@ -21,6 +21,9 @@ import 'features/admin_ad/screens/admin_main_screen.dart';
 import 'features/mitra_ml/screens/mitra_kendala_screen.dart';
 import 'features/notifications/screens/notification_screen.dart';
 
+// ProviderContainer global untuk akses di luar widget tree (seperti FCM Service)
+late final ProviderContainer globalProviderContainer;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -45,7 +48,9 @@ void main() async {
   await initializeDateFormatting('id_ID', null);
   // Hanya gunakan font lokal dari assets/google_fonts/
   GoogleFonts.config.allowRuntimeFetching = false;
-  runApp(const ProviderScope(child: NyutjiApp()));
+  
+  globalProviderContainer = ProviderContainer();
+  runApp(UncontrolledProviderScope(container: globalProviderContainer, child: const NyutjiApp()));
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

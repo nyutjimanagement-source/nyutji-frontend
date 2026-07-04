@@ -597,6 +597,67 @@ class OrderProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<void> updateSingleOrderStatusLocally(String orderNumber, String status) async {
+    bool updated = false;
+    List<dynamic> allOrders = [];
+
+    // Baca cache saat ini
+    final cachedData = CacheService.get('nyutji_orders');
+    if (cachedData != null && cachedData is List) {
+      allOrders = List<dynamic>.from(cachedData);
+    } else {
+      allOrders = [..._activeOrders, ..._historyOrders];
+    }
+
+    for (int i = 0; i < allOrders.length; i++) {
+      final order = allOrders[i];
+      if (order is Map) {
+        final orderNum = (order['order_number'] ?? order['id'] ?? '').toString();
+        if (orderNum == orderNumber) {
+          final updatedOrder = Map<String, dynamic>.from(order);
+          updatedOrder['status'] = status;
+          updatedOrder['order_status'] = status;
+          allOrders[i] = updatedOrder;
+          updated = true;
+        }
+      }
+    }
+
+    if (updated) {
+      await CacheService.set('nyutji_orders', allOrders);
+      await _processOrders(allOrders);
+      _safeNotifyListeners();
+    }
+    
+    // Refresh juga trackingOrder jika sedang melacak pesanan ini
+    if (_trackingOrder != null) {
+      final trackNum = (_trackingOrder!['order_number'] ?? _trackingOrder!['id'] ?? '').toString();
+      if (trackNum == orderNumber) {
+        final updatedTrack = Map<String, dynamic>.from(_trackingOrder!);
+        updatedTrack['status'] = status;
+        updatedTrack['order_status'] = status;
+        _trackingOrder = updatedTrack;
+        _safeNotifyListeners();
+      }
+    }
+  }
+
+  Future<void> syncOrderStateSilently(String orderNumber, String status) async {
+    // 1. Update status secara lokal agar instan (Zero Latency UI)
+    await updateSingleOrderStatusLocally(orderNumber, status);
+
+    // 2. Fetch data terbaru dari server di latar belakang secara asinkron (untuk sinkronisasi atribut lain)
+    // Tanpa memicu loading/shimmer
+    try {
+      final List<dynamic> orders = await _api.getOrders();
+      await CacheService.set('nyutji_orders', orders);
+      await _processOrders(orders);
+      _safeNotifyListeners();
+    } catch (e) {
+      debugPrint("Gagal sinkronisasi data pesanan secara silent: $e");
+    }
+  }
 }
 
 final orderProvider = ChangeNotifierProvider<OrderProvider>((ref) => OrderProvider());

@@ -8,6 +8,7 @@ import '../../main.dart';
 import '../../core/widgets/incoming_call_overlay.dart';
 import '../../core/widgets/nyutji_notif.dart';
 import '../../features/chat/screens/chat_screen.dart';
+import '../../providers/order_provider.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -187,6 +188,17 @@ class FcmService {
       final body = message.notification?.body ?? data['body'];
       if (title != null && body != null && context != null && context.mounted) {
         NyutjiNotif.showInfo(context, '$title: $body');
+      }
+
+      // Sinkronisasi state secara asinkron di latar belakang (Zero-Latency UI + API Sync)
+      final orderNumber = data['orderNumber'] ?? '';
+      final status = data['newStatus'] ?? data['status'] ?? '';
+      if (orderNumber.isNotEmpty && status.isNotEmpty) {
+        try {
+          globalProviderContainer.read(orderProvider).syncOrderStateSilently(orderNumber, status);
+        } catch (e) {
+          debugPrint("Gagal sinkronisasi state via globalProviderContainer: $e");
+        }
       }
     }
   }
