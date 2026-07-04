@@ -451,8 +451,6 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
     // Sort descending by date
     validReviews.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
     
-    // Ambil 3 terbaru
-    final top3 = validReviews.take(3).toList();
     final totalReviews = validReviews.length;
 
     showModalBottomSheet(
