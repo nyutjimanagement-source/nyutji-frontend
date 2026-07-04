@@ -452,6 +452,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
     validReviews.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
     
     final totalReviews = validReviews.length;
+    final top3 = validReviews.take(3).toList();
 
     showModalBottomSheet(
       context: context,
@@ -487,7 +488,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
               ),
               const SizedBox(height: 32),
               
-              if (validReviews.isEmpty)
+              if (top3.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text("Belum ada review.", style: GoogleFonts.montserrat(color: Colors.grey)),
@@ -499,7 +500,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     child: Row(
-                      children: validReviews.map((rv) {
+                      children: top3.map((rv) {
                         final DateTime dt = rv['date'] as DateTime;
                         const List<String> monthNames = [
                           '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
