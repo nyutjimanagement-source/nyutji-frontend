@@ -57,6 +57,7 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
   List<dynamic> _matchingMitras = [];
   bool _isLoadingMitras = false;
   Map<String, dynamic>? _selectedMitra;
+  Map<String, dynamic>? _selectedSpecialService;
   
   // CONFIGURATION STATES
   double _specialItemPrice = 0.0;
@@ -88,77 +89,77 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
       'name': 'Kereta Bayi / Stroller & Car Seat Anak',
       'search_term': 'stroller',
       'icon': LucideIcons.baby,
-      'desc': 'Pembersihan higienis khusus bayi luar dalam.',
+      'desc': 'Pembersihan higienis khusus bayi luar dalam',
       'default_price': 120000,
     },
     {
       'name': 'Karpet (Kantor, Masjid, Bulu)',
       'search_term': 'karpet',
       'icon': LucideIcons.layers,
-      'desc': 'Pencucian karpet mendalam bebas tungau & debu.',
+      'desc': 'Pencucian karpet mendalam bebas tungau & debu',
       'default_price': 45000,
     },
     {
       'name': 'Gordyn / Tirai (termasuk Vitrase)',
       'search_term': 'gordyn',
       'icon': LucideIcons.columns,
-      'desc': 'Pembersihan tirai tebal dan vitrase tipis premium.',
+      'desc': 'Pembersihan tirai tebal dan vitrase tipis premium',
       'default_price': 25000,
     },
     {
       'name': 'Sofa & Kasur / Springbed',
       'search_term': 'sofa',
       'icon': LucideIcons.bed,
-      'desc': 'Wet cleaning menghilangkan noda membandel kasur & sofa.',
+      'desc': 'Wet cleaning menghilangkan noda membandel kasur & sofa',
       'default_price': 150000,
     },
     {
       'name': 'Boneka (berbagai ukuran)',
       'search_term': 'boneka',
       'icon': LucideIcons.smile,
-      'desc': 'Pencucian boneka lembut, wangi, aman untuk anak.',
+      'desc': 'Pencucian boneka lembut, wangi, aman untuk anak',
       'default_price': 30000,
     },
     {
-      'name': 'Sepatu & Tas Premium/Luxury (Canvas, Suede, Kulit)',
+      'name': 'Sepatu & Tas Premium (Suede, Kulit)',
       'search_term': 'sepatu',
       'icon': LucideIcons.shoppingBag,
-      'desc': 'Perawatan premium tas & sepatu suede/kulit luxury.',
+      'desc': 'Perawatan premium tas & sepatu suede/kulit luxury',
       'default_price': 75000,
     },
     {
       'name': 'Helm',
       'search_term': 'helm',
       'icon': LucideIcons.shield,
-      'desc': 'Deep cleaning bagian dalam helm menghilangkan bau keringat.',
+      'desc': 'Deep cleaning bagian dalam helm menghilangkan bau keringat',
       'default_price': 40000,
     },
     {
       'name': 'Selimut Besar, Bedcover, & Blanket',
       'search_term': 'bedcover',
       'icon': LucideIcons.wind,
-      'desc': 'Pencucian selimut tebal dan bedcover ukuran jumbo.',
+      'desc': 'Pencucian selimut tebal dan bedcover ukuran jumbo',
       'default_price': 55000,
     },
     {
       'name': 'Jaket Spesial (Bahan Kulit asli, Suede, Bulu Angsa)',
       'search_term': 'jaket',
       'icon': LucideIcons.shirt,
-      'desc': 'Dry cleaning jaket kulit asli & bulu angsa sensitif.',
+      'desc': 'Dry cleaning jaket kulit asli & bulu angsa sensitif',
       'default_price': 90000,
     },
     {
-      'name': 'Koper / Travel Bag',
+      'name': 'Koper/Travel Bag',
       'search_term': 'koper',
       'icon': LucideIcons.luggage,
-      'desc': 'Sanitasi koper perjalanan pasca bepergian jauh.',
+      'desc': 'Sanitasi koper perjalanan pasca bepergian jauh',
       'default_price': 80000,
     },
     {
-      'name': 'Perlengkapan Ibadah Besar (Sajadah Tebal, Mukena Premium)',
+      'name': 'Perlengkapan Ibadah (Sajadah, Mukena Premium)',
       'search_term': 'sajadah',
       'icon': LucideIcons.sparkles,
-      'desc': 'Pencucian perlengkapan ibadah premium bersih & suci.',
+      'desc': 'Pencucian perlengkapan ibadah premium',
       'default_price': 20000,
     },
     {
@@ -193,6 +194,7 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
       _isLoadingMitras = true;
       _matchingMitras = [];
       _selectedMitra = null;
+      _selectedSpecialService = null;
     });
 
     try {
@@ -251,6 +253,47 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
       setState(() => _isLoadingMitras = false);
       if (mounted) NyutjiNotif.showError(context, "Gagal memuat daftar Mitra. Coba lagi.");
     }
+  }
+
+  bool _isServiceMatching(String serviceName, String searchTerm) {
+    final nameLower = serviceName.toLowerCase();
+    final termLower = searchTerm.toLowerCase();
+    
+    if (termLower == 'stroller') {
+      return nameLower.contains('stroller') || nameLower.contains('kereta') || nameLower.contains('bayi') || nameLower.contains('car seat');
+    }
+    if (termLower == 'gordyn') {
+      return nameLower.contains('gordyn') || nameLower.contains('tirai') || nameLower.contains('vitrase');
+    }
+    if (termLower == 'sofa') {
+      return nameLower.contains('sofa') || nameLower.contains('kasur') || nameLower.contains('springbed') || nameLower.contains('spring bed');
+    }
+    if (termLower == 'sepatu') {
+      return nameLower.contains('sepatu') || nameLower.contains('tas') || nameLower.contains('shoes') || nameLower.contains('bag');
+    }
+    if (termLower == 'bedcover') {
+      return nameLower.contains('bedcover') || nameLower.contains('selimut') || nameLower.contains('blanket');
+    }
+    if (termLower == 'jaket') {
+      return nameLower.contains('jaket') || nameLower.contains('jacket') || nameLower.contains('leather') || nameLower.contains('suede') || nameLower.contains('bulu angsa');
+    }
+    return nameLower.contains(termLower);
+  }
+
+  List<Map<String, dynamic>> _getMatchingServicesForMitra(Map<String, dynamic> mitra) {
+    final services = mitra['services'] as List?;
+    if (services == null || services.isEmpty) return [];
+    final term = _selectedSpecialItem?['search_term']?.toString() ?? '';
+    if (term.isEmpty) return [];
+    
+    List<Map<String, dynamic>> results = [];
+    for (var s in services) {
+      final sMap = Map<String, dynamic>.from(s);
+      if (_isServiceMatching(sMap['name']?.toString() ?? '', term)) {
+        results.add(sMap);
+      }
+    }
+    return results;
   }
 
   Future<void> _initDeliveryPricing() async {
@@ -401,7 +444,7 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
       final items = [
         {
           'category': 'Satuan',
-          'item_name': _selectedSpecialItem!['name'],
+          'item_name': _selectedSpecialService != null ? _selectedSpecialService!['name'] : _selectedSpecialItem!['name'],
           'qty': 1,
           'unit': 'Pcs',
           'price_per_unit': _specialItemPrice.toInt(),
@@ -691,24 +734,21 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                         const SizedBox(height: 12),
                         ..._matchingMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
+                          final matchingServices = _getMatchingServicesForMitra(m);
+
                           return GestureDetector(
                             onTap: () {
                               setState(() {
                                 _selectedMitra = m;
                                 
-                                // Deteksi harga dari list items mitra jika ada
-                                double price = _selectedSpecialItem!['default_price']?.toDouble() ?? 50000.0;
-                                final services = m['services'] as List?;
-                                if (services != null && services.isNotEmpty) {
-                                  final term = _selectedSpecialItem!['search_term'].toString().toLowerCase();
-                                  for (var s in services) {
-                                    if (s['name'].toString().toLowerCase().contains(term)) {
-                                      price = double.tryParse(s['price_regular']?.toString() ?? s['price']?.toString() ?? '') ?? price;
-                                      break;
-                                    }
-                                  }
+                                if (matchingServices.isNotEmpty) {
+                                  _selectedSpecialService = matchingServices.first;
+                                  final double sPrice = double.tryParse(_selectedSpecialService!['price_regular']?.toString() ?? _selectedSpecialService!['price']?.toString() ?? '') ?? 0.0;
+                                  _specialItemPrice = sPrice;
+                                } else {
+                                  _selectedSpecialService = null;
+                                  _specialItemPrice = _selectedSpecialItem!['default_price']?.toDouble() ?? 50000.0;
                                 }
-                                _specialItemPrice = price;
                               });
                               _initDeliveryPricing();
                             },
@@ -721,40 +761,106 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                                 border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
                                 boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.01), blurRadius: 6)],
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    width: 44, height: 44,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
-                                    ),
-                                    child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
-                                        const SizedBox(height: 2),
-                                        Row(
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 44, height: 44,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius: BorderRadius.circular(10),
+                                          image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
+                                        ),
+                                        child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(LucideIcons.star, color: Colors.amber, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                                            const SizedBox(width: 8),
-                                            const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                            Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
+                                            const SizedBox(height: 2),
+                                            Row(
+                                              children: [
+                                                const Icon(LucideIcons.star, color: Colors.amber, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                                const SizedBox(width: 8),
+                                                const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                              ],
+                                            ),
                                           ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      if (isSel)
+                                        Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                    ],
                                   ),
-                                  if (isSel)
-                                    Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                  if (isSel && matchingServices.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    const Divider(color: Color(0xFFE3DCCF)),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Daftar Layanan Tersedia:",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...matchingServices.map((service) {
+                                      final double sPrice = double.tryParse(service['price_regular']?.toString() ?? service['price']?.toString() ?? '') ?? 0.0;
+                                      final bool isServiceSel = _selectedSpecialService?['id'] == service['id'];
+                                      
+                                      return InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedSpecialService = service;
+                                            _specialItemPrice = sPrice;
+                                          });
+                                          _initDeliveryPricing();
+                                        },
+                                        child: Container(
+                                          margin: const EdgeInsets.only(bottom: 6),
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: isServiceSel ? primaryTeal.withValues(alpha: 0.05) : const Color(0xFFF9F9FB),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(
+                                              color: isServiceSel ? primaryTeal : const Color(0xFFE3DCCF),
+                                              width: isServiceSel ? 1.5 : 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                isServiceSel ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                                                size: 14,
+                                                color: isServiceSel ? primaryTeal : Colors.grey[400],
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  "${service['name']} | Rp ${NumberFormat('#,###', 'id_ID').format(sPrice)}",
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 12,
+                                                    fontWeight: isServiceSel ? FontWeight.bold : FontWeight.w500,
+                                                    color: isServiceSel ? primaryTeal : darkBg,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ],
                                 ],
                               ),
                             ),
