@@ -230,7 +230,11 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
                             if (success) {
                               if (mounted) {
                                 NyutjiNotif.showSuccess(this.context, "Mesin berhasil didaftarkan");
+                              }
+                              if (ctx.mounted) {
                                 Navigator.pop(ctx);
+                              }
+                              if (mounted) {
                                 _fetchDevices();
                               }
                             } else {
@@ -630,7 +634,7 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
           const SizedBox(height: 12),
           Text(
             "Hubungkan mesin laundry konvensional ke platform Nyutji menggunakan modul ESP32/ESP8266. Pemicuan dilakukan melalui sinyal Relay digital pada sirkuit tombol start.",
-            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withOpacity(0.9), height: 1.5),
+            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white.withValues(alpha: 0.9), height: 1.5),
           ),
         ],
       ),
