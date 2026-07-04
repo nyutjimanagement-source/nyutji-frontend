@@ -1823,7 +1823,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     bool isStep5 = step >= 6;
 
     final bool isPremium = _isPremiumOrder(o);
-    final String packingLabel = 'Packing';
+    const String packingLabel = 'Packing';
 
     List<Map<String, dynamic>> steps = noDeliveryStep
         ? [
