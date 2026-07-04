@@ -191,7 +191,7 @@ class FcmService {
   void _playChatBubbleSound() async {
     try {
       final player = AudioPlayer();
-      await player.play(UrlSource('https://assets.mixkit.co/active_storage/sfx/2005/2005-84.wav'));
+      await player.play(AssetSource('sounds/bubble.mp3'));
     } catch (e) {
       debugPrint("Gagal memutar suara bubble chat: $e");
     }
