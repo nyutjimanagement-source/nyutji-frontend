@@ -1134,68 +1134,35 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
         );
       }
 
-      children.add(
-        _buildHorizontalServiceList(
-          items, 
-          category, 
-          isKiloan ? LucideIcons.layers : LucideIcons.shirt, 
-          isKiloan, 
-          actionWidget: actionWidget,
-        )
+      final Widget catCard = _buildCategoryCardWithVerticalItems(
+        items, 
+        category, 
+        isKiloan ? LucideIcons.layers : LucideIcons.shirt, 
+        isKiloan, 
+        actionWidget: actionWidget,
       );
-      
-      if (isKiloan && _orderImage != null) {
-        children.add(
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 20, right: 20),
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.file(_orderImage!, height: 180, width: double.infinity, fit: BoxFit.cover),
-                ),
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(LucideIcons.sparkles, color: Color(0xFFDAC66F), size: 16),
-                        const SizedBox(width: 6),
-                        Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: () => setState(() => _orderImage = null),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                      child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
-        );
+
+      if (catCard is! SizedBox) {
+        children.add(catCard);
       }
     });
 
-    return Column(children: children);
+    if (children.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
   }
 
-  Widget _buildHorizontalServiceList(
+  Widget _buildCategoryCardWithVerticalItems(
     List<dynamic> items, 
     String title, 
     IconData icon, 
@@ -1211,8 +1178,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     if (validItems.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 20),
+      width: 320, // fixed width agar proporsional sejajar kiri-kanan
+      margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1225,6 +1192,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header Category
           Padding(
@@ -1245,23 +1213,60 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               ],
             ),
           ),
-          // Horizontal Scrollable Cards
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-            child: Row(
+          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+          // Vertical List of Items inside this category card!
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: validItems.map((item) {
-                return _buildHorizontalServiceCard(item as Map<String, dynamic>, isKiloan);
+                return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
               }).toList(),
             ),
           ),
+          
+          // Image preview untuk Kiloan
+          if (isKiloan && _orderImage != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.file(_orderImage!, height: 120, width: double.infinity, fit: BoxFit.cover),
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _orderImage = null),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                        child: const Icon(LucideIcons.x, color: Colors.white, size: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildHorizontalServiceCard(Map<String, dynamic> item, bool isKiloan) {
+  Widget _buildVerticalItemRow(Map<String, dynamic> item, bool isKiloan) {
     final double priceReg = double.tryParse(item['price_regular']?.toString() ?? item['price']?.toString() ?? '0') ?? 0;
     final double? pFastRaw = double.tryParse(item['price_fast']?.toString() ?? '');
     final double priceFast = (pFastRaw == null || pFastRaw == 0) ? priceReg : pFastRaw;
@@ -1270,14 +1275,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     String unit = isKiloan ? 'Kg' : 'Pcs';
 
     return Container(
-      width: 280,
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -1314,7 +1312,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           // Price Info
           if (isKiloan) ...[
             Row(
@@ -1359,7 +1357,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
               ],
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           // Slider Counter Hybrid
           _buildHybridCounter(
             itemId: itemId,
@@ -1368,6 +1366,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
             onDecrement: () => _updateItemCount(itemId, -1),
             onSliderChanged: (val) => _setItemCount(itemId, val.toInt()),
           ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFF3F4F6)),
         ],
       ),
     );
