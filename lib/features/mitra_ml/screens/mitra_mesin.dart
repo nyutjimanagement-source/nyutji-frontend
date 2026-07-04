@@ -773,12 +773,12 @@ void loop() {
               color: const Color(0xFF1E1E1E),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: SingleChildScrollView(
+            child: const SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
+              physics: BouncingScrollPhysics(),
               child: Text(
                 arduinoCode,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 10,
                   color: Color(0xFFD4D4D4),
