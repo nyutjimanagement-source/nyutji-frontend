@@ -489,45 +489,87 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
               ),
               const SizedBox(height: 32),
               
-              if (top3.isEmpty)
+              if (validReviews.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Text("Belum ada review.", style: GoogleFonts.montserrat(color: Colors.grey)),
                 )
               else
-                ...top3.map((rv) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey[200]!)
+                SizedBox(
+                  height: 135,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: validReviews.map((rv) {
+                        final DateTime dt = rv['date'] as DateTime;
+                        const List<String> monthNames = [
+                          '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+                        ];
+                        final String dateStr = "${dt.day} ${monthNames[dt.month]}";
+                        
+                        return Container(
+                          width: MediaQuery.of(ctx).size.width * 0.75,
+                          margin: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey[200]!)
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            rv['customerName'],
+                                            style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          "($dateStr)",
+                                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey[500]),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Row(
+                                    children: List.generate(5, (index) {
+                                      return Icon(
+                                        index < rv['rating'] ? Icons.star : Icons.star_border,
+                                        color: index < rv['rating'] ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
+                                        size: 14,
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  physics: const BouncingScrollPhysics(),
+                                  child: Text(
+                                    rv['comment'],
+                                    style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[700], height: 1.5),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(rv['customerName'], style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkText)),
-                            Row(
-                              children: List.generate(5, (index) {
-                                return Icon(
-                                  index < rv['rating'] ? Icons.star : Icons.star_border,
-                                  color: index < rv['rating'] ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
-                                  size: 14,
-                                );
-                              }),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(rv['comment'], style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[700], height: 1.5)),
-                      ],
-                    ),
-                  );
-                }),
+                  ),
+                ),
             ],
           ),
         );
@@ -648,23 +690,54 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text("Laporan Keuangan Eksekutif", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: darkText)),
-          const SizedBox(height: 3),
-          GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 1.1,
+          const SizedBox(height: 10),
+          
+          // Row 1 -> Total Transaksi (1/3) & Nominal Selesai (2/3)
+          Row(
             children: [
-               _buildStatPill("Total Transaksi", isLoading ? "-" : "$totalMutasi", Colors.blue),
-               _buildStatPill("Total Tarikan", isLoading ? "-" : Formatters.currencyIdr(totalTarikan), Colors.red),
-               _buildStatPill("Nominal Selesai", isLoading ? "-" : Formatters.currencyIdr(nominalSelesai), Colors.green),
-               _buildStatPill("Nilai WIP", isLoading ? "-" : "~${Formatters.currencyIdr(wip)}", Colors.orange),
-               _buildStatPill("Total Order", isLoading ? "-" : "$totalOrder", primaryTeal),
-               _buildStatPill("Total Kg", isLoading ? "-" : "${totalKg.toStringAsFixed(1)} Kg", Colors.indigo),
+              Expanded(
+                flex: 1,
+                child: _buildStatPill("Total Transaksi", isLoading ? "-" : "$totalMutasi", Colors.blue),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: _buildStatPill("Nominal Selesai", isLoading ? "-" : Formatters.currencyIdr(nominalSelesai), Colors.green),
+              ),
             ],
-          )
+          ),
+          const SizedBox(height: 10),
+
+          // Row 2 -> Total Order (1/3) & Total Tarikan (2/3)
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: _buildStatPill("Total Order", isLoading ? "-" : "$totalOrder", primaryTeal),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: _buildStatPill("Total Tarikan", isLoading ? "-" : Formatters.currencyIdr(totalTarikan), Colors.red),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Row 3 -> Total Kg (1/3) & Nilai WIP (2/3)
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: _buildStatPill("Total Kg", isLoading ? "-" : "${totalKg.toStringAsFixed(1)} Kg", Colors.indigo),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: _buildStatPill("Nilai WIP", isLoading ? "-" : "~${Formatters.currencyIdr(wip)}", Colors.orange),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -672,7 +745,8 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
 
   Widget _buildStatPill(String title, String val, Color c) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      height: 80,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white, 
         borderRadius: BorderRadius.circular(12), 
@@ -688,7 +762,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
             children: [
               Container(width: 6, height: 6, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
               const SizedBox(width: 6),
-              Flexible(child: Text(title, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w700), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis)),
+              Flexible(child: Text(title, style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w700), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis)),
             ],
           ),
           const Spacer(),
