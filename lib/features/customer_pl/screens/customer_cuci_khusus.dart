@@ -805,7 +805,7 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                                     const Divider(color: Color(0xFFE3DCCF)),
                                     const SizedBox(height: 8),
                                     Text(
-                                      "Daftar Layanan Tersedia:",
+                                      "Daftar Harga Layanan:",
                                       style: GoogleFonts.montserrat(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -817,49 +817,49 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                                       final double sPrice = double.tryParse(service['price_regular']?.toString() ?? service['price']?.toString() ?? '') ?? 0.0;
                                       final bool isServiceSel = _selectedSpecialService?['id'] == service['id'];
                                       
-                                      return InkWell(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedSpecialService = service;
-                                            _specialItemPrice = sPrice;
-                                          });
-                                          _initDeliveryPricing();
-                                        },
-                                        child: Container(
-                                          margin: const EdgeInsets.only(bottom: 6),
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: isServiceSel ? primaryTeal.withValues(alpha: 0.05) : const Color(0xFFF9F9FB),
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(
-                                              color: isServiceSel ? primaryTeal : const Color(0xFFE3DCCF),
-                                              width: isServiceSel ? 1.5 : 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                isServiceSel ? LucideIcons.checkCircle2 : LucideIcons.circle,
-                                                size: 14,
-                                                color: isServiceSel ? primaryTeal : Colors.grey[400],
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  "${service['name']} | Rp ${NumberFormat('#,###', 'id_ID').format(sPrice)}",
-                                                  style: GoogleFonts.montserrat(
-                                                    fontSize: 12,
-                                                    fontWeight: isServiceSel ? FontWeight.bold : FontWeight.w500,
-                                                    color: isServiceSel ? primaryTeal : darkBg,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
+                                       return InkWell(
+                                         onTap: () {
+                                           setState(() {
+                                             _selectedSpecialService = service;
+                                             _specialItemPrice = sPrice;
+                                           });
+                                           _initDeliveryPricing();
+                                         },
+                                         child: Padding(
+                                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                           child: Row(
+                                             children: [
+                                               Expanded(
+                                                 child: Text(
+                                                   "${service['name']}",
+                                                   style: GoogleFonts.montserrat(
+                                                     fontSize: 12,
+                                                     fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                     color: darkBg,
+                                                   ),
+                                                   overflow: TextOverflow.ellipsis,
+                                                 ),
+                                               ),
+                                               const SizedBox(width: 8),
+                                               Text(
+                                                 "Rp ${NumberFormat('#,###', 'id_ID').format(sPrice)}",
+                                                 style: GoogleFonts.montserrat(
+                                                   fontSize: 12,
+                                                   fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                   color: isServiceSel ? primaryTeal : Colors.grey[700],
+                                                 ),
+                                               ),
+                                               const SizedBox(width: 12),
+                                               Icon(
+                                                 isServiceSel ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                                                 size: 16,
+                                                 color: isServiceSel ? primaryTeal : Colors.grey[300],
+                                               ),
+                                             ],
+                                           ),
+                                         ),
+                                       );
+                                    }),
                                   ],
                                 ],
                               ),
