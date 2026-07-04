@@ -1516,16 +1516,14 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
 
               if (filtered.isEmpty) {
                 return Container(
-                  height: 220,
-                  alignment: Alignment.center,
+                  padding: const EdgeInsets.only(top: 24, bottom: 24),
+                  alignment: Alignment.topCenter,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Image.asset(
                         'assets/images/u8dtu3u.webp',
-                        width: 120,
-                        height: 120,
                         fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 12),
