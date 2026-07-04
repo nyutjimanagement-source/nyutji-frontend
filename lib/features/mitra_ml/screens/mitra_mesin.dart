@@ -386,25 +386,25 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
   }
 
   Widget _buildContent() {
-    if (_devices.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(LucideIcons.serverCrash, size: 50, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              "Belum ada mesin yang terdaftar",
-              style: GoogleFonts.montserrat(
-                color: textGrey,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final List<Map<String, dynamic>> displayDevices = _devices.isEmpty 
+        ? [
+            {
+              'device_id': 'ESP32_WASHER_001',
+              'name_machine': 'Mesin Cuci Depan #1 (Dummy)',
+              'model': 'F2515RTGV (Front Load)',
+            },
+            {
+              'device_id': 'ESP32_DRYER_001',
+              'name_machine': 'Mesin Pengering Gas #1 (Dummy)',
+              'model': 'LG Giant C Max (Dryer)',
+            },
+            {
+              'device_id': 'ESP32_WASHER_002',
+              'name_machine': 'Mesin Cuci Top Load #2 (Dummy)',
+              'model': 'T2109VSAB (Top Load)',
+            },
+          ]
+        : _devices;
 
     return RefreshIndicator(
       color: primaryTeal,
@@ -414,11 +414,45 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         physics: const BouncingScrollPhysics(),
-        itemCount: _devices.length,
+        itemCount: displayDevices.length,
         itemBuilder: (context, index) {
-          final device = _devices[index];
+          final device = displayDevices[index];
           final deviceId = device['device_id'];
-          final status = _deviceStatuses[deviceId];
+          
+          LgWasherModel? status = _deviceStatuses[deviceId];
+          if (status == null && _devices.isEmpty) {
+            if (deviceId == 'ESP32_WASHER_001') {
+              status = LgWasherModel(
+                deviceId: deviceId,
+                name: device['name_machine'],
+                model: device['model'],
+                isOn: true,
+                status: 'MENCUCI',
+                remainTime: '0h 32m',
+                maintenance: 'Kondisi Mesin Prima',
+              );
+            } else if (deviceId == 'ESP32_DRYER_001') {
+              status = LgWasherModel(
+                deviceId: deviceId,
+                name: device['name_machine'],
+                model: device['model'],
+                isOn: true,
+                status: 'MENGERINGKAN',
+                remainTime: '0h 15m',
+                maintenance: 'Siklus pembersihan filter udara disarankan',
+              );
+            } else {
+              status = LgWasherModel(
+                deviceId: deviceId,
+                name: device['name_machine'],
+                model: device['model'],
+                isOn: false,
+                status: 'STANDBY',
+                remainTime: '-',
+                maintenance: 'Kondisi Mesin Prima',
+              );
+            }
+          }
 
           return _buildMachineCard(device, status);
         },
