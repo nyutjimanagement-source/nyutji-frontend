@@ -632,53 +632,73 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
         Text("1. Pilih Jenis Pakaian / Bahan Dry Clean:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
-        ..._dryCleanPackages.map((pkg) {
-          bool isSel = _selectedPackage?['id'] == pkg['id'];
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedPackage = pkg;
-                _basePrice = NyutjiParser.toDouble(pkg['base_price']);
-                _selectedDryCleanService = null;
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
-                boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
-                      shape: BoxShape.circle,
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.55,
+          children: _dryCleanPackages.map((pkg) {
+            bool isSel = _selectedPackage?['id'] == pkg['id'];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedPackage = pkg;
+                  _basePrice = NyutjiParser.toDouble(pkg['base_price']);
+                  _selectedDryCleanService = null;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
+                  boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(pkg['icon'], color: isSel ? Colors.white : primaryTeal, size: 18),
                     ),
-                    child: Icon(pkg['icon'], color: isSel ? Colors.white : primaryTeal, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(pkg['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
-                        const SizedBox(height: 2),
-                        Text(pkg['desc'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 4),
-                        Text("Contoh: ${pkg['example']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.bold)),
-                      ],
+                    const SizedBox(height: 10),
+                    Text(
+                      pkg['name'],
+                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              pkg['desc'],
+                              style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600], height: 1.3),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Contoh: ${pkg['example']}",
+                              style: GoogleFonts.montserrat(fontSize: 9.5, color: Colors.grey[400], fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }),
+            );
+          }).toList(),
+        ),
 
         const SizedBox(height: 24),
         Text("2. Tambahan Layanan Perawatan Khusus:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
@@ -782,7 +802,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                   _loadMitrasForDryClean();
                 },
           child: Text(
-            _selectedPackage == null ? "PILIH LAYANAN DRY CLEAN" : "PILIH MITRA LAUNDRY (Rp ${NumberFormat.decimalPattern('id_ID').format(_totalDryCleanPrice)})",
+            _selectedPackage == null ? "PILIH LAYANAN DRY CLEAN" : "PILIH MITRA LAUNDRY",
             style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
