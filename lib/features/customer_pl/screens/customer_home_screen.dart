@@ -903,17 +903,18 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                         ],
                       ),
                       // Gambar karakter — menabrak ke atas divider (di belakang header)
-                      Positioned(
-                        top: -90,
-                        right: 0,
-                        child: IgnorePointer(
-                          child: Image.asset(
-                            'assets/images/546597.webp',
-                            width: 300,
-                            fit: BoxFit.contain,
+                      if (drafts.isEmpty)
+                        Positioned(
+                          top: -95,
+                          right: 0,
+                          child: IgnorePointer(
+                            child: Image.asset(
+                              'assets/images/546597.webp',
+                              width: 310,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
-                      ),
                       // Header — anak TERAKHIR = dilukis paling depan (bring to front)
                       Positioned(
                         top: 0,
