@@ -195,6 +195,35 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
   const endDate = `${month}-${String(lastDay).padStart(2, '0')}`;
   ```
 
+### 4. Penggunaan `mitra_id` sebagai Identitas Layanan Mitra (Tabel `mitra_services`)
+* **Aturan**: Tabel `mitra_services` **dilarang keras** menggunakan kolom `id` (primary key integer auto-increment) sebagai identitas atau referensi layanan. Wajib menggunakan kolom `mitra_id` yang merujuk ke `users.identifier` (format string kustom, contoh: `"ML-PML-001"`).
+* **Alasan**: Kolom `id` pada `mitra_services` adalah primary key internal database yang tidak boleh diekspos ke API maupun digunakan dalam logika bisnis. Penggunaan `id` pada konteks ini menyebabkan bug harga `Rp 0` karena Flutter tidak dapat mencocokkan layanan dengan benar saat membandingkan service yang dipilih.
+* **Implementasi Backend (Sequelize)**:
+  - Saat mengembalikan data layanan mitra, **wajib** menyertakan `mitra_id` pada `attributes`, **bukan** `id`:
+    ```javascript
+    // BENAR:
+    attributes: ['mitra_id', 'name', 'price_regular', 'price_fast', 'unit']
+    // SALAH (dilarang):
+    attributes: ['id', 'name', 'price_regular', 'price_fast', 'unit']
+    ```
+* **Implementasi Frontend (Flutter/Dart)**:
+  - Untuk mengidentifikasi layanan yang dipilih, gunakan kombinasi `mitra_id + name` sebagai kunci unik komposit, bukan `id`:
+    ```dart
+    // BENAR:
+    final bool isServiceSel =
+        _selectedSpecialService?['mitra_id'] == service['mitra_id'] &&
+        _selectedSpecialService?['name'] == service['name'];
+    // SALAH (dilarang):
+    final bool isServiceSel = _selectedSpecialService?['id'] == service['id'];
+    ```
+  - Untuk harga layanan, selalu gunakan `NyutjiParser.toDouble` (bukan `double.tryParse`) dan ambil langsung dari field `price_regular` database **tanpa fallback hardcoded**:
+    ```dart
+    // BENAR (murni dari database):
+    final double sPrice = NyutjiParser.toDouble(service['price_regular'] ?? service['price']);
+    // SALAH (dilarang - menggunakan harga hardcoded sebagai fallback):
+    final double sPrice = priceRaw > 0 ? priceRaw : someHardcodedDefaultPrice;
+    ```
+
 ---
 
 ## IV. Standar Koneksi API & Error Handling
