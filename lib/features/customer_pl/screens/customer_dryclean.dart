@@ -52,6 +52,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
 
   int _currentStep = 1; // 1: Select Package & Treatments, 2: Select Mitra & Details, 3: Confirm & Pay
   Map<String, dynamic>? _selectedPackage;
+  Map<String, dynamic>? _selectedDryCleanService;
 
   // LIVE DATABASE MITRA MATCHING
   List<dynamic> _matchingMitras = [];
@@ -266,6 +267,39 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
     }
   }
 
+  bool _isServiceMatching(String serviceName, String packageId) {
+    final nameLower = serviceName.toLowerCase();
+    if (packageId == 'formal_suits') {
+      return nameLower.contains('jas') || nameLower.contains('tuxedo') || nameLower.contains('blazer') || nameLower.contains('formal');
+    }
+    if (packageId == 'silk_kebaya') {
+      return nameLower.contains('sutra') || nameLower.contains('silk') || nameLower.contains('kebaya') || nameLower.contains('gaun') || nameLower.contains('payet');
+    }
+    if (packageId == 'wool_cashmere') {
+      return nameLower.contains('wool') || nameLower.contains('wol') || nameLower.contains('cashmere') || nameLower.contains('mantel');
+    }
+    if (packageId == 'leather_suede') {
+      return nameLower.contains('kulit') || nameLower.contains('leather') || nameLower.contains('suede') || nameLower.contains('jaket kulit');
+    }
+    return false;
+  }
+
+  List<Map<String, dynamic>> _getMatchingServicesForMitra(Map<String, dynamic> mitra) {
+    final services = mitra['services'] as List?;
+    if (services == null || services.isEmpty) return [];
+    final pkgId = _selectedPackage?['id']?.toString() ?? '';
+    if (pkgId.isEmpty) return [];
+    
+    List<Map<String, dynamic>> results = [];
+    for (var s in services) {
+      final sMap = Map<String, dynamic>.from(s);
+      if (_isServiceMatching(sMap['name']?.toString() ?? '', pkgId)) {
+        results.add(sMap);
+      }
+    }
+    return results;
+  }
+
   Future<void> _initDeliveryPricing() async {
     if (_selectedMitra == null) return;
     setState(() => _isLoadingPrice = true);
@@ -422,7 +456,9 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
       final items = [
         {
           'category': 'Satuan',
-          'item_name': "${_selectedPackage!['name']}$noteTreatment",
+          'item_name': _selectedDryCleanService != null 
+              ? "${_selectedDryCleanService!['name']}$noteTreatment" 
+              : "${_selectedPackage!['name']}$noteTreatment",
           'qty': 1,
           'unit': 'Pcs',
           'price_per_unit': _totalDryCleanPrice.toInt(),
@@ -603,6 +639,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
               setState(() {
                 _selectedPackage = pkg;
                 _basePrice = NyutjiParser.toDouble(pkg['base_price']);
+                _selectedDryCleanService = null;
               });
             },
             child: Container(
@@ -636,14 +673,6 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                         Text("Contoh: ${pkg['example']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.bold)),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(pkg['base_price'])}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
-                      Text("Harga Dasar", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
-                    ],
                   ),
                 ],
               ),
@@ -815,7 +844,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
+                    Text(_selectedDryCleanService != null ? _selectedDryCleanService!['name'] : _selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
                     Text("Total Estimasi: Rp ${NumberFormat.decimalPattern('id_ID').format(_totalDryCleanPrice)}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                   ],
                 ),
@@ -864,9 +893,20 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                         const SizedBox(height: 12),
                         ..._matchingMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
+                          final matchingServices = _getMatchingServicesForMitra(m);
+
                           return GestureDetector(
                             onTap: () {
-                              setState(() => _selectedMitra = m);
+                              setState(() {
+                                _selectedMitra = m;
+                                if (matchingServices.isNotEmpty) {
+                                  _selectedDryCleanService = matchingServices.first;
+                                  _basePrice = NyutjiParser.toDouble(_selectedDryCleanService!['price_regular'] ?? _selectedDryCleanService!['price']);
+                                } else {
+                                  _selectedDryCleanService = null;
+                                  _basePrice = 0.0;
+                                }
+                              });
                               _initDeliveryPricing();
                             },
                             child: Container(
@@ -878,40 +918,108 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                                 border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
                                 boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.01), blurRadius: 6)],
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    width: 44, height: 44,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
-                                    ),
-                                    child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
-                                        const SizedBox(height: 2),
-                                        Row(
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 44, height: 44,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius: BorderRadius.circular(10),
+                                          image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
+                                        ),
+                                        child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(LucideIcons.star, color: Colors.amber, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                                            const SizedBox(width: 8),
-                                            const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                            Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
+                                            const SizedBox(height: 2),
+                                            Row(
+                                              children: [
+                                                const Icon(LucideIcons.star, color: Colors.amber, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                                const SizedBox(width: 8),
+                                                const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                              ],
+                                            ),
                                           ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      if (isSel)
+                                        Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                    ],
                                   ),
-                                  if (isSel)
-                                    Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                  if (isSel && matchingServices.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    const Divider(color: Color(0xFFE3DCCF)),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Daftar Harga Layanan:",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...matchingServices.map((service) {
+                                      final double sPrice = NyutjiParser.toDouble(service['price_regular'] ?? service['price']);
+                                      final bool isServiceSel = 
+                                          _selectedDryCleanService?['mitra_id'] == service['mitra_id'] &&
+                                          _selectedDryCleanService?['name'] == service['name'];
+                                      
+                                      return InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedDryCleanService = service;
+                                            _basePrice = sPrice;
+                                          });
+                                          _initDeliveryPricing();
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  "${service['name']}",
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 12,
+                                                    fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                    color: darkBg,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                "Rp ${NumberFormat('#,###', 'id_ID').format(sPrice)}",
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 12,
+                                                  fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                  color: isServiceSel ? primaryTeal : Colors.grey[700],
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Icon(
+                                                isServiceSel ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                                                size: 16,
+                                                color: isServiceSel ? primaryTeal : Colors.grey[300],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
                                 ],
                               ),
                             ),
@@ -1197,7 +1305,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
+              Text(_selectedDryCleanService != null ? _selectedDryCleanService!['name'] : _selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
               Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),
               const SizedBox(height: 12),
               _invoiceRow("Kecepatan Layanan", _serviceSpeed == 'fast' ? "Fast Track (Same Day)" : "Regular (2-3 Hari)"),
