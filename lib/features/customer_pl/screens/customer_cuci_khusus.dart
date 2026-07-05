@@ -743,12 +743,10 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                                 
                                 if (matchingServices.isNotEmpty) {
                                   _selectedSpecialService = matchingServices.first;
-                                  final double sPriceRaw = NyutjiParser.toDouble(_selectedSpecialService!['price_regular'] ?? _selectedSpecialService!['price']);
-                                  final double defaultPrice = NyutjiParser.toDouble(_selectedSpecialItem!['default_price'], defaultValue: 50000.0);
-                                  _specialItemPrice = sPriceRaw > 0 ? sPriceRaw : defaultPrice;
+                                  _specialItemPrice = NyutjiParser.toDouble(_selectedSpecialService!['price_regular'] ?? _selectedSpecialService!['price']);
                                 } else {
                                   _selectedSpecialService = null;
-                                  _specialItemPrice = NyutjiParser.toDouble(_selectedSpecialItem!['default_price'], defaultValue: 50000.0);
+                                  _specialItemPrice = 0.0;
                                 }
                               });
                               _initDeliveryPricing();
@@ -815,10 +813,10 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                                     ),
                                     const SizedBox(height: 8),
                                     ...matchingServices.map((service) {
-                                      final double sPriceRaw = NyutjiParser.toDouble(service['price_regular'] ?? service['price']);
-                                      final double defaultPrice = NyutjiParser.toDouble(_selectedSpecialItem?['default_price'], defaultValue: 0.0);
-                                      final double sPrice = sPriceRaw > 0 ? sPriceRaw : defaultPrice;
-                                      final bool isServiceSel = _selectedSpecialService?['id'] == service['id'];
+                                      final double sPrice = NyutjiParser.toDouble(service['price_regular'] ?? service['price']);
+                                      final bool isServiceSel = 
+                                          _selectedSpecialService?['mitra_id'] == service['mitra_id'] &&
+                                          _selectedSpecialService?['name'] == service['name'];
                                       
                                        return InkWell(
                                          onTap: () {
