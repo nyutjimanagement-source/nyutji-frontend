@@ -3155,7 +3155,13 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                   statusEmojis[s] ?? '✨',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: isPast ? Colors.grey[400] : null,
+                                    color: isCurrent
+                                        ? Colors.white
+                                        : (isPast
+                                            ? Colors.grey[400]
+                                            : (isAllowed
+                                                ? primaryTeal
+                                                : Colors.grey[400])),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
