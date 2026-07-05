@@ -2147,6 +2147,8 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
   void _showStatusUpdater(String orderId, String currentStatus,
       String deliveryType, dynamic o) async {
     final String deliveryUp = deliveryType.toUpperCase();
+    // Normalisasi ke UPPERCASE agar indexOf pada stages list tidak gagal
+    final String statusUp = currentStatus.toUpperCase();
     final bool isPickup = deliveryUp == 'PICKUP';
     final bool hasDelivery = deliveryUp == 'PICKUP' || deliveryUp == 'SELF_DROP';
 
@@ -2188,7 +2190,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => _StatusUpdaterSheet(
         orderId: orderId,
-        currentStatus: currentStatus,
+        currentStatus: statusUp,
         stages: stages,
         hasWeighingProofByML: hasWeighingProofByML,
       ),
