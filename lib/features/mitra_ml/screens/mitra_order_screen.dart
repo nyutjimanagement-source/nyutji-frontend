@@ -2905,14 +2905,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
       // SEARCHING, COURIER_ACCEPTED: belum ada di stages list, artinya
       // belum ada step selesai → activeIndex tetap -1 (chip WAITING_DROPOFF bisa diklik)
     } else {
-      // Jika statusnya adalah PICKING_UP, tetapi ini adalah order premium (tidak ada WEIGHING),
-      // kita ingin agar Mitra tidak bisa langsung melompat ke WASH_START sebelum kurir menyelesaikan pickup (menjadi WEIGHING).
-      // Oleh karena itu, jika currentStatus adalah PICKING_UP dan stages tidak memiliki WEIGHING:
-      if (widget.currentStatus == 'PICKING_UP' && !widget.stages.contains('WEIGHING')) {
-        // Anggap activeIndex adalah WAITING_DROPOFF (index 0) agar yang "allowed" berikutnya adalah PICKING_UP,
-        // bukan WASH_START.
-        activeIndex = widget.stages.indexOf('WAITING_DROPOFF');
-      }
+      // activeIndex sudah tepat dari indexOf di atas → tidak perlu override
     }
     if (widget.currentStatus == 'WEIGHING' && !widget.hasWeighingProofByML) {
       activeIndex = widget.stages.indexOf('WEIGHING') - 1;
