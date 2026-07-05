@@ -743,7 +743,8 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                                 
                                 if (matchingServices.isNotEmpty) {
                                   _selectedSpecialService = matchingServices.first;
-                                  final double sPrice = double.tryParse(_selectedSpecialService!['price_regular']?.toString() ?? _selectedSpecialService!['price']?.toString() ?? '') ?? 0.0;
+                                  final double sPriceRaw = double.tryParse(_selectedSpecialService!['price_regular']?.toString() ?? _selectedSpecialService!['price']?.toString() ?? '') ?? 0.0;
+                                  final double sPrice = sPriceRaw > 0 ? sPriceRaw : (_selectedSpecialItem!['default_price']?.toDouble() ?? 50000.0);
                                   _specialItemPrice = sPrice;
                                 } else {
                                   _selectedSpecialService = null;
@@ -814,7 +815,8 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
                                     ),
                                     const SizedBox(height: 8),
                                     ...matchingServices.map((service) {
-                                      final double sPrice = double.tryParse(service['price_regular']?.toString() ?? service['price']?.toString() ?? '') ?? 0.0;
+                                      final double sPriceRaw = double.tryParse(service['price_regular']?.toString() ?? service['price']?.toString() ?? '') ?? 0.0;
+                                      final double sPrice = sPriceRaw > 0 ? sPriceRaw : (_selectedSpecialItem?['default_price']?.toDouble() ?? 0.0);
                                       final bool isServiceSel = _selectedSpecialService?['id'] == service['id'];
                                       
                                        return InkWell(

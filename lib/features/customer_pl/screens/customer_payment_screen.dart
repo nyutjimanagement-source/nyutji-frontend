@@ -550,7 +550,7 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
           
           if (widget.isPickup || (!widget.isPickup && widget.dropMethod == 'courier')) ...[
             // Section b: Layanan Kurir
-            _invoiceSectionHeader(LucideIcons.truck, "Layanan Kurir - Menunggu Penugasan Kurir"),
+            _invoiceSectionHeader(LucideIcons.truck, "Layanan Kurir - Penugasan Kurir"),
             const SizedBox(height: 12),
             _invoiceDetailRow("Layanan Kurir", courierServiceName),
             _invoiceDetailRow("Jarak Antar", "${_calculatedDistance.toStringAsFixed(1)} Km"),
