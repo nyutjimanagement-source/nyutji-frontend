@@ -608,7 +608,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
             onTap: () {
               setState(() {
                 _selectedPackage = pkg;
-                _basePrice = pkg['base_price'].toDouble();
+                _basePrice = NyutjiParser.toDouble(pkg['base_price']);
               });
             },
             child: Container(

@@ -602,7 +602,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
             onTap: () {
               setState(() {
                 _selectedPackage = pkg;
-                _basePrice = pkg['base_price'].toDouble();
+                _basePrice = NyutjiParser.toDouble(pkg['base_price']);
               });
             },
             child: Container(
