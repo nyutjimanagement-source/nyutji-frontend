@@ -1074,42 +1074,33 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   }
 
   Widget _buildDenseItemList(Map<String, dynamic> cT) {
-    if (_selectedMitra == null) {
+    final allItems = (_selectedMitra?['items'] as List<dynamic>?) ?? [];
+    final bool isLoaded = _selectedMitra?['items_loaded'] == true;
+
+    if (_selectedMitra == null || (isLoaded && allItems.isEmpty)) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
-          child: Column(
-            children: [
-              Icon(LucideIcons.store, size: 40, color: Colors.grey[300]),
-              const SizedBox(height: 12),
-              Text("Silakan Pilih Mitra Laundry Terlebih Dahulu", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500], fontWeight: FontWeight.bold)),
-            ],
+          child: Image.asset(
+            'assets/images/2c0e56c4.webp',
+            width: 200,
+            fit: BoxFit.contain,
           ),
         ),
       );
     }
 
-    final allItems = (_selectedMitra?['items'] as List<dynamic>?) ?? [];
-    final bool isLoaded = _selectedMitra?['items_loaded'] == true;
-
-    if (allItems.isEmpty) {
+    if (!isLoaded) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
         child: Column(
-          children: [
-            if (!isLoaded) ...[
-              const ShimmerLoading(height: 14, width: 150, borderRadius: 4),
-              const SizedBox(height: 8),
-              const ShimmerLoading(height: 14, width: 100, borderRadius: 4),
-            ] else ...[
-              Icon(LucideIcons.fileX, size: 30, color: Colors.grey[400]),
-              const SizedBox(height: 12),
-              Text("Daftar Harga Masih Kosong", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.bold)),
-            ]
+          children: const [
+            ShimmerLoading(height: 14, width: 150, borderRadius: 4),
+            SizedBox(height: 8),
+            ShimmerLoading(height: 14, width: 100, borderRadius: 4),
           ],
         ),
       );
