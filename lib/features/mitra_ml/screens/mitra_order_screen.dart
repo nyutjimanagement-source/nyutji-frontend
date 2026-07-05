@@ -2909,7 +2909,12 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
     } else {
       // activeIndex sudah tepat dari indexOf di atas → tidak perlu override
     }
-    if (widget.currentStatus == 'WEIGHING' && !widget.hasWeighingProofByML) {
+    // Guard: hanya terapkan logika "tunda ke sebelum WEIGHING" jika WEIGHING
+    // memang ada di stages (= order reguler). Untuk premium, WEIGHING tidak ada
+    // sehingga stages.indexOf('WEIGHING') = -1 → activeIndex = -2 (bug!).
+    if (widget.currentStatus == 'WEIGHING' &&
+        !widget.hasWeighingProofByML &&
+        widget.stages.contains('WEIGHING')) {
       activeIndex = widget.stages.indexOf('WEIGHING') - 1;
     }
 
@@ -3130,15 +3135,19 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                               color: isCurrent
                                   ? primaryTeal
                                   : (isPast
-                                      ? Colors.grey[300]
-                                      : Colors.grey[100]),
+                                      ? Colors.grey[200]
+                                      : (isAllowed
+                                          ? primaryTeal.withValues(alpha: 0.06)
+                                          : Colors.grey[100])),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                   color: isCurrent
                                       ? primaryTeal
                                       : (isPast
                                           ? Colors.grey[400]!
-                                          : Colors.grey[300]!)),
+                                          : (isAllowed
+                                              ? primaryTeal
+                                              : Colors.grey[300]!))),
                             ),
                             child: Row(
                               children: [
@@ -3146,7 +3155,7 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                   statusEmojis[s] ?? '✨',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: isPast ? Colors.grey[500] : null,
+                                    color: isPast ? Colors.grey[400] : null,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -3159,8 +3168,10 @@ class _StatusUpdaterSheetState extends ConsumerState<_StatusUpdaterSheet> {
                                         color: isCurrent
                                             ? Colors.white
                                             : (isPast
-                                                ? Colors.grey[500]
-                                                : darkText)),
+                                                ? Colors.grey[400]
+                                                : (isAllowed
+                                                    ? primaryTeal
+                                                    : Colors.grey[400]))),
                                     textAlign: TextAlign.left,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
