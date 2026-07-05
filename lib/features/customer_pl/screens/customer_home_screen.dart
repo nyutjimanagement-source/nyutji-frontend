@@ -907,47 +907,63 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                       ],
                     ),
                   ),
-                  const Divider(height: 1),
+                   // ── Divider + gambar karakter yang "menabrak" divider ──
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Divider
+                      const Divider(height: 1),
+                      // Gambar karakter melayang: Transform.translate ke atas
+                      // sehingga menabrak divider secara visual
+                      Positioned(
+                        top: -130,
+                        right: 0,
+                        child: IgnorePointer(
+                          child: Image.asset(
+                            'assets/images/546597.webp',
+                            width: 200,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Expanded(
                     child: drafts.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'assets/images/546597.webp',
-                                  width: 200,
-                                  fit: BoxFit.contain,
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  "Belum ada order Nyutji.",
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 32),
+                              Text(
+                                "Belum ada order Nyutji.",
+                                style: GoogleFonts.montserrat(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(ctx);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            const CustomerOrderScreen()),
+                                  );
+                                },
+                                child: Text(
+                                  "Pesan Sekarang",
                                   style: GoogleFonts.montserrat(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(ctx);
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              const CustomerOrderScreen()),
-                                    );
-                                  },
-                                  child: Text(
-                                    "Pesan Sekarang",
-                                    style: GoogleFonts.montserrat(
-                                      color: primaryTeal,
-                                      fontWeight: FontWeight.bold,
-                                      decoration: TextDecoration.underline,
-                                    ),
+                                    color: const Color(0xFF403600),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: const Color(0xFF403600),
+                                    decorationThickness: 2,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
