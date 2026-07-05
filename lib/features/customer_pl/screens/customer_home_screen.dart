@@ -895,21 +895,21 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     clipBehavior: Clip.none,
                     children: [
                       // Kolom pemberi ukuran: ruang header + divider
-                      Column(
+                      const Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           SizedBox(height: 64), // ≈ tinggi header
                           Divider(height: 1),
                         ],
                       ),
                       // Gambar karakter — menabrak ke atas divider (di belakang header)
                       Positioned(
-                        top: -106,
+                        top: -90,
                         right: 0,
                         child: IgnorePointer(
                           child: Image.asset(
                             'assets/images/546597.webp',
-                            width: 260,
+                            width: 300,
                             fit: BoxFit.contain,
                           ),
                         ),
