@@ -890,39 +890,52 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        const Icon(LucideIcons.shoppingBag, color: primaryTeal),
-                        const SizedBox(width: 12),
-                        Text(
-                          "Draft Pesanan",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF131109),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                   // ── Divider + gambar karakter yang "menabrak" divider ──
+                  // ── Stack tunggal: gambar di belakang, header di depan ──
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Divider
-                      const Divider(height: 1),
-                      // Gambar karakter melayang: Transform.translate ke atas
-                      // sehingga menabrak divider secara visual
+                      // Kolom pemberi ukuran: ruang header + divider
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          SizedBox(height: 64), // ≈ tinggi header
+                          Divider(height: 1),
+                        ],
+                      ),
+                      // Gambar karakter — menabrak ke atas divider (di belakang header)
                       Positioned(
-                        top: -170,
+                        top: -106,
                         right: 0,
                         child: IgnorePointer(
                           child: Image.asset(
                             'assets/images/546597.webp',
                             width: 260,
                             fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      // Header — anak TERAKHIR = dilukis paling depan (bring to front)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 20),
+                          child: Row(
+                            children: [
+                              const Icon(LucideIcons.shoppingBag,
+                                  color: primaryTeal),
+                              const SizedBox(width: 12),
+                              Text(
+                                "Draft Pesanan",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF131109),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
