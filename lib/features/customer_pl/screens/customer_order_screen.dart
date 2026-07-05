@@ -1080,12 +1080,15 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     if (_selectedMitra == null || (isLoaded && allItems.isEmpty)) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
         child: Center(
-          child: Image.asset(
-            'assets/images/2c0e56c4.webp',
-            width: 200,
-            fit: BoxFit.contain,
+          child: Transform.translate(
+            offset: const Offset(0, -20),
+            child: Image.asset(
+              'assets/images/2c0e56c4.webp',
+              width: 350,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
