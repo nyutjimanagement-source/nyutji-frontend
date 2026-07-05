@@ -40,6 +40,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   
   // STATE UNTUK PESANAN (Item ID/Identifier -> Count)
   final Map<dynamic, int> _itemCounts = {};
+  final Set<String> _expandedItems = {}; // Item yang di-expand
   File? _orderImage;
   
   // STATE UNTUK MAPS & LOKASI
@@ -1185,13 +1186,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
       return const SizedBox.shrink();
     }
 
-    return SizedBox(
-      height: 420, // uniform height for PageView Category cards
-      child: PageView(
-        controller: PageController(viewportFraction: 1.0),
-        physics: const BouncingScrollPhysics(),
-        children: children,
-      ),
+    return Column(
+      children: children,
     );
   }
 
@@ -1211,7 +1207,7 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     if (validItems.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      margin: const EdgeInsets.only(right: 16),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1246,54 +1242,51 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
           ),
           const Divider(height: 1, color: Color(0xFFE5E7EB)),
           // Vertical List of Items inside this category card!
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  ...validItems.map((item) {
-                    return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
-                  }),
-                  
-                  // Image preview untuk Kiloan
-                  if (isKiloan && _orderImage != null) ...[
-                    const SizedBox(height: 16),
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.file(_orderImage!, height: 120, width: double.infinity, fit: BoxFit.cover),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                ...validItems.map((item) {
+                  return _buildVerticalItemRow(item as Map<String, dynamic>, isKiloan);
+                }),
+                
+                // Image preview untuk Kiloan
+                if (isKiloan && _orderImage != null) ...[
+                  const SizedBox(height: 16),
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.file(_orderImage!, height: 120, width: double.infinity, fit: BoxFit.cover),
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                         ),
-                        Positioned(
-                          bottom: 8,
-                          left: 8,
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _orderImage = null),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text("Estimasi Berat 5Kg", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                            child: const Icon(LucideIcons.x, color: Colors.white, size: 12),
                           ),
                         ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: GestureDetector(
-                            onTap: () => setState(() => _orderImage = null),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                              child: const Icon(LucideIcons.x, color: Colors.white, size: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
         ],
@@ -1310,6 +1303,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     String unit = isKiloan ? 'Kg' : 'Pcs';
     final int maxQty = isKiloan ? 20 : 10;
 
+    bool isExpanded = _expandedItems.contains(itemId) || count > 0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -1317,91 +1312,116 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Row for Name & Badge count
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  item['name'] ?? '',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+          GestureDetector(
+            onTap: () {
+              // Jika count > 0, tidak bisa dicollapse
+              if (count == 0) {
+                setState(() {
+                  if (_expandedItems.contains(itemId)) {
+                    _expandedItems.remove(itemId);
+                  } else {
+                    _expandedItems.add(itemId);
+                  }
+                });
+              }
+            },
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    item['name'] ?? '',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: count > 0 ? primaryTeal.withValues(alpha: 0.1) : const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  "$count $unit",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: count > 0 ? primaryTeal : Colors.grey[700],
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: count > 0 ? primaryTeal.withValues(alpha: 0.1) : const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    "$count $unit",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: count > 0 ? primaryTeal : Colors.grey[700],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          // Price Info
-          if (isKiloan) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            clipBehavior: Clip.antiAlias,
+            child: !isExpanded ? const SizedBox.shrink() : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Reguler:",
-                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-                Text(
-                  "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg",
-                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal),
+                const SizedBox(height: 12),
+                // Price Info
+                if (isKiloan) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Reguler:",
+                        style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Kg",
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Fast Track:",
+                        style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        "Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg",
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Harga:",
+                        style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Pcs",
+                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 10),
+                // Slider Counter Hybrid
+                _buildHybridCounter(
+                  itemId: itemId,
+                  count: count,
+                  maxQty: maxQty,
+                  onIncrement: () => _updateItemCount(itemId, 1, isKiloan: isKiloan),
+                  onDecrement: () => _updateItemCount(itemId, -1, isKiloan: isKiloan),
+                  onSliderChanged: (val) => _setItemCount(itemId, val.toInt(), isKiloan: isKiloan),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Fast Track:",
-                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-                Text(
-                  "Rp ${NumberFormat.decimalPattern('id_ID').format(priceFast)} /Kg",
-                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
-                ),
-              ],
-            ),
-          ] else ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Harga:",
-                  style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-                Text(
-                  "Rp ${NumberFormat.decimalPattern('id_ID').format(priceReg)} /Pcs",
-                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal),
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 10),
-          // Slider Counter Hybrid
-          _buildHybridCounter(
-            itemId: itemId,
-            count: count,
-            maxQty: maxQty,
-            onIncrement: () => _updateItemCount(itemId, 1, isKiloan: isKiloan),
-            onDecrement: () => _updateItemCount(itemId, -1, isKiloan: isKiloan),
-            onSliderChanged: (val) => _setItemCount(itemId, val.toInt(), isKiloan: isKiloan),
           ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF3F4F6)),
