@@ -916,12 +916,12 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                       // Gambar karakter melayang: Transform.translate ke atas
                       // sehingga menabrak divider secara visual
                       Positioned(
-                        top: -130,
+                        top: -170,
                         right: 0,
                         child: IgnorePointer(
                           child: Image.asset(
                             'assets/images/546597.webp',
-                            width: 200,
+                            width: 260,
                             fit: BoxFit.contain,
                           ),
                         ),
