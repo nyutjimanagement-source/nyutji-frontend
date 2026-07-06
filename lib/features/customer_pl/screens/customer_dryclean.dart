@@ -103,7 +103,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
       'name': 'Jas & Tuxedo (Pakaian Formal)',
       'desc': 'Jas, blazer, furing asetat, celana formal, gaun kerja. Dry clean menjaga interlining dada & pundak tetap tegap gagah.',
       'icon': LucideIcons.userCheck,
-      'base_price': 35000,
+    //  'base_price': 35000,
       'example': 'Jas Pria, Tuxedo Pernikahan, Blazer Kantoran, Furing Jas'
     },
     {
@@ -111,7 +111,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
       'name': 'Sutra, Kebaya & Gaun Payet',
       'desc': 'Gaun malam, kebaya brokat berpayet rumit, sutra murni. Menggunakan solvent lembut menjaga kilau dan kekokohan payet.',
       'icon': LucideIcons.sparkles,
-      'base_price': 45000,
+    //  'base_price': 45000,
       'example': 'Kebaya Wisuda/Pengantin, Gaun Malam Sutra, Selendang Sutra'
     },
     {
@@ -119,7 +119,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
       'name': 'Wol & Cashmere Premium',
       'desc': 'Mantel wol, sweater rajut cashmere premium. Mencegah penyusutan benang (felting) serta menjaga tekstur bulu halus.',
       'icon': LucideIcons.heart,
-      'base_price': 40000,
+    //  'base_price': 40000,
       'example': 'Wool Winter Coat, Cashmere Cardigan, Syal Wol'
     },
     {
@@ -127,7 +127,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
       'name': 'Kulit Asli (Leather) & Suede',
       'desc': 'Jaket kulit, mantel suede asli. Pelarut bebas air menjaga minyak alami kulit agar tidak retak, kaku, ataupun luntur.',
       'icon': LucideIcons.shield,
-      'base_price': 65000,
+    //  'base_price': 65000,
       'example': 'Jaket Kulit Motor, Blazer Suede, Rompi Kulit'
     },
   ];
@@ -297,6 +297,27 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
         results.add(sMap);
       }
     }
+    
+    // FALLBACK: Jika tidak ada service yang cocok dengan keyword spesifik (misal nama service Mitra cuma "Dry Clean Satuan"),
+    // Tampilkan semua service yang mengandung kata 'dry' atau 'satuan'
+    if (results.isEmpty) {
+      for (var s in services) {
+        final sMap = Map<String, dynamic>.from(s);
+        final nameLower = (sMap['name'] ?? '').toString().toLowerCase();
+        bool isExclude = nameLower.contains('sepatu') || nameLower.contains('tas') || nameLower.contains('karpet') || nameLower.contains('helm') || nameLower.contains('kiloan') || nameLower.contains('stroller');
+        if (!isExclude && (nameLower.contains('dry') || nameLower.contains('satuan') || nameLower.contains('jas') || nameLower.contains('gaun'))) {
+          results.add(sMap);
+        }
+      }
+    }
+    
+    // FALLBACK 2: Jika masih kosong, tampilkan saja semua layanannya agar customer tetap bisa memilih harga (mencegah Rp 0)
+    if (results.isEmpty) {
+      for (var s in services) {
+        results.add(Map<String, dynamic>.from(s));
+      }
+    }
+    
     return results;
   }
 
@@ -638,7 +659,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.55,
+          childAspectRatio: 0.65,
           children: _dryCleanPackages.map((pkg) {
             bool isSel = _selectedPackage?['id'] == pkg['id'];
             return GestureDetector(
@@ -682,12 +703,12 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                           children: [
                             Text(
                               pkg['desc'],
-                              style: GoogleFonts.montserrat(fontSize: 10.5, color: Colors.grey[600], height: 1.3),
+                              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.3),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               "Contoh: ${pkg['example']}",
-                              style: GoogleFonts.montserrat(fontSize: 9.5, color: Colors.grey[400], fontWeight: FontWeight.bold),
+                              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),

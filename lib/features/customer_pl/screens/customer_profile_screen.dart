@@ -372,6 +372,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           LucideIcons.mapPin,
           currentT['address'],
           showRedDot: !hasAddress,
+          hideDivider: _isAddressExpanded,
           onTap: () => setState(() => _isAddressExpanded = !_isAddressExpanded),
           trailing: Icon(
               _isAddressExpanded
@@ -516,6 +517,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           LucideIcons.settings,
           currentT['settings'],
           showRedDot: !hasSettings,
+          hideDivider: _isSettingsExpanded,
           onTap: () =>
               setState(() => _isSettingsExpanded = !_isSettingsExpanded),
           trailing: Icon(
@@ -632,14 +634,16 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       {bool isDanger = false,
       VoidCallback? onTap,
       Widget? trailing,
-      bool showRedDot = false}) {
+      bool showRedDot = false,
+      bool hideDivider = false}) {
     return InkWell(
       onTap: onTap ?? () {},
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-            border:
-                Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1))),
+            border: hideDivider
+                ? null
+                : Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1))),
         child: Row(
           children: [
             Container(

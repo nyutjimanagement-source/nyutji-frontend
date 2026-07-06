@@ -52,6 +52,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
 
   int _currentStep = 1; // 1: Select Package & Treatments, 2: Select Mitra & Details, 3: Confirm & Pay
   Map<String, dynamic>? _selectedPackage;
+  Map<String, dynamic>? _selectedBabyService;
 
   // LIVE DATABASE MITRA MATCHING
   List<dynamic> _matchingMitras = [];
@@ -102,7 +103,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
       'name': 'Paket Katun Lembut (Pakaian Harian)',
       'desc': 'Baju tidur, gurita, kaos kaki/tangan, bib/celemek, jumper harian berbahan katun lembut harian.',
       'icon': LucideIcons.heart,
-      'base_price': 12000,
+    //  'base_price': 12000,
       'example': 'Libby, Velvet Junior, Carter\'s, Miyo'
     },
     {
@@ -110,7 +111,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
       'name': 'Steril Newborn (0-3 Bulan & Baju Baru)',
       'desc': 'Pakaian bayi baru lahir / baju baru dibeli dari toko. Proses pembilasan ekstra total membuang sisa formalin/zat kimia pabrik.',
       'icon': LucideIcons.shieldAlert,
-      'base_price': 18000,
+    //  'base_price': 18000,
       'example': 'Gurita Newborn, Bedong Baru, Topi & Sarung Tangan'
     },
     {
@@ -118,7 +119,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
       'name': 'Bedding & Bantal Bayi Premium',
       'desc': 'Selimut tebal bayi, bedcover bayi, bantal menyusui (nursing pillow), sleeping bag, & pelindung bumper kasur.',
       'icon': LucideIcons.bed,
-      'base_price': 25000,
+    //  'base_price': 25000,
       'example': 'Bedcover Bayi Jumbo, Bumper Box, Nursing Pillow'
     },
     {
@@ -126,7 +127,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
       'name': 'Clodi & Handuk Premium (Menjaga Serap)',
       'desc': 'Popok kain (clodi), insert clodi, handuk microfiber. Dicuci manual lembut menjaga serat daya serap kain tanpa lilin softener.',
       'icon': LucideIcons.sparkles,
-      'base_price': 15000,
+    //  'base_price': 15000,
       'example': 'Clodi Bamboo, Insert Microfiber, Handuk Mandi Bayi'
     },
   ];
@@ -200,6 +201,69 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
       }
     });
     return total;
+  }
+
+  
+  bool _isServiceMatching(String serviceName, String packageId) {
+    final nameLower = serviceName.toLowerCase();
+    if (packageId == 'katun_lembut') {
+      return nameLower.contains('katun') || nameLower.contains('harian') || nameLower.contains('lembut');
+    }
+    if (packageId == 'newborn_steril') {
+      return nameLower.contains('newborn') || nameLower.contains('steril') || nameLower.contains('baru');
+    }
+    if (packageId == 'bedding_bantal') {
+      return nameLower.contains('bedding') || nameLower.contains('bantal') || nameLower.contains('selimut');
+    }
+    if (packageId == 'clodi_handuk') {
+      return nameLower.contains('clodi') || nameLower.contains('handuk');
+    }
+    return false;
+  }
+
+  List<Map<String, dynamic>> _getMatchingServicesForMitra(Map<String, dynamic> mitra) {
+    final services = mitra['services'] as List?;
+    if (services == null || services.isEmpty) return [];
+    final pkgId = _selectedPackage?['id']?.toString() ?? '';
+    if (pkgId.isEmpty) return [];
+    
+    List<Map<String, dynamic>> results = [];
+    for (var s in services) {
+      final sMap = Map<String, dynamic>.from(s);
+      if (_isServiceMatching(sMap['name']?.toString() ?? '', pkgId)) {
+        results.add(sMap);
+      }
+    }
+    
+    if (results.isEmpty) {
+      for (var s in services) {
+        final sMap = Map<String, dynamic>.from(s);
+        final nameLower = (sMap['name'] ?? '').toString().toLowerCase();
+        bool isExclude = nameLower.contains('stroller') || nameLower.contains('car seat') || nameLower.contains('sepatu') || nameLower.contains('tas') || nameLower.contains('box bayi');
+        if (!isExclude && (nameLower.contains('bayi') || nameLower.contains('baby'))) {
+          results.add(sMap);
+        }
+      }
+    }
+    
+    if (results.isEmpty) {
+      for (var s in services) {
+        final sMap = Map<String, dynamic>.from(s);
+        final nameLower = (sMap['name'] ?? '').toString().toLowerCase();
+        bool isExclude = nameLower.contains('stroller') || nameLower.contains('car seat') || nameLower.contains('sepatu') || nameLower.contains('tas') || nameLower.contains('karpet') || nameLower.contains('helm');
+        if (!isExclude && (nameLower.contains('baju') || nameLower.contains('pakaian') || nameLower.contains('satuan'))) {
+          results.add(sMap);
+        }
+      }
+    }
+    
+    if (results.isEmpty) {
+      for (var s in services) {
+        results.add(Map<String, dynamic>.from(s));
+      }
+    }
+    
+    return results;
   }
 
   Future<void> _loadMitrasForBabyCare() async {
@@ -602,60 +666,74 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
         Text("1. Pilih Jenis Layanan / Paket Pakaian:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
-        ..._babyPackages.map((pkg) {
-          bool isSel = _selectedPackage?['id'] == pkg['id'];
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedPackage = pkg;
-                _basePrice = NyutjiParser.toDouble(pkg['base_price']);
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
-                boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
-                      shape: BoxShape.circle,
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.65,
+          children: _babyPackages.map((pkg) {
+            bool isSel = _selectedPackage?['id'] == pkg['id'];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedPackage = pkg;
+                  _basePrice = NyutjiParser.toDouble(pkg['base_price']);
+                  _selectedBabyService = null;
+                  _selectedMitra = null;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
+                  boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(pkg['icon'], color: isSel ? Colors.white : primaryTeal, size: 18),
                     ),
-                    child: Icon(pkg['icon'], color: isSel ? Colors.white : primaryTeal, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(pkg['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
-                        const SizedBox(height: 2),
-                        Text(pkg['desc'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 4),
-                        Text("Contoh: ${pkg['example']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.bold)),
-                      ],
+                    const SizedBox(height: 10),
+                    Text(
+                      pkg['name'],
+                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(pkg['base_price'])}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
-                      Text("Harga Dasar", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              pkg['desc'],
+                              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.3),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Contoh: ${pkg['example']}",
+                              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }),
+            );
+          }).toList(),
+        ),
 
         const SizedBox(height: 24),
         Text("2. Regulasi & Penanganan Khusus Bayi (Hypoallergenic):", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
@@ -759,7 +837,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                   _loadMitrasForBabyCare();
                 },
           child: Text(
-            _selectedPackage == null ? "PILIH LAYANAN BAYI" : "PILIH MITRA LAUNDRY (Rp ${NumberFormat.decimalPattern('id_ID').format(_totalBabyPrice)})",
+            _selectedPackage == null ? "PILIH LAYANAN BAYI" : "PILIH MITRA LAUNDRY",
             style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
@@ -870,9 +948,20 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                         const SizedBox(height: 12),
                         ..._matchingMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
+                          final matchingServices = _getMatchingServicesForMitra(m);
+
                           return GestureDetector(
                             onTap: () {
-                              setState(() => _selectedMitra = m);
+                              setState(() {
+                                _selectedMitra = m;
+                                if (matchingServices.isNotEmpty) {
+                                  _selectedBabyService = matchingServices.first;
+                                  _basePrice = NyutjiParser.toDouble(_selectedBabyService!['price_regular'] ?? _selectedBabyService!['price']);
+                                } else {
+                                  _selectedBabyService = null;
+                                  _basePrice = 0.0;
+                                }
+                              });
                               _initDeliveryPricing();
                             },
                             child: Container(
@@ -884,40 +973,108 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                                 border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
                                 boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.01), blurRadius: 6)],
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    width: 44, height: 44,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
-                                    ),
-                                    child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
-                                        const SizedBox(height: 2),
-                                        Row(
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 44, height: 44,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius: BorderRadius.circular(10),
+                                          image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
+                                        ),
+                                        child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(LucideIcons.star, color: Colors.amber, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                                            const SizedBox(width: 8),
-                                            const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                            Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
+                                            const SizedBox(height: 2),
+                                            Row(
+                                              children: [
+                                                const Icon(LucideIcons.star, color: Colors.amber, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                                const SizedBox(width: 8),
+                                                const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                              ],
+                                            ),
                                           ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      if (isSel)
+                                        Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                    ],
                                   ),
-                                  if (isSel)
-                                    Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                  if (isSel && matchingServices.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    const Divider(color: Color(0xFFE3DCCF)),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Daftar Harga Layanan:",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...matchingServices.map((service) {
+                                      final double sPrice = NyutjiParser.toDouble(service['price_regular'] ?? service['price']);
+                                      final bool isServiceSel = 
+                                          _selectedBabyService?['mitra_id'] == service['mitra_id'] &&
+                                          _selectedBabyService?['name'] == service['name'];
+                                      
+                                      return InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedBabyService = service;
+                                            _basePrice = sPrice;
+                                          });
+                                          _initDeliveryPricing();
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  "${service['name']}",
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 12,
+                                                    fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                    color: darkBg,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                "Rp ${NumberFormat('#,###', 'id_ID').format(sPrice)}",
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 12,
+                                                  fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                  color: isServiceSel ? primaryTeal : Colors.grey[700],
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Icon(
+                                                isServiceSel ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                                                size: 16,
+                                                color: isServiceSel ? primaryTeal : Colors.grey[300],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
                                 ],
                               ),
                             ),

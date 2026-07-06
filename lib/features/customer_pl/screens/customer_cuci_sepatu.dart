@@ -51,16 +51,11 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
   ];
 
   int _currentStep = 1; // 1: Select Shoe Type & Treatments, 2: Select Mitra & Details, 3: Confirm & Pay
-  final List<Map<String, dynamic>> _selectedShoeTypes = [];
+  Map<String, dynamic>? _selectedShoeType;
+  Map<String, dynamic>? _selectedShoeService;
   int _quantity = 1;
   
-  double get _basePrice {
-    double sum = 0.0;
-    for (var type in _selectedShoeTypes) {
-      sum += NyutjiParser.toDouble(type['base_price'] ?? 0);
-    }
-    return sum;
-  }
+  double _basePrice = 0.0;
 
   // LIVE DATABASE MITRA MATCHING
   List<dynamic> _matchingMitras = [];
@@ -110,7 +105,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
       'name': 'Sneakers (Canvas, Mesh, & Knit)',
       'desc': 'Bahan kain, rajut, atau kanvas menyerap noda cair. Pembersihan mendalam (deep clean).',
       'icon': LucideIcons.footprints,
-      'base_price': 45000,
+    //  'base_price': 45000,
       'example': 'Converse, Vans, Ultraboost, Air Max'
     },
     {
@@ -118,7 +113,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
       'name': 'Sepatu Bahan Kulit Asli (Leather)',
       'desc': 'Pembersihan khusus rendah air dengan leather conditioner menjaga kelembapan kulit agar tidak pecah-pecah.',
       'icon': LucideIcons.shield,
-      'base_price': 65000,
+    //  'base_price': 65000,
       'example': 'Pantofel, Dr. Martens, Nike Air Force 1'
     },
     {
@@ -126,7 +121,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
       'name': 'Sepatu Suede dan Nubuck',
       'desc': 'Bahan paling sensitif. Pencucian cairan rendah air, disikat halus menggunakan brass brush & suede eraser.',
       'icon': LucideIcons.sparkles,
-      'base_price': 70000,
+    //  'base_price': 70000,
       'example': 'Adidas Gazelle, Puma Suede, Timberland'
     },
     {
@@ -134,7 +129,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
       'name': 'Sepatu Olahraga / Performance',
       'desc': 'Fokus pembersihan mengangkat keringat, mencegah jamur, sela-sela sol bawah dari noda tanah/rumput.',
       'icon': LucideIcons.zap,
-      'base_price': 50000,
+    //  'base_price': 50000,
       'example': 'Sepatu lari, basket, bola, futsal'
     },
     {
@@ -142,7 +137,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
       'name': 'Sepatu Wanita Premium',
       'desc': 'Satin, payet, manik-manik, beludru. Pembersihan manual super hati-hati menggunakan sikat kosmetik halus.',
       'icon': LucideIcons.award,
-      'base_price': 75000,
+    //  'base_price': 75000,
       'example': 'High Heels, Satin Flat Shoes, Beludru'
     },
   ];
@@ -193,9 +188,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
   @override
   void initState() {
     super.initState();
-    if (_shoeTypes.isNotEmpty) {
-      _selectedShoeTypes.add(_shoeTypes.first);
-    }
+    
     final auth = ref.read(authProvider);
     if (auth.user != null) {
       _selectedLat = double.tryParse(auth.user!['lat']?.toString() ?? '');
@@ -281,6 +274,60 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
       setState(() => _isLoadingMitras = false);
       if (mounted) NyutjiNotif.showError(context, "Gagal memuat daftar Mitra Shoecare.");
     }
+  }
+
+  
+  bool _isServiceMatching(String serviceName, String packageId) {
+    final nameLower = serviceName.toLowerCase();
+    if (packageId == 'sneakers') {
+      return nameLower.contains('sneaker') || nameLower.contains('kanvas') || nameLower.contains('canvas');
+    }
+    if (packageId == 'leather') {
+      return nameLower.contains('kulit') || nameLower.contains('leather');
+    }
+    if (packageId == 'suede') {
+      return nameLower.contains('suede') || nameLower.contains('nubuck');
+    }
+    if (packageId == 'performance') {
+      return nameLower.contains('olahraga') || nameLower.contains('sport') || nameLower.contains('lari') || nameLower.contains('basket');
+    }
+    if (packageId == 'women_premium') {
+      return nameLower.contains('wanita') || nameLower.contains('heels') || nameLower.contains('flat') || nameLower.contains('premium');
+    }
+    return false;
+  }
+
+  List<Map<String, dynamic>> _getMatchingServicesForMitra(Map<String, dynamic> mitra) {
+    final services = mitra['services'] as List?;
+    if (services == null || services.isEmpty) return [];
+    final pkgId = _selectedShoeType?['id']?.toString() ?? '';
+    if (pkgId.isEmpty) return [];
+    
+    List<Map<String, dynamic>> results = [];
+    for (var s in services) {
+      final sMap = Map<String, dynamic>.from(s);
+      if (_isServiceMatching(sMap['name']?.toString() ?? '', pkgId)) {
+        results.add(sMap);
+      }
+    }
+    
+    if (results.isEmpty) {
+      for (var s in services) {
+        final sMap = Map<String, dynamic>.from(s);
+        final nameLower = (sMap['name'] ?? '').toString().toLowerCase();
+        if (nameLower.contains('sepatu') || nameLower.contains('shoes')) {
+          results.add(sMap);
+        }
+      }
+    }
+    
+    if (results.isEmpty) {
+      for (var s in services) {
+        results.add(Map<String, dynamic>.from(s));
+      }
+    }
+    
+    return results;
   }
 
   Future<void> _initDeliveryPricing() async {
@@ -437,8 +484,9 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
           ? " (Treatment: ${selectedTreatmentsList.join(', ')})"
           : "";
 
-      final selectedNames = _selectedShoeTypes.map((t) => t['name'].toString().split(' (')[0]).join(' + ');
-      final String itemName = "$selectedNames$noteTreatment";
+      final String itemName = _selectedShoeService != null 
+          ? "${_selectedShoeService!['name']}$noteTreatment" 
+          : "${_selectedShoeType!['name']}$noteTreatment";
 
       final items = [
         {
@@ -618,67 +666,76 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
         Text("1. Pilih Material / Jenis Sepatu:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
-        ..._shoeTypes.map((type) {
-          bool isSel = _selectedShoeTypes.any((t) => t['id'] == type['id']);
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                if (isSel) {
-                  if (_selectedShoeTypes.length > 1) {
-                    _selectedShoeTypes.removeWhere((t) => t['id'] == type['id']);
-                  } else {
-                    NyutjiNotif.showError(context, "Minimal harus memilih satu jenis bahan sepatu.");
-                  }
-                } else {
-                  _selectedShoeTypes.add(type);
-                }
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
-                boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
-                      shape: BoxShape.circle,
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.65,
+          children: _shoeTypes.map((type) {
+            bool isSel = _selectedShoeType?['id'] == type['id'];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedShoeType = type;
+                  _basePrice = NyutjiParser.toDouble(type['base_price']);
+                  _selectedShoeService = null;
+                  
+                  // Clear mitra selection when shoe type changes so user must pick again
+                  _selectedMitra = null;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
+                  boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(type['icon'], color: isSel ? Colors.white : primaryTeal, size: 18),
                     ),
-                    child: Icon(type['icon'], color: isSel ? Colors.white : primaryTeal, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(type['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
-                        const SizedBox(height: 2),
-                        Text(type['desc'], style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600]), maxLines: 2, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 4),
-                        Text("Contoh: ${type['example']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.bold)),
-                      ],
+                    const SizedBox(height: 10),
+                    Text(
+                      type['name'],
+                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text("Rp ${NumberFormat.decimalPattern('id_ID').format(type['base_price'])}", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
-                      Text("Base Price", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              type['desc'],
+                              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.3),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Contoh: ${type['example']}",
+                              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }),
+            );
+          }).toList(),
+        ),
 
         const SizedBox(height: 24),
         Text("2. Tambah Perawatan Khusus (Opsional):", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
@@ -771,18 +828,18 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
         const SizedBox(height: 36),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: _selectedShoeTypes.isEmpty ? Colors.grey : primaryTeal,
+            backgroundColor: _selectedShoeType == null ? Colors.grey : primaryTeal,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          onPressed: _selectedShoeTypes.isEmpty
+          onPressed: _selectedShoeType == null
               ? null
               : () {
                   setState(() => _currentStep = 2);
                   _loadMitrasForShoecare();
                 },
           child: Text(
-            _selectedShoeTypes.isEmpty ? "PILIH MINIMAL 1 BAHAN SEPATU" : "PILIH MITRA LAUNDRY (Rp ${NumberFormat.decimalPattern('id_ID').format(_totalShoePrice)})",
+            _selectedShoeType == null ? "PILIH LAYANAN CUCI SEPATU" : "PILIH MITRA LAUNDRY",
             style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)
           ),
         ),
@@ -845,7 +902,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _selectedShoeTypes.map((t) => t['name'].toString().split(' (')[0]).join(', '),
+                      _selectedShoeType!['name'], 
                       style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -898,9 +955,20 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
                         const SizedBox(height: 12),
                         ..._matchingMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
+                          final matchingServices = _getMatchingServicesForMitra(m);
+
                           return GestureDetector(
                             onTap: () {
-                              setState(() => _selectedMitra = m);
+                              setState(() {
+                                _selectedMitra = m;
+                                if (matchingServices.isNotEmpty) {
+                                  _selectedShoeService = matchingServices.first;
+                                  _basePrice = NyutjiParser.toDouble(_selectedShoeService!['price_regular'] ?? _selectedShoeService!['price']);
+                                } else {
+                                  _selectedShoeService = null;
+                                  _basePrice = 0.0;
+                                }
+                              });
                               _initDeliveryPricing();
                             },
                             child: Container(
@@ -912,40 +980,108 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
                                 border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
                                 boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.01), blurRadius: 6)],
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    width: 44, height: 44,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
-                                    ),
-                                    child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
-                                        const SizedBox(height: 2),
-                                        Row(
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 44, height: 44,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius: BorderRadius.circular(10),
+                                          image: m['image'] != null ? DecorationImage(image: CachedNetworkImageProvider(m['image'].toString().startsWith('http') ? m['image'] : "${ApiConstants.rootUrl}/${m['image']}"), fit: BoxFit.cover) : null,
+                                        ),
+                                        child: m['image'] == null ? const Icon(LucideIcons.store, color: Colors.grey) : null,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(LucideIcons.star, color: Colors.amber, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
-                                            const SizedBox(width: 8),
-                                            const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
-                                            const SizedBox(width: 4),
-                                            Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                            Text(m['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg)),
+                                            const SizedBox(height: 2),
+                                            Row(
+                                              children: [
+                                                const Icon(LucideIcons.star, color: Colors.amber, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(m['rating'].toString(), style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                                const SizedBox(width: 8),
+                                                const Icon(LucideIcons.mapPin, color: Colors.grey, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(NyutjiDistance.formatDistance(m['distance'] ?? 0.1), style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
+                                              ],
+                                            ),
                                           ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      if (isSel)
+                                        Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                    ],
                                   ),
-                                  if (isSel)
-                                    Icon(LucideIcons.checkCircle, color: primaryTeal, size: 18),
+                                  if (isSel && matchingServices.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    const Divider(color: Color(0xFFE3DCCF)),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Daftar Harga Layanan:",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...matchingServices.map((service) {
+                                      final double sPrice = NyutjiParser.toDouble(service['price_regular'] ?? service['price']);
+                                      final bool isServiceSel = 
+                                          _selectedShoeService?['mitra_id'] == service['mitra_id'] &&
+                                          _selectedShoeService?['name'] == service['name'];
+                                      
+                                      return InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedShoeService = service;
+                                            _basePrice = sPrice;
+                                          });
+                                          _initDeliveryPricing();
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  "${service['name']}",
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 12,
+                                                    fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                    color: darkBg,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                "Rp ${NumberFormat('#,###', 'id_ID').format(sPrice)}",
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 12,
+                                                  fontWeight: isServiceSel ? FontWeight.bold : FontWeight.normal,
+                                                  color: isServiceSel ? primaryTeal : Colors.grey[700],
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Icon(
+                                                isServiceSel ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                                                size: 16,
+                                                color: isServiceSel ? primaryTeal : Colors.grey[300],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
                                 ],
                               ),
                             ),
@@ -1294,7 +1430,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _selectedShoeTypes.map((t) => t['name'].toString().split(' (')[0]).join(' + '),
+                _selectedShoeService != null ? _selectedShoeService!['name'] : _selectedShoeType!['name'],
                 style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg),
               ),
               Text("Mitra: ${_selectedMitra!['name']}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500])),

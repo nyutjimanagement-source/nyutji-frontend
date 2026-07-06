@@ -1099,8 +1099,8 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-        child: Column(
-          children: const [
+        child: const Column(
+          children: [
             ShimmerLoading(height: 14, width: 150, borderRadius: 4),
             SizedBox(height: 8),
             ShimmerLoading(height: 14, width: 100, borderRadius: 4),
