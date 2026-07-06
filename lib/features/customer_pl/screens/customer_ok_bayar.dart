@@ -13,6 +13,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/utils/nyutji_qris.dart';
 
 class CustomerOkBayarScreen extends ConsumerStatefulWidget {
   final int grandTotal;
@@ -74,7 +75,11 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
       final qris = await api.getMitraQris(widget.mitraId);
       if (mounted) {
         setState(() {
-          _qrisPayload = qris;
+          if (qris != null && qris.isNotEmpty) {
+            _qrisPayload = NyutjiQris.generateDynamic(qris, widget.grandTotal);
+          } else {
+            _qrisPayload = qris;
+          }
           _isLoadingQris = false;
         });
       }
@@ -374,53 +379,61 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
               if (widget.selectedPayment == 'QRIS')
                 Padding(
                   padding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Scan QR Code di bawah ini:", 
-                        style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      if (_isLoadingQris)
-                        const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      else if (_qrisPayload != null && _qrisPayload!.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey[200]!, width: 1.5),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: QrImageView(
-                            data: _qrisPayload!,
-                            version: QrVersions.auto,
-                            size: 160.0,
-                            eyeStyle: const QrEyeStyle(
-                              eyeShape: QrEyeShape.square,
-                              color: Colors.black87,
+                      const Expanded(flex: 4, child: SizedBox.shrink()),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 6,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Scan QR Code di bawah ini:", 
+                              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold),
                             ),
-                            dataModuleStyle: const QrDataModuleStyle(
-                              dataModuleShape: QrDataModuleShape.square,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(
-                            "Mitra Laundry belum mengaktifkan pembayaran QRIS.",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 12, 
-                              color: Colors.red[600], 
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                            const SizedBox(height: 12),
+                            if (_isLoadingQris)
+                              const Padding(
+                                padding: EdgeInsets.all(20),
+                                child: Center(child: CircularProgressIndicator()),
+                              )
+                            else if (_qrisPayload != null && _qrisPayload!.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.grey[200]!, width: 1.5),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: QrImageView(
+                                  data: _qrisPayload!,
+                                  version: QrVersions.auto,
+                                  size: 140.0,
+                                  eyeStyle: const QrEyeStyle(
+                                    eyeShape: QrEyeShape.square,
+                                    color: Colors.black87,
+                                  ),
+                                  dataModuleStyle: const QrDataModuleStyle(
+                                    dataModuleShape: QrDataModuleShape.square,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              )
+                            else
+                              Text(
+                                "Mitra Laundry belum mengaktifkan pembayaran QRIS.",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12, 
+                                  color: Colors.red[600], 
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                          ],
                         ),
+                      ),
                     ],
                   ),
                 ),
