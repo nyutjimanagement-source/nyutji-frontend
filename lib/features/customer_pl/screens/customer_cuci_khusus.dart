@@ -614,55 +614,25 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
           ),
         ),
         Expanded(
-          child: GridView.builder(
+          child: ListView.builder(
             padding: const EdgeInsets.all(16),
             physics: const BouncingScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.82,
-            ),
-            itemCount: _specialItems.length,
-            itemBuilder: (context, index) {
-              final item = _specialItems[index];
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedSpecialItem = item;
-                    _currentStep = 2;
-                  });
-                  _loadMitrasForSpecialItem(item['search_term']);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-                    border: Border.all(color: const Color(0xFFE3DCCF), width: 1),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+            itemCount: (_specialItems.length / 2).ceil(),
+            itemBuilder: (context, rowIndex) {
+              int idx1 = rowIndex * 2;
+              int idx2 = rowIndex * 2 + 1;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: primaryTeal.withValues(alpha: 0.06),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(item['icon'], color: primaryTeal, size: 22),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        item['name'], 
-                        style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['desc'], 
-                        style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]),
+                      Expanded(child: _buildKhususCard(_specialItems[idx1])),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: idx2 < _specialItems.length
+                            ? _buildKhususCard(_specialItems[idx2])
+                            : const SizedBox(),
                       ),
                     ],
                   ),
@@ -672,6 +642,51 @@ class _CustomerCuciKhususScreenState extends ConsumerState<CustomerCuciKhususScr
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildKhususCard(Map<String, dynamic> item) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedSpecialItem = item;
+          _currentStep = 2;
+        });
+        _loadMitrasForSpecialItem(item['search_term']);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          border: Border.all(color: const Color(0xFFE3DCCF), width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: primaryTeal.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(item['icon'], color: primaryTeal, size: 22),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              item['name'], 
+              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: darkBg),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item['desc'], 
+              style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

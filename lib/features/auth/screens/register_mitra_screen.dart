@@ -33,7 +33,10 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
   final TextEditingController ownerDetailController = TextEditingController();
   String ownerDistrict = "";
   String ownerCity = "";
+  double? ownerLat;
+  double? ownerLng;
   XFile? ktpFile;
+  bool _isAddressSame = false;
 
   // Step 2: Info Bisnis
   final TextEditingController businessNameController = TextEditingController();
@@ -141,6 +144,8 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
           ownerAddressController.text = result.address;
           ownerDistrict = result.subdistrict;
           ownerCity = result.city;
+          ownerLat = result.lat;
+          ownerLng = result.lng;
         } else {
           businessAddressController.text = result.address;
           businessDistrict = result.subdistrict;
@@ -423,7 +428,9 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
         children: [
           _buildTextField(businessNameController, "Nama Laundry", LucideIcons.store),
           const SizedBox(height: 16),
-          _buildLocationField(businessAddressController, "Lokasi Wilayah Operasional", false),
+          _buildLocationField(businessAddressController, "Lokasi Wilayah Operasional", false, isDisabled: _isAddressSame),
+          const SizedBox(height: 8),
+          _buildSameAddressCheckbox(),
           const SizedBox(height: 16),
           _buildTextField(phoneController, "Nomor Handphone Bisnis", LucideIcons.phone, isNumber: true, focusNode: _phoneFocusNode),
           const SizedBox(height: 16),
@@ -661,6 +668,57 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
     );
   }
 
+  Widget _buildSameAddressCheckbox() {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _isAddressSame = !_isAddressSame;
+          if (_isAddressSame) {
+            String fullOwnerAddress = ownerAddressController.text.trim();
+            if (ownerDetailController.text.trim().isNotEmpty) {
+              fullOwnerAddress += " ${ownerDetailController.text.trim()}";
+            }
+            businessAddressController.text = fullOwnerAddress;
+            businessDistrict = ownerDistrict;
+            businessCity = ownerCity;
+            businessLat = ownerLat;
+            businessLng = ownerLng;
+          } else {
+            businessAddressController.clear();
+            businessDistrict = "";
+            businessCity = "";
+            businessLat = null;
+            businessLng = null;
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              _isAddressSame ? LucideIcons.checkSquare : LucideIcons.square,
+              color: _isAddressSame ? primaryColor : Colors.grey[400],
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                "Lokasi Laundry sama dengan Alamat Rumah",
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isNumber = false, bool isEmail = false, FocusNode? focusNode}) {
     return TextField(
       controller: controller,
@@ -680,9 +738,9 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
     );
   }
 
-  Widget _buildLocationField(TextEditingController controller, String hint, bool isOwner) {
+  Widget _buildLocationField(TextEditingController controller, String hint, bool isOwner, {bool isDisabled = false}) {
     return GestureDetector(
-      onTap: () => _showLocationPicker(isOwner),
+      onTap: isDisabled ? null : () => _showLocationPicker(isOwner),
       child: AbsorbPointer(
         child: TextField(
           controller: controller,
@@ -694,7 +752,7 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
             prefixIcon: Icon(LucideIcons.map, size: 20, color: Colors.grey[500]),
             suffixIcon: Icon(LucideIcons.chevronRight, size: 20, color: Colors.grey[400]),
             filled: true,
-            fillColor: Colors.grey[50],
+            fillColor: isDisabled ? Colors.grey[200] : Colors.grey[50],
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           ),

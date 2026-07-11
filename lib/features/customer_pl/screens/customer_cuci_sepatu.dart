@@ -666,75 +666,27 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
         Text("1. Pilih Material / Jenis Sepatu:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.65,
-          children: _shoeTypes.map((type) {
-            bool isSel = _selectedShoeType?['id'] == type['id'];
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedShoeType = type;
-                  _basePrice = NyutjiParser.toDouble(type['base_price']);
-                  _selectedShoeService = null;
-                  
-                  // Clear mitra selection when shoe type changes so user must pick again
-                  _selectedMitra = null;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
-                  boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
-                        shape: BoxShape.circle,
+        Column(
+          children: [
+            for (int i = 0; i < _shoeTypes.length; i += 2)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: _buildShoeCard(_shoeTypes[i])),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: i + 1 < _shoeTypes.length
+                            ? _buildShoeCard(_shoeTypes[i + 1])
+                            : const SizedBox(),
                       ),
-                      child: Icon(type['icon'], color: isSel ? Colors.white : primaryTeal, size: 18),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      type['name'],
-                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
-                    ),
-                    const SizedBox(height: 6),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              type['desc'],
-                              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.3),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "Contoh: ${type['example']}",
-                              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            );
-          }).toList(),
+          ],
         ),
 
         const SizedBox(height: 24),
@@ -845,6 +797,59 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
         ),
         const SizedBox(height: 40),
       ],
+    );
+  }
+
+  Widget _buildShoeCard(Map<String, dynamic> type) {
+    bool isSel = _selectedShoeType?['id'] == type['id'];
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedShoeType = type;
+          _basePrice = NyutjiParser.toDouble(type['base_price']);
+          _selectedShoeService = null;
+          
+          // Clear mitra selection when shoe type changes so user must pick again
+          _selectedMitra = null;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
+          boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(type['icon'], color: isSel ? Colors.white : primaryTeal, size: 18),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              type['name'],
+              style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              type['desc'],
+              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.3),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              "Contoh: ${type['example']}",
+              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
