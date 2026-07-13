@@ -337,25 +337,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ],
       ),
       actions: [
-        // Tombol Panggilan VoIP
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: GestureDetector(
-            onTap: _initiateCall,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: _primaryTeal,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                LucideIcons.phone,
-                size: 18,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
+        // TODO: Aktifkan saat VoIP/WebRTC siap diimplementasikan
+        // Tombol Panggilan — disembunyikan sementara (Coming Soon)
       ],
     );
   }

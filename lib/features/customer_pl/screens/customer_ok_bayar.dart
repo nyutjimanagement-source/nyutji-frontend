@@ -8,10 +8,9 @@ import '../../../core/theme/nyutji_theme.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../data/services/api_service.dart';
-import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:gal/gal.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/nyutji_qris.dart';
 
@@ -94,90 +93,46 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
   }
 
   Future<void> _captureAndSaveReceipt() async {
-    // 1. Tampilkan dialog konfirmasi terlebih dahulu
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text("Simpan Nota", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
-        content: Text("Apakah Anda ingin menyimpan Nota Estimasi Transaksi ini sebagai gambar di penyimpanan lokal?", style: GoogleFonts.montserrat(fontSize: 13)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text("Batal", style: GoogleFonts.montserrat(color: Colors.grey[600], fontWeight: FontWeight.bold)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: NyutjiTheme.m3Primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text("Simpan", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
     try {
-      // Berikan sedikit delay agar painting frame selesai (mencegah error !debugNeedsPaint)
-      await Future.delayed(const Duration(milliseconds: 50));
+      // Berikan delay singkat agar painting frame selesai
+      await Future.delayed(const Duration(milliseconds: 80));
 
-      final RenderRepaintBoundary? boundary = _boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final RenderRepaintBoundary? boundary =
+          _boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) {
-        if (mounted) {
-          NyutjiNotif.showError(context, "Gagal menangkap layar nota.");
-        }
+        if (mounted) NyutjiNotif.showError(context, "Gagal menangkap layar nota.");
         return;
       }
-      
+
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) {
-        if (mounted) {
-          NyutjiNotif.showError(context, "Gagal memproses gambar.");
-        }
+        if (mounted) NyutjiNotif.showError(context, "Gagal memproses gambar.");
         return;
       }
-      
+
       final Uint8List pngBytes = byteData.buffer.asUint8List();
-      
-      Directory? directory;
-      String folderName = "Dokumen";
-      
-      try {
-        if (Platform.isAndroid) {
-          // Cari folder Downloads publik
-          directory = await getDownloadsDirectory();
-          folderName = "Downloads";
-        } else if (Platform.isIOS) {
-          directory = await getApplicationDocumentsDirectory();
-          folderName = "Documents (Files)";
+
+      // Cek izin akses galeri (terutama iOS & Android < 10)
+      final hasAccess = await Gal.hasAccess(toAlbum: true);
+      if (!hasAccess) {
+        final granted = await Gal.requestAccess(toAlbum: true);
+        if (!granted) {
+          if (mounted) NyutjiNotif.showError(context, "Izin akses Galeri ditolak.");
+          return;
         }
-      } catch (e) {
-        debugPrint("Gagal mendeteksi folder khusus: $e");
       }
-      
-      // Fallback ke Application Documents jika null
-      directory ??= await getApplicationDocumentsDirectory();
-      
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String filePath = '${directory.path}/nota_$timestamp.png';
-      
-      final File imgFile = File(filePath);
-      await imgFile.writeAsBytes(pngBytes);
-      
+
+      // Simpan langsung ke Galeri HP
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      await Gal.putImageBytes(pngBytes, name: 'nota_nyutji_$timestamp', album: 'Nyutji');
+
       if (mounted) {
-        NyutjiNotif.showSuccess(
-          context, 
-          "Nota berhasil disimpan ke folder $folderName handphone Anda!\n(Nama file: nota_$timestamp.png)"
-        );
+        NyutjiNotif.showSuccess(context, "Nota berhasil disimpan ke Galeri (Album: Nyutji)!");
       }
     } catch (e) {
       debugPrint("Gagal menyimpan gambar: $e");
-      if (mounted) {
-        NyutjiNotif.showError(context, "Gagal menyimpan gambar: $e");
-      }
+      if (mounted) NyutjiNotif.showError(context, "Gagal menyimpan nota: $e");
     }
   }
 
