@@ -263,6 +263,11 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
       }
     }
     
+    // Filter out 0 price
+    results.retainWhere((s) {
+      return NyutjiParser.toDouble(s['price_regular'] ?? s['price']) > 0;
+    });
+
     return results;
   }
 
@@ -890,6 +895,8 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
 
   // --- STEP 2: MITRA SELECTION & CONFIGURATION ---
   Widget _buildStep2MitraConfig() {
+    final availableMitras = _matchingMitras.where((m) => _getMatchingServicesForMitra(m).isNotEmpty).toList();
+
     return Column(
       children: [
         // Summary of Selected Package & Treatments
@@ -933,7 +940,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                   ),
 
                 )
-              : _matchingMitras.isEmpty
+              : availableMitras.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -941,7 +948,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                           Icon(LucideIcons.store, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
                           Text("Belum ada Mitra laundry yang melayani", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
-                          Text("layanan laundry bayi di sekitar Anda.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
+                          Text("layanan bayi di sekitar Anda.", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey)),
                         ],
                       ),
                     )
@@ -951,7 +958,7 @@ class _CustomerPakaianBayiScreenState extends ConsumerState<CustomerPakaianBayiS
                       children: [
                         Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                         const SizedBox(height: 12),
-                        ..._matchingMitras.map((m) {
+                        ...availableMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
                           final matchingServices = _getMatchingServicesForMitra(m);
 

@@ -1022,11 +1022,11 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
     final orderNumber = (order['order_number'] ?? order['orderNumber'] ?? '').toString();
     final mitraName = (order['mitra'] is Map ? order['mitra']['name'] : null) ??
         order['mitra_name'] ?? 'Mitra';
-    final mitraPhoto = ChatUtils.extractPhoto(order['mitra_name'] ?? order['mitra']);
+    final mitraPhoto = ChatUtils.extractPhoto(order['mitra'] ?? order['mitra_name']);
     
     // Parse Courier Name using ChatUtils
     final courierName = ChatUtils.extractName(order['courier_name'] ?? order['courier']);
-    final courierPhoto = ChatUtils.extractPhoto(order['courier_name'] ?? order['courier']);
+    final courierPhoto = ChatUtils.extractPhoto(order['courier'] ?? order['courier_name']);
     
     final rawDel = (order['deliveryType'] ?? order['delivery_type'] ?? '').toString();
     final isCourierNeeded = ChatUtils.isCourierNeeded(rawDel, status);

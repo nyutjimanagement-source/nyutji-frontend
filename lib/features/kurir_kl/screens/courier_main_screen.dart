@@ -1833,12 +1833,12 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
         order['customer_name'] ?? order['customer'],
         fallback: 'Pelanggan');
     final customerPhoto =
-        ChatUtils.extractPhoto(order['customer_name'] ?? order['customer']);
+        ChatUtils.extractPhoto(order['customer'] ?? order['customer_name']);
     final mitraName = ChatUtils.extractName(
-        order['mitra_name'] ?? order['mitra'],
+        order['mitra'] ?? order['mitra_name'],
         fallback: 'Mitra');
     final mitraPhoto =
-        ChatUtils.extractPhoto(order['mitra_name'] ?? order['mitra']);
+        ChatUtils.extractPhoto(order['mitra'] ?? order['mitra_name']);
 
     return Row(
       children: [

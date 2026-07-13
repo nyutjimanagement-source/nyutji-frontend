@@ -318,6 +318,11 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
       }
     }
     
+    // Filter out 0 price
+    results.retainWhere((s) {
+      return NyutjiParser.toDouble(s['price_regular'] ?? s['price']) > 0;
+    });
+
     return results;
   }
 
@@ -653,72 +658,30 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
         Text("1. Pilih Jenis Pakaian / Bahan Dry Clean:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
         const SizedBox(height: 12),
 
-        GridView.count(
-          crossAxisCount: 2,
+        ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.65,
-          children: _dryCleanPackages.map((pkg) {
-            bool isSel = _selectedPackage?['id'] == pkg['id'];
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedPackage = pkg;
-                  _basePrice = NyutjiParser.toDouble(pkg['base_price']);
-                  _selectedDryCleanService = null;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
-                  boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          itemCount: (_dryCleanPackages.length / 2).ceil(),
+          itemBuilder: (context, index) {
+            int firstIndex = index * 2;
+            int secondIndex = firstIndex + 1;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(pkg['icon'], color: isSel ? Colors.white : primaryTeal, size: 18),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      pkg['name'],
-                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
-                    ),
-                    const SizedBox(height: 6),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              pkg['desc'],
-                              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.3),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "Contoh: ${pkg['example']}",
-                              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    Expanded(child: _buildPackageCard(_dryCleanPackages[firstIndex])),
+                    const SizedBox(width: 12),
+                    if (secondIndex < _dryCleanPackages.length)
+                      Expanded(child: _buildPackageCard(_dryCleanPackages[secondIndex]))
+                    else
+                      Expanded(child: Container()),
                   ],
                 ),
               ),
             );
-          }).toList(),
+          },
         ),
 
         const SizedBox(height: 24),
@@ -832,6 +795,57 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
     );
   }
 
+  Widget _buildPackageCard(Map<String, dynamic> pkg) {
+    bool isSel = _selectedPackage?['id'] == pkg['id'];
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedPackage = pkg;
+          _basePrice = NyutjiParser.toDouble(pkg['base_price']);
+          _selectedDryCleanService = null;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSel ? primaryTeal : const Color(0xFFE3DCCF), width: isSel ? 2 : 1),
+          boxShadow: [BoxShadow(color: isSel ? primaryTeal.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.01), blurRadius: 8)],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min, // Penting agar tidak mengambil ruang max vertikal
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSel ? primaryTeal : primaryTeal.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(pkg['icon'], color: isSel ? Colors.white : primaryTeal, size: 18),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              pkg['name'],
+              style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w900, color: darkBg),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              pkg['desc'],
+              style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.3),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              "Contoh: ${pkg['example']}",
+              style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _treatmentCheckbox(String name, String desc, int price) {
     String key = name.contains("Pelarut")
         ? "Pelarut Organik"
@@ -871,6 +885,8 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
 
   // --- STEP 2: MITRA SELECTION & CONFIGURATION ---
   Widget _buildStep2MitraConfig() {
+    final availableMitras = _matchingMitras.where((m) => _getMatchingServicesForMitra(m).isNotEmpty).toList();
+
     return Column(
       children: [
         // Summary of Selected Package & Treatments
@@ -885,7 +901,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_selectedDryCleanService != null ? _selectedDryCleanService!['name'] : _selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
+                    Text(_selectedPackage!['name'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: primaryTeal)),
                     Text("Total Estimasi: Rp ${NumberFormat.decimalPattern('id_ID').format(_totalDryCleanPrice)}", style: GoogleFonts.montserrat(fontSize: 13, color: Colors.grey[600])),
                   ],
                 ),
@@ -914,7 +930,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                   ),
 
                 )
-              : _matchingMitras.isEmpty
+              : availableMitras.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -932,7 +948,7 @@ class _CustomerDryCleanScreenState extends ConsumerState<CustomerDryCleanScreen>
                       children: [
                         Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                         const SizedBox(height: 12),
-                        ..._matchingMitras.map((m) {
+                        ...availableMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
                           final matchingServices = _getMatchingServicesForMitra(m);
 

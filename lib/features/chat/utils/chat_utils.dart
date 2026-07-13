@@ -29,15 +29,24 @@ class ChatUtils {
   /// Mengekstrak URL foto dari string JSON atau Map
   static String? extractPhoto(dynamic val) {
     if (val == null) return null;
-    if (val is Map) return val['photo']?.toString() ?? val['photo_url']?.toString();
+    if (val is Map) {
+      // Coba semua kemungkinan key foto. profile_photo adalah prioritas utama
+      // karena itulah nama kolom di database users.
+      final raw = val['profile_photo']?.toString()
+          ?? val['photo']?.toString()
+          ?? val['photo_url']?.toString()
+          ?? val['image']?.toString();
+      if (raw == null || raw.isEmpty || raw == 'null') return null;
+      return raw;
+    }
     if (val is String) {
       if (val.trim().startsWith('{')) {
         try {
           final parsed = jsonDecode(val);
-          return parsed['photo']?.toString() ?? parsed['photo_url']?.toString();
+          return extractPhoto(parsed); // rekursif ke cabang Map di atas
         } catch (_) {
-          // Fallback parsing manual untuk photo: URL
-          final match = RegExp(r'photo(?:_url)?:\s*([^,}]+)').firstMatch(val);
+          // Fallback parsing manual
+          final match = RegExp(r'(?:profile_photo|photo(?:_url)?|image):\s*([^,}]+)').firstMatch(val);
           if (match != null) {
             String url = match.group(1)?.trim() ?? '';
             if (url.startsWith("'") && url.endsWith("'")) url = url.substring(1, url.length - 1);

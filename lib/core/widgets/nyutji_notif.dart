@@ -35,7 +35,20 @@ class NyutjiNotif {
           _currentEntry = null;
         }
 
-        final overlay = Overlay.of(context);
+        OverlayState? overlay;
+        if (context is StatefulElement && context.state is OverlayState) {
+          overlay = context.state as OverlayState;
+        } else if (context is StatefulElement && context.state is NavigatorState) {
+          overlay = (context.state as NavigatorState).overlay;
+        } else {
+          overlay = Overlay.maybeOf(context) ?? Navigator.maybeOf(context)?.overlay;
+        }
+
+        if (overlay == null) {
+          debugPrint("NyutjiNotif Error: Tidak dapat menemukan OverlayState dari context yang diberikan.");
+          return;
+        }
+
         final overlayEntry = OverlayEntry(
           builder: (context) => _BeautyPopupWidget(
             message: message,

@@ -327,6 +327,11 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
       }
     }
     
+    // Filter out 0 price
+    results.retainWhere((s) {
+      return NyutjiParser.toDouble(s['price_regular'] ?? s['price']) > 0;
+    });
+
     return results;
   }
 
@@ -892,6 +897,8 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
 
   // --- STEP 2: MITRA SELECTION & CONFIGURATION ---
   Widget _buildStep2MitraConfig() {
+    final availableMitras = _matchingMitras.where((m) => _getMatchingServicesForMitra(m).isNotEmpty).toList();
+
     return Column(
       children: [
         // Summary of Selected Shoe & Treatments
@@ -940,7 +947,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
                   ),
 
                 )
-              : _matchingMitras.isEmpty
+              : availableMitras.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -958,7 +965,7 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
                       children: [
                         Text("Pilih Mitra Laundry Terdekat:", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[700])),
                         const SizedBox(height: 12),
-                        ..._matchingMitras.map((m) {
+                        ...availableMitras.map((m) {
                           bool isSel = _selectedMitra?['id'] == m['id'];
                           final matchingServices = _getMatchingServicesForMitra(m);
 

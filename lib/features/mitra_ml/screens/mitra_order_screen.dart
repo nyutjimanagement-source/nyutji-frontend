@@ -1472,13 +1472,13 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
             order['customer_name'] ??
             'Pelanggan';
     final customerPhoto =
-        ChatUtils.extractPhoto(order['customer_name'] ?? order['customer']);
+        ChatUtils.extractPhoto(order['customer'] ?? order['customer_name']);
 
     // Parse Courier Name using ChatUtils
     final courierName =
         ChatUtils.extractName(order['courier_name'] ?? order['courier']);
     final courierPhoto =
-        ChatUtils.extractPhoto(order['courier_name'] ?? order['courier']);
+        ChatUtils.extractPhoto(order['courier'] ?? order['courier_name']);
 
     final rawDel =
         (order['deliveryType'] ?? order['delivery_type'] ?? '').toString();

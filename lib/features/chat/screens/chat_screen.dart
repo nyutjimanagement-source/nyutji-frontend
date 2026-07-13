@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/chat_provider.dart';
 import '../../../data/models/chat_message_model.dart';
 import '../../../data/services/api_service.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -250,6 +251,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final photoUrl = ApiConstants.profilePhotoUrl(widget.partnerPhoto);
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -271,9 +273,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               shape: BoxShape.circle,
             ),
             clipBehavior: Clip.antiAlias,
-            child: widget.partnerPhoto != null && widget.partnerPhoto!.isNotEmpty
+            child: photoUrl.isNotEmpty
                 ? CachedNetworkImage(
-                    imageUrl: widget.partnerPhoto!,
+                    imageUrl: photoUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Padding(
                       padding: EdgeInsets.all(8.0),
@@ -372,10 +374,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         final showDateLabel = index == 0 ||
             messages[index - 1].createdAt.day != msg.createdAt.day;
 
+        bool isFirstInGroup = true;
+        if (index > 0 && !showDateLabel) {
+          final prevMsg = messages[index - 1];
+          if (prevMsg.senderId == msg.senderId) {
+            isFirstInGroup = false;
+          }
+        }
+
         return Column(
           children: [
             if (showDateLabel) _buildDateLabel(msg.createdAt),
-            _buildMessageBubble(msg, isMe),
+            _buildMessageBubble(msg, isMe, isFirstInGroup),
           ],
         );
       },
@@ -417,7 +427,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(ChatMessageModel msg, bool isMe) {
+  Widget _buildMessageBubble(ChatMessageModel msg, bool isMe, bool isFirstInGroup) {
     const bubbleTeal = Color(0xFF0D9488);
     const bubbleBgMe = bubbleTeal;
     const bubbleBgOther = Colors.white;
@@ -429,30 +439,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe) ...[
-            // Avatar lawan
-            Container(
-              width: 28,
-              height: 28,
-              margin: const EdgeInsets.only(right: 6),
-              decoration: BoxDecoration(
-                color: _primaryTeal.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  msg.senderName.isNotEmpty
-                      ? msg.senderName[0].toUpperCase()
-                      : '?',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: _primaryTeal,
-                  ),
-                ),
-              ),
-            ),
-          ],
           Flexible(
             child: Container(
               constraints: BoxConstraints(
@@ -465,8 +451,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(isMe ? 18 : 4),
-                  bottomRight: Radius.circular(isMe ? 4 : 18),
+                  bottomLeft: Radius.circular(isMe ? 18 : (isFirstInGroup ? 4 : 18)),
+                  bottomRight: Radius.circular(isMe ? (isFirstInGroup ? 4 : 18) : 18),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -476,35 +462,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!isMe)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 3),
-                      child: Text(
-                        msg.senderName,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _primaryTeal,
-                        ),
+              child: IntrinsicWidth(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      msg.message,
+                      textAlign: TextAlign.left,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: isMe ? Colors.white : const Color(0xFF111111),
+                        height: 1.4,
                       ),
                     ),
-                  Text(
-                    msg.message,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      color: isMe ? Colors.white : const Color(0xFF111111),
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Text(
+                    const SizedBox(height: 4),
+                    Text(
                       _formatTime(msg.createdAt),
+                      textAlign: TextAlign.right,
                       style: GoogleFonts.montserrat(
                         fontSize: 10,
                         color: isMe
@@ -513,8 +489,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
