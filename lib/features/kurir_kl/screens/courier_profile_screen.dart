@@ -433,7 +433,7 @@ class _RatingReviewBottomSheetState extends State<_RatingReviewBottomSheet> {
                               final String parsedDate = dateRaw.isNotEmpty 
                                 ? _formatDate(dateRaw) 
                                 : '';
-                              final int ratingVal = NyutjiParser.toInt(rev['ratingCourier']);
+                              final int ratingVal = NyutjiParser.toDouble(rev['ratingCourier']).toInt();
 
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -505,22 +505,22 @@ class _RatingReviewBottomSheetState extends State<_RatingReviewBottomSheet> {
 
   Widget _buildShimmer() {
     return Column(
-      children: List.generate(3, (index) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+      children: List.generate(3, (index) => const Padding(
+        padding: EdgeInsets.only(bottom: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ShimmerLoading(width: 40, height: 40, borderRadius: 20),
-            const SizedBox(width: 12),
+            ShimmerLoading(width: 40, height: 40, borderRadius: 20),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ShimmerLoading(width: 120, height: 16, borderRadius: 4),
-                  const SizedBox(height: 8),
-                  const ShimmerLoading(width: 80, height: 12, borderRadius: 4),
-                  const SizedBox(height: 12),
-                  const ShimmerLoading(width: double.infinity, height: 14, borderRadius: 4),
+                  ShimmerLoading(width: 120, height: 16, borderRadius: 4),
+                  SizedBox(height: 8),
+                  ShimmerLoading(width: 80, height: 12, borderRadius: 4),
+                  SizedBox(height: 12),
+                  ShimmerLoading(width: double.infinity, height: 14, borderRadius: 4),
                 ],
               ),
             ),
