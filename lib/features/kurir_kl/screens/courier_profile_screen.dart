@@ -433,7 +433,7 @@ class _RatingReviewBottomSheetState extends State<_RatingReviewBottomSheet> {
                               final String parsedDate = dateRaw.isNotEmpty 
                                 ? _formatDate(dateRaw) 
                                 : '';
-                              final int ratingVal = NyutjiParser.toDouble(rev['ratingCourier']).toInt();
+                              final int ratingVal = NyutjiParser.toDouble(rev['ratingCourier'] ?? rev['ratingMitra']).toInt();
 
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 8),
