@@ -163,7 +163,7 @@ class CourierTentangKl extends StatelessWidget {
                 Center(
                   child: Text(
                     "Nyutji Bersihnya, Nyutji Rapinya!",
-                    style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF0D9488), fontStyle: FontStyle.italic),
+                    style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w400, color: const Color(0xFF0D9488), fontStyle: FontStyle.italic),
                   ),
                 ),
                 const SizedBox(height: 16),
