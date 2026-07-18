@@ -249,6 +249,11 @@ class ApiService {
     return response.data['data'] ?? [];
   }
 
+  Future<List<dynamic>> getMyReviews() async {
+    final response = await _dio.get("/reviews/me");
+    return response.data['data'] ?? [];
+  }
+
   Future<List<dynamic>> getAllUsers() async {
     final response = await _dio.get("/admin/users");
     return response.data['data'] ?? [];
