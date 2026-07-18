@@ -481,11 +481,11 @@ class _RatingReviewBottomSheetState extends State<_RatingReviewBottomSheet> {
                                             style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.grey),
                                           ),
                                           const SizedBox(height: 8),
-                                          Text(
-                                            rev['comment'] ?? 'Tidak ada komentar',
-                                            style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: const Color(0xFF4B5563)),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
+                                          _ExpandableReviewText(
+                                            text: rev['comment'] ?? 'Tidak ada komentar',
+                                            customerName: customerName,
+                                            ratingVal: ratingVal,
+                                            parsedDate: parsedDate,
                                           ),
                                         ],
                                       ),
@@ -537,5 +537,188 @@ class _RatingReviewBottomSheetState extends State<_RatingReviewBottomSheet> {
     } catch (e) {
       return dateStr;
     }
+  }
+}
+class _ExpandableReviewText extends StatelessWidget {
+  final String text;
+  final String customerName;
+  final int ratingVal;
+  final String parsedDate;
+
+  const _ExpandableReviewText({
+    required this.text,
+    required this.customerName,
+    required this.ratingVal,
+    required this.parsedDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (text == 'Tidak ada komentar' || text.isEmpty) {
+      return Text(
+        text.isEmpty ? 'Tidak ada komentar' : text,
+        style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: const Color(0xFF4B5563)),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final style = GoogleFonts.montserrat(
+          fontSize: 12, 
+          fontWeight: FontWeight.w500, 
+          color: const Color(0xFF4B5563),
+        );
+        final span = TextSpan(text: text, style: style);
+        final tp = TextPainter(
+          text: span,
+          maxLines: 2,
+          textDirection: TextDirection.ltr,
+        );
+        tp.layout(maxWidth: constraints.maxWidth);
+
+        final bool isOverflowing = tp.didExceedMaxLines;
+
+        if (!isOverflowing) {
+          return Text(
+            text,
+            style: style,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          );
+        }
+
+        return GestureDetector(
+          onTap: () => _showReviewPopup(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                text,
+                style: style,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                "Baca selengkapnya",
+                style: GoogleFonts.montserrat(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showReviewPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          elevation: 0,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 16, right: 16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.blue[50],
+                          child: Text(
+                            customerName.substring(0, 1).toUpperCase(),
+                            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.blue[700]),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                customerName,
+                                style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1F2937)),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: List.generate(
+                                  5,
+                                  (starIdx) => Icon(
+                                    LucideIcons.star,
+                                    size: 14,
+                                    color: starIdx < ratingVal ? Colors.amber[700] : Colors.grey[300],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      parsedDate,
+                      style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Text(
+                          text,
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF4B5563), height: 1.5),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(ctx),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(LucideIcons.x, size: 18, color: Colors.red[700]),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
