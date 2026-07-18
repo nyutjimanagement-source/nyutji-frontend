@@ -412,7 +412,7 @@ class _RatingReviewBottomSheetState extends State<_RatingReviewBottomSheet> {
                       ),
                     )
                   : SizedBox(
-                      height: 320, // Approx height for 3 items
+                      height: 380, // Ditingkatkan agar 3 item + tombol "Baca selengkapnya" muat
                       child: PageView.builder(
                         physics: const BouncingScrollPhysics(),
                         itemCount: (_reviews.length / 3).ceil(),
