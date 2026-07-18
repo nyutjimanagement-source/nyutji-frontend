@@ -9,6 +9,8 @@ import '../../../core/utils/nyutji_parser.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../data/services/api_service.dart';
+import '../../../core/theme/theme_util.dart';
+import 'courier_tentang_kl.dart';
 
 class CourierProfileScreen extends ConsumerWidget {
   const CourierProfileScreen({super.key});
@@ -168,11 +170,11 @@ class CourierProfileScreen extends ConsumerWidget {
           children: [
             _ExpandableSettingsMenu(currentT: currentT, auth: auth, textDark: textDark),
           const Divider(height: 1),
-          _menuItem(LucideIcons.shield, currentT['security'], textDark),
-          const Divider(height: 1),
           _menuItem(LucideIcons.headphones, currentT['help'], textDark),
           const Divider(height: 1),
-          _menuItem(LucideIcons.info, currentT['about'], textDark),
+          _menuItem(LucideIcons.info, currentT['about'], textDark, onTap: () {
+            Navigator.push(context, RetroRoute(page: const CourierTentangKl()));
+          }),
         ],
       ),
       ),
@@ -213,8 +215,9 @@ class CourierProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _menuItem(IconData icon, String label, Color textDark) {
+  Widget _menuItem(IconData icon, String label, Color textDark, {VoidCallback? onTap}) {
     return ListTile(
+      onTap: onTap,
       leading: Icon(icon, color: textDark, size: 18),
       title: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textDark)),
       trailing: const Icon(LucideIcons.chevronRight, size: 14, color: Colors.grey),
