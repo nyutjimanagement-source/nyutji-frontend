@@ -46,11 +46,13 @@ class CourierProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                _buildVehicleCard(textDark, textGrey, currentT),
-                const SizedBox(height: 24),
                 _buildPerformanceSection(context, auth, textDark, textGrey, currentT),
                 const SizedBox(height: 24),
+                _buildVehicleCard(textDark, textGrey, currentT),
+                const SizedBox(height: 24),
                 _buildMenuSection(context, ref, auth, textDark, currentT),
+                const SizedBox(height: 24),
+                _buildLogoutButton(context, ref, auth, currentT),
                 SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
               ],
             ),
@@ -171,29 +173,42 @@ class CourierProfileScreen extends ConsumerWidget {
           _menuItem(LucideIcons.headphones, currentT['help'], textDark),
           const Divider(height: 1),
           _menuItem(LucideIcons.info, currentT['about'], textDark),
-          const Divider(height: 1),
-          ListTile(
-            onTap: () async {
-              // 1. Mantra penghancur (Rule II.6) untuk memori cache transaksi.
-              // Harus dieksekusi SEBELUM navigasi agar ref masih valid (mencegah StateError).
-              ref.invalidate(orderProvider);
-              ref.invalidate(walletProvider);
-              
-              // 2. Proses logout di auth (state direset eksplisit dengan delay 500ms internal
-              //    agar mencegah flash glitch "Abang Kurir").
-              await auth.logout();
-              
-              // 3. Navigasi kembali ke halaman login
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-              }
-            },
-            leading: const Icon(LucideIcons.logOut, color: Colors.red, size: 18),
-            title: Text(currentT['logout'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.red)),
-            trailing: const Icon(LucideIcons.chevronRight, size: 14, color: Colors.grey),
-          ),
         ],
       ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context, WidgetRef ref, AuthProvider auth, Map<String, dynamic> currentT) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          onTap: () async {
+            // 1. Mantra penghancur (Rule II.6) untuk memori cache transaksi.
+            // Harus dieksekusi SEBELUM navigasi agar ref masih valid (mencegah StateError).
+            ref.invalidate(orderProvider);
+            ref.invalidate(walletProvider);
+            
+            // 2. Proses logout di auth (state direset eksplisit dengan delay 500ms internal
+            //    agar mencegah flash glitch "Abang Kurir").
+            await auth.logout();
+            
+            // 3. Navigasi kembali ke halaman login
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            }
+          },
+          leading: const Icon(LucideIcons.logOut, color: Colors.red, size: 18),
+          title: Text(currentT['logout'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.red)),
+          trailing: const Icon(LucideIcons.chevronRight, size: 14, color: Colors.grey),
+        ),
       ),
     );
   }
