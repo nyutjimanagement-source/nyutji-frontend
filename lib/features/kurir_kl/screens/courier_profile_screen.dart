@@ -172,6 +172,7 @@ class CourierProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+      ),
     );
   }
 
