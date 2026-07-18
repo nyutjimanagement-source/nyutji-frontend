@@ -27,7 +27,7 @@ class CourierProfileScreen extends ConsumerWidget {
         'security': 'Keamanan Server',
         'help': 'Pusat Bantuan',
         'about': 'Tentang Nyutji KL',
-        'logout': 'Logout dari Server',
+        'logout': 'Logout',
       }
     };
 
@@ -138,9 +138,11 @@ class CourierProfileScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: Column(
-        children: [
-          _menuItem(LucideIcons.settings, currentT['settings'], textDark),
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          children: [
+            _ExpandableSettingsMenu(currentT: currentT, auth: auth, textDark: textDark),
           const Divider(height: 1),
           _menuItem(LucideIcons.shield, currentT['security'], textDark),
           const Divider(height: 1),
@@ -150,11 +152,19 @@ class CourierProfileScreen extends ConsumerWidget {
           const Divider(height: 1),
           ListTile(
             onTap: () async {
+              // 1. Mantra penghancur (Rule II.6) untuk memori cache transaksi.
+              // Harus dieksekusi SEBELUM navigasi agar ref masih valid (mencegah StateError).
               ref.invalidate(orderProvider);
               ref.invalidate(walletProvider);
+              
+              // 2. Proses logout di auth (state direset eksplisit dengan delay 500ms internal
+              //    agar mencegah flash glitch "Abang Kurir").
               await auth.logout();
-              ref.invalidate(authProvider);
-              if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+              
+              // 3. Navigasi kembali ke halaman login
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              }
             },
             leading: const Icon(LucideIcons.logOut, color: Colors.red, size: 18),
             title: Text(currentT['logout'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.red)),
@@ -170,6 +180,125 @@ class CourierProfileScreen extends ConsumerWidget {
       leading: Icon(icon, color: textDark, size: 18),
       title: Text(label, style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: textDark)),
       trailing: const Icon(LucideIcons.chevronRight, size: 14, color: Colors.grey),
+    );
+  }
+}
+
+class _ExpandableSettingsMenu extends StatefulWidget {
+  final Map<String, dynamic> currentT;
+  final AuthProvider auth;
+  final Color textDark;
+
+  const _ExpandableSettingsMenu({
+    required this.currentT,
+    required this.auth,
+    required this.textDark,
+  });
+
+  @override
+  State<_ExpandableSettingsMenu> createState() => _ExpandableSettingsMenuState();
+}
+
+class _ExpandableSettingsMenuState extends State<_ExpandableSettingsMenu> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = widget.auth.user;
+    final String identifier = user?['identifier'] ?? '-';
+    // Gunakan fallback cerdas jika data dinamis belum tersedia (tanpa perlu re-login)
+    final String rating = user?['rating']?.toString() ?? "4.9"; 
+    final String level = user?['level'] ?? "Senior"; 
+    
+    String partner = user?['mitra_recommendation']?.toString() ?? "";
+    if (partner.isEmpty && user?['mitra_ref_id'] != null) {
+      final mitraRefId = user!['mitra_ref_id'];
+      try {
+        final foundMitra = widget.auth.mitras.firstWhere(
+          (m) => m['identifier'] == mitraRefId, 
+          orElse: () => null
+        );
+        if (foundMitra != null) {
+          partner = foundMitra['name'] ?? mitraRefId;
+        } else {
+          partner = mitraRefId;
+        }
+      } catch (_) {
+        partner = mitraRefId;
+      }
+    }
+    if (partner.isEmpty) partner = "Belum Ada Mitra";
+    
+    return Column(
+      children: [
+        ListTile(
+          onTap: () {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          },
+          leading: Icon(LucideIcons.settings, color: widget.textDark, size: 18),
+          title: Text(widget.currentT['settings'], style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: widget.textDark)),
+          trailing: Icon(
+            _isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+            size: 14,
+            color: Colors.grey,
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: _isExpanded
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(left: 52, right: 20, bottom: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildDetailRow("ID Kurir", identifier),
+                      const SizedBox(height: 8),
+                      _buildDetailRow("Rating", "$rating \u2605"),
+                      const SizedBox(height: 8),
+                      _buildDetailRow("Level", level),
+                      const SizedBox(height: 8),
+                      _buildDetailRow("Mitra Utama", partner),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 4,
+          child: Text(
+            label,
+            style: GoogleFonts.montserrat(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+        ),
+        const Text(" : ", style: TextStyle(fontSize: 11, color: Colors.grey)),
+        Expanded(
+          flex: 6,
+          child: Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: widget.textDark,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -425,23 +425,35 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
     );
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 11) return 'Selamat Pagi';
+    if (hour < 15) return 'Selamat Siang';
+    if (hour < 18) return 'Selamat Sore';
+    return 'Selamat Malam';
+  }
+
   Widget _buildDynamicHeader(Map<String, dynamic> currentT) {
     if (_selectedNavIndex == 0) {
       return _buildCompactHeader(currentT);
     } else if (_selectedNavIndex == 1) {
-      return Consumer(builder: (context, ref, _) {
-        final auth = ref.watch(authProvider);
-        return _buildPageTitleHeader(
-            "Riwayat Tugas ${auth.user?['name'] ?? ''}", LucideIcons.history,
-            auth: auth, forceIcon: true);
-      });
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        color: bgColor,
+        width: double.infinity,
+        child: Text("Manajemen Pesanan",
+            style: GoogleFonts.montserrat(
+                fontSize: 20, fontWeight: FontWeight.w900, color: darkText)),
+      );
     } else if (_selectedNavIndex == 2) {
-      return Consumer(builder: (context, ref, _) {
-        final auth = ref.watch(authProvider);
-        return _buildPageTitleHeader(
-            "Dompet ${auth.user?['name'] ?? ''}", LucideIcons.wallet,
-            auth: auth, forceIcon: true);
-      });
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        color: bgColor,
+        width: double.infinity,
+        child: Text("Keuangan",
+            style: GoogleFonts.montserrat(
+                fontSize: 20, fontWeight: FontWeight.w900, color: darkText)),
+      );
     } else {
       return Consumer(builder: (context, ref, _) {
         final auth = ref.watch(authProvider);
@@ -526,22 +538,31 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.montserrat(
-                      fontSize: 13,
+                      fontSize: 15,
                       fontWeight: FontWeight.w800,
                       color: darkText,
                       letterSpacing: 0.2),
                 ),
-                Text(
-                  auth != null
-                      ? "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district${city.isNotEmpty ? ' - $city' : ''}"
-                      : "Nyutji Logistics Team",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                      fontSize: 10,
-                      color: textGrey,
-                      fontWeight: FontWeight.w600),
-                ),
+                if (district.isNotEmpty || auth == null)
+                  Text(
+                    auth != null ? district : "Nyutji Logistics Team",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        color: textGrey,
+                        fontWeight: FontWeight.w600),
+                  ),
+                if (city.isNotEmpty)
+                  Text(
+                    city,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        color: textGrey,
+                        fontWeight: FontWeight.w600),
+                  ),
               ],
             ),
           ),
@@ -579,125 +600,49 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
   }
 
   Widget _buildCompactHeader(Map<String, dynamic> currentT) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Consumer(
-                  builder: (context, ref, _) {
-                    final auth = ref.watch(authProvider);
-                    final photoUrl = auth.user?['profile_photo'];
-                    final localPhoto = auth.temporaryLocalPhoto;
-                    return GestureDetector(
-                      onTap: () => _pickImage(auth),
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: primaryTeal.withValues(alpha: 0.1),
-                          border:
-                              Border.all(color: Colors.grey[300]!, width: 1.5),
-                        ),
-                        child: kIsWeb
-                            ? (auth.temporaryWebBytes != null
-                                ? Container(
-                                    decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        image: DecorationImage(
-                                            image: MemoryImage(
-                                                auth.temporaryWebBytes),
-                                            fit: BoxFit.cover)))
-                                : (photoUrl != null &&
-                                        photoUrl.toString().isNotEmpty)
-                                    ? Container(
-                                        decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(
-                                                image:
-                                                    CachedNetworkImageProvider(
-                                                  ApiConstants.profilePhotoUrl(
-                                                      photoUrl),
-                                                ),
-                                                fit: BoxFit.cover)),
-                                      )
-                                    : Icon(LucideIcons.user,
-                                        color: primaryTeal, size: 20))
-                            : (localPhoto != null
-                                ? Container(
-                                    decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        image: DecorationImage(
-                                            image: FileImage(File(localPhoto)),
-                                            fit: BoxFit.cover)))
-                                : (photoUrl != null &&
-                                        photoUrl.toString().isNotEmpty)
-                                    ? Container(
-                                        decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(
-                                                image:
-                                                    CachedNetworkImageProvider(
-                                                        ApiConstants
-                                                            .profilePhotoUrl(
-                                                                photoUrl)),
-                                                fit: BoxFit.cover)),
-                                      )
-                                    : Icon(LucideIcons.user,
-                                        color: primaryTeal, size: 20)),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Consumer(builder: (context, ref, _) {
-                        final auth = ref.watch(authProvider);
-                        final district = auth.user?['owner_district_name'] ??
-                            auth.user?['district_name'] ??
-                            auth.user?['district_code'] ??
-                            "";
-                        final city = auth.user?['owner_city_name'] ??
-                            auth.user?['city_name'] ??
-                            "";
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(auth.user?['name'] ?? "Abang Kurir",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: darkText)),
-                            Text(
-                              "ID: ${auth.user?['identifier'] ?? '-'} \u2022 $district${city.isNotEmpty ? ' - $city' : ''}",
-                              style: GoogleFonts.montserrat(
-                                  fontSize: 10,
-                                  color: textGrey,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return Consumer(builder: (context, ref, _) {
+      final auth = ref.watch(authProvider);
+      final name = auth.user?['name'] ?? "Kurir";
+      final district = auth.user?['owner_district_name'] ??
+          auth.user?['district_name'] ??
+          auth.user?['district_code'] ??
+          "";
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        color: bgColor,
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_getGreeting(),
+                style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    color: textGrey,
+                    fontWeight: FontWeight.w500)),
+            const SizedBox(height: 2),
+            Text("Bapak $name",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: darkText)),
+            if (district.isNotEmpty) ...[
+              const SizedBox(height: 1),
+              Text(district,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      color: primaryTeal,
+                      fontWeight: FontWeight.w600)),
+            ]
+          ],
+        ),
+      );
+    });
   }
 
   // GPS STRIP — paling bawah layar
