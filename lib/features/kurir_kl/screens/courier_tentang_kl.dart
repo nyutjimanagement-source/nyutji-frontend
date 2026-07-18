@@ -80,11 +80,11 @@ class CourierTentangKl extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1F2937), size: 20),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F2937), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "Tentang Nyutji KL",
+          "Tentang Kurir Nyutji",
           style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: const Color(0xFF1F2937)),
         ),
       ),
@@ -106,15 +106,15 @@ class CourierTentangKl extends StatelessWidget {
               children: [
                 Center(
                   child: Image.asset(
-                    'assets/images/logo.png', // Fallback to icon if logo doesn't exist
-                    height: 60,
+                    'assets/images/logo_nyutji.png', // Fallback to icon if logo doesn't exist
+                    height: 90,
                     errorBuilder: (context, error, stackTrace) => const Icon(Icons.water_drop, size: 60, color: Color(0xFF0D9488)),
                   ),
                 ),
                 const SizedBox(height: 24),
                 Center(
                   child: Text(
-                    "🛵 Ketentuan & Kode Etik Kurir Nyutji",
+                    "Ketentuan & Kode Etik Kurir Nyutji",
                     style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF111827)),
                     textAlign: TextAlign.center,
                   ),

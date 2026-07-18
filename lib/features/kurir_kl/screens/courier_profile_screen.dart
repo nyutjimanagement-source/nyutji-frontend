@@ -170,7 +170,9 @@ class CourierProfileScreen extends ConsumerWidget {
           children: [
             _ExpandableSettingsMenu(currentT: currentT, auth: auth, textDark: textDark),
           const Divider(height: 1),
-          _menuItem(LucideIcons.headphones, currentT['help'], textDark),
+          _menuItem(LucideIcons.headphones, currentT['help'], textDark, onTap: () {
+            _showHelpPopup(context);
+          }),
           const Divider(height: 1),
           _menuItem(LucideIcons.info, currentT['about'], textDark, onTap: () {
             Navigator.push(context, RetroRoute(page: const CourierTentangKl()));
@@ -212,6 +214,118 @@ class CourierProfileScreen extends ConsumerWidget {
           trailing: const Icon(LucideIcons.chevronRight, size: 14, color: Colors.grey),
         ),
       ),
+    );
+  }
+
+  void _showHelpPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                margin: const EdgeInsets.only(top: 16, right: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text(
+                          "Butuh Bantuan Nyutji ?",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF0D9488),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "Tim Nyutji siap membantu kendala operasional, transaksi, atau aplikasi Anda. Hubungi kami melalui:",
+                        style: GoogleFonts.montserrat(
+                            fontSize: 13, color: Colors.grey[800], height: 1.5),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Email: support@nyutji.com",
+                        style: GoogleFonts.montserrat(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[800]),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Untuk pertanyaan umum, kendala teknis aplikasi, kemitraan, atau pengajuan keluhan tertulis",
+                        style: GoogleFonts.montserrat(
+                            fontSize: 12, color: Colors.grey[600], height: 1.4),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "WhatsApp Darurat: 0812-3456-7890",
+                        style: GoogleFonts.montserrat(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700]),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Butuh bantuan cepat terkait pakaian tertukar, pembatalan darurat, atau konfirmasi antar-jemput kritis",
+                        style: GoogleFonts.montserrat(
+                            fontSize: 12, color: Colors.grey[600], height: 1.4),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "Aktif setiap hari pkl 08.00 - 22.00 WIB. Mohon siapkan Nomor Nota Anda saat menghubungi kami.",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey[800],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: const Color(0xFF0D9488),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ]),
+                    child: const Icon(LucideIcons.x,
+                        color: Colors.white, size: 20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
