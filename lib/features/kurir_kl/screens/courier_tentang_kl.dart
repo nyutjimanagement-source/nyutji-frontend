@@ -81,7 +81,7 @@ class CourierTentangKl extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1F2937), size: 20),
-          onTap: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Tentang Nyutji KL",
