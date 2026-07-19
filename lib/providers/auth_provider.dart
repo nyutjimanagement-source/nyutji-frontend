@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,9 +19,18 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   List<dynamic> _pendingApprovals = [];
   List<dynamic> _allUsers = [];
   String? _lastErrorMessage;
+  Timer? _activityTimer;
 
   AuthProvider() {
     WidgetsBinding.instance.addObserver(this);
+    _startActivityTimer();
+  }
+
+  void _startActivityTimer() {
+    // Memperbarui waktu aktif terakhir setiap 5 menit selama aplikasi berjalan
+    _activityTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      _saveLastActiveTime();
+    });
   }
 
   bool _isDisposed = false;
@@ -28,6 +38,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void dispose() {
     _isDisposed = true;
+    _activityTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -217,6 +228,24 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<bool> checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    // Cek auto-logout 2 jam pada saat aplikasi baru dibuka (cold start)
+    final lastActive = prefs.getInt('nyutji_last_active');
+    if (lastActive != null) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final diff = now - lastActive;
+      const twoHoursInMs = 2 * 60 * 60 * 1000;
+      
+      if (diff > twoHoursInMs) {
+        debugPrint("User inactive for > 2 hours on startup. Auto logging out.");
+        await logout();
+        return false;
+      }
+    }
+    
+    // Update timestamp saat sesi berhasil direstore
+    await _saveLastActiveTime();
+
     _token = prefs.getString('token');
     _role = prefs.getString('role');
     
