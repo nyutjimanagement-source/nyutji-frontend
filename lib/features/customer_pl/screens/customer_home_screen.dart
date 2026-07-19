@@ -240,14 +240,19 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   }
 
   Widget _buildHeader(Map<String, dynamic> currentT, AuthProvider auth) {
-    final photoUrl = auth.user?['profile_photo'];
-    final localPhoto = auth.temporaryLocalPhoto;
     final district = auth.user?['owner_district_name'] ??
         auth.user?['district_name'] ??
         'Pamulang';
-    final city = auth.user?['owner_city_name'] ??
-        auth.user?['city_name'] ??
-        'Tangerang Selatan';
+
+    final hour = DateTime.now().hour;
+    String timeGreeting = 'Selamat Pagi';
+    if (hour >= 11 && hour < 15) {
+      timeGreeting = 'Selamat Siang';
+    } else if (hour >= 15 && hour < 18) {
+      timeGreeting = 'Selamat Sore';
+    } else if (hour >= 18 || hour < 4) {
+      timeGreeting = 'Selamat Malam';
+    }
 
     return ClipPath(
       clipper: HeaderClipper(),
@@ -259,58 +264,18 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: () => _pickImage(auth),
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white24, width: 2),
-                  color: Colors.white10,
-                  image: kIsWeb
-                      ? (auth.temporaryWebBytes != null
-                          ? DecorationImage(
-                              image: MemoryImage(auth.temporaryWebBytes!),
-                              fit: BoxFit.cover)
-                          : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                              ? DecorationImage(
-                                  image: CachedNetworkImageProvider(
-                                      ApiConstants.profilePhotoUrl(photoUrl)),
-                                  fit: BoxFit.cover)
-                              : null)
-                      : (localPhoto != null
-                          ? DecorationImage(
-                              image: FileImage(File(localPhoto)),
-                              fit: BoxFit.cover)
-                          : (photoUrl != null && photoUrl.toString().isNotEmpty)
-                              ? DecorationImage(
-                                  image: CachedNetworkImageProvider(
-                                      ApiConstants.profilePhotoUrl(photoUrl)),
-                                  fit: BoxFit.cover)
-                              : null),
-                ),
-                child: (localPhoto == null &&
-                        auth.temporaryWebBytes == null &&
-                        (photoUrl == null || photoUrl.toString().isEmpty))
-                    ? const Icon(LucideIcons.user,
-                        color: Colors.white70, size: 28)
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(timeGreeting,
+                      style: NyutjiTheme.detail(Colors.white70).copyWith(fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
                   Text(auth.user?['name'] ?? currentT['greeting'],
                       style:
                           NyutjiTheme.h2(Colors.white).copyWith(fontSize: 18)),
                   const SizedBox(height: 2),
                   Text(district,
-                      style: NyutjiTheme.detail(Colors.white70)
-                          .copyWith(fontSize: 13)),
-                  Text(city,
                       style: NyutjiTheme.detail(Colors.white70)
                           .copyWith(fontSize: 13)),
                 ],

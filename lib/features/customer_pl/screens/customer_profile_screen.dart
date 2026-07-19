@@ -323,8 +323,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                                 height: 14, width: 120, borderRadius: 4)
                             : Text(
                                 "$district, $city",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                                 style: NyutjiTheme.detail(Colors.white70)
                                     .copyWith(fontSize: 13),
                               ),
@@ -403,43 +401,44 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                               style: NyutjiTheme.h3(const Color(0xFF403600))
                                   .copyWith(fontSize: 12)),
                           const Spacer(),
-                          GestureDetector(
-                            onTap: () async {
-                              final result = await showModalBottomSheet<
-                                  NyutjiLocationResult>(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) =>
-                                    const NyutjiLocationPicker(),
-                              );
-                              if (result != null && mounted) {
-                                final success = await auth.updateLocation({
-                                  'address': result.address,
-                                  'district_name': result.subdistrict,
-                                  'city_name': result.city,
-                                  'lat': result.lat,
-                                  'lng': result.lng,
-                                  'address_detail': addressDetail,
-                                });
-                                if (success && mounted) {
-                                  NyutjiNotif.showSuccess(
-                                      context, "Alamat Rumah Telah Disimpan");
+                          if (hasAddress)
+                            GestureDetector(
+                              onTap: () async {
+                                final result = await showModalBottomSheet<
+                                    NyutjiLocationResult>(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) =>
+                                      const NyutjiLocationPicker(),
+                                );
+                                if (result != null && mounted) {
+                                  final success = await auth.updateLocation({
+                                    'address': result.address,
+                                    'district_name': result.subdistrict,
+                                    'city_name': result.city,
+                                    'lat': result.lat,
+                                    'lng': result.lng,
+                                    'address_detail': addressDetail,
+                                  });
+                                  if (success && mounted) {
+                                    NyutjiNotif.showSuccess(
+                                        context, "Alamat Rumah Telah Disimpan");
+                                  }
                                 }
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.blueAccent.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blueAccent.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text("Edit",
+                                    style: NyutjiTheme.detail(Colors.blueAccent)
+                                        .copyWith(fontWeight: FontWeight.bold)),
                               ),
-                              child: Text("Edit",
-                                  style: NyutjiTheme.detail(Colors.blueAccent)
-                                      .copyWith(fontWeight: FontWeight.bold)),
                             ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -461,9 +460,34 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       ],
                       const SizedBox(height: 16),
                       GestureDetector(
-                        onTap: () {
-                          NyutjiNotif.showInfo(
-                              context, "Fitur Tambah Alamat akan segera hadir");
+                        onTap: () async {
+                          if (hasAddress) {
+                            NyutjiNotif.showInfo(
+                                context, "Fitur Tambah Alamat akan segera hadir");
+                          } else {
+                            final result = await showModalBottomSheet<
+                                NyutjiLocationResult>(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) =>
+                                  const NyutjiLocationPicker(),
+                            );
+                            if (result != null && mounted) {
+                              final success = await auth.updateLocation({
+                                'address': result.address,
+                                'district_name': result.subdistrict,
+                                'city_name': result.city,
+                                'lat': result.lat,
+                                'lng': result.lng,
+                                'address_detail': addressDetail,
+                              });
+                              if (success && mounted) {
+                                NyutjiNotif.showSuccess(
+                                    context, "Alamat Rumah Telah Disimpan");
+                              }
+                            }
+                          }
                         },
                         child: Container(
                           width: double.infinity,
@@ -480,6 +504,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                                       fontSize: 13)),
                         ),
                       ),
+
                     ],
                   ),
                 )
