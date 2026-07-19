@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'dart:async';
 import 'dart:math' show cos, sqrt, asin;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
@@ -136,25 +134,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     _promoController.dispose();
     _mainScrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage(AuthProvider auth) async {
-    NyutjiImagePicker.show(
-      context,
-      title: "Pilih Foto Profil",
-      primaryColor: const Color(0xFF403600),
-      currentImageUrl: auth.user?['profile_photo'],
-      onImagePicked: (XFile file) async {
-        final success = await auth.updateProfilePhoto(file);
-        if (mounted) {
-          if (success) {
-            NyutjiNotif.showSuccess(context, "Foto profil diperbarui");
-          } else {
-            NyutjiNotif.showError(context, "Gagal unggah foto");
-          }
-        }
-      },
-    );
   }
 
   @override
