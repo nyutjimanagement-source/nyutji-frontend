@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 
 import '../../../providers/chat_provider.dart';
 import '../../../data/models/chat_message_model.dart';
-import '../../../data/services/api_service.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -149,22 +148,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _scrollToBottom();
   }
 
-  Future<void> _initiateCall() async {
-    try {
-      final result = await ApiService()
-          .initiateCall(widget.orderNumber, widget.channel);
-      if (mounted) {
-        NyutjiNotif.showInfo(
-          context,
-          'Memanggil ${widget.partnerName}... Room: ${result['roomId'] ?? ''}',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        NyutjiNotif.showError(context, 'Gagal melakukan panggilan: $e');
-      }
-    }
-  }
 
   @override
   void dispose() {
@@ -336,6 +319,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ],
       ),
+      // ignore: prefer_const_literals_to_create_immutables
       actions: [
         // TODO: Aktifkan saat VoIP/WebRTC siap diimplementasikan
         // Tombol Panggilan — disembunyikan sementara (Coming Soon)
