@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 import 'dart:math' show cos, sqrt, asin;
 import 'dart:convert';
@@ -23,7 +22,6 @@ import '../../../core/utils/status_helper.dart';
 import 'customer_wallet_screen.dart';
 import 'customer_main_screen.dart';
 import 'customer_scheduler_screen.dart';
-import '../../../core/widgets/nyutji_image_picker.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -252,7 +250,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                   const SizedBox(height: 2),
                   Text(auth.user?['name'] ?? currentT['greeting'],
                       style:
-                          NyutjiTheme.h2(Colors.white).copyWith(fontSize: 18)),
+                          NyutjiTheme.h2(Colors.white).copyWith(fontSize: 20)),
                   const SizedBox(height: 2),
                   Text(district,
                       style: NyutjiTheme.detail(Colors.white70)
