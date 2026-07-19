@@ -762,7 +762,6 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -771,8 +770,12 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               offset: const Offset(0, 4))
         ],
       ),
-      child: Theme(
-        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: Theme(
+          data: ThemeData().copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           iconColor: const Color(0xFF556B2F),
           collapsedIconColor: const Color(0xFF403600),
@@ -792,6 +795,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
