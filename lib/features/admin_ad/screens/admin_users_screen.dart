@@ -11,6 +11,11 @@ import '../../../core/utils/nyutji_distance.dart';
 import 'admin_approval.dart';
 import 'admin_qrcode_generate.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import 'dart:io';
+import 'dart:async';
+import 'package:image_picker/image_picker.dart';
+import 'package:gal/gal.dart';
+import '../../../core/widgets/nyutji_image_picker.dart';
 
 class AdminUsersScreen extends ConsumerStatefulWidget {
   const AdminUsersScreen({super.key});
@@ -95,6 +100,8 @@ class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
             _buildAdminStatsGrid(context),
             const SizedBox(height: 24),
             _buildCourierPricingCard(),
+            const SizedBox(height: 24),
+            _buildImageConversionMenu(),
             const SizedBox(height: 24),
             _buildNRCFSimulator(),
             const SizedBox(height: 24),
@@ -1397,6 +1404,52 @@ final authData = ref.watch(authProvider);
     );
   }
 
+  // --- IMAGE CONVERSION MENU ---
+  Widget _buildImageConversionMenu() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: InkWell(
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const ImageConversionSheet(),
+          );
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: Colors.purple[50], shape: BoxShape.circle),
+                child: const Icon(LucideIcons.image, color: Colors.purple, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Conversi Gambar Webp", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: darkGray)),
+                    Text("Kompres gambar hingga 90%", style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey)),
+                  ],
+                ),
+              ),
+              const Icon(LucideIcons.chevronRight, size: 18, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // --- NRCF SIMULATOR CARD ---
   Widget _buildNRCFSimulator() {
     final roadDist = NyutjiDistance.calculateRoadDistance(_rawDistance);
@@ -1494,6 +1547,208 @@ final authData = ref.watch(authProvider);
             const Icon(LucideIcons.chevronRight, size: 14, color: Colors.grey),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ImageConversionSheet extends StatefulWidget {
+  const ImageConversionSheet({super.key});
+
+  @override
+  State<ImageConversionSheet> createState() => _ImageConversionSheetState();
+}
+
+class _ImageConversionSheetState extends State<ImageConversionSheet> {
+  File? _selectedImage;
+  XFile? _compressedImage;
+  bool _isConverting = false;
+  double _progress = 0.0;
+  bool _isDone = false;
+
+  static const Color primaryTeal = Color(0xFF1E5655);
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+    if (picked != null) {
+      setState(() {
+        _selectedImage = File(picked.path);
+        _compressedImage = null;
+        _isConverting = false;
+        _progress = 0.0;
+        _isDone = false;
+      });
+    }
+  }
+
+  Future<void> _startConversion() async {
+    if (_selectedImage == null) return;
+    setState(() {
+      _isConverting = true;
+      _progress = 0.0;
+    });
+
+    // Simulasi loading bar
+    Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _progress += 0.05;
+      });
+      if (_progress >= 1.0) {
+        timer.cancel();
+        _finishConversion();
+      }
+    });
+  }
+
+  Future<void> _finishConversion() async {
+    if (_selectedImage == null) return;
+    
+    try {
+      final xfile = XFile(_selectedImage!.path);
+      final result = await NyutjiImagePicker.compressToWebP(xfile);
+      
+      if (mounted) {
+        setState(() {
+          _compressedImage = result;
+          _isConverting = false;
+          _isDone = true;
+          _progress = 1.0;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isConverting = false;
+          _progress = 0.0;
+        });
+        NyutjiNotif.showError(context, "Gagal mengonversi gambar");
+      }
+    }
+  }
+
+  Future<void> _saveToGallery() async {
+    if (_compressedImage == null) return;
+    try {
+      final lastSlash = _compressedImage!.path.lastIndexOf(RegExp(r'[/\\]'));
+      final dir = _compressedImage!.path.substring(0, lastSlash);
+      final randomName = "IMG_${DateTime.now().millisecondsSinceEpoch}.webp";
+      final newPath = "$dir/$randomName";
+      final File renamed = await File(_compressedImage!.path).copy(newPath);
+      
+      await Gal.putImage(renamed.path);
+      
+      if (mounted) {
+        NyutjiNotif.showSuccess(context, "Gambar berhasil disimpan ke Galeri");
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        NyutjiNotif.showError(context, "Gagal menyimpan gambar: $e");
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(
+        left: 24, right: 24, top: 16,
+        bottom: MediaQuery.of(context).padding.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              const Icon(LucideIcons.image, color: primaryTeal, size: 24),
+              const SizedBox(width: 12),
+              Text("Conversi Gambar Webp", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          
+          if (_selectedImage == null)
+            InkWell(
+              onTap: _pickImage,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: double.infinity,
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.uploadCloud, color: Colors.grey, size: 32),
+                    const SizedBox(height: 8),
+                    Text("Upload Gambar", style: GoogleFonts.montserrat(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            )
+          else
+            Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.file(_selectedImage!, height: 200, width: double.infinity, fit: BoxFit.cover),
+                ),
+                const SizedBox(height: 16),
+                if (_isConverting)
+                  Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: _progress, 
+                          color: primaryTeal, 
+                          backgroundColor: primaryTeal.withOpacity(0.1),
+                          minHeight: 8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text("Mengonversi... ${(_progress * 100).toInt()}%", style: GoogleFonts.montserrat(fontSize: 12, color: primaryTeal, fontWeight: FontWeight.bold)),
+                    ],
+                  )
+                else if (_isDone)
+                  InkWell(
+                    onTap: _saveToGallery,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(color: primaryTeal, borderRadius: BorderRadius.circular(12)),
+                      alignment: Alignment.center,
+                      child: Text("Simpan File", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  )
+                else
+                  InkWell(
+                    onTap: _startConversion,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(12)),
+                      alignment: Alignment.center,
+                      child: Text("Konversi", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+              ],
+            ),
+        ],
       ),
     );
   }

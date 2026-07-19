@@ -161,47 +161,55 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
             child: Align(
               alignment: Alignment.topCenter,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                padding: const EdgeInsets.only(top: 24, bottom: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final imageWidth = math.min(300.0, constraints.maxWidth);
-                        return Image.asset(
-                          'assets/images/54000407.webp',
-                          width: imageWidth,
-                          fit: BoxFit.fitWidth,
-                          alignment: Alignment.topCenter,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    Text("Belum Ada Pesanan Aktif",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkBg)),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Buat pesanan laundry pertamamu\ndan pantau statusnya di sini secara real-time.",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.6),
-                    ),
-                    const SizedBox(height: 32),
                     GestureDetector(
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const CustomerOrderScreen(orderType: 'pickup')),
                       ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: primaryTeal,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))],
-                        ),
-                        child: Text("Buat Pesanan",
-                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
+                      child: Image.asset(
+                        'assets/images/54000407.webp',
+                        width: double.infinity,
+                        fit: BoxFit.fitWidth,
+                        alignment: Alignment.topCenter,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          Text("Belum Ada Pesanan Aktif",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkBg)),
+                          const SizedBox(height: 10),
+                          Text(
+                            "Buat pesanan laundry pertamamu\ndan pantau statusnya di sini secara real-time.",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.6),
+                          ),
+                          const SizedBox(height: 32),
+                          GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CustomerOrderScreen(orderType: 'pickup')),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: primaryTeal,
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))],
+                              ),
+                              child: Text("Buat Pesanan",
+                                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
