@@ -21,6 +21,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   static const Color textGrey = Color(0xFF6B7280);
 
   late TabController _tabController;
+  final ScrollController _tabScrollController = ScrollController();
   DateTime _selectedMonth = DateTime.now();
   DateTime _activeDate = DateTime.now();
 
@@ -54,6 +55,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
     _tabController.addListener(() {
       if (mounted) {
         setState(() {});
+        _scrollToSelectedTab();
       }
     });
     _loadAllKinerjaData();
@@ -62,7 +64,21 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
   @override
   void dispose() {
     _tabController.dispose();
+    _tabScrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToSelectedTab() {
+    if (!_tabScrollController.hasClients) return;
+    const double tabWidth = 95.0;
+    final double targetOffset = _tabController.index * tabWidth;
+    final double maxScroll = _tabScrollController.position.maxScrollExtent;
+    final double clampedOffset = targetOffset.clamp(0.0, maxScroll);
+    _tabScrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutQuint,
+    );
   }
 
   // --- LOCAL CACHE OPERATIONS ---
@@ -317,10 +333,9 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
               
               final int selectedIndex = _tabController.index;
               
-              Widget tabBarContent = Container(
+              Widget tabBarItems = SizedBox(
                 height: 50,
                 width: totalWidth,
-                color: Colors.white,
                 child: Stack(
                   children: [
                     Row(
@@ -360,14 +375,21 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
                 ),
               );
 
-              if (isScrollable) {
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: tabBarContent,
-                );
-              }
-              return tabBarContent;
+              Widget content = isScrollable
+                  ? SingleChildScrollView(
+                      controller: _tabScrollController,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: tabBarItems,
+                    )
+                  : tabBarItems;
+
+              return Container(
+                height: 50,
+                width: constraints.maxWidth,
+                color: Colors.white,
+                child: content,
+              );
             }
           ),
         ),
@@ -470,7 +492,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -632,7 +654,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1260,7 +1282,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
             physics: const BouncingScrollPhysics(),
             itemCount: chemicals.length,
             itemBuilder: (context, index) {
@@ -1460,7 +1482,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
             physics: const BouncingScrollPhysics(),
             itemCount: employees.length,
             itemBuilder: (ctx, index) {
@@ -1895,7 +1917,7 @@ class _MitraKinerjaScreenState extends ConsumerState<MitraKinerjaScreen> with Si
 
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
             physics: const BouncingScrollPhysics(),
             children: [
               _buildCostingCard(

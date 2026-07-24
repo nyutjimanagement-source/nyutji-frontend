@@ -540,8 +540,8 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
               child: Text(
                 "Manajemen Pesanan",
                 style: GoogleFonts.montserrat(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                   color: Colors.white,
                   letterSpacing: -0.5,
                 ),

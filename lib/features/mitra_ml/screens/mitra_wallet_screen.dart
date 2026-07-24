@@ -307,9 +307,9 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
                     Text(
                       "Dompet Utama Mitra",
                       style: GoogleFonts.montserrat(
-                        fontSize: 14,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -501,8 +501,8 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
                   child: Text("Belum ada review.", style: GoogleFonts.montserrat(color: Colors.grey)),
                 )
               else
-                SizedBox(
-                  height: 310, // Memberikan ruang cukup untuk 3 baris list card vertikal
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.45),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
@@ -565,14 +565,49 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      rv['comment'],
-                                      style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700], height: 1.4),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                                     const SizedBox(height: 6),
+                                     StatefulBuilder(
+                                       builder: (context, setRvState) {
+                                         final bool isExpanded = rv['isExpanded'] == true;
+                                         final String commentStr = rv['comment']?.toString() ?? '';
+                                         final bool isLong = commentStr.length > 70;
+
+                                         return AnimatedSize(
+                                           duration: const Duration(milliseconds: 300),
+                                           curve: Curves.easeInOut,
+                                           child: Column(
+                                             crossAxisAlignment: CrossAxisAlignment.start,
+                                             children: [
+                                               Text(
+                                                 commentStr,
+                                                 style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700], height: 1.4),
+                                                 maxLines: isExpanded ? null : 2,
+                                                 overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                                               ),
+                                               if (isLong) ...[
+                                                 const SizedBox(height: 4),
+                                                 GestureDetector(
+                                                   onTap: () {
+                                                     setRvState(() {
+                                                       rv['isExpanded'] = !isExpanded;
+                                                     });
+                                                   },
+                                                   child: Text(
+                                                     isExpanded ? "Sembunyikan" : "Baca Selengkapnya",
+                                                     style: GoogleFonts.montserrat(
+                                                       fontSize: 12,
+                                                       fontWeight: FontWeight.bold,
+                                                       color: darkText,
+                                                     ),
+                                                   ),
+                                                 ),
+                                               ],
+                                             ],
+                                           ),
+                                         );
+                                       },
+                                     ),
+                                   ],
                                 ),
                               );
                             }).toList(),

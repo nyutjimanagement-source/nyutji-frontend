@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'dart:async';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../core/widgets/forecast_weather.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/nyutji_dot.dart';
@@ -21,7 +18,6 @@ import 'mitra_order_screen.dart';
 import 'mitra_pricing_screen.dart';
 import 'mitra_inventory_screen.dart';
 import 'mitra_pos_screen.dart';
-import '../../../core/widgets/nyutji_image_picker.dart';
 import 'mitra_profile_screen.dart';
 import 'mitra_mesin.dart';
 import 'mitra_kinerja_screen.dart';
@@ -119,6 +115,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
     final hasPin = wallet.hasPin;
     final hasCouriers = auth.couriers.isNotEmpty;
     final showTokoRedDot = !hasAddress || !hasBank || !hasQris || !hasPin || !hasCouriers;
+    final showBerandaRedDot = ref.watch(orderProvider).activeOrders.isNotEmpty;
 
     final Map<String, dynamic> t = {
       'id': {'logout': 'Keluar Akun'},
@@ -151,57 +148,15 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
               ],
             ),
           ),
-          SafeArea(top: false, child: _buildBottomNav(primaryTeal, showTokoRedDot)),
+          SafeArea(top: false, child: _buildBottomNav(primaryTeal, showTokoRedDot, showBerandaRedDot)),
         ],
       ),
     );
   }
 
-  Future<void> _pickImage(AuthProvider auth) async {
-    NyutjiImagePicker.show(
-      context,
-      title: "Pilih Foto Profil Toko",
-      primaryColor: primaryTeal,
-      currentImageUrl: auth.user?['profile_photo'],
-      onImagePicked: (XFile file) async {
-        final success = await auth.updateProfilePhoto(file);
-        if (mounted) _showBeautifulNotif(success ? "Foto profil berhasil diperbarui" : "Gagal mengunggah foto", success);
-      },
-    );
-  }
 
-  void _showBeautifulNotif(String message, bool success) {
-    late OverlayEntry overlayEntry;
-    overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 10,
-        left: 20,
-        right: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: success ? primaryTeal : const Color(0xFFC3312E),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
-            ),
-            child: Row(
-              children: [
-                Icon(success ? LucideIcons.checkCircle : LucideIcons.alertTriangle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text(message, style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(context).insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) overlayEntry.remove();
-    });
-  }
+
+
 
   // === DENSE HOME TAB (COMMAND CENTER) ===
   Widget _buildHomeTab(Map<String, dynamic>? currentT) {
@@ -252,102 +207,50 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
     );
   }
 
-  Widget _buildProfileImage(AuthProvider auth, dynamic photoUrl, String? localPhoto) {
-    if (localPhoto == null && auth.temporaryWebBytes == null && (photoUrl == null || photoUrl.toString().isEmpty)) {
-      return const Icon(LucideIcons.store, color: Colors.white, size: 20);
-    }
-    
-    if (kIsWeb) {
-      if (auth.temporaryWebBytes != null) {
-        return Image.memory(auth.temporaryWebBytes!, fit: BoxFit.cover, gaplessPlayback: true);
-      }
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 3 && hour < 11) {
+      return "Selamat Pagi Bapak/Ibu,";
+    } else if (hour >= 11 && hour < 15) {
+      return "Selamat Siang Bapak/Ibu,";
+    } else if (hour >= 15 && hour < 18) {
+      return "Selamat Sore Bapak/Ibu,";
     } else {
-      if (localPhoto != null) {
-        return Image.file(File(localPhoto), fit: BoxFit.cover, gaplessPlayback: true);
-      }
+      return "Selamat Malam Bapak/Ibu,";
     }
-    
-    final url = ApiConstants.profilePhotoUrl(photoUrl);
-        
-    return Image.network(
-      url, 
-      fit: BoxFit.cover, 
-      gaplessPlayback: true,
-      errorBuilder: (_, __, ___) => const Icon(LucideIcons.store, color: Colors.white, size: 20),
-    );
   }
 
   Widget _buildDenseHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       color: Colors.transparent,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Consumer(
-                  builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-                    final photoUrl = auth.user?['profile_photo'];
-                    final localPhoto = auth.temporaryLocalPhoto;
-                    return GestureDetector(
-                      onTap: () => _pickImage(auth),
-                      child: Container(
-                        width: 60, height: 60,
-                        decoration: const BoxDecoration(
-                          color: primaryTeal,
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipOval(
-                          child: _buildProfileImage(auth, photoUrl, localPhoto),
-                        ),
-                      ),
-                    );
-                  }
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Consumer(
-                        builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-return Text(
-                          auth.user?['name'] ?? "Berkah Laundry", 
-                          style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.w900, color: darkText)
-                        );
-}),
-                      Consumer(
-                        builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-return Text(
-                          "ID: ${auth.user?['identifier'] ?? '-'}", 
-                          style: GoogleFonts.montserrat(fontSize: 13, color: textGrey, fontWeight: FontWeight.w600)
-                        );
-}),
-                      const SizedBox(height: 2),
-                      Consumer(
-                        builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-                          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? "-";
-                          final city = auth.user?['owner_city_name'] ?? auth.user?['city_name'] ?? "-";
-                          return Text(
-                            "$district - $city", 
-                            style: GoogleFonts.montserrat(fontSize: 12, color: primaryTeal, fontWeight: FontWeight.bold)
-                          );
-                        }
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      child: Consumer(
+        builder: (context, ref, _) {
+          final auth = ref.watch(authProvider);
+          final name = auth.user?['name'] ?? "Berkah Laundry";
+          final district = auth.user?['owner_district_name'] ?? auth.user?['district_name'] ?? auth.user?['district'] ?? "-";
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _getGreeting(),
+                style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: textGrey),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                name,
+                style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.bold, color: darkText),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                district,
+                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTeal),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -752,6 +655,21 @@ final orderProv = ref.watch(orderProvider);
 
 
   // === BOTTOM NAV ===
+  Widget _buildBerandaTabIcon(bool isActive, bool showRedDot) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(LucideIcons.layoutDashboard, size: 20, color: isActive ? primaryTeal : textGrey.withValues(alpha: 0.6)),
+        if (showRedDot)
+          const Positioned(
+            top: -2,
+            right: -2,
+            child: NyutjiDot.static(),
+          ),
+      ],
+    );
+  }
+
   Widget _buildTokoTabIcon(bool isActive, bool showRedDot) {
     return Stack(
       clipBehavior: Clip.none,
@@ -767,7 +685,7 @@ final orderProv = ref.watch(orderProvider);
     );
   }
 
-  Widget _buildBottomNav(Color activeColor, bool showRedDot) {
+  Widget _buildBottomNav(Color activeColor, bool showTokoRedDot, bool showBerandaRedDot) {
     return Container(
       decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))]),
       child: LayoutBuilder(
@@ -777,12 +695,16 @@ final orderProv = ref.watch(orderProvider);
             children: [
               BottomNavigationBar(
                 items: <BottomNavigationBarItem>[
-                  const BottomNavigationBarItem(icon: Icon(LucideIcons.layoutDashboard, size: 20), activeIcon: Icon(LucideIcons.layoutDashboard, size: 20), label: "Beranda"),
+                  BottomNavigationBarItem(
+                    icon: _buildBerandaTabIcon(false, showBerandaRedDot), 
+                    activeIcon: _buildBerandaTabIcon(true, showBerandaRedDot), 
+                    label: "Beranda"
+                  ),
                   const BottomNavigationBarItem(icon: Icon(LucideIcons.clipboardList, size: 20), activeIcon: Icon(LucideIcons.clipboardList, size: 20), label: "Pesanan"),
                   const BottomNavigationBarItem(icon: Icon(LucideIcons.wallet, size: 20), activeIcon: Icon(LucideIcons.wallet, size: 20), label: "Dompet"),
                   BottomNavigationBarItem(
-                    icon: _buildTokoTabIcon(false, showRedDot), 
-                    activeIcon: _buildTokoTabIcon(true, showRedDot), 
+                    icon: _buildTokoTabIcon(false, showTokoRedDot), 
+                    activeIcon: _buildTokoTabIcon(true, showTokoRedDot), 
                     label: "Toko"
                   ),
                 ],

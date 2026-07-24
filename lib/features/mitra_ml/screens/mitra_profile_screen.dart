@@ -169,10 +169,8 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
               final localPhoto = auth.temporaryLocalPhoto;
               final district = auth.user?['owner_district_name'] ??
                   auth.user?['district_name'] ??
+                  auth.user?['district'] ??
                   "Kecamatan";
-              final city = auth.user?['owner_city_name'] ??
-                  auth.user?['city_name'] ??
-                  "Kota/Kabupaten";
 
               return Row(
                 children: [
@@ -198,15 +196,10 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
                         Text(auth.user?['name'] ?? "Berkah Laundry",
                             style: GoogleFonts.montserrat(
                                 fontSize: 20,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: FontWeight.bold,
                                 color: darkText)),
-                        Text("ID: ${auth.user?['identifier'] ?? '-'}",
-                            style: GoogleFonts.montserrat(
-                                fontSize: 13,
-                                color: textGrey,
-                                fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 2),
-                        Text("$district - $city",
+                        const SizedBox(height: 4),
+                        Text(district,
                             style: GoogleFonts.montserrat(
                                 fontSize: 12,
                                 color: primaryTeal,
@@ -269,30 +262,42 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
                   _buildExpandableAccountMenu(auth),
                   const Divider(height: 1),
                   _buildExpandableQrisMenu(auth),
-                  const Divider(height: 1),
-                  Consumer(builder: (context, ref, _) {
-                    final auth = ref.watch(authProvider);
-                    return GestureDetector(
-                      onTap: () async {
-                        try {
-                          ref.invalidate(orderProvider);
-                          ref.invalidate(walletProvider);
-                          await auth.logout();
-                          if (!context.mounted) return;
-                          Navigator.pushReplacementNamed(context, '/login');
-                        } catch (e) {
-                          if (!context.mounted) return;
-                        }
-                      },
-                      child: _buildMenuItem(LucideIcons.logOut,
-                          widget.currentT?['logout'] ?? 'Keluar Akun', true),
-                    );
-                  })
                 ],
               ),
             ), // Closing Material
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 16),
+          // Separate Logout Button Card
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[200]!)),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              clipBehavior: Clip.antiAlias,
+              child: Consumer(builder: (context, ref, _) {
+                final auth = ref.watch(authProvider);
+                return GestureDetector(
+                  onTap: () async {
+                    try {
+                      ref.invalidate(orderProvider);
+                      ref.invalidate(walletProvider);
+                      await auth.logout();
+                      if (!context.mounted) return;
+                      Navigator.pushReplacementNamed(context, '/login');
+                    } catch (e) {
+                      if (!context.mounted) return;
+                    }
+                  },
+                  child: _buildMenuItem(LucideIcons.logOut, 'Logout', true),
+                );
+              }),
+            ),
+          ),
+          SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
         ],
       ),
     );
