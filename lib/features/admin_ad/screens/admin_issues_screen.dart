@@ -9,6 +9,7 @@ import '../../../providers/issue_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import 'admin_ai_list_laundry.dart';
 
 class AdminIssuesScreen extends ConsumerStatefulWidget {
   const AdminIssuesScreen({super.key});
@@ -139,7 +140,7 @@ class _AdminIssuesScreenState extends ConsumerState<AdminIssuesScreen> with Tick
             _buildLiveIssuesSection(provider),
             const SizedBox(height: 24),
             _buildOperationalReferences(),
-            const SizedBox(height: 40),
+            SizedBox(height: 40 + MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
@@ -472,6 +473,45 @@ class _AdminIssuesScreenState extends ConsumerState<AdminIssuesScreen> with Tick
               _buildRefCard("Kontak Darurat", LucideIcons.phoneCall, Colors.orange),
               _buildRefCard("Log Bantuan", LucideIcons.clipboardList, Colors.indigo),
             ],
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => const AdminAiListLaundryScreen(),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeOutCubic;
+                    final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    return SlideTransition(position: animation.drive(tween), child: child);
+                  },
+                ),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: NyutjiTheme.cardDecoration(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(LucideIcons.listFilter, color: NyutjiTheme.adPrimary, size: 18),
+                      const SizedBox(width: 10),
+                      Text(
+                        "List Operator Laundry di Kab/Kota",
+                        style: NyutjiTheme.h3(NyutjiTheme.darkText),
+                      ),
+                    ],
+                  ),
+                  const Icon(LucideIcons.chevronRight, color: NyutjiTheme.textGrey, size: 18),
+                ],
+              ),
+            ),
           ),
         ],
       ),

@@ -811,25 +811,131 @@ return Text(
   }
 
   Widget _buildCompactActivityLog() {
+    final orderProv = ref.watch(orderProvider);
+    final activeOrders = orderProv.activeOrders.where((o) {
+      if (o is! Map) return false;
+      final status = (o['order_status'] ?? o['status'] ?? '').toString().toLowerCase();
+      return status != 'done' &&
+          status != 'paid' &&
+          status != 'selesai' &&
+          status != 'completed' &&
+          status != 'batal' &&
+          status != 'cancelled' &&
+          status != 'draft';
+    }).toList();
+
+    // Mapping per identifier ML & KL
+    final Map<String, List<dynamic>> mlOrders = {};
+    final Map<String, List<dynamic>> klOrders = {};
+
+    for (var raw in activeOrders) {
+      if (raw is! Map) continue;
+      final o = Map<String, dynamic>.from(raw);
+
+      final String? mlId = (o['mitra_identifier'] ??
+              o['mitra_id'] ??
+              o['mitraId'] ??
+              (o['mitra'] is Map ? o['mitra']['identifier'] : null))
+          ?.toString();
+
+      final String? klId = (o['kurir_identifier'] ??
+              o['courier_identifier'] ??
+              o['kurir_id'] ??
+              o['kurirId'] ??
+              o['courier_id'] ??
+              o['courierId'] ??
+              (o['kurir'] is Map ? o['kurir']['identifier'] : (o['courier'] is Map ? o['courier']['identifier'] : null)))
+          ?.toString();
+
+      if (mlId != null && mlId.isNotEmpty && mlId != 'null' && mlId != '-') {
+        mlOrders.putIfAbsent(mlId, () => []).add(o);
+      }
+      if (klId != null && klId.isNotEmpty && klId != 'null' && klId != '-') {
+        klOrders.putIfAbsent(klId, () => []).add(o);
+      }
+
+      if ((mlId == null || mlId.isEmpty || mlId == 'null' || mlId == '-') &&
+          (klId == null || klId.isEmpty || klId == 'null' || klId == '-')) {
+        final fallbackId = (o['order_number'] ?? o['orderNumber'] ?? o['identifier'] ?? o['id'] ?? 'ML-PML-001').toString();
+        if (fallbackId.toUpperCase().startsWith('KL')) {
+          klOrders.putIfAbsent(fallbackId, () => []).add(o);
+        } else {
+          mlOrders.putIfAbsent(fallbackId, () => []).add(o);
+        }
+      }
+    }
+
+    final List<Widget> logItems = [];
+
+    // Order ML (Warna Hijau)
+    mlOrders.forEach((ident, orders) {
+      final count = orders.length;
+      final String msg = count > 1
+          ? "Order sedang Berjalan $ident $count order"
+          : "Order sedang Berjalan $ident";
+      logItems.add(_buildLogEntry(msg, "Proses", "Live", const Color(0xFF10B981)));
+    });
+
+    // Order KL (Warna Orange)
+    klOrders.forEach((ident, orders) {
+      final count = orders.length;
+      final String msg = count > 1
+          ? "Order sedang Berjalan $ident $count order"
+          : "Order sedang Berjalan $ident";
+      logItems.add(_buildLogEntry(msg, "Antar", "Live", accentGold));
+    });
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey[200]!)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Log Transaksi Live", style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkGray)),
-                const Icon(LucideIcons.activity, size: 14, color: Colors.blue),
+                Text(
+                  "Log Transaksi Live",
+                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: darkGray),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "LIVE",
+                      style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(LucideIcons.activity, size: 14, color: Colors.blue),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            _buildLogEntry("Order KBY-0402 Selesai", "Rp 85.000", "Just now", Colors.green),
-            _buildLogEntry("Mitra Baru Mendaftar (BDO)", "Verifikasi", "2 mnt lalu", accentGold),
-            _buildLogEntry("Penarikan Dana ML-291", "-Rp 1.2M", "5 mnt lalu", accentRed),
+            if (logItems.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  "Belum ada order berjalan saat ini.",
+                  style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[500], fontStyle: FontStyle.italic),
+                ),
+              )
+            else
+              ...logItems,
           ],
         ),
       ),
