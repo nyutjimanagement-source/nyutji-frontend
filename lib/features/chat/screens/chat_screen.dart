@@ -321,8 +321,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
       // ignore: prefer_const_literals_to_create_immutables
       actions: [
-        // TODO: Aktifkan saat VoIP/WebRTC siap diimplementasikan
-        // Tombol Panggilan — disembunyikan sementara (Coming Soon)
+        // Fitur panggilan VoIP/WebRTC disembunyikan sementara (Coming Soon)
       ],
     );
   }

@@ -183,7 +183,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
       }
 
       final pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
       final url = Uri.parse(
           "https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.latitude}&lon=${pos.longitude}&zoom=18&addressdetails=1");
       final response =
@@ -318,7 +318,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
       double? capturedLng;
       try {
         final pos = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high);
+            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
         capturedLat = pos.latitude;
         capturedLng = pos.longitude;
       } catch (e) {

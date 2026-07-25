@@ -871,8 +871,8 @@ return Text(
     mlOrders.forEach((ident, orders) {
       final count = orders.length;
       final String msg = count > 1
-          ? "Order sedang Berjalan $ident $count order"
-          : "Order sedang Berjalan $ident";
+          ? "Order sedang di $ident $count order"
+          : "Order sedang di $ident";
       logItems.add(_buildLogEntry(msg, "Proses", "Live", const Color(0xFF10B981)));
     });
 
@@ -880,8 +880,8 @@ return Text(
     klOrders.forEach((ident, orders) {
       final count = orders.length;
       final String msg = count > 1
-          ? "Order sedang Berjalan $ident $count order"
-          : "Order sedang Berjalan $ident";
+          ? "Order sedang di $ident $count order"
+          : "Order sedang di $ident";
       logItems.add(_buildLogEntry(msg, "Antar", "Live", accentGold));
     });
 
@@ -1019,25 +1019,30 @@ return Text(
                   ),
                   const Divider(height: 1),
                   _buildMenuItem(LucideIcons.server, "Database / AWS Server", false),
-                  const Divider(height: 1),
-                  Consumer(
-                    builder: (context, ref, _) {
-final auth = ref.watch(authProvider);
-return GestureDetector(
-                      onTap: () async {
-                        final navigator = Navigator.of(context);
-                        ref.invalidate(orderProvider);
-                        ref.invalidate(walletProvider);
-                        await auth.logout();
-                        if (!mounted) return;
-                        navigator.pushReplacementNamed('/login');
-                      },
-                      child: _buildMenuItem(LucideIcons.logOut, "Tutup Sesi (Logout)", true),
-                    );
-})
                 ],
               ),
-            )
+            ),
+            const SizedBox(height: 16),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final auth = ref.watch(authProvider);
+                  return GestureDetector(
+                    onTap: () async {
+                      final navigator = Navigator.of(context);
+                      ref.invalidate(orderProvider);
+                      ref.invalidate(walletProvider);
+                      await auth.logout();
+                      if (!mounted) return;
+                      navigator.pushReplacementNamed('/login');
+                    },
+                    child: _buildMenuItem(LucideIcons.logOut, "Logout", true),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
