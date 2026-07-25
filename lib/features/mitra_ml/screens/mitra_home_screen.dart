@@ -385,47 +385,87 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   }
 
   String _formatStatusIndonesian(String rawStatus) {
-    final s = rawStatus.toUpperCase().trim();
+    // Normalisasi: singkirkan spasi dan konversi ke uppercase
+    final s = rawStatus.trim().toUpperCase().replaceAll(' ', '_').replaceAll('-', '_');
     switch (s) {
+      // --- MENUNGGU ---
       case 'PENDING':
       case 'MENUNGGU':
+      case 'WAITING':
+      case 'NEW':
+      case 'BARU':
         return 'Menunggu Penjemputan';
+      // --- PENJEMPUTAN ---
       case 'PICKING_UP':
+      case 'PICKUP':
       case 'DIJEMPUT':
+      case 'ON_THE_WAY':
+      case 'ON_WAY':
         return 'Sedang Dijemput Kurir';
+      // --- DITERIMA ---
+      case 'RECEIVED':
       case 'RECEIVED_BY_MITRA':
       case 'MITRA_RECEIVED':
       case 'DITERIMA_MITRA':
-        return 'Diterima Mitra';
+      case 'DITERIMA':
+      case 'ARRIVED':
+        return 'Diterima di Mitra';
+      // --- DICUCI ---
       case 'WASHING':
       case 'DICUCI':
       case 'PROSES':
+      case 'PROCESS':
       case 'PROCESSING':
       case 'IN_PROGRESS':
-        return 'Sedang Dicuci / Diproses';
+      case 'IN_PROCESS':
+      case 'SEDANG_DIPROSES':
+        return 'Sedang Dicuci';
+      // --- DIKERINGKAN ---
       case 'DRYING':
       case 'DIKERINGKAN':
         return 'Sedang Dikeringkan';
+      // --- DISETRIKA ---
       case 'IRONING':
       case 'DISETRIKA':
-        return 'Sedang Disetrika';
+      case 'FOLDING':
+      case 'FINISHING':
+        return 'Disetrika & Dilipat';
+      // --- SIAP KIRIM ---
       case 'READY':
       case 'SIAP':
       case 'READY_FOR_DELIVERY':
-        return 'Siap Diantar Kurir';
+      case 'READY_TO_DELIVER':
+      case 'PACKED':
+        return 'Siap Diantar';
+      // --- PENGIRIMAN ---
       case 'DELIVERING':
       case 'DIANTAR':
-        return 'Sedang Diantar ke Pelanggan';
+      case 'OUT_FOR_DELIVERY':
+      case 'DELIVERY':
+        return 'Sedang Diantar';
+      // --- SELESAI ---
       case 'DONE':
       case 'COMPLETED':
       case 'SELESAI':
-        return 'Selesai Dicuci';
+      case 'FINISH':
+      case 'FINISHED':
+        return 'Selesai';
+      // --- LUNAS ---
       case 'PAID':
       case 'LUNAS':
+      case 'PAYMENT_RECEIVED':
         return 'Lunas';
+      // --- DIBATALKAN ---
+      case 'CANCELLED':
+      case 'CANCELED':
+      case 'BATAL':
+      case 'DIBATALKAN':
+        return 'Dibatalkan';
       default:
-        if (rawStatus.isEmpty) return 'Sedang Diproses';
-        return rawStatus;
+        if (rawStatus.trim().isEmpty) return 'Diproses';
+        // Capitalize first letter jika tidak dikenali
+        final trimmed = rawStatus.trim();
+        return trimmed[0].toUpperCase() + trimmed.substring(1).toLowerCase();
     }
   }
 
@@ -819,14 +859,59 @@ class AnimatedStatusTicker extends StatefulWidget {
   State<AnimatedStatusTicker> createState() => _AnimatedStatusTickerState();
 }
 
-class _AnimatedStatusTickerState extends State<AnimatedStatusTicker> {
+class _AnimatedStatusTickerState extends State<AnimatedStatusTicker>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-  Timer? _timer;
+  int _nextIndex = 0;
+  Timer? _pauseTimer;
+  late AnimationController _controller;
+  late Animation<double> _slideIn;
+  late Animation<double> _slideOut;
+  late Animation<double> _fadeIn;
+  late Animation<double> _fadeOut;
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+
+    _slideIn = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+    _slideOut = Tween<double>(begin: 0.0, end: -1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInCubic),
+    );
+    _fadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeOut)),
+    );
+    _fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)),
+    );
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _currentIndex = _nextIndex;
+        });
+        _controller.reset();
+        _schedulePause();
+      }
+    });
+
+    _schedulePause();
+  }
+
+  void _schedulePause() {
+    _pauseTimer?.cancel();
+    if (widget.statuses.length <= 1) return;
+    _pauseTimer = Timer(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      _nextIndex = (_currentIndex + 1) % widget.statuses.length;
+      _controller.forward();
+    });
   }
 
   @override
@@ -834,25 +919,16 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker> {
     super.didUpdateWidget(oldWidget);
     if (widget.statuses.length != oldWidget.statuses.length) {
       _currentIndex = 0;
-      _startTimer();
-    }
-  }
-
-  void _startTimer() {
-    _timer?.cancel();
-    if (widget.statuses.length > 1) {
-      _timer = Timer.periodic(const Duration(seconds: 5), (_) {
-        if (!mounted) return;
-        setState(() {
-          _currentIndex = (_currentIndex + 1) % widget.statuses.length;
-        });
-      });
+      _nextIndex = 0;
+      _controller.reset();
+      _schedulePause();
     }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _pauseTimer?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -860,62 +936,54 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker> {
   Widget build(BuildContext context) {
     if (widget.statuses.isEmpty) return const SizedBox.shrink();
 
-    final String currentStatus = widget.statuses[_currentIndex % widget.statuses.length];
-
     if (widget.statuses.length == 1) {
       return Text(
-        currentStatus,
+        widget.statuses[0],
         style: widget.style,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       );
     }
 
+    final String curr = widget.statuses[_currentIndex % widget.statuses.length];
+    final String next = widget.statuses[_nextIndex % widget.statuses.length];
+
     return ClipRect(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 700),
-        switchInCurve: Curves.easeOutQuart,
-        switchOutCurve: Curves.easeInQuart,
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          final bool isCurrent = child.key == ValueKey<int>(_currentIndex);
-
-          final slideAnimation = Tween<Offset>(
-            begin: isCurrent ? const Offset(0.0, 1.0) : const Offset(0.0, -1.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: isCurrent ? Curves.easeOutQuart : Curves.easeInQuart,
-          ));
-
-          final scaleAnimation = Tween<double>(
-            begin: 0.94,
-            end: 1.0,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          ));
-
-          return SlideTransition(
-            position: slideAnimation,
-            child: FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(
-                scale: scaleAnimation,
-                child: child,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              // Teks lama — geser ke atas & fade out
+              Transform.translate(
+                offset: Offset(0, _slideOut.value * 20),
+                child: Opacity(
+                  opacity: _fadeOut.value,
+                  child: Text(
+                    curr,
+                    style: widget.style,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
-            ),
+              // Teks baru — naik dari bawah & fade in
+              Transform.translate(
+                offset: Offset(0, _slideIn.value * 20),
+                child: Opacity(
+                  opacity: _fadeIn.value,
+                  child: Text(
+                    next,
+                    style: widget.style,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
           );
         },
-        child: SizedBox(
-          key: ValueKey<int>(_currentIndex),
-          width: double.infinity,
-          child: Text(
-            currentStatus,
-            style: widget.style,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
       ),
     );
   }
