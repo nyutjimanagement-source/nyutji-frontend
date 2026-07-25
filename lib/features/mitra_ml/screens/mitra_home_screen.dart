@@ -280,6 +280,14 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
             return const ShimmerLoading(height: 110, borderRadius: 16);
           }
 
+          if (!hasOrder) {
+            return const SizedBox.shrink();
+          }
+
+          final List<String> activeStatuses = activeOrders.map((o) {
+            return (o['order_status'] ?? o['status'] ?? 'Diproses').toString();
+          }).toList();
+
           return GestureDetector(
             onTap: () {
               _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -342,31 +350,26 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(LucideIcons.loader, size: 18, color: hasOrder ? Colors.orange : Colors.grey[400]),
+                              const Icon(LucideIcons.loader, size: 18, color: Colors.orange),
                               const SizedBox(width: 8),
+                              Text(
+                                "Antrean Cucian ",
+                                style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600]),
+                              ),
                               Expanded(
-                                child: Row(
-                                  children: [
-                                    Text("Antrean Cucian Sekarang", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey[600]), maxLines: 1),
-                                    if (hasOrder) ...[
-                                      const SizedBox(width: 6),
-                                      const NyutjiDot.static(size: 6),
-                                    ]
-                                  ],
-                                )
+                                child: AnimatedStatusTicker(
+                                  statuses: activeStatuses,
+                                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: primaryTeal),
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          if (hasOrder) ...[
-                            Text("$activeOrderCount Order", style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: darkText, height: 1.1)),
-                            Text("Sedang dicuci", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
-                            const SizedBox(height: 16),
-                            Text(Formatters.currencyIdr(wipValue), style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: primaryTeal, height: 1.1)),
-                            Text("Nilai Revenue", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
-                          ] else ...[
-                            Text("Belum ada order cucian", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[400])),
-                          ],
+                          Text("$activeOrderCount Order", style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: darkText, height: 1.1)),
+                          Text("Sedang dicuci", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
+                          const SizedBox(height: 16),
+                          Text(Formatters.currencyIdr(wipValue), style: GoogleFonts.montserrat(fontSize: 30, fontWeight: FontWeight.w900, color: primaryTeal, height: 1.1)),
+                          Text("Nilai Revenue", style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500])),
                         ],
                       ),
                     ),
@@ -754,5 +757,113 @@ final orderProv = ref.watch(orderProvider);
       ),
     );
   }
+}
 
+class AnimatedStatusTicker extends StatefulWidget {
+  final List<String> statuses;
+  final TextStyle style;
+
+  const AnimatedStatusTicker({
+    super.key,
+    required this.statuses,
+    required this.style,
+  });
+
+  @override
+  State<AnimatedStatusTicker> createState() => _AnimatedStatusTickerState();
+}
+
+class _AnimatedStatusTickerState extends State<AnimatedStatusTicker> {
+  int _currentIndex = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedStatusTicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.statuses.length != oldWidget.statuses.length) {
+      _currentIndex = 0;
+      _startTimer();
+    }
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    if (widget.statuses.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+        if (!mounted) return;
+        setState(() {
+          _currentIndex = (_currentIndex + 1) % widget.statuses.length;
+        });
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.statuses.isEmpty) return const SizedBox.shrink();
+
+    final String currentStatus = widget.statuses[_currentIndex % widget.statuses.length];
+
+    if (widget.statuses.length == 1) {
+      return Text(
+        currentStatus,
+        style: widget.style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    return ClipRect(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          final inAnimation = Tween<Offset>(
+            begin: const Offset(0.0, 1.0),
+            end: Offset.zero,
+          ).animate(animation);
+
+          final outAnimation = Tween<Offset>(
+            begin: const Offset(0.0, -1.0),
+            end: Offset.zero,
+          ).animate(animation);
+
+          if (child.key == ValueKey<int>(_currentIndex)) {
+            return SlideTransition(
+              position: inAnimation,
+              child: child,
+            );
+          } else {
+            return SlideTransition(
+              position: outAnimation,
+              child: child,
+            );
+          }
+        },
+        child: SizedBox(
+          key: ValueKey<int>(_currentIndex),
+          width: double.infinity,
+          child: Text(
+            currentStatus,
+            style: widget.style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
 }
