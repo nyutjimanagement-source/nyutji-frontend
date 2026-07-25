@@ -19,6 +19,7 @@ import 'customer_cuci_sepatu.dart';
 import 'customer_pakaian_bayi.dart';
 import 'customer_dryclean.dart';
 import '../../../core/utils/status_helper.dart';
+import '../../../core/widgets/animated_status_ticker.dart';
 import 'customer_wallet_screen.dart';
 import 'customer_main_screen.dart';
 import 'customer_scheduler_screen.dart';
@@ -310,117 +311,41 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     return Consumer(
       builder: (context, ref, _) {
         final orderProv = ref.watch(orderProvider);
-        final latestOrder = orderProv.activeOrders.isNotEmpty
-            ? orderProv.activeOrders.first
-            : null;
-        final rawStatus = latestOrder != null
-            ? (latestOrder['status'] ??
-                    latestOrder['order_status'] ??
-                    'WAITING')
-                .toString()
-                .toUpperCase()
-            : "";
-        final String rawDel = latestOrder != null
-            ? (latestOrder['deliveryType'] ??
-                    latestOrder['delivery_type'] ??
-                    '')
-                .toString()
-                .toUpperCase()
-            : "";
-        final isSelfDrop = latestOrder != null &&
-            (rawDel == 'SELF_DROP' ||
-                rawDel == 'SELFDROP_SELFDELIVERY' ||
-                rawDel == 'SELF_SERVICE');
-        final displayStatus = (isSelfDrop &&
-                (rawStatus == 'WAITING_DROPOFF' || rawStatus == 'SEARCHING'))
-            ? 'WEIGHING'
-            : rawStatus;
-        final statusLabel = latestOrder != null
-            ? StatusHelper.getLabel(displayStatus, 'PL')
-            : "Order Nyutji Yuks !!";
-        final label =
-            latestOrder != null ? "LACAK PROGRESS" : "Ayo Cuci Sekarang";
+        final activeOrders = orderProv.activeOrders
+            .where((o) => (o['status'] ?? o['order_status'] ?? '')
+                    .toString()
+                    .toUpperCase() !=
+                'DRAFT')
+            .toList();
 
-        // Deteksi jika pesanan premium untuk menampilkan nama layanan & status dinamis
-        String customStatusLabel = statusLabel;
-        if (latestOrder != null) {
-          final items = latestOrder['orderItems'] as List? ??
-              latestOrder['order_items'] as List? ??
-              latestOrder['items'] as List?;
-          String textToScan = "";
-          if (items != null && items.isNotEmpty) {
-            for (var it in items) {
-              if (it is Map) {
-                textToScan +=
-                    " ${(it['itemName'] ?? it['item_name'] ?? it['name'] ?? '').toString().toLowerCase()}";
-                textToScan +=
-                    " ${(it['notes'] ?? '').toString().toLowerCase()}";
-              }
-            }
-          }
-          textToScan +=
-              " ${(latestOrder['notes'] ?? '').toString().toLowerCase()}";
-          textToScan +=
-              " ${(latestOrder['pickupNote'] ?? '').toString().toLowerCase()}";
+        final bool hasOrder = activeOrders.isNotEmpty;
 
-          bool isPremium = textToScan.contains('sepatu') ||
-              textToScan.contains('shoecare') ||
-              textToScan.contains('dryclean') ||
-              textToScan.contains('dry clean') ||
-              textToScan.contains('jas') ||
-              textToScan.contains('kebaya') ||
-              textToScan.contains('gaun') ||
-              textToScan.contains('bayi') ||
-              textToScan.contains('baby') ||
-              textToScan.contains('pakaian bayi') ||
-              textToScan.contains('khusus') ||
-              textToScan.contains('stroller') ||
-              textToScan.contains('cuci khusus');
+        // Kumpulkan semua status aktif dalam Bahasa Indonesia
+        final List<String> activeStatuses = hasOrder
+            ? activeOrders.map((o) {
+                final raw = (o['status'] ?? o['order_status'] ?? '')
+                    .toString();
+                final rawUp = raw.toUpperCase();
+                final rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '')
+                    .toString()
+                    .toUpperCase();
+                final isSelfDrop = rawDel == 'SELF_DROP' ||
+                    rawDel == 'SELFDROP_SELFDELIVERY' ||
+                    rawDel == 'SELF_SERVICE';
+                final displayStatus =
+                    (isSelfDrop && (rawUp == 'WAITING_DROPOFF' || rawUp == 'SEARCHING'))
+                        ? 'WEIGHING'
+                        : raw;
+                return StatusHelper.getLabel(displayStatus, 'PL');
+              }).toList()
+            : ['Belum ada pesanan aktif'];
 
-          if (isPremium) {
-            String pName = "";
-            if (textToScan.contains('sepatu') ||
-                textToScan.contains('shoecare') ||
-                textToScan.contains('pasang')) {
-              pName = 'Shoecare';
-            } else if (textToScan.contains('dryclean') ||
-                textToScan.contains('dry clean') ||
-                textToScan.contains('jas') ||
-                textToScan.contains('kebaya') ||
-                textToScan.contains('gaun')) {
-              pName = 'Dry Clean';
-            } else if (textToScan.contains('bayi') ||
-                textToScan.contains('baby') ||
-                textToScan.contains('pakaian bayi')) {
-              pName = 'Baby Care';
-            } else if (textToScan.contains('khusus') ||
-                textToScan.contains('stroller') ||
-                textToScan.contains('cuci khusus')) {
-              pName = 'Special Care';
-            }
-
-            if (pName.isNotEmpty) {
-              final sUpper = rawStatus.toUpperCase();
-              String pStatus = "Diterima";
-              if (sUpper == 'DRAFT') {
-                pStatus = "Draft";
-              } else if (sUpper == 'DONE' || sUpper == 'PAID') {
-                pStatus = "Selesai";
-              } else if (sUpper == 'PACKING' || sUpper == 'DELIVERING') {
-                pStatus = "Packing";
-              } else if (sUpper == 'WASH_START' ||
-                  sUpper == 'IN_PROGRESS' ||
-                  sUpper == 'IRONING') {
-                pStatus = "Cuci";
-              }
-              customStatusLabel = "$pName - $pStatus";
-            }
-          }
-        }
+        final String headerLabel =
+            hasOrder ? 'LACAK PROGRESS CUCIAN' : 'Ayo Cuci Sekarang';
 
         return GestureDetector(
           onTap: () {
-            if (latestOrder != null) {
+            if (hasOrder) {
               final mainState =
                   context.findAncestorStateOfType<CustomerMainScreenState>();
               if (mainState != null) {
@@ -461,9 +386,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                      latestOrder != null
-                          ? LucideIcons.loader
-                          : LucideIcons.shoppingBag,
+                      hasOrder ? LucideIcons.loader : LucideIcons.shoppingBag,
                       size: 22,
                       color: const Color(0xFF403600)),
                 ),
@@ -473,14 +396,26 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(label,
-                          style: NyutjiTheme.detail(const Color(0xFF403600))
-                              .copyWith(
-                                  fontWeight: FontWeight.w900, fontSize: 11)),
-                      Text(customStatusLabel,
+                      Text(
+                        headerLabel,
+                        style: NyutjiTheme.detail(const Color(0xFF403600))
+                            .copyWith(
+                                fontWeight: FontWeight.w900, fontSize: 11),
+                      ),
+                      if (hasOrder)
+                        AnimatedStatusTicker(
+                          statuses: activeStatuses,
                           style: NyutjiTheme.h3(const Color(0xFF403600))
                               .copyWith(
-                                  fontWeight: FontWeight.w800, fontSize: 14)),
+                                  fontWeight: FontWeight.bold, fontSize: 18),
+                        )
+                      else
+                        Text(
+                          'Order Nyutji Yuks !!',
+                          style: NyutjiTheme.h3(const Color(0xFF403600))
+                              .copyWith(
+                                  fontWeight: FontWeight.w800, fontSize: 14),
+                        ),
                     ],
                   ),
                 ),
