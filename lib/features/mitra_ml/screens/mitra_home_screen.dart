@@ -13,6 +13,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/status_helper.dart';
 import 'mitra_wallet_screen.dart';
 import 'mitra_order_screen.dart';
 import 'mitra_pricing_screen.dart';
@@ -385,88 +386,16 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   }
 
   String _formatStatusIndonesian(String rawStatus) {
-    // Normalisasi: singkirkan spasi dan konversi ke uppercase
-    final s = rawStatus.trim().toUpperCase().replaceAll(' ', '_').replaceAll('-', '_');
-    switch (s) {
-      // --- MENUNGGU ---
-      case 'PENDING':
-      case 'MENUNGGU':
-      case 'WAITING':
-      case 'NEW':
-      case 'BARU':
-        return 'Menunggu Penjemputan';
-      // --- PENJEMPUTAN ---
-      case 'PICKING_UP':
-      case 'PICKUP':
-      case 'DIJEMPUT':
-      case 'ON_THE_WAY':
-      case 'ON_WAY':
-        return 'Sedang Dijemput Kurir';
-      // --- DITERIMA ---
-      case 'RECEIVED':
-      case 'RECEIVED_BY_MITRA':
-      case 'MITRA_RECEIVED':
-      case 'DITERIMA_MITRA':
-      case 'DITERIMA':
-      case 'ARRIVED':
-        return 'Diterima di Mitra';
-      // --- DICUCI ---
-      case 'WASHING':
-      case 'DICUCI':
-      case 'PROSES':
-      case 'PROCESS':
-      case 'PROCESSING':
-      case 'IN_PROGRESS':
-      case 'IN_PROCESS':
-      case 'SEDANG_DIPROSES':
-        return 'Sedang Dicuci';
-      // --- DIKERINGKAN ---
-      case 'DRYING':
-      case 'DIKERINGKAN':
-        return 'Sedang Dikeringkan';
-      // --- DISETRIKA ---
-      case 'IRONING':
-      case 'DISETRIKA':
-      case 'FOLDING':
-      case 'FINISHING':
-        return 'Disetrika & Dilipat';
-      // --- SIAP KIRIM ---
-      case 'READY':
-      case 'SIAP':
-      case 'READY_FOR_DELIVERY':
-      case 'READY_TO_DELIVER':
-      case 'PACKED':
-        return 'Siap Diantar';
-      // --- PENGIRIMAN ---
-      case 'DELIVERING':
-      case 'DIANTAR':
-      case 'OUT_FOR_DELIVERY':
-      case 'DELIVERY':
-        return 'Sedang Diantar';
-      // --- SELESAI ---
-      case 'DONE':
-      case 'COMPLETED':
-      case 'SELESAI':
-      case 'FINISH':
-      case 'FINISHED':
-        return 'Selesai';
-      // --- LUNAS ---
-      case 'PAID':
-      case 'LUNAS':
-      case 'PAYMENT_RECEIVED':
-        return 'Lunas';
-      // --- DIBATALKAN ---
-      case 'CANCELLED':
-      case 'CANCELED':
-      case 'BATAL':
-      case 'DIBATALKAN':
-        return 'Dibatalkan';
-      default:
-        if (rawStatus.trim().isEmpty) return 'Diproses';
-        // Capitalize first letter jika tidak dikenali
-        final trimmed = rawStatus.trim();
-        return trimmed[0].toUpperCase() + trimmed.substring(1).toLowerCase();
+    // Gunakan StatusHelper.getLabel dengan role ML (Mitra Laundry)
+    // StatusHelper sudah memiliki mapping lengkap status Nyutji ke Bahasa Indonesia
+    final label = StatusHelper.getLabel(rawStatus, 'ML');
+    // Jika StatusHelper mengembalikan status asli (tidak dikenali), capitalize saja
+    if (label == rawStatus.toUpperCase()) {
+      final trimmed = rawStatus.trim();
+      if (trimmed.isEmpty) return 'Diproses';
+      return trimmed[0].toUpperCase() + trimmed.substring(1).toLowerCase();
     }
+    return label;
   }
 
   Widget _buildDanaSiapDitarikGrid() {
