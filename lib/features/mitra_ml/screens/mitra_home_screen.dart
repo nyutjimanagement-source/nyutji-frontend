@@ -865,36 +865,53 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker>
   int _nextIndex = 0;
   Timer? _pauseTimer;
   late AnimationController _controller;
-  late Animation<double> _slideIn;
-  late Animation<double> _slideOut;
-  late Animation<double> _fadeIn;
   late Animation<double> _fadeOut;
+  late Animation<double> _fadeIn;
+  late Animation<double> _slideIn;
+  bool _showingNew = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 800),
     );
 
-    _slideIn = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    // Fase 1 (0.0 → 0.5): teks lama fade out
+    _fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.45, curve: Curves.easeIn),
+      ),
     );
-    _slideOut = Tween<double>(begin: 0.0, end: -1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInCubic),
+
+    // Fase 2 (0.5 → 1.0): teks baru naik dari bawah & fade in
+    _slideIn = Tween<double>(begin: 14.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
+      ),
     );
     _fadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeOut)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+      ),
     );
-    _fadeOut = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)),
-    );
+
+    // Saat animasi sampai tengah (0.5), ganti teks yang ditampilkan
+    _controller.addListener(() {
+      if (!_showingNew && _controller.value >= 0.5) {
+        setState(() => _showingNew = true);
+      }
+    });
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
           _currentIndex = _nextIndex;
+          _showingNew = false;
         });
         _controller.reset();
         _schedulePause();
@@ -910,6 +927,7 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker>
     _pauseTimer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
       _nextIndex = (_currentIndex + 1) % widget.statuses.length;
+      _showingNew = false;
       _controller.forward();
     });
   }
@@ -920,6 +938,7 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker>
     if (widget.statuses.length != oldWidget.statuses.length) {
       _currentIndex = 0;
       _nextIndex = 0;
+      _showingNew = false;
       _controller.reset();
       _schedulePause();
     }
@@ -945,46 +964,35 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker>
       );
     }
 
-    final String curr = widget.statuses[_currentIndex % widget.statuses.length];
-    final String next = widget.statuses[_nextIndex % widget.statuses.length];
-
-    return ClipRect(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          return Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              // Teks lama — geser ke atas & fade out
-              Transform.translate(
-                offset: Offset(0, _slideOut.value * 20),
-                child: Opacity(
-                  opacity: _fadeOut.value,
-                  child: Text(
-                    curr,
-                    style: widget.style,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              // Teks baru — naik dari bawah & fade in
-              Transform.translate(
-                offset: Offset(0, _slideIn.value * 20),
-                child: Opacity(
-                  opacity: _fadeIn.value,
-                  child: Text(
-                    next,
-                    style: widget.style,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ],
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        // Fase 1: teks lama fade out
+        if (!_showingNew) {
+          return Opacity(
+            opacity: _fadeOut.value,
+            child: Text(
+              widget.statuses[_currentIndex % widget.statuses.length],
+              style: widget.style,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           );
-        },
-      ),
+        }
+        // Fase 2: teks baru naik dari bawah & fade in
+        return Transform.translate(
+          offset: Offset(0, _slideIn.value),
+          child: Opacity(
+            opacity: _fadeIn.value,
+            child: Text(
+              widget.statuses[_nextIndex % widget.statuses.length],
+              style: widget.style,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
+      },
     );
   }
 }
