@@ -285,7 +285,8 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
           }
 
           final List<String> activeStatuses = activeOrders.map((o) {
-            return (o['order_status'] ?? o['status'] ?? 'Diproses').toString();
+            final raw = (o['order_status'] ?? o['status'] ?? 'Diproses').toString();
+            return _formatStatusIndonesian(raw);
           }).toList();
 
           return GestureDetector(
@@ -381,6 +382,51 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
         },
       ),
     );
+  }
+
+  String _formatStatusIndonesian(String rawStatus) {
+    final s = rawStatus.toUpperCase().trim();
+    switch (s) {
+      case 'PENDING':
+      case 'MENUNGGU':
+        return 'Menunggu Penjemputan';
+      case 'PICKING_UP':
+      case 'DIJEMPUT':
+        return 'Sedang Dijemput Kurir';
+      case 'RECEIVED_BY_MITRA':
+      case 'MITRA_RECEIVED':
+      case 'DITERIMA_MITRA':
+        return 'Diterima Mitra';
+      case 'WASHING':
+      case 'DICUCI':
+      case 'PROSES':
+      case 'PROCESSING':
+      case 'IN_PROGRESS':
+        return 'Sedang Dicuci / Diproses';
+      case 'DRYING':
+      case 'DIKERINGKAN':
+        return 'Sedang Dikeringkan';
+      case 'IRONING':
+      case 'DISETRIKA':
+        return 'Sedang Disetrika';
+      case 'READY':
+      case 'SIAP':
+      case 'READY_FOR_DELIVERY':
+        return 'Siap Diantar Kurir';
+      case 'DELIVERING':
+      case 'DIANTAR':
+        return 'Sedang Diantar ke Pelanggan';
+      case 'DONE':
+      case 'COMPLETED':
+      case 'SELESAI':
+        return 'Selesai Dicuci';
+      case 'PAID':
+      case 'LUNAS':
+        return 'Lunas';
+      default:
+        if (rawStatus.isEmpty) return 'Sedang Diproses';
+        return rawStatus;
+    }
   }
 
   Widget _buildDanaSiapDitarikGrid() {
@@ -795,7 +841,7 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker> {
   void _startTimer() {
     _timer?.cancel();
     if (widget.statuses.length > 1) {
-      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) {
         if (!mounted) return;
         setState(() {
           _currentIndex = (_currentIndex + 1) % widget.statuses.length;
@@ -827,29 +873,36 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker> {
 
     return ClipRect(
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 500),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
+        duration: const Duration(milliseconds: 600),
+        switchInCurve: Curves.easeOutQuint,
+        switchOutCurve: Curves.easeInQuint,
         transitionBuilder: (Widget child, Animation<double> animation) {
-          final inAnimation = Tween<Offset>(
-            begin: const Offset(0.0, 1.0),
-            end: Offset.zero,
-          ).animate(animation);
+          final bool isCurrent = child.key == ValueKey<int>(_currentIndex);
 
-          final outAnimation = Tween<Offset>(
-            begin: const Offset(0.0, -1.0),
+          final inSlide = Tween<Offset>(
+            begin: const Offset(0.0, 1.2),
             end: Offset.zero,
-          ).animate(animation);
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuint));
 
-          if (child.key == ValueKey<int>(_currentIndex)) {
+          final outSlide = Tween<Offset>(
+            begin: const Offset(0.0, -1.2),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInQuint));
+
+          final fade = FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+
+          if (isCurrent) {
             return SlideTransition(
-              position: inAnimation,
-              child: child,
+              position: inSlide,
+              child: fade,
             );
           } else {
             return SlideTransition(
-              position: outAnimation,
-              child: child,
+              position: outSlide,
+              child: fade,
             );
           }
         },
