@@ -873,38 +873,38 @@ class _AnimatedStatusTickerState extends State<AnimatedStatusTicker> {
 
     return ClipRect(
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 600),
-        switchInCurve: Curves.easeOutQuint,
-        switchOutCurve: Curves.easeInQuint,
+        duration: const Duration(milliseconds: 700),
+        switchInCurve: Curves.easeOutQuart,
+        switchOutCurve: Curves.easeInQuart,
         transitionBuilder: (Widget child, Animation<double> animation) {
           final bool isCurrent = child.key == ValueKey<int>(_currentIndex);
 
-          final inSlide = Tween<Offset>(
-            begin: const Offset(0.0, 1.2),
+          final slideAnimation = Tween<Offset>(
+            begin: isCurrent ? const Offset(0.0, 1.0) : const Offset(0.0, -1.0),
             end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutQuint));
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: isCurrent ? Curves.easeOutQuart : Curves.easeInQuart,
+          ));
 
-          final outSlide = Tween<Offset>(
-            begin: const Offset(0.0, -1.2),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInQuint));
+          final scaleAnimation = Tween<double>(
+            begin: 0.94,
+            end: 1.0,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          ));
 
-          final fade = FadeTransition(
-            opacity: animation,
-            child: child,
+          return SlideTransition(
+            position: slideAnimation,
+            child: FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: scaleAnimation,
+                child: child,
+              ),
+            ),
           );
-
-          if (isCurrent) {
-            return SlideTransition(
-              position: inSlide,
-              child: fade,
-            );
-          } else {
-            return SlideTransition(
-              position: outSlide,
-              child: fade,
-            );
-          }
         },
         child: SizedBox(
           key: ValueKey<int>(_currentIndex),
