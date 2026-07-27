@@ -508,13 +508,14 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   Widget _buildDenseServicesGrid(Map<String, dynamic> currentT) {
     final draftsCount = ref.watch(orderProvider).draftOrders.length;
 
+    final theme = ref.watch(customerThemeProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(currentT['main_services'],
-              style: NyutjiTheme.h2(const Color(0xFF131109))
+              style: NyutjiTheme.h2(theme.text)
                   .copyWith(fontSize: 22)),
           const SizedBox(height: 16),
           MediaQuery(
@@ -716,10 +717,13 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   }
 
   Widget _buildFaqItem(String question, String answer) {
+    final theme = ref.watch(customerThemeProvider);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
+        color: theme.cardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.border, width: 1),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -728,26 +732,25 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         ],
       ),
       child: Material(
-        color: Colors.white,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
         child: Theme(
           data: ThemeData().copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          iconColor: const Color(0xFF556B2F),
-          collapsedIconColor: const Color(0xFF403600),
+          iconColor: theme.primary,
+          collapsedIconColor: theme.primary,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           title: Text(
             question,
-            style: NyutjiTheme.h2(const Color(0xFF131109))
+            style: NyutjiTheme.h2(theme.text)
                 .copyWith(fontSize: 14, height: 1.4),
           ),
           children: [
             Text(
               answer,
-              style: NyutjiTheme.body(
-                      const Color(0xFF131109).withValues(alpha: 0.8))
+              style: NyutjiTheme.body(theme.subtext)
                   .copyWith(fontSize: 13, height: 1.6),
             ),
           ],
@@ -1138,6 +1141,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
 
   Widget _buildServiceItem(String label, String iconPath,
       {bool hasPromo = false, int badgeCount = 0, VoidCallback? onTap}) {
+    final theme = ref.watch(customerThemeProvider);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -1196,7 +1200,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             fit: BoxFit.scaleDown,
             child: Text(label,
                 textAlign: TextAlign.center,
-                style: NyutjiTheme.body(const Color(0xFF131109))
+                style: NyutjiTheme.body(theme.text)
                     .copyWith(fontSize: 13, height: 1.1)),
           ),
         ],
@@ -1205,6 +1209,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   }
 
   Widget _buildPromoSection(Map<String, dynamic> currentT) {
+    final theme = ref.watch(customerThemeProvider);
     final promoItems = [
       {
         'title': 'NyutjiPay Special',
@@ -1245,14 +1250,14 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             children: [
               Expanded(
                 child: Text("Promo & Diskon Spesial",
-                    style: NyutjiTheme.h2(const Color(0xFF131109))
+                    style: NyutjiTheme.h2(theme.text)
                         .copyWith(fontSize: 20)),
               ),
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => _showPromoBottomSheet(),
                 child: Text("Lihat Semua",
-                    style: NyutjiTheme.body(const Color(0xFF556B2F))
+                    style: NyutjiTheme.body(theme.primary)
                         .copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
               ),
             ],
@@ -1513,6 +1518,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   }
 
   Widget _buildMitraSection(Map<String, dynamic> currentT, AuthProvider auth) {
+    final theme = ref.watch(customerThemeProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -1522,7 +1528,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             children: [
               Expanded(
                 child: Text("Mitra Terdekat Nyutji",
-                    style: NyutjiTheme.h2(const Color(0xFF131109))
+                    style: NyutjiTheme.h2(theme.text)
                         .copyWith(fontSize: 20)),
               ),
               const SizedBox(width: 8),
@@ -1542,8 +1548,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           ? "Urut dari Terdekat"
                           : "Urut dari Terjauh");
                 },
-                child: const Icon(LucideIcons.arrowUpDown,
-                    color: Color(0xFF131109), size: 20),
+                child: Icon(LucideIcons.arrowUpDown,
+                    color: theme.text, size: 20),
               ),
             ],
           ),
@@ -1656,13 +1662,14 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
 
   Widget _buildMitraRow(String name, String dist, String rating, bool isTop,
       bool isBuka, dynamic photoUrl) {
+    final theme = ref.watch(customerThemeProvider);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF9ED),
+        color: theme.cardBg,
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: const Color(0xFFE3DCCF), width: 1.5),
+        border: Border.all(color: theme.border, width: 1.5),
       ),
       child: Row(
         children: [
@@ -1693,7 +1700,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                       child: Text(name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: NyutjiTheme.h2(const Color(0xFF131109))
+                          style: NyutjiTheme.h2(theme.text)
                               .copyWith(fontSize: 18)),
                     ),
                     const SizedBox(width: 4),
@@ -1719,7 +1726,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     const Icon(Icons.star, size: 14, color: Color(0xFFDAC66F)),
                     const SizedBox(width: 2),
                     Text(rating,
-                        style: NyutjiTheme.detail(const Color(0xFF131109))
+                        style: NyutjiTheme.detail(theme.text)
                             .copyWith(
                                 fontSize: 13, fontWeight: FontWeight.bold)),
                   ],
