@@ -38,6 +38,20 @@ class AdminTentangNyutjiScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSection(
+              title: "System Nyuci Bersama:\nNyutji Management",
+              icon: LucideIcons.users,
+              color: const Color(0xFF286B6A),
+              content: "Ekosistem Nyutji menyatukan pelanggan, mitra laundry, dan mitra kurir dalam satu platform manajemen terpadu yang transparan, mudah digunakan, dan memastikan kualitas layanan yang prima setiap saat.",
+              linkText: "DAFTAR PELANGGAN",
+              onLinkTap: () {
+                Navigator.push(context, RetroRoute(page: const RegisterPelangganScreen()));
+              },
+              onCardTap: () {
+                Navigator.push(context, RetroRoute(page: const RegisterPelangganScreen()));
+              },
+            ),
+            const SizedBox(height: 24),
+            _buildSection(
               title: "System Kemitraan Laundry",
               icon: LucideIcons.store,
               color: const Color(0xFFC3312E),
@@ -62,20 +76,6 @@ class AdminTentangNyutjiScreen extends ConsumerWidget {
               },
               onCardTap: () {
                 Navigator.push(context, RetroRoute(page: const RegisterKurirScreen()));
-              },
-            ),
-            const SizedBox(height: 24),
-            _buildSection(
-              title: "System Nyuci Bersama:\nNyutji Management",
-              icon: LucideIcons.users,
-              color: const Color(0xFF286B6A),
-              content: "Ekosistem Nyutji menyatukan pelanggan, mitra laundry, dan mitra kurir dalam satu platform manajemen terpadu yang transparan, mudah digunakan, dan memastikan kualitas layanan yang prima setiap saat.",
-              linkText: "DAFTAR PELANGGAN",
-              onLinkTap: () {
-                Navigator.push(context, RetroRoute(page: const RegisterPelangganScreen()));
-              },
-              onCardTap: () {
-                Navigator.push(context, RetroRoute(page: const RegisterPelangganScreen()));
               },
             ),
             const SizedBox(height: 40),
