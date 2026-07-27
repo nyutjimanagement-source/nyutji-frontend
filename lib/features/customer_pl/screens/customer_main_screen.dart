@@ -8,6 +8,9 @@ import 'customer_wallet_screen.dart';
 import 'customer_profile_screen.dart';
 import 'customer_status_screen.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/customer_theme_provider.dart';
+import '../../../providers/wallet_provider.dart';
+import '../../../providers/order_provider.dart';
 
 class CustomerMainScreen extends ConsumerStatefulWidget {
   const CustomerMainScreen({super.key});
@@ -23,6 +26,11 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(walletProvider.notifier).fetchWallet();
+      ref.read(orderProvider.notifier).fetchOrders();
+      ref.read(orderProvider.notifier).fetchDraftOrders();
+    });
   }
 
   @override
@@ -53,6 +61,7 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final theme = ref.watch(customerThemeProvider);
     
     final Map<String, dynamic> t = {
       'id': {
@@ -91,7 +100,7 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
     final showProfileRedDot = !hasAddress || !hasSettings;
 
     return Scaffold(
-      backgroundColor: NyutjiTheme.background,
+      backgroundColor: theme.bg,
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
@@ -104,7 +113,7 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF9ED),
+          color: theme.cardBg,
           border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
           boxShadow: [
             BoxShadow(
@@ -167,14 +176,14 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
                     ),
                   ],
                   currentIndex: _selectedIndex,
-                  selectedItemColor: NyutjiTheme.plPrimary,
-                  unselectedItemColor: NyutjiTheme.textGrey.withValues(alpha: 0.5),
+                  selectedItemColor: theme.primary,
+                  unselectedItemColor: theme.isDark ? Colors.grey[500] : NyutjiTheme.textGrey.withValues(alpha: 0.5),
                   showUnselectedLabels: true,
                   onTap: _onItemTapped,
-                  backgroundColor: const Color(0xFFFFF9ED),
+                  backgroundColor: theme.cardBg,
                   elevation: 0,
                   type: BottomNavigationBarType.fixed,
-                  selectedLabelStyle: NyutjiTheme.body(NyutjiTheme.plPrimary).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
+                  selectedLabelStyle: NyutjiTheme.body(theme.primary).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
                   unselectedLabelStyle: NyutjiTheme.body(NyutjiTheme.textGrey).copyWith(fontSize: 10),
                 ),
                 AnimatedPositioned(
@@ -186,14 +195,14 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
                     height: 3,
                     width: 60,
                     decoration: BoxDecoration(
-                      color: NyutjiTheme.plPrimary,
+                      color: theme.primary,
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(3),
                         bottomRight: Radius.circular(3),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: NyutjiTheme.plPrimary.withValues(alpha: 0.5),
+                          color: theme.primary.withValues(alpha: 0.5),
                           blurRadius: 4,
                           offset: const Offset(0, 1),
                         )

@@ -28,6 +28,7 @@ import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'customer_payment_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -138,6 +139,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final theme = ref.watch(customerThemeProvider);
     final Map<String, dynamic> t = {
       'id': {
         'greeting': 'Pelanggan Pamulang',
@@ -161,11 +163,11 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final currentT = t[auth.lang] ?? t['id'];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9ED),
+      backgroundColor: theme.bg,
       floatingActionButton: _showBackToTop
           ? FloatingActionButton(
               mini: true,
-              backgroundColor: const Color(0xFF403600),
+              backgroundColor: theme.primary,
               onPressed: () => _mainScrollController.animateTo(0,
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeInOut),
@@ -182,7 +184,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             _fetchMitrasByLocation(),
           ]);
         },
-        color: const Color(0xFF403600),
+        color: theme.primary,
         child: SingleChildScrollView(
           controller: _mainScrollController,
           physics: const BouncingScrollPhysics(

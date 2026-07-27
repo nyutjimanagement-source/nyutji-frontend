@@ -17,6 +17,9 @@ import '../../../core/widgets/nyutji_dot.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'dart:ui';
+import '../../../providers/customer_theme_provider.dart';
+
 class CustomerProfileScreen extends ConsumerStatefulWidget {
   const CustomerProfileScreen({super.key});
 
@@ -61,12 +64,13 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final theme = ref.watch(customerThemeProvider);
     final Map<String, dynamic> t = {
       'id': {
         'title': 'Akun Saya',
         'tier': 'Member VIP',
         'address': 'Alamat Tersimpan',
-        'favorit': 'Mitra Favorit',
+        'theme': 'Tema Warna Aplikasi',
         'settings': 'Pengaturan Akun',
         'notif': 'Notifikasi',
         'help': 'Pusat Bantuan',
@@ -76,7 +80,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
         'title': 'My Account',
         'tier': 'VIP Member',
         'address': 'Saved Addresses',
-        'favorit': 'Favorite Partners',
+        'theme': 'App Color Theme',
         'settings': 'Account Settings',
         'notif': 'Notifications',
         'help': 'Help Center',
@@ -86,7 +90,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     final currentT = t[auth.lang] ?? t['id'];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9ED),
+      backgroundColor: theme.bg,
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -95,9 +99,8 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             const SizedBox(height: 8),
             _buildSettingsGroup([
               _buildExpandableAddressRow(currentT, auth),
-              _settingRow(LucideIcons.heart, currentT['favorit'], onTap: () {
-                NyutjiNotif.showInfo(
-                    context, "Layanan Mitra Favorit akan Segera Hadir");
+              _settingRow(LucideIcons.palette, currentT['theme'], onTap: () {
+                _showThemeSelectorSheet();
               }),
             ]),
             _buildSettingsGroup([
@@ -704,6 +707,166 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showThemeSelectorSheet() {
+    final currentTheme = ref.read(customerThemeProvider);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: currentTheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(LucideIcons.palette, color: currentTheme.primary, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Pilih Tema Warna Aplikasi",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Kustomisasi tampilan aplikasi Nyutji sesuai selera Anda",
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Column(
+                  children: CustomerThemes.allThemes.map((item) {
+                    final isSelected = currentTheme.mode == item.mode;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: GestureDetector(
+                        onTap: () {
+                          ref.read(customerThemeProvider.notifier).setTheme(item.mode);
+                          Navigator.pop(ctx);
+                          NyutjiNotif.showSuccess(context, "Tema ${item.name} Diterapkan");
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isSelected ? item.primary.withValues(alpha: 0.06) : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected ? item.primary : Colors.grey[200]!,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(item.emoji, style: const TextStyle(fontSize: 24)),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: isSelected ? item.primary : const Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      item.subtitle,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 11,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 16,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: item.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    width: 16,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: item.bg,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.grey[300]!),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 10),
+                              Icon(
+                                isSelected ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                                color: isSelected ? item.primary : Colors.grey[400],
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: MediaQuery.of(ctx).padding.bottom + 10),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
