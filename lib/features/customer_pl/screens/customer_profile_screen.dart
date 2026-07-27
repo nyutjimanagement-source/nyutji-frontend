@@ -244,6 +244,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   }
 
   Widget _buildPremiumHeader(Map<String, dynamic> currentT, AuthProvider auth) {
+    final theme = ref.watch(customerThemeProvider);
     final photoUrl = auth.user?['profile_photo'];
     final localPhoto = auth.temporaryLocalPhoto;
     final district = auth.user?['owner_district_name'] ??
@@ -259,7 +260,13 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       clipper: ProfileHeaderClipper(),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 60, 16, 80),
-        decoration: const BoxDecoration(color: Color(0xFF403600)),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [theme.primary, theme.accent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Row(
           children: [
             GestureDetector(
@@ -635,12 +642,13 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   }
 
   Widget _buildSettingsGroup(List<Widget> children) {
+    final theme = ref.watch(customerThemeProvider);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardBg,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE3DCCF), width: 1.5),
+        border: Border.all(color: theme.border, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -664,6 +672,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       Widget? trailing,
       bool showRedDot = false,
       bool hideDivider = false}) {
+    final theme = ref.watch(customerThemeProvider);
     return InkWell(
       onTap: onTap ?? () {},
       child: Container(
@@ -671,7 +680,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
         decoration: BoxDecoration(
             border: hideDivider
                 ? null
-                : Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1))),
+                : Border(bottom: BorderSide(color: theme.border.withValues(alpha: 0.4), width: 1))),
         child: Row(
           children: [
             Container(
@@ -679,20 +688,20 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
               decoration: BoxDecoration(
                 color: isDanger
                     ? Colors.red.withValues(alpha: 0.05)
-                    : const Color(0xFF403600).withValues(alpha: 0.05),
+                    : theme.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon,
                   size: 16,
-                  color: isDanger ? Colors.red : const Color(0xFF403600)),
+                  color: isDanger ? Colors.red : theme.primary),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Row(
                 children: [
                   Text(title,
-                      style: NyutjiTheme.body(
-                              isDanger ? Colors.red : NyutjiTheme.darkText)
+                      style: GoogleFonts.montserrat(
+                              color: isDanger ? Colors.red : theme.text)
                           .copyWith(fontSize: 13, fontWeight: FontWeight.w700)),
                   if (showRedDot) ...[
                     const SizedBox(width: 6),

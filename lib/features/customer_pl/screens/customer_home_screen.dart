@@ -220,6 +220,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   }
 
   Widget _buildHeader(Map<String, dynamic> currentT, AuthProvider auth) {
+    final theme = ref.watch(customerThemeProvider);
     final district = auth.user?['owner_district_name'] ??
         auth.user?['district_name'] ??
         'Pamulang';
@@ -238,8 +239,12 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       clipper: HeaderClipper(),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 60, 16, 70),
-        decoration: const BoxDecoration(
-          color: Color(0xFF403600),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [theme.primary, theme.accent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,64 +371,69 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           const CustomerOrderScreen(orderType: 'pickup')));
             }
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF9ED),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE3DCCF), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4))
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE3DCCF),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                      hasOrder ? LucideIcons.loader : LucideIcons.shoppingBag,
-                      size: 22,
-                      color: const Color(0xFF403600)),
+          child: Builder(
+            builder: (context) {
+              final theme = ref.watch(customerThemeProvider);
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: theme.cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: theme.border, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4))
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        headerLabel,
-                        style: NyutjiTheme.detail(const Color(0xFF403600))
-                            .copyWith(
-                                fontWeight: FontWeight.w900, fontSize: 11),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: theme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
                       ),
-                      if (hasOrder)
-                        AnimatedStatusTicker(
-                          statuses: activeStatuses,
-                          style: NyutjiTheme.h3(const Color(0xFF403600))
-                              .copyWith(
+                      child: Icon(
+                          hasOrder ? LucideIcons.loader : LucideIcons.shoppingBag,
+                          size: 22,
+                          color: theme.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            headerLabel,
+                            style: GoogleFonts.montserrat(
+                                color: theme.primary,
+                                fontWeight: FontWeight.w900, fontSize: 11),
+                          ),
+                          if (hasOrder)
+                            AnimatedStatusTicker(
+                              statuses: activeStatuses,
+                              style: GoogleFonts.montserrat(
+                                  color: theme.text,
                                   fontWeight: FontWeight.bold, fontSize: 18),
-                        )
-                      else
-                        Text(
-                          'Order Nyutji Yuks !!',
-                          style: NyutjiTheme.h3(const Color(0xFF403600))
-                              .copyWith(
+                            )
+                          else
+                            Text(
+                              'Order Nyutji Yuks !!',
+                              style: GoogleFonts.montserrat(
+                                  color: theme.text,
                                   fontWeight: FontWeight.w800, fontSize: 14),
-                        ),
-                    ],
-                  ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: theme.primary),
+                  ],
                 ),
-                const Icon(Icons.chevron_right, color: Color(0xFF403600)),
-              ],
-            ),
+              );
+            }
           ),
         );
       },
@@ -431,13 +441,21 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   }
 
   Widget _buildFinancialStrip(Map<String, dynamic> currentT) {
+    final theme = ref.watch(customerThemeProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF403600),
+          color: theme.primary,
           borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: theme.primary.withValues(alpha: 0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Row(
           children: [
