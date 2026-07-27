@@ -260,13 +260,15 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       clipper: ProfileHeaderClipper(),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 60, 16, 80),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [theme.primary, theme.accent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        decoration: theme.mode == CustomerThemeMode.gold
+            ? const BoxDecoration(color: Color(0xFF403600))
+            : BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [theme.primary, theme.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
         child: Row(
           children: [
             GestureDetector(

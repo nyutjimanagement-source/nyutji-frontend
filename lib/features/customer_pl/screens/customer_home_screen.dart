@@ -239,13 +239,15 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       clipper: HeaderClipper(),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 60, 16, 70),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [theme.primary, theme.accent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        decoration: theme.mode == CustomerThemeMode.gold
+            ? const BoxDecoration(color: Color(0xFF403600))
+            : BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [theme.primary, theme.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

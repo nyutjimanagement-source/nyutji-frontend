@@ -46,7 +46,7 @@ class CustomerThemes {
     subtitle: 'Kesan mewah, hangat, dan ramah',
     emoji: '🌟',
     primary: Color(0xFF403600),
-    accent: Color(0xFFDAC66F),
+    accent: Color(0xFF403600),
     bg: Color(0xFFFFF9ED),
     cardBg: Colors.white,
     text: Color(0xFF1E1A00),
