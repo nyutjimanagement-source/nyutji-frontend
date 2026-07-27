@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../auth/screens/register_mitra_screen.dart';
 import '../../auth/screens/register_kurir_screen.dart';
+import '../../auth/screens/register_pelanggan_screen.dart';
 import '../../../core/theme/theme_util.dart';
 
 class AdminTentangNyutjiScreen extends ConsumerWidget {
@@ -45,6 +46,9 @@ class AdminTentangNyutjiScreen extends ConsumerWidget {
               onLinkTap: () {
                 Navigator.push(context, RetroRoute(page: const RegisterMitraScreen()));
               },
+              onCardTap: () {
+                Navigator.push(context, RetroRoute(page: const RegisterMitraScreen()));
+              },
             ),
             const SizedBox(height: 24),
             _buildSection(
@@ -56,6 +60,9 @@ class AdminTentangNyutjiScreen extends ConsumerWidget {
               onLinkTap: () {
                 Navigator.push(context, RetroRoute(page: const RegisterKurirScreen()));
               },
+              onCardTap: () {
+                Navigator.push(context, RetroRoute(page: const RegisterKurirScreen()));
+              },
             ),
             const SizedBox(height: 24),
             _buildSection(
@@ -63,6 +70,13 @@ class AdminTentangNyutjiScreen extends ConsumerWidget {
               icon: LucideIcons.users,
               color: const Color(0xFF286B6A),
               content: "Ekosistem Nyutji menyatukan pelanggan, mitra laundry, dan mitra kurir dalam satu platform manajemen terpadu yang transparan, mudah digunakan, dan memastikan kualitas layanan yang prima setiap saat.",
+              linkText: "DAFTAR PELANGGAN",
+              onLinkTap: () {
+                Navigator.push(context, RetroRoute(page: const RegisterPelangganScreen()));
+              },
+              onCardTap: () {
+                Navigator.push(context, RetroRoute(page: const RegisterPelangganScreen()));
+              },
             ),
             const SizedBox(height: 40),
             Center(
@@ -92,8 +106,16 @@ class AdminTentangNyutjiScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection({required String title, required IconData icon, required Color color, required String content, String? linkText, VoidCallback? onLinkTap}) {
-    return Container(
+  Widget _buildSection({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required String content,
+    String? linkText,
+    VoidCallback? onLinkTap,
+    VoidCallback? onCardTap,
+  }) {
+    final cardContent = Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -172,5 +194,19 @@ class AdminTentangNyutjiScreen extends ConsumerWidget {
         ],
       ),
     );
+
+    if (onCardTap != null) {
+      return Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onCardTap,
+          borderRadius: BorderRadius.circular(24),
+          child: cardContent,
+        ),
+      );
+    }
+
+    return cardContent;
   }
 }
