@@ -581,7 +581,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.65),
-      builder: (_) => _ProductDetailDialog(prod: prod),
+      builder: (_) => _ProductDetailDialog(
+        prod: prod,
+        onRegisterTap: _showRegisterOptions,
+      ),
     );
   }
 
@@ -723,7 +726,8 @@ class _SparklePainter extends CustomPainter {
 // ── Product detail dialog (StatefulWidget for sparkle animation) ─────────────
 class _ProductDetailDialog extends StatefulWidget {
   final Map<String, dynamic> prod;
-  const _ProductDetailDialog({required this.prod});
+  final VoidCallback? onRegisterTap;
+  const _ProductDetailDialog({required this.prod, this.onRegisterTap});
 
   @override
   State<_ProductDetailDialog> createState() => _ProductDetailDialogState();
@@ -732,6 +736,20 @@ class _ProductDetailDialog extends StatefulWidget {
 class _ProductDetailDialogState extends State<_ProductDetailDialog>
     with SingleTickerProviderStateMixin {
   late final AnimationController _sparkle;
+
+  static const List<String> _mitraIcons = [
+    'assets/icons/icon_ML.png',
+    'assets/icons/icon_dryclean.png',
+    'assets/icons/icon_dropoff.png',
+    'assets/icons/icon_iron.png',
+    'assets/icons/icon_pickup.png',
+    'assets/icons/icon_sepatu.png',
+    'assets/icons/dicuci.png',
+    'assets/icons/disetrika.png',
+    'assets/icons/dipacking.png',
+    'assets/icons/icon_bayi.png',
+    'assets/icons/baby_stroller.png',
+  ];
 
   @override
   void initState() {
@@ -858,26 +876,90 @@ class _ProductDetailDialogState extends State<_ProductDetailDialog>
                     ),
                     // Mitra horizontal scroll
                     SizedBox(
-                      height: 58,
+                      height: 68,
                       child: ListView.separated(
                         physics: const BouncingScrollPhysics(),
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
                         itemCount: mitraList.length,
                         separatorBuilder: (_, __) => const SizedBox(width: 10),
-                        itemBuilder: (_, i) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.22)),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
-                          ),
-                          child: Text(
-                            mitraList[i],
-                            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF286B6A)),
-                          ),
-                        ),
+                        itemBuilder: (ctx, i) {
+                          final itemStr = mitraList[i];
+                          final parts = itemStr.split(' • ');
+                          final namaML = parts[0].trim();
+                          final kabKota = parts.length > 1 ? parts[1].trim() : '';
+                          final iconPath = _mitraIcons[i % _mitraIcons.length];
+
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              widget.onRegisterTap?.call();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.20)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF286B6A).withValues(alpha: 0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 34,
+                                    height: 34,
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFF286B6A).withValues(alpha: 0.08),
+                                      border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.15)),
+                                    ),
+                                    child: ClipOval(
+                                      child: Image.asset(
+                                        iconPath,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => const Icon(LucideIcons.store, size: 16, color: Color(0xFF286B6A)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        namaML,
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      if (kabKota.isNotEmpty) ...[
+                                        const SizedBox(height: 1),
+                                        Text(
+                                          kabKota,
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: const Color(0xFF286B6A),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 14),
