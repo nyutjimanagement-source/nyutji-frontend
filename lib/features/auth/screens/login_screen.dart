@@ -61,12 +61,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       'marquee': "••• Progress Kemitraan Nyutji Management: 5 Cabang Baru Dibuka di Bulan Ini! Bergabunglah Menjadi Mitra Kami ••• Promo Diskon 10% untuk Cuci Komplit ••• Gratis Antar Jemput untuk Pelanggan Baru",
       'aboutDesc': "Pelajari lebih lanjut tentang sistem kemitraan dan manajemen laundry profesional kami.",
       'products': [
-        { 'title': "Cuci Komplit", 'desc': "Bersih & Wangi 24 Jam", 'img': "assets/images/cuci_komplit.jpg" },
-        { 'title': "Cuci Satuan", 'desc': "Perawatan Premium", 'img': "assets/images/cuci_satuan.jpg" },
-        { 'title': "Setrika Saja", 'desc': "Rapi & Siap Pakai", 'img': "assets/images/setrika_saja.jpg" },
-        { 'title': "Cuci Kesayangan", 'desc': "Harum Pakaian Anak", 'img': "assets/images/cucian_anak.jpg" },
-        { 'title': "Cuci Khusus", 'desc': "Refreshing Kesayangan", 'img': "assets/images/stroller.jpg" },
-        { 'title': "Antar Jemput Kurir", 'desc': "Cucian Sampai Depan Rumah", 'img': "assets/images/kurir_service.jpg" }
+        {
+          'title': "Cuci Komplit", 'desc': "Bersih & Wangi 24 Jam", 'img': "assets/images/cuci_komplit.jpg",
+          'details': [
+            "Cuci Komplit adalah layanan andalan Nyutji yang mencuci, mengeringkan, dan melipat pakaian Anda secara menyeluruh dalam satu paket hemat. Proses dicuci menggunakan deterjen premium yang ramah kulit.",
+            "Layanan ini cocok untuk kebutuhan sehari-hari keluarga. Cukup masukkan pakaian ke kantong, dan biarkan Kurir Nyutji menjemputnya langsung di depan pintu rumah Anda tanpa biaya tambahan.",
+            "Dijamin selesai dalam 24 jam dan dikembalikan dalam kondisi rapi, harum, dan siap pakai. Harga terjangkau mulai dari Rp 7.000 per kilogram."
+          ],
+          'mitraContoh': ["Mitra Laundry Bu Sari  •  Kab. Sleman", "Fresh Clean Laundry  •  Kota Yogyakarta", "Laundry Ibu Tini  •  Kab. Bantul"]
+        },
+        {
+          'title': "Cuci Satuan", 'desc': "Perawatan Premium", 'img': "assets/images/cuci_satuan.jpg",
+          'details': [
+            "Cuci Satuan adalah layanan premium Nyutji yang dirancang untuk pakaian bervalue tinggi seperti kemeja kerja, blazer, dress, dan baju favorit Anda. Setiap item dicuci secara terpisah dengan penanganan khusus.",
+            "Proses pencucian menggunakan mesin khusus berkapasitas kecil agar warna tetap cerah dan serat kain tidak mudah rusak. Setiap pakaian dikemas dengan plastik pelindung sebelum diantarkan kembali.",
+            "Ideal untuk Anda yang menghargai kualitas dan keawetan pakaian. Harga dihitung per item mulai dari Rp 5.000 saja."
+          ],
+          'mitraContoh': ["Premium Laundry Pak Budi  •  Kota Yogyakarta", "Anugrah Laundry  •  Kab. Sleman", "Laundry Bersih Wangi  •  Kab. Kulon Progo"]
+        },
+        {
+          'title': "Setrika Saja", 'desc': "Rapi & Siap Pakai", 'img': "assets/images/setrika_saja.jpg",
+          'details': [
+            "Layanan Setrika Saja dari Nyutji memastikan pakaian Anda kembali rapi tanpa kerutan hanya dalam hitungan jam. Cocok untuk Anda yang sudah mencuci sendiri namun tidak memiliki waktu untuk menyetrika.",
+            "Tim Mitra Nyutji menggunakan setrika uap profesional yang menjaga kelembutan dan bentuk kain. Proses ini juga sekaligus membantu menghilangkan kuman yang tersisa pada pakaian Anda.",
+            "Layanan tersedia untuk semua jenis pakaian, termasuk kemeja formal, baju batik, dan gaun. Harga mulai Rp 2.000 per potong saja."
+          ],
+          'mitraContoh': ["Laundry Express Mbak Dewi  •  Kab. Bantul", "Kilat Laundry  •  Kota Yogyakarta", "Rapi Wangi Laundry  •  Kab. Sleman"]
+        },
+        {
+          'title': "Cuci Kesayangan", 'desc': "Harum Pakaian Anak", 'img': "assets/images/cucian_anak.jpg",
+          'details': [
+            "Cuci Kesayangan adalah layanan khusus untuk pakaian bayi dan anak-anak yang menggunakan deterjen hypoallergenic bebas pewangi buatan dan bahan kimia keras. Aman untuk kulit sensitif si Kecil.",
+            "Setiap cucian dicuci secara terpisah dari laundry dewasa, menggunakan air bersih dan prosedur higienitas ketat. Hasilnya bersih maksimal, lembut, dan bebas dari residu deterjen yang berpotensi memicu iritasi.",
+            "Pakaian dikembalikan dalam keadaan terlipat rapi di dalam kantong khusus anti-bakteri. Layanan ini memberikan ketenangan pikiran bagi para orang tua yang peduli terhadap kesehatan buah hati."
+          ],
+          'mitraContoh': ["Baby Care Laundry Bu Rina  •  Kab. Sleman", "Laundry Buah Hati  •  Kota Yogyakarta", "Si Kecil Bersih Laundry  •  Kab. Bantul"]
+        },
+        {
+          'title': "Cuci Khusus", 'desc': "Refreshing Kesayangan", 'img': "assets/images/stroller.jpg",
+          'details': [
+            "Cuci Khusus dari Nyutji menangani barang-barang non-pakaian yang membutuhkan pencucian cermat seperti stroller, car seat, tas ransel, sepatu kulit, helm, dan boneka besar.",
+            "Setiap item ditangani oleh Mitra terlatih dengan metode pembersihan yang disesuaikan berdasarkan material bahan. Kami memastikan hasil bersih hingga ke celah-celah yang tersembunyi.",
+            "Barang dijemput dan diantarkan kembali dengan aman menggunakan perlindungan bubble wrap. Harga bervariasi sesuai jenis dan ukuran barang, konfirmasi harga sebelum proses dimulai."
+          ],
+          'mitraContoh': ["Special Clean Pak Anton  •  Kota Yogyakarta", "Cuci Spesial Nyutji  •  Kab. Sleman", "Premium Care Laundry  •  Kab. Bantul"]
+        },
+        {
+          'title': "Antar Jemput Kurir", 'desc': "Cucian Sampai Depan Rumah", 'img': "assets/images/kurir_service.jpg",
+          'details': [
+            "Layanan Antar Jemput Kurir Nyutji hadir untuk memastikan cucian Anda diproses tanpa perlu meninggalkan rumah. Kurir Nyutji terlatih dan terpercaya siap menjemput cucian kapan pun Anda minta.",
+            "Sistem pemesanan berbasis aplikasi memudahkan Anda melacak posisi Kurir secara real-time, dari saat penjemputan hingga pengantaran kembali. Notifikasi status otomatis dikirimkan di setiap tahap proses.",
+            "Gratis antar jemput untuk area yang sudah bermitra dengan Nyutji. Cukup pesan melalui aplikasi dan nikmati kenyamanan cucian bersih tanpa repot."
+          ],
+          'mitraContoh': ["Nyutji Hub Yogyakarta Utara  •  Kab. Sleman", "Nyutji Hub Yogyakarta Selatan  •  Kab. Bantul", "Nyutji Hub Kota  •  Kota Yogyakarta"]
+        },
       ]
     },
     'en': {
@@ -83,12 +131,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       'marquee': "••• Nyutji Management Partnership Progress: 5 New Branches Opened This Month! Join Us as a Partner ••• 10% Discount Promo for Complete Wash •••",
       'aboutDesc': "Learn more about our partnership system and professional laundry management.",
       'products': [
-        { 'title': "Complete Wash", 'desc': "Clean & Fresh 24h", 'img': "assets/images/cuci_komplit.jpg" },
-        { 'title': "Premium Wash", 'desc': "Premium Care", 'img': "assets/images/cuci_satuan.jpg" },
-        { 'title': "Ironing Only", 'desc': "Neat & Ready", 'img': "assets/images/setrika_saja.jpg" },
-        { 'title': "Beloved Care", 'desc': "Kids Clothes Wash", 'img': "assets/images/cucian_anak.jpg" },
-        { 'title': "Special Wash", 'desc': "Stroller & Helmet", 'img': "assets/images/stroller.jpg" },
-        { 'title': "Courier Pickup", 'desc': "Delivery to Your Door", 'img': "assets/images/kurir_service.jpg" }
+        {
+          'title': "Complete Wash", 'desc': "Clean & Fresh 24h", 'img': "assets/images/cuci_komplit.jpg",
+          'details': [
+            "Complete Wash is Nyutji's signature service that washes, dries, and folds your clothes thoroughly in one affordable package. Premium skin-friendly detergent is used for every wash.",
+            "This service is perfect for everyday family needs. Simply pack your clothes in the bag, and let Nyutji's courier pick it up right from your doorstep at no extra charge.",
+            "Guaranteed to be done in 24 hours and returned in a neat, fragrant, and ready-to-wear condition. Affordable price starting from Rp 7,000 per kilogram."
+          ],
+          'mitraContoh': ["Bu Sari Laundry Partner  •  Sleman Regency", "Fresh Clean Laundry  •  Yogyakarta City", "Ibu Tini Laundry  •  Bantul Regency"]
+        },
+        {
+          'title': "Premium Wash", 'desc': "Premium Care", 'img': "assets/images/cuci_satuan.jpg",
+          'details': [
+            "Premium Wash is Nyutji's high-end service designed for valuable clothes like work shirts, blazers, dresses, and your favourite outfits. Each item is washed separately with special care.",
+            "The washing process uses specially-sized machines to keep colours bright and fabric fibres intact. Each garment is wrapped in a protective plastic bag before being returned.",
+            "Ideal for those who value quality and clothing longevity. Prices are charged per item starting from just Rp 5,000."
+          ],
+          'mitraContoh': ["Pak Budi Premium Laundry  •  Yogyakarta City", "Anugrah Laundry  •  Sleman Regency", "Fresh Fragrant Laundry  •  Kulon Progo Regency"]
+        },
+        {
+          'title': "Ironing Only", 'desc': "Neat & Ready", 'img': "assets/images/setrika_saja.jpg",
+          'details': [
+            "Nyutji's Ironing Only service ensures your clothes return crisp and wrinkle-free within hours. Perfect for those who wash their own clothes but don't have time to iron them.",
+            "Nyutji Partner staff use professional steam irons that maintain fabric softness and shape. The process also helps eliminate remaining germs on your clothes.",
+            "Available for all types of clothing including formal shirts, batik wear, and dresses. Prices start from just Rp 2,000 per piece."
+          ],
+          'mitraContoh': ["Mbak Dewi Express Laundry  •  Bantul Regency", "Fast & Neat Laundry  •  Yogyakarta City", "Fresh Iron Laundry  •  Sleman Regency"]
+        },
+        {
+          'title': "Beloved Care", 'desc': "Kids Clothes Wash", 'img': "assets/images/cucian_anak.jpg",
+          'details': [
+            "Beloved Care is a special service for baby and children's clothing that uses hypoallergenic detergent free from artificial fragrances and harsh chemicals. Safe for sensitive skin.",
+            "Each load is washed separately from adult laundry, using clean water and strict hygiene procedures. The result is maximally clean, soft, and free from detergent residues.",
+            "Clothes are returned neatly folded in special anti-bacterial bags. This service gives peace of mind to parents who care about their child's health."
+          ],
+          'mitraContoh': ["Bu Rina Baby Care Laundry  •  Sleman Regency", "Little Ones Laundry  •  Yogyakarta City", "Baby Clean Laundry  •  Bantul Regency"]
+        },
+        {
+          'title': "Special Wash", 'desc': "Stroller & Helmet", 'img': "assets/images/stroller.jpg",
+          'details': [
+            "Nyutji's Special Wash handles non-clothing items requiring careful cleaning such as strollers, car seats, backpacks, leather shoes, helmets, and large stuffed toys.",
+            "Each item is handled by trained Partners with cleaning methods tailored to the material. We ensure thorough cleaning down to the hidden crevices.",
+            "Items are picked up and returned safely with bubble wrap protection. Prices vary by item type and size; price confirmation is provided before processing begins."
+          ],
+          'mitraContoh': ["Pak Anton Special Clean  •  Yogyakarta City", "Nyutji Special Service  •  Sleman Regency", "Premium Care Laundry  •  Bantul Regency"]
+        },
+        {
+          'title': "Courier Pickup", 'desc': "Delivery to Your Door", 'img': "assets/images/kurir_service.jpg",
+          'details': [
+            "Nyutji's Courier Pickup & Delivery service ensures your laundry is processed without leaving home. Trusted and trained Nyutji couriers are ready to pick up your laundry whenever you need.",
+            "The app-based ordering system lets you track the courier's location in real-time, from pickup to return delivery. Automatic status notifications are sent at every stage of the process.",
+            "Free pickup and delivery for areas partnered with Nyutji. Simply order through the app and enjoy the convenience of clean laundry without any hassle."
+          ],
+          'mitraContoh': ["Nyutji Hub North Yogyakarta  •  Sleman Regency", "Nyutji Hub South Yogyakarta  •  Bantul Regency", "Nyutji Hub City  •  Yogyakarta City"]
+        },
       ],
     }
   };
@@ -480,11 +576,169 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     );
   }
 
+  void _showProductDetail(BuildContext context, Map<String, dynamic> prod) {
+    final String imgSrc = prod['img'] ?? '';
+    final bool isNetwork = imgSrc.startsWith('http');
+    final List<String> details = List<String>.from(prod['details'] ?? []);
+    final List<String> mitraList = List<String>.from(prod['mitraContoh'] ?? []);
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.65),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Main popup card
+            ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.88),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 40, offset: const Offset(0, 16)),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Hero image
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                        child: Stack(
+                          children: [
+                            isNetwork
+                                ? CachedNetworkImage(imageUrl: imgSrc, height: 180, width: double.infinity, fit: BoxFit.cover,
+                                    errorWidget: (c, e, s) => Container(height: 180, color: const Color(0xFFE8F4F4)))
+                                : Image.asset(imgSrc, height: 180, width: double.infinity, fit: BoxFit.cover,
+                                    errorBuilder: (c, e, s) => Container(height: 180, color: const Color(0xFFE8F4F4))),
+                            Container(
+                              height: 180,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.75)],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 16, left: 20, right: 56,
+                              child: Text(
+                                prod['title'] ?? '',
+                                style: GoogleFonts.montserrat(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, shadows: [
+                                  Shadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 8)
+                                ]),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Description paragraphs
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (int i = 0; i < details.length; i++) ...[  
+                              Text(
+                                details[i],
+                                style: GoogleFonts.montserrat(fontSize: 12.5, color: const Color(0xFF3A3A3A), height: 1.6),
+                              ),
+                              if (i < details.length - 1) const SizedBox(height: 10),
+                            ],
+                          ],
+                        ),
+                      ),
+                      // Divider
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF286B6A).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(LucideIcons.store, size: 13, color: Color(0xFF286B6A)),
+                                  const SizedBox(width: 6),
+                                  Text('Contoh Mitra', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF286B6A))),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Horizontally scrollable mitra list
+                      SizedBox(
+                        height: 60,
+                        child: ListView.separated(
+                          physics: const BouncingScrollPhysics(),
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          itemCount: mitraList.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 10),
+                          itemBuilder: (_, i) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.25)),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                            ),
+                            child: Text(
+                              mitraList[i],
+                              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF286B6A)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Floating X button
+            Positioned(
+              top: -14,
+              right: -14,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 12, offset: const Offset(0, 4))],
+                  ),
+                  child: const Icon(LucideIcons.x, size: 18, color: Color(0xFF286B6A)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _productCard(Map<String, dynamic> prod) {
     final String imgSrc = prod['img'] ?? '';
     final bool isNetwork = imgSrc.startsWith('http');
 
-    return Container(
+    return GestureDetector(
+      onTap: () => _showProductDetail(context, prod),
+      child: Container(
       width: 200,
       margin: const EdgeInsets.only(right: 20),
       decoration: BoxDecoration(
@@ -512,10 +766,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(prod['desc'], style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+            child: Row(
+              children: [
+                Expanded(child: Text(prod['desc'], style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500))),
+                const Icon(LucideIcons.info, size: 14, color: Color(0xFF286B6A)),
+              ],
+            ),
           ),
         ],
       ),
+    ),
     );
   }
 
