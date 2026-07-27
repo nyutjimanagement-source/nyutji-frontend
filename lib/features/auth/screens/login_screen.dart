@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Layanan ini cocok untuk kebutuhan sehari-hari keluarga. Cukup masukkan pakaian ke kantong, dan biarkan Kurir Nyutji menjemputnya langsung di depan pintu rumah Anda tanpa biaya tambahan.",
             "Dijamin selesai dalam 24 jam dan dikembalikan dalam kondisi rapi, harum, dan siap pakai. Harga terjangkau mulai dari Rp 7.000 per kilogram."
           ],
-          'mitraContoh': ["Mitra Laundry Bu Sari  •  Kab. Sleman", "Fresh Clean Laundry  •  Kota Yogyakarta", "Laundry Ibu Tini  •  Kab. Bantul"]
+          'mitraContoh': ["One Laundry  •  Tangerang Selatan", "Mutiara Laundry  •  Kab. Sleman", "Leo Laundry  •  Depok"]
         },
         {
           'title': "Cuci Satuan", 'desc': "Perawatan Premium", 'img': "assets/images/cuci_satuan.jpg",
@@ -77,7 +78,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Proses pencucian menggunakan mesin khusus berkapasitas kecil agar warna tetap cerah dan serat kain tidak mudah rusak. Setiap pakaian dikemas dengan plastik pelindung sebelum diantarkan kembali.",
             "Ideal untuk Anda yang menghargai kualitas dan keawetan pakaian. Harga dihitung per item mulai dari Rp 5.000 saja."
           ],
-          'mitraContoh': ["Premium Laundry Pak Budi  •  Kota Yogyakarta", "Anugrah Laundry  •  Kab. Sleman", "Laundry Bersih Wangi  •  Kab. Kulon Progo"]
+          'mitraContoh': ["Kece Laundry  •  Kota Surabaya", "Aneka Laundry  •  Kota Bandung", "Perkasa Laundry  •  Semarang"]
         },
         {
           'title': "Setrika Saja", 'desc': "Rapi & Siap Pakai", 'img': "assets/images/setrika_saja.jpg",
@@ -86,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Tim Mitra Nyutji menggunakan setrika uap profesional yang menjaga kelembutan dan bentuk kain. Proses ini juga sekaligus membantu menghilangkan kuman yang tersisa pada pakaian Anda.",
             "Layanan tersedia untuk semua jenis pakaian, termasuk kemeja formal, baju batik, dan gaun. Harga mulai Rp 2.000 per potong saja."
           ],
-          'mitraContoh': ["Laundry Express Mbak Dewi  •  Kab. Bantul", "Kilat Laundry  •  Kota Yogyakarta", "Rapi Wangi Laundry  •  Kab. Sleman"]
+          'mitraContoh': ["Kilat Laundry  •  Jakarta Selatan", "Cemerlang Laundry  •  Kota Bogor", "Cepat Laundry  •  Bekasi"]
         },
         {
           'title': "Cuci Kesayangan", 'desc': "Harum Pakaian Anak", 'img': "assets/images/cucian_anak.jpg",
@@ -95,7 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Setiap cucian dicuci secara terpisah dari laundry dewasa, menggunakan air bersih dan prosedur higienitas ketat. Hasilnya bersih maksimal, lembut, dan bebas dari residu deterjen yang berpotensi memicu iritasi.",
             "Pakaian dikembalikan dalam keadaan terlipat rapi di dalam kantong khusus anti-bakteri. Layanan ini memberikan ketenangan pikiran bagi para orang tua yang peduli terhadap kesehatan buah hati."
           ],
-          'mitraContoh': ["Baby Care Laundry Bu Rina  •  Kab. Sleman", "Laundry Buah Hati  •  Kota Yogyakarta", "Si Kecil Bersih Laundry  •  Kab. Bantul"]
+          'mitraContoh': ["Bidadari Laundry  •  Jakarta Timur", "Mungil Laundry  •  Kab. Bantul", "Pelangi Laundry  •  Kota Malang"]
         },
         {
           'title': "Cuci Khusus", 'desc': "Refreshing Kesayangan", 'img': "assets/images/stroller.jpg",
@@ -104,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Setiap item ditangani oleh Mitra terlatih dengan metode pembersihan yang disesuaikan berdasarkan material bahan. Kami memastikan hasil bersih hingga ke celah-celah yang tersembunyi.",
             "Barang dijemput dan diantarkan kembali dengan aman menggunakan perlindungan bubble wrap. Harga bervariasi sesuai jenis dan ukuran barang, konfirmasi harga sebelum proses dimulai."
           ],
-          'mitraContoh': ["Special Clean Pak Anton  •  Kota Yogyakarta", "Cuci Spesial Nyutji  •  Kab. Sleman", "Premium Care Laundry  •  Kab. Bantul"]
+          'mitraContoh': ["Spesial Laundry  •  Jakarta Pusat", "Istimewa Laundry  •  Kota Solo", "Hebat Laundry  •  Sidoarjo"]
         },
         {
           'title': "Antar Jemput Kurir", 'desc': "Cucian Sampai Depan Rumah", 'img': "assets/images/kurir_service.jpg",
@@ -113,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Sistem pemesanan berbasis aplikasi memudahkan Anda melacak posisi Kurir secara real-time, dari saat penjemputan hingga pengantaran kembali. Notifikasi status otomatis dikirimkan di setiap tahap proses.",
             "Gratis antar jemput untuk area yang sudah bermitra dengan Nyutji. Cukup pesan melalui aplikasi dan nikmati kenyamanan cucian bersih tanpa repot."
           ],
-          'mitraContoh': ["Nyutji Hub Yogyakarta Utara  •  Kab. Sleman", "Nyutji Hub Yogyakarta Selatan  •  Kab. Bantul", "Nyutji Hub Kota  •  Kota Yogyakarta"]
+          'mitraContoh': ["Lancar Laundry  •  Kota Yogyakarta", "Ceria Laundry  •  Kab. Sleman", "Karya Laundry  •  Jakarta Selatan"]
         },
       ]
     },
@@ -138,7 +139,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "This service is perfect for everyday family needs. Simply pack your clothes in the bag, and let Nyutji's courier pick it up right from your doorstep at no extra charge.",
             "Guaranteed to be done in 24 hours and returned in a neat, fragrant, and ready-to-wear condition. Affordable price starting from Rp 7,000 per kilogram."
           ],
-          'mitraContoh': ["Bu Sari Laundry Partner  •  Sleman Regency", "Fresh Clean Laundry  •  Yogyakarta City", "Ibu Tini Laundry  •  Bantul Regency"]
+          'mitraContoh': ["One Laundry  •  Tangerang Selatan", "Mutiara Laundry  •  Kab. Sleman", "Leo Laundry  •  Depok"]
         },
         {
           'title': "Premium Wash", 'desc': "Premium Care", 'img': "assets/images/cuci_satuan.jpg",
@@ -147,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "The washing process uses specially-sized machines to keep colours bright and fabric fibres intact. Each garment is wrapped in a protective plastic bag before being returned.",
             "Ideal for those who value quality and clothing longevity. Prices are charged per item starting from just Rp 5,000."
           ],
-          'mitraContoh': ["Pak Budi Premium Laundry  •  Yogyakarta City", "Anugrah Laundry  •  Sleman Regency", "Fresh Fragrant Laundry  •  Kulon Progo Regency"]
+          'mitraContoh': ["Kece Laundry  •  Kota Surabaya", "Aneka Laundry  •  Kota Bandung", "Perkasa Laundry  •  Semarang"]
         },
         {
           'title': "Ironing Only", 'desc': "Neat & Ready", 'img': "assets/images/setrika_saja.jpg",
@@ -156,7 +157,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Nyutji Partner staff use professional steam irons that maintain fabric softness and shape. The process also helps eliminate remaining germs on your clothes.",
             "Available for all types of clothing including formal shirts, batik wear, and dresses. Prices start from just Rp 2,000 per piece."
           ],
-          'mitraContoh': ["Mbak Dewi Express Laundry  •  Bantul Regency", "Fast & Neat Laundry  •  Yogyakarta City", "Fresh Iron Laundry  •  Sleman Regency"]
+          'mitraContoh': ["Kilat Laundry  •  Jakarta Selatan", "Cemerlang Laundry  •  Kota Bogor", "Cepat Laundry  •  Bekasi"]
         },
         {
           'title': "Beloved Care", 'desc': "Kids Clothes Wash", 'img': "assets/images/cucian_anak.jpg",
@@ -165,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Each load is washed separately from adult laundry, using clean water and strict hygiene procedures. The result is maximally clean, soft, and free from detergent residues.",
             "Clothes are returned neatly folded in special anti-bacterial bags. This service gives peace of mind to parents who care about their child's health."
           ],
-          'mitraContoh': ["Bu Rina Baby Care Laundry  •  Sleman Regency", "Little Ones Laundry  •  Yogyakarta City", "Baby Clean Laundry  •  Bantul Regency"]
+          'mitraContoh': ["Bidadari Laundry  •  Jakarta Timur", "Mungil Laundry  •  Kab. Bantul", "Pelangi Laundry  •  Kota Malang"]
         },
         {
           'title': "Special Wash", 'desc': "Stroller & Helmet", 'img': "assets/images/stroller.jpg",
@@ -174,7 +175,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Each item is handled by trained Partners with cleaning methods tailored to the material. We ensure thorough cleaning down to the hidden crevices.",
             "Items are picked up and returned safely with bubble wrap protection. Prices vary by item type and size; price confirmation is provided before processing begins."
           ],
-          'mitraContoh': ["Pak Anton Special Clean  •  Yogyakarta City", "Nyutji Special Service  •  Sleman Regency", "Premium Care Laundry  •  Bantul Regency"]
+          'mitraContoh': ["Spesial Laundry  •  Jakarta Pusat", "Istimewa Laundry  •  Kota Solo", "Hebat Laundry  •  Sidoarjo"]
         },
         {
           'title': "Courier Pickup", 'desc': "Delivery to Your Door", 'img': "assets/images/kurir_service.jpg",
@@ -183,7 +184,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "The app-based ordering system lets you track the courier's location in real-time, from pickup to return delivery. Automatic status notifications are sent at every stage of the process.",
             "Free pickup and delivery for areas partnered with Nyutji. Simply order through the app and enjoy the convenience of clean laundry without any hassle."
           ],
-          'mitraContoh': ["Nyutji Hub North Yogyakarta  •  Sleman Regency", "Nyutji Hub South Yogyakarta  •  Bantul Regency", "Nyutji Hub City  •  Yogyakarta City"]
+          'mitraContoh': ["Lancar Laundry  •  Kota Yogyakarta", "Ceria Laundry  •  Kab. Sleman", "Karya Laundry  •  Jakarta Selatan"]
         },
       ],
     }
@@ -577,158 +578,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   }
 
   void _showProductDetail(BuildContext context, Map<String, dynamic> prod) {
-    final String imgSrc = prod['img'] ?? '';
-    final bool isNetwork = imgSrc.startsWith('http');
-    final List<String> details = List<String>.from(prod['details'] ?? []);
-    final List<String> mitraList = List<String>.from(prod['mitraContoh'] ?? []);
-
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.65),
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Main popup card
-            ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.88),
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 40, offset: const Offset(0, 16)),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Hero image
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                        child: Stack(
-                          children: [
-                            isNetwork
-                                ? CachedNetworkImage(imageUrl: imgSrc, height: 180, width: double.infinity, fit: BoxFit.cover,
-                                    errorWidget: (c, e, s) => Container(height: 180, color: const Color(0xFFE8F4F4)))
-                                : Image.asset(imgSrc, height: 180, width: double.infinity, fit: BoxFit.cover,
-                                    errorBuilder: (c, e, s) => Container(height: 180, color: const Color(0xFFE8F4F4))),
-                            Container(
-                              height: 180,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.75)],
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 16, left: 20, right: 56,
-                              child: Text(
-                                prod['title'] ?? '',
-                                style: GoogleFonts.montserrat(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, shadows: [
-                                  Shadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 8)
-                                ]),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Description paragraphs
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (int i = 0; i < details.length; i++) ...[  
-                              Text(
-                                details[i],
-                                style: GoogleFonts.montserrat(fontSize: 12.5, color: const Color(0xFF3A3A3A), height: 1.6),
-                              ),
-                              if (i < details.length - 1) const SizedBox(height: 10),
-                            ],
-                          ],
-                        ),
-                      ),
-                      // Divider
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF286B6A).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(LucideIcons.store, size: 13, color: Color(0xFF286B6A)),
-                                  const SizedBox(width: 6),
-                                  Text('Contoh Mitra', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF286B6A))),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Horizontally scrollable mitra list
-                      SizedBox(
-                        height: 60,
-                        child: ListView.separated(
-                          physics: const BouncingScrollPhysics(),
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                          itemCount: mitraList.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 10),
-                          itemBuilder: (_, i) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.25)),
-                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
-                            ),
-                            child: Text(
-                              mitraList[i],
-                              style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF286B6A)),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Floating X button
-            Positioned(
-              top: -14,
-              right: -14,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(ctx),
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 12, offset: const Offset(0, 4))],
-                  ),
-                  child: const Icon(LucideIcons.x, size: 18, color: Color(0xFF286B6A)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      builder: (_) => _ProductDetailDialog(prod: prod),
     );
   }
 
@@ -766,12 +619,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           ),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(child: Text(prod['desc'], style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500))),
-                const Icon(LucideIcons.info, size: 14, color: Color(0xFF286B6A)),
-              ],
-            ),
+            child: Text(prod['desc'], style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500)),
           ),
         ],
       ),
@@ -814,6 +662,247 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Wavy image clipper ──────────────────────────────────────────────────────
+class _WaveImageClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    const r = 28.0;
+    return Path()
+      ..moveTo(r, 0)
+      ..lineTo(size.width - r, 0)
+      ..quadraticBezierTo(size.width, 0, size.width, r)
+      ..lineTo(size.width, size.height - 18)
+      ..quadraticBezierTo(size.width * 0.75, size.height - 52, size.width * 0.5, size.height - 24)
+      ..quadraticBezierTo(size.width * 0.25, size.height + 6, 0, size.height - 34)
+      ..lineTo(0, r)
+      ..quadraticBezierTo(0, 0, r, 0)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(_WaveImageClipper old) => false;
+}
+
+// ── Sparkle glitter painter ─────────────────────────────────────────────────
+class _SparklePainter extends CustomPainter {
+  final double t;
+  _SparklePainter(this.t);
+
+  static const _pos = [
+    Offset(0.14, 0.22), Offset(0.82, 0.16), Offset(0.47, 0.58),
+    Offset(0.11, 0.68), Offset(0.76, 0.52), Offset(0.56, 0.11),
+    Offset(0.32, 0.82), Offset(0.63, 0.35),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (int i = 0; i < _pos.length; i++) {
+      final phase = (t + i / _pos.length) % 1.0;
+      final opacity = (math.sin(phase * 2 * math.pi) * 0.5 + 0.5);
+      final scale = 0.55 + (math.sin(phase * 2 * math.pi) * 0.5 + 0.5) * 0.45;
+      final center = Offset(_pos[i].dx * size.width, _pos[i].dy * size.height);
+      // Outer glow
+      canvas.drawCircle(center, 5.0 * scale, Paint()
+        ..color = Colors.white.withValues(alpha: opacity * 0.25)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+      // Core sparkle
+      canvas.drawCircle(center, 2.5 * scale, Paint()
+        ..color = Colors.white.withValues(alpha: opacity.clamp(0, 1)));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SparklePainter old) => old.t != t;
+}
+
+// ── Product detail dialog (StatefulWidget for sparkle animation) ─────────────
+class _ProductDetailDialog extends StatefulWidget {
+  final Map<String, dynamic> prod;
+  const _ProductDetailDialog({required this.prod});
+
+  @override
+  State<_ProductDetailDialog> createState() => _ProductDetailDialogState();
+}
+
+class _ProductDetailDialogState extends State<_ProductDetailDialog>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _sparkle;
+
+  @override
+  void initState() {
+    super.initState();
+    _sparkle = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _sparkle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final prod = widget.prod;
+    final String imgSrc = prod['img'] ?? '';
+    final bool isNetwork = imgSrc.startsWith('http');
+    final List<String> details = List<String>.from(prod['details'] ?? []);
+    final List<String> mitraList = List<String>.from(prod['mitraContoh'] ?? []);
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Main card
+          ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 40, offset: const Offset(0, 16)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Hero image — wavy bottom cut + sparkle
+                    ClipPath(
+                      clipper: _WaveImageClipper(),
+                      child: SizedBox(
+                        height: 205,
+                        width: double.infinity,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            isNetwork
+                                ? CachedNetworkImage(imageUrl: imgSrc, fit: BoxFit.cover,
+                                    errorWidget: (c, e, s) => Container(color: const Color(0xFFE8F4F4)))
+                                : Image.asset(imgSrc, fit: BoxFit.cover,
+                                    errorBuilder: (c, e, s) => Container(color: const Color(0xFFE8F4F4))),
+                            // Gradient
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.78)],
+                                ),
+                              ),
+                            ),
+                            // Sparkle animation layer
+                            AnimatedBuilder(
+                              animation: _sparkle,
+                              builder: (_, __) => CustomPaint(
+                                painter: _SparklePainter(_sparkle.value),
+                              ),
+                            ),
+                            // Title
+                            Positioned(
+                              bottom: 34, left: 20, right: 56,
+                              child: Text(
+                                prod['title'] ?? '',
+                                style: GoogleFonts.montserrat(
+                                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900,
+                                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10)],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Description paragraphs
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < details.length; i++) ...[
+                            Text(
+                              details[i],
+                              style: GoogleFonts.montserrat(fontSize: 12.5, color: const Color(0xFF3A3A3A), height: 1.6),
+                            ),
+                            if (i < details.length - 1) const SizedBox(height: 10),
+                          ],
+                        ],
+                      ),
+                    ),
+                    // Mitra Laundry Aktif label
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF286B6A).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(LucideIcons.store, size: 13, color: Color(0xFF286B6A)),
+                            const SizedBox(width: 6),
+                            Text('Mitra Laundry Aktif', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF286B6A))),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Mitra horizontal scroll
+                    SizedBox(
+                      height: 58,
+                      child: ListView.separated(
+                        physics: const BouncingScrollPhysics(),
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                        itemCount: mitraList.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 10),
+                        itemBuilder: (_, i) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.22)),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                          ),
+                          child: Text(
+                            mitraList[i],
+                            style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF286B6A)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Floating X button
+          Positioned(
+            top: -14, right: -14,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 38, height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 12, offset: const Offset(0, 4))],
+                ),
+                child: const Icon(LucideIcons.x, size: 18, color: Color(0xFF286B6A)),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
