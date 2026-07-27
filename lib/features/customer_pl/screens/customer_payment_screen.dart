@@ -15,6 +15,7 @@ import '../../../core/theme/theme_util.dart';
 import 'customer_ok_bayar.dart';
 import 'customer_wallet_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class CustomerPaymentScreen extends ConsumerStatefulWidget {
   final int totalPrice;
@@ -398,12 +399,13 @@ class _CustomerPaymentScreenState extends ConsumerState<CustomerPaymentScreen> {
     int grandTotal = widget.totalPrice + courierFee;
     
     final walletProv = ref.watch(walletProvider);
+    final theme = ref.watch(customerThemeProvider);
     
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: theme.bg,
       appBar: AppBar(
         title: Text("Pembayaran", style: GoogleFonts.montserrat(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: primaryTeal,
+        backgroundColor: theme.primary,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),

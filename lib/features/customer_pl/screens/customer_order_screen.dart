@@ -18,6 +18,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/utils/nyutji_distance.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../providers/order_provider.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class CustomerOrderScreen extends ConsumerStatefulWidget {
   final String orderType;
@@ -478,9 +479,10 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
     };
     
     final cT = t['id']; // Default to Indonesian
+    final theme = ref.watch(customerThemeProvider);
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: theme.bg,
       body: Stack(
         children: [
           CustomScrollView(
@@ -636,9 +638,10 @@ class _CustomerOrderScreenState extends ConsumerState<CustomerOrderScreen> {
   }
 
   Widget _buildCompactAppbar(Map<String, dynamic> cT) {
+    final theme = ref.watch(customerThemeProvider);
     return SliverAppBar(
       pinned: true,
-      backgroundColor: primaryTeal,
+      backgroundColor: theme.primary,
       elevation: 0,
       leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
       title: Text(widget.orderType == 'pickup' ? cT['title_pickup'] : cT['title_drop'], style: GoogleFonts.montserrat(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),

@@ -10,6 +10,7 @@ import '../../../data/services/api_service.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class CustomerSchedulerScreen extends ConsumerStatefulWidget {
   const CustomerSchedulerScreen({super.key});
@@ -519,11 +520,12 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
     final scheduler = ref.watch(schedulerProvider);
     final schedules = scheduler.schedules;
     final isLoading = scheduler.isLoading;
+    final theme = ref.watch(customerThemeProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9ED),
+      backgroundColor: theme.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF403600),
+        backgroundColor: theme.primary,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: Colors.white), onPressed: () => Navigator.pop(context)),
@@ -535,7 +537,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
           final city = auth.user?['city_name'] ?? 'Tangerang Selatan';
           await ref.read(schedulerProvider.notifier).fetchSchedules(cityName: city);
         },
-        color: const Color(0xFF403600),
+        color: theme.primary,
         child: isLoading && schedules.isEmpty
             ? _buildShimmerLoading()
             : schedules.isEmpty

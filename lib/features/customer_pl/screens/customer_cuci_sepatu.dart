@@ -17,6 +17,7 @@ import 'customer_wallet_screen.dart';
 import '../../../data/services/api_service.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class CustomerCuciSepatuScreen extends ConsumerStatefulWidget {
   const CustomerCuciSepatuScreen({super.key});
@@ -606,10 +607,11 @@ class _CustomerCuciSepatuScreenState extends ConsumerState<CustomerCuciSepatuScr
 
   @override
   Widget build(BuildContext context) {
+    final theme = ref.watch(customerThemeProvider);
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9ED),
+      backgroundColor: theme.bg,
       appBar: AppBar(
-        backgroundColor: primaryTeal,
+        backgroundColor: theme.primary,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),

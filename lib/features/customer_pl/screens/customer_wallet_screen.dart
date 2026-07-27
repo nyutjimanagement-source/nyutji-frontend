@@ -13,6 +13,7 @@ import '../../../providers/order_provider.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class CustomerWalletScreen extends ConsumerStatefulWidget {
   const CustomerWalletScreen({super.key});
@@ -57,6 +58,7 @@ class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final theme = ref.watch(customerThemeProvider);
     final Map<String, dynamic> t = {
       'id': {
         'title': 'Dompet Nyutji',
@@ -78,7 +80,7 @@ class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
     final currentT = t[auth.lang] ?? t['id'];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9ED),
+      backgroundColor: theme.bg,
       body: RefreshIndicator(
         onRefresh: () async {
           await Future.wait([
@@ -86,7 +88,7 @@ class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
             ref.read(orderProvider).fetchOrders(force: true),
           ]);
         },
-        color: const Color(0xFF403600),
+        color: theme.primary,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           child: Column(
@@ -103,9 +105,9 @@ final wallet = ref.watch(walletProvider);
 return Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF403600), 
+                    color: theme.primary, 
                     borderRadius: BorderRadius.circular(25),
-                    boxShadow: [BoxShadow(color: const Color(0xFF403600).withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8))]
+                    boxShadow: [BoxShadow(color: theme.primary.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8))]
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -253,12 +255,19 @@ final wallet = ref.watch(walletProvider);
 }
 
   Widget _buildPremiumHeader(String title) {
+    final theme = ref.watch(customerThemeProvider);
     return ClipPath(
       clipper: WalletHeaderClipper(),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 60, 16, 60),
-        decoration: const BoxDecoration(color: Color(0xFF403600)),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [theme.primary, theme.accent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Row(
           children: [
             IconButton(

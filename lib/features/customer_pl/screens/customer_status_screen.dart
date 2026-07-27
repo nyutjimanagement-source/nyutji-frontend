@@ -14,6 +14,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../chat/screens/chat_screen.dart';
 import '../../chat/utils/chat_utils.dart';
 
+import '../../../providers/customer_theme_provider.dart';
+
 class CustomerStatusScreen extends ConsumerStatefulWidget {
   const CustomerStatusScreen({super.key});
 
@@ -21,9 +23,7 @@ class CustomerStatusScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
-  final Color primaryTeal = const Color(0xFF403600);
   final Color accentGreen = const Color(0xFF22C55E);
-  final Color darkBg = const Color(0xFF131109);
 
   @override
   void initState() {
@@ -40,10 +40,11 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
   @override
   Widget build(BuildContext context) {
     final orderProv = ref.watch(orderProvider);
+    final theme = ref.watch(customerThemeProvider);
 
     if (orderProv.isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFFFF9ED),
+        backgroundColor: theme.bg,
         body: Column(
           children: [
             _buildPremiumHeader("Status Pesanan"),
@@ -57,10 +58,10 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.cardBg,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: const Color(0xFFE3DCCF), width: 1.2),
-                      boxShadow: [BoxShadow(color: const Color(0xFF403600).withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+                      border: Border.all(color: theme.border, width: 1.2),
+                      boxShadow: [BoxShadow(color: theme.primary.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
                     child: const Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -104,14 +105,15 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
   }
 
   Widget _buildPremiumHeader(String title, {bool showBack = true, String? subtitle}) {
+    final theme = ref.watch(customerThemeProvider);
     return ClipPath(
       clipper: HeaderClipper(),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 50, 16, 70),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF403600), Color(0xFF5A4D00)],
+            colors: [theme.primary, theme.accent],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -151,8 +153,9 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
   }
 
   Widget _buildEmptyState() {
+    final theme = ref.watch(customerThemeProvider);
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9ED),
+      backgroundColor: theme.bg,
       body: Column(
         children: [
           _buildPremiumHeader("Status Pesanan"),
@@ -184,12 +187,12 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
                         children: [
                           Text("Belum Ada Pesanan Aktif",
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkBg)),
+                            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: theme.text)),
                           const SizedBox(height: 10),
                           Text(
                             "Buat pesanan laundry pertamamu\ndan pantau statusnya di sini secara real-time.",
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], height: 1.6),
+                            style: GoogleFonts.montserrat(fontSize: 12, color: theme.subtext, height: 1.6),
                           ),
                           const SizedBox(height: 32),
                           GestureDetector(
@@ -200,9 +203,9 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                               decoration: BoxDecoration(
-                                color: primaryTeal,
+                                color: theme.primary,
                                 borderRadius: BorderRadius.circular(30),
-                                boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))],
+                                boxShadow: [BoxShadow(color: theme.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6))],
                               ),
                               child: Text("Buat Pesanan",
                                 style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
@@ -222,8 +225,9 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
   }
 
   Widget _buildActiveOrdersList(List<dynamic> orders) {
+    final theme = ref.watch(customerThemeProvider);
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF9ED),
+      backgroundColor: theme.bg,
       body: Column(
         children: [
           _buildPremiumHeader(
@@ -235,7 +239,7 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
               onRefresh: () async {
                 await ref.read(orderProvider).fetchOrders(force: true);
               },
-              color: const Color(0xFF403600),
+              color: theme.primary,
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -606,6 +610,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ref.watch(customerThemeProvider);
     final order = widget.order;
     final String s = (order['status'] ?? order['order_status'] ?? '').toString().toUpperCase();
     final bool isFinished = s == 'DONE' || s == 'PAID';
@@ -671,12 +676,12 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardBg,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFE3DCCF), width: 1.2),
+          border: Border.all(color: theme.border, width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF403600).withValues(alpha: 0.06), 
+              color: theme.primary.withValues(alpha: 0.06), 
               blurRadius: 15, 
               offset: const Offset(0, 6)
             )
@@ -709,7 +714,7 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                       children: [
                         Text(
                           "${totalQty.toStringAsFixed(totalQty == totalQty.toInt() ? 0 : 1)} $unit - ${_formatNyutjiDate(orderDate)}",
-                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: const Color(0xFF131109), letterSpacing: 0.3)
+                          style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w900, color: theme.text, letterSpacing: 0.3)
                         ),
                         const SizedBox(height: 4),
                         Builder(
@@ -725,13 +730,13 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
                               final pStatus = _getPremiumProgressLabel(rawStatus);
                               return Text(
                                 "$pName - $pStatus",
-                                style: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF403600), fontWeight: FontWeight.w700, letterSpacing: 0.5)
+                                style: GoogleFonts.montserrat(fontSize: 13, color: theme.primary, fontWeight: FontWeight.w700, letterSpacing: 0.5)
                               );
                             }
 
                             return Text(
                               StatusHelper.getLabel(displayStatus, 'PL'),
-                              style: GoogleFonts.montserrat(fontSize: 13, color: const Color(0xFF403600), fontWeight: FontWeight.w600, letterSpacing: 1.0)
+                              style: GoogleFonts.montserrat(fontSize: 13, color: theme.primary, fontWeight: FontWeight.w600, letterSpacing: 1.0)
                             );
                           }
                         ),
