@@ -78,7 +78,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Proses pencucian menggunakan mesin khusus berkapasitas kecil agar warna tetap cerah dan serat kain tidak mudah rusak. Setiap pakaian dikemas dengan plastik pelindung sebelum diantarkan kembali.",
             "Ideal untuk Anda yang menghargai kualitas dan keawetan pakaian. Harga dihitung per item mulai dari Rp 5.000 saja."
           ],
-          'mitraContoh': ["Kece Laundry  •  Kota Surabaya", "Aneka Laundry  •  Kota Bandung", "Perkasa Laundry  •  Semarang"]
+          'mitraContoh': ["WW Coin Laundry  •  Kota Surabaya", "Nasyaa Laundry  •  Kota Bandung", "Woman and Man Laundry  •  Semarang"]
         },
         {
           'title': "Setrika Saja", 'desc': "Rapi & Siap Pakai", 'img': "assets/images/setrika_saja.jpg",
@@ -105,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Setiap item ditangani oleh Mitra terlatih dengan metode pembersihan yang disesuaikan berdasarkan material bahan. Kami memastikan hasil bersih hingga ke celah-celah yang tersembunyi.",
             "Barang dijemput dan diantarkan kembali dengan aman menggunakan perlindungan bubble wrap. Harga bervariasi sesuai jenis dan ukuran barang, konfirmasi harga sebelum proses dimulai."
           ],
-          'mitraContoh': ["Spesial Laundry  •  Jakarta Pusat", "Istimewa Laundry  •  Kota Solo", "Hebat Laundry  •  Sidoarjo"]
+          'mitraContoh': ["Cuci Klambi Laundry  •  Jakarta Pusat", "Alzongi Laundry  •  Kota Solo", "Fukuma Laundry  •  Sidoarjo"]
         },
         {
           'title': "Antar Jemput Kurir", 'desc': "Cucian Sampai Depan Rumah", 'img': "assets/images/kurir_service.jpg",
@@ -148,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "The washing process uses specially-sized machines to keep colours bright and fabric fibres intact. Each garment is wrapped in a protective plastic bag before being returned.",
             "Ideal for those who value quality and clothing longevity. Prices are charged per item starting from just Rp 5,000."
           ],
-          'mitraContoh': ["Kece Laundry  •  Kota Surabaya", "Aneka Laundry  •  Kota Bandung", "Perkasa Laundry  •  Semarang"]
+          'mitraContoh': ["WW Coin Laundry  •  Kota Surabaya", "Nasyaa Laundry  •  Kota Bandung", "Woman and Man Laundry  •  Semarang"]
         },
         {
           'title': "Ironing Only", 'desc': "Neat & Ready", 'img': "assets/images/setrika_saja.jpg",
@@ -175,7 +175,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             "Each item is handled by trained Partners with cleaning methods tailored to the material. We ensure thorough cleaning down to the hidden crevices.",
             "Items are picked up and returned safely with bubble wrap protection. Prices vary by item type and size; price confirmation is provided before processing begins."
           ],
-          'mitraContoh': ["Spesial Laundry  •  Jakarta Pusat", "Istimewa Laundry  •  Kota Solo", "Hebat Laundry  •  Sidoarjo"]
+          'mitraContoh': ["Cuci Klambi Laundry  •  Jakarta Pusat", "Alzongi Laundry  •  Kota Solo", "Fukuma Laundry  •  Sidoarjo"]
         },
         {
           'title': "Courier Pickup", 'desc': "Delivery to Your Door", 'img': "assets/images/kurir_service.jpg",
@@ -749,6 +749,19 @@ class _ProductDetailDialogState extends State<_ProductDetailDialog>
     'assets/icons/dipacking.png',
     'assets/icons/icon_bayi.png',
     'assets/icons/baby_stroller.png',
+    'assets/icons/icon_topup.png',
+    'assets/icons/icon_status.png',
+    'assets/icons/icon_coin.png',
+    'assets/icons/icon_keranjang.png',
+  ];
+
+  static const List<Color> _accentColors = [
+    Color(0xFF286B6A),
+    Color(0xFF0284C7),
+    Color(0xFFD97706),
+    Color(0xFF059669),
+    Color(0xFF7C3AED),
+    Color(0xFFE11D48),
   ];
 
   @override
@@ -888,7 +901,9 @@ class _ProductDetailDialogState extends State<_ProductDetailDialog>
                           final parts = itemStr.split(' • ');
                           final namaML = parts[0].trim();
                           final kabKota = parts.length > 1 ? parts[1].trim() : '';
-                          final iconPath = _mitraIcons[i % _mitraIcons.length];
+                          final hash = namaML.hashCode.abs();
+                          final iconPath = _mitraIcons[(hash + i) % _mitraIcons.length];
+                          final accentColor = _accentColors[hash % _accentColors.length];
 
                           return GestureDetector(
                             onTap: () {
@@ -918,14 +933,14 @@ class _ProductDetailDialogState extends State<_ProductDetailDialog>
                                     padding: const EdgeInsets.all(5),
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: const Color(0xFF286B6A).withValues(alpha: 0.08),
-                                      border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.15)),
+                                      color: accentColor.withValues(alpha: 0.10),
+                                      border: Border.all(color: accentColor.withValues(alpha: 0.25)),
                                     ),
                                     child: ClipOval(
                                       child: Image.asset(
                                         iconPath,
                                         fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) => const Icon(LucideIcons.store, size: 16, color: Color(0xFF286B6A)),
+                                        errorBuilder: (_, __, ___) => Icon(LucideIcons.store, size: 16, color: accentColor),
                                       ),
                                     ),
                                   ),
