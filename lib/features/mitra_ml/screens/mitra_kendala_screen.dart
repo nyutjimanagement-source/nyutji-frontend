@@ -608,13 +608,17 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
     final double bottomInset = mediaQuery.padding.bottom;
     final double dynamicBottomPadding = 16.0 + (bottomInset > 0 ? bottomInset * 0.4 : 4.0);
 
+    // Ketinggian frame video portrait dinamis (memenuhi layar HP secara memanjang & tinggi)
+    final double videoFrameHeight = screenHeight < 680 ? 380.0 : (screenHeight < 800 ? 460.0 : 520.0);
+    final double maxDialogHeight = screenHeight * 0.90;
+
     return MediaQuery(
       data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
       child: Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: screenHeight < 680 ? 24.0 : 36.0,
+          horizontal: 14,
+          vertical: screenHeight < 680 ? 16.0 : 24.0,
         ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -622,6 +626,7 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
             ClipRRect(
               borderRadius: BorderRadius.circular(28),
               child: Container(
+                constraints: BoxConstraints(maxHeight: maxDialogHeight),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E293B),
                   borderRadius: BorderRadius.circular(28),
@@ -640,7 +645,7 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
                     children: [
                       // Header Modal
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 50, 12),
+                        padding: const EdgeInsets.fromLTRB(18, 14, 48, 10),
                         child: Row(
                           children: [
                             Container(
@@ -665,7 +670,7 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.montserrat(
-                                  fontSize: 14,
+                                  fontSize: 13.5,
                                   fontWeight: FontWeight.w800,
                                   color: Colors.white,
                                 ),
@@ -675,10 +680,10 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
                         ),
                       ),
 
-                      // Video Player Display Frame
+                      // Video Player Display Frame (Diperpanjang Memanjang Vertikal untuk Portrait Video)
                       Container(
                         width: double.infinity,
-                        height: 210,
+                        height: videoFrameHeight,
                         color: Colors.black,
                         child: _hasError
                             ? Center(
@@ -690,7 +695,7 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
                                       const Icon(LucideIcons.videoOff, size: 40, color: Colors.white54),
                                       const SizedBox(height: 10),
                                       Text(
-                                        'File video belum tersedia di penyimpanan lokal assets.',
+                                        'Gagal memuat streaming video dari server Nyutji.',
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70),
                                       ),
@@ -715,20 +720,22 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
                                     child: Stack(
                                       alignment: Alignment.center,
                                       children: [
-                                        AspectRatio(
-                                          aspectRatio: _controller!.value.aspectRatio > 0
-                                              ? _controller!.value.aspectRatio
-                                              : 16 / 9,
-                                          child: VideoPlayer(_controller!),
+                                        Center(
+                                          child: AspectRatio(
+                                            aspectRatio: _controller!.value.aspectRatio > 0
+                                                ? _controller!.value.aspectRatio
+                                                : 9 / 16,
+                                            child: VideoPlayer(_controller!),
+                                          ),
                                         ),
                                         if (!_isPlaying)
                                           Container(
                                             padding: const EdgeInsets.all(16),
                                             decoration: BoxDecoration(
-                                              color: Colors.black.withValues(alpha: 0.5),
+                                              color: Colors.black.withValues(alpha: 0.55),
                                               shape: BoxShape.circle,
                                             ),
-                                            child: const Icon(LucideIcons.play, size: 36, color: Colors.white),
+                                            child: const Icon(LucideIcons.play, size: 40, color: Colors.white),
                                           ),
                                       ],
                                     ),
