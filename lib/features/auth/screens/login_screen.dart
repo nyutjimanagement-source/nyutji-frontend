@@ -784,222 +784,250 @@ class _ProductDetailDialogState extends State<_ProductDetailDialog>
     final List<String> details = List<String>.from(prod['details'] ?? []);
     final List<String> mitraList = List<String>.from(prod['mitraContoh'] ?? []);
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Main card
-          ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 40, offset: const Offset(0, 16)),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Hero image — wavy bottom cut + sparkle
-                    ClipPath(
-                      clipper: _WaveImageClipper(),
-                      child: SizedBox(
-                        height: 205,
-                        width: double.infinity,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            isNetwork
-                                ? CachedNetworkImage(imageUrl: imgSrc, fit: BoxFit.cover,
-                                    errorWidget: (c, e, s) => Container(color: const Color(0xFFE8F4F4)))
-                                : Image.asset(imgSrc, fit: BoxFit.cover,
-                                    errorBuilder: (c, e, s) => Container(color: const Color(0xFFE8F4F4))),
-                            // Gradient
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.78)],
-                                ),
-                              ),
-                            ),
-                            // Sparkle animation layer
-                            AnimatedBuilder(
-                              animation: _sparkle,
-                              builder: (_, __) => CustomPaint(
-                                painter: _SparklePainter(_sparkle.value),
-                              ),
-                            ),
-                            // Title
-                            Positioned(
-                              bottom: 34, left: 20, right: 56,
-                              child: Text(
-                                prod['title'] ?? '',
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900,
-                                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10)],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Description paragraphs
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (int i = 0; i < details.length; i++) ...[
-                            Text(
-                              details[i],
-                              style: GoogleFonts.montserrat(fontSize: 12.5, color: const Color(0xFF3A3A3A), height: 1.6),
-                            ),
-                            if (i < details.length - 1) const SizedBox(height: 10),
-                          ],
-                        ],
-                      ),
-                    ),
-                    // Mitra Laundry Aktif label
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF286B6A).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(LucideIcons.store, size: 13, color: Color(0xFF286B6A)),
-                            const SizedBox(width: 6),
-                            Text('Mitra Laundry Aktif', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF286B6A))),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Mitra horizontal scroll
-                    SizedBox(
-                      height: 68,
-                      child: ListView.separated(
-                        physics: const BouncingScrollPhysics(),
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
-                        itemCount: mitraList.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 10),
-                        itemBuilder: (ctx, i) {
-                          final itemStr = mitraList[i];
-                          final parts = itemStr.split(' • ');
-                          final namaML = parts[0].trim();
-                          final kabKota = parts.length > 1 ? parts[1].trim() : '';
-                          final hash = namaML.hashCode.abs();
-                          final iconPath = _mitraIcons[(hash + i) % _mitraIcons.length];
-                          final accentColor = _accentColors[hash % _accentColors.length];
+    final mediaQuery = MediaQuery.of(context);
+    final double screenHeight = mediaQuery.size.height;
+    final double bottomInset = mediaQuery.padding.bottom;
 
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.pop(ctx);
-                              widget.onRegisterTap?.call();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.20)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF286B6A).withValues(alpha: 0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 34,
-                                    height: 34,
-                                    padding: const EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: accentColor.withValues(alpha: 0.10),
-                                      border: Border.all(color: accentColor.withValues(alpha: 0.25)),
+    // Deteksi margin pintar MediaQuery bottom inset agar tidak menabrak rounded (Aturan II.2)
+    final double dynamicBottomMargin = 16.0 + (bottomInset > 0 ? bottomInset * 0.4 : 6.0);
+
+    // Dynamic hero height & font sizes untuk tampilan presisi dan cantik di berbagai ukuran HP
+    final double heroHeight = screenHeight < 660 ? 155.0 : (screenHeight < 760 ? 175.0 : 195.0);
+    final double descFontSize = screenHeight < 660 ? 11.5 : (screenHeight < 760 ? 12.0 : 12.5);
+    final double maxDialogHeight = screenHeight * 0.84;
+
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: screenHeight < 680 ? 24.0 : 36.0,
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Main card
+            ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  constraints: BoxConstraints(maxHeight: maxDialogHeight),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 40, offset: const Offset(0, 16)),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Hero image — wavy bottom cut + sparkle
+                        ClipPath(
+                          clipper: _WaveImageClipper(),
+                          child: SizedBox(
+                            height: heroHeight,
+                            width: double.infinity,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                isNetwork
+                                    ? CachedNetworkImage(imageUrl: imgSrc, fit: BoxFit.cover,
+                                        errorWidget: (c, e, s) => Container(color: const Color(0xFFE8F4F4)))
+                                    : Image.asset(imgSrc, fit: BoxFit.cover,
+                                        errorBuilder: (c, e, s) => Container(color: const Color(0xFFE8F4F4))),
+                                // Gradient
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                                      colors: [Colors.transparent, Colors.black.withValues(alpha: 0.78)],
                                     ),
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        iconPath,
-                                        fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) => Icon(LucideIcons.store, size: 16, color: accentColor),
-                                      ),
+                                  ),
+                                ),
+                                // Sparkle animation layer
+                                AnimatedBuilder(
+                                  animation: _sparkle,
+                                  builder: (_, __) => CustomPaint(
+                                    painter: _SparklePainter(_sparkle.value),
+                                  ),
+                                ),
+                                // Title
+                                Positioned(
+                                  bottom: screenHeight < 660 ? 24 : 32, left: 20, right: 56,
+                                  child: Text(
+                                    prod['title'] ?? '',
+                                    style: GoogleFonts.montserrat(
+                                      color: Colors.white,
+                                      fontSize: screenHeight < 660 ? 18 : 20,
+                                      fontWeight: FontWeight.w900,
+                                      shadows: [Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10)],
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        namaML,
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: const Color(0xFF1E293B),
-                                        ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Description paragraphs
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (int i = 0; i < details.length; i++) ...[
+                                Text(
+                                  details[i],
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: descFontSize,
+                                    color: const Color(0xFF3A3A3A),
+                                    height: 1.55,
+                                  ),
+                                ),
+                                if (i < details.length - 1) const SizedBox(height: 8),
+                              ],
+                            ],
+                          ),
+                        ),
+                        // Mitra Laundry Aktif label
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF286B6A).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(LucideIcons.store, size: 13, color: Color(0xFF286B6A)),
+                                const SizedBox(width: 6),
+                                Text('Mitra Laundry Aktif', style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF286B6A))),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Mitra horizontal scroll
+                        SizedBox(
+                          height: 68,
+                          child: ListView.separated(
+                            physics: const BouncingScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
+                            itemCount: mitraList.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 10),
+                            itemBuilder: (ctx, i) {
+                              final itemStr = mitraList[i];
+                              final parts = itemStr.split(' • ');
+                              final namaML = parts[0].trim();
+                              final kabKota = parts.length > 1 ? parts[1].trim() : '';
+                              final hash = namaML.hashCode.abs();
+                              final iconPath = _mitraIcons[(hash + i) % _mitraIcons.length];
+                              final accentColor = _accentColors[hash % _accentColors.length];
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(ctx);
+                                  widget.onRegisterTap?.call();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: const Color(0xFF286B6A).withValues(alpha: 0.20)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF286B6A).withValues(alpha: 0.05),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
                                       ),
-                                      if (kabKota.isNotEmpty) ...[
-                                        const SizedBox(height: 1),
-                                        Text(
-                                          kabKota,
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: const Color(0xFF286B6A),
-                                          ),
-                                        ),
-                                      ],
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 34,
+                                        height: 34,
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: accentColor.withValues(alpha: 0.10),
+                                          border: Border.all(color: accentColor.withValues(alpha: 0.25)),
+                                        ),
+                                        child: ClipOval(
+                                          child: Image.asset(
+                                            iconPath,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (_, __, ___) => Icon(LucideIcons.store, size: 16, color: accentColor),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            namaML,
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                          if (kabKota.isNotEmpty) ...[
+                                            const SizedBox(height: 1),
+                                            Text(
+                                              kabKota,
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: const Color(0xFF286B6A),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: dynamicBottomMargin),
+                      ],
                     ),
-                    const SizedBox(height: 14),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-          // Floating X button
-          Positioned(
-            top: -14, right: -14,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 38, height: 38,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 12, offset: const Offset(0, 4))],
+            // Floating X button
+            Positioned(
+              top: -14, right: -14,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 38, height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18), blurRadius: 12, offset: const Offset(0, 4))],
+                  ),
+                  child: const Icon(LucideIcons.x, size: 18, color: Color(0xFF286B6A)),
                 ),
-                child: const Icon(LucideIcons.x, size: 18, color: Color(0xFF286B6A)),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
