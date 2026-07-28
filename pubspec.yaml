@@ -38,6 +38,7 @@ dependencies:
   firebase_messaging: ^15.0.1
   audioplayers: ^6.0.0
   tutorial_coach_mark: ^1.2.11
+  video_player: ^2.9.2
 
 dev_dependencies:
   flutter_test:
@@ -59,3 +60,5 @@ flutter:
     - assets/icons/
     - assets/google_fonts/
     - assets/sounds/
+    - assets/videos/
+    - assets/home/nyutji-storage/video/

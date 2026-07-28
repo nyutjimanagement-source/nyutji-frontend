@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:video_player/video_player.dart';
 import '../../../providers/issue_provider.dart';
 
 class MitraKendalaScreen extends ConsumerStatefulWidget {
@@ -32,10 +34,51 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
 
   final List<String> _priorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
+  final List<Map<String, dynamic>> _maintenanceVideos = const [
+    {
+      'title': 'Cara Cleaning Filter & Drain Mesin Cuci',
+      'duration': '02:45',
+      'tag': 'MESIN RUSAK',
+      'assetPath': 'assets/home/nyutji-storage/video/clean_filter.mp4',
+      'fallbackPath': 'assets/videos/clean_filter.mp4',
+      'icon': LucideIcons.wrench,
+      'color': Color(0xFF1E5655),
+      'description': 'Panduan praktis membersihkan saringan kotoran, katup buang, dan penampung air mesin cuci agar tidak mampet dan putaran tetap kencang.',
+    },
+    {
+      'title': 'Penanganan Eror Air & Sensor Saluran Masuk',
+      'duration': '03:12',
+      'tag': 'AIR BERMASALAH',
+      'assetPath': 'assets/home/nyutji-storage/video/water_sensor.mp4',
+      'fallbackPath': 'assets/videos/water_sensor.mp4',
+      'icon': LucideIcons.droplets,
+      'color': Color(0xFF0284C7),
+      'description': 'Solusi cepat saat sensor debit air mengalami kendala atau kran inlet tersumbat kotoran halus.',
+    },
+    {
+      'title': 'Perawatan Rutin Tabung & Sabuk Pemutar (Belt)',
+      'duration': '04:05',
+      'tag': 'MAINTENANCE',
+      'assetPath': 'assets/home/nyutji-storage/video/belt_maintenance.mp4',
+      'fallbackPath': 'assets/videos/belt_maintenance.mp4',
+      'icon': LucideIcons.cog,
+      'color': Color(0xFFD97706),
+      'description': 'Tips pengecekan berkala kekencangan belt motor dan desinfeksi tabung stainless agar bebas bau dan higienis.',
+    },
+  ];
+
   @override
   void dispose() {
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  void _showVideoPlayer(Map<String, dynamic> videoData) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.8),
+      builder: (_) => _VideoPlayerModal(videoData: videoData),
+    );
   }
 
   void _submit() async {
@@ -101,6 +144,25 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Preview & List Video Maintenance (Di atas Tipe Kendala) ──────
+              _buildSectionTitle('Panduan & Maintenance Mesin', LucideIcons.film),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 155,
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _maintenanceVideos.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final item = _maintenanceVideos[index];
+                    return _buildVideoCard(item);
+                  },
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // ── Tipe Kendala ───────────────────────────────────────────────
               _buildSectionTitle('Tipe Kendala', LucideIcons.alertTriangle),
               const SizedBox(height: 16),
               Column(
@@ -132,6 +194,7 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
               ),
               const SizedBox(height: 32),
               
+              // ── Prioritas ──────────────────────────────────────────────────
               _buildSectionTitle('Prioritas', LucideIcons.flag),
               const SizedBox(height: 16),
               Row(
@@ -186,6 +249,7 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
               ),
               const SizedBox(height: 32),
               
+              // ── Deskripsi Kejadian ──────────────────────────────────────────
               _buildSectionTitle('Deskripsi Kejadian', LucideIcons.fileText),
               const SizedBox(height: 16),
               Container(
@@ -262,6 +326,121 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
     );
   }
 
+  Widget _buildVideoCard(Map<String, dynamic> item) {
+    final Color itemColor = item['color'] ?? primaryTeal;
+    final IconData icon = item['icon'] ?? LucideIcons.playCircle;
+
+    return GestureDetector(
+      onTap: () => _showVideoPlayer(item),
+      child: Container(
+        width: 240,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: itemColor.withValues(alpha: 0.20), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: itemColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    item['tag'] ?? 'TUTORIAL',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: itemColor,
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    const Icon(LucideIcons.clock, size: 12, color: textGrey),
+                    const SizedBox(width: 4),
+                    Text(
+                      item['duration'] ?? '',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: textGrey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: itemColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, size: 18, color: itemColor),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    item['title'] ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: darkText,
+                      height: 1.25,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
+              decoration: BoxDecoration(
+                color: itemColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(LucideIcons.play, size: 13, color: Colors.white),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Putar Panduan Video',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
@@ -320,6 +499,333 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
               color: isSelected ? Colors.white : textGrey,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── In-App Video Player Pop-Up Dialog ───────────────────────────────────────
+class _VideoPlayerModal extends StatefulWidget {
+  final Map<String, dynamic> videoData;
+  const _VideoPlayerModal({required this.videoData});
+
+  @override
+  State<_VideoPlayerModal> createState() => _VideoPlayerModalState();
+}
+
+class _VideoPlayerModalState extends State<_VideoPlayerModal> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  bool _isPlaying = false;
+  bool _isMuted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPlayer();
+  }
+
+  Future<void> _initPlayer() async {
+    final assetPath = widget.videoData['assetPath'] as String;
+    final fallbackPath = widget.videoData['fallbackPath'] as String;
+
+    try {
+      _controller = VideoPlayerController.asset(assetPath);
+      await _controller!.initialize();
+    } catch (_) {
+      try {
+        _controller?.dispose();
+        _controller = VideoPlayerController.asset(fallbackPath);
+        await _controller!.initialize();
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _hasError = true;
+          });
+        }
+        return;
+      }
+    }
+
+    if (mounted && _controller != null && _controller!.value.isInitialized) {
+      setState(() {
+        _isInitialized = true;
+      });
+      _controller!.play();
+      setState(() {
+        _isPlaying = true;
+      });
+      _controller!.addListener(_onPlayerStateChanged);
+    }
+  }
+
+  void _onPlayerStateChanged() {
+    if (!mounted || _controller == null) return;
+    final isPlaying = _controller!.value.isPlaying;
+    if (isPlaying != _isPlaying) {
+      setState(() {
+        _isPlaying = isPlaying;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_onPlayerStateChanged);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final double screenHeight = mediaQuery.size.height;
+    final double bottomInset = mediaQuery.padding.bottom;
+    final double dynamicBottomPadding = 16.0 + (bottomInset > 0 ? bottomInset * 0.4 : 4.0);
+
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: screenHeight < 680 ? 24.0 : 36.0,
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 30,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header Modal
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 50, 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: (widget.videoData['color'] as Color? ?? const Color(0xFF1E5655)).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                widget.videoData['tag'] ?? 'TUTORIAL',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                widget.videoData['title'] ?? 'Panduan Video',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Video Player Display Frame
+                      Container(
+                        width: double.infinity,
+                        height: 210,
+                        color: Colors.black,
+                        child: _hasError
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(LucideIcons.videoOff, size: 40, color: Colors.white54),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        'File video belum tersedia di penyimpanan lokal assets.',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.montserrat(fontSize: 12, color: Colors.white70),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : !_isInitialized
+                                ? const Center(
+                                    child: CircularProgressIndicator(color: Color(0xFF1E5655)),
+                                  )
+                                : GestureDetector(
+                                    onTap: () {
+                                      if (_controller != null) {
+                                        if (_isPlaying) {
+                                          _controller!.pause();
+                                        } else {
+                                          _controller!.play();
+                                        }
+                                      }
+                                    },
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        AspectRatio(
+                                          aspectRatio: _controller!.value.aspectRatio > 0
+                                              ? _controller!.value.aspectRatio
+                                              : 16 / 9,
+                                          child: VideoPlayer(_controller!),
+                                        ),
+                                        if (!_isPlaying)
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withValues(alpha: 0.5),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(LucideIcons.play, size: 36, color: Colors.white),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                      ),
+
+                      // Controls Bar
+                      if (_isInitialized && _controller != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: VideoProgressIndicator(
+                            _controller!,
+                            allowScrubbing: true,
+                            colors: const VideoProgressColors(
+                              playedColor: Color(0xFF1E5655),
+                              bufferedColor: Colors.white24,
+                              backgroundColor: Colors.white10,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  _isPlaying ? LucideIcons.pause : LucideIcons.play,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  if (_isPlaying) {
+                                    _controller!.pause();
+                                  } else {
+                                    _controller!.play();
+                                  }
+                                },
+                              ),
+                              ValueListenableBuilder(
+                                valueListenable: _controller!,
+                                builder: (context, VideoPlayerValue value, _) {
+                                  return Text(
+                                    '${_formatDuration(value.position)} / ${_formatDuration(value.duration)}',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white70,
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  _isMuted ? LucideIcons.volumeX : LucideIcons.volume2,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isMuted = !_isMuted;
+                                    _controller!.setVolume(_isMuted ? 0.0 : 1.0);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      // Description
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                        child: Text(
+                          widget.videoData['description'] ?? '',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 11.5,
+                            color: Colors.white.withValues(alpha: 0.85),
+                            height: 1.45,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: dynamicBottomPadding),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Floating Close Button
+            Positioned(
+              top: -12,
+              right: -12,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(LucideIcons.x, size: 18, color: Color(0xFF1E5655)),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
