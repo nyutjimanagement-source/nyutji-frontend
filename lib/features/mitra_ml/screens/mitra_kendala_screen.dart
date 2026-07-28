@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:video_player/video_player.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../providers/issue_provider.dart';
 
 class MitraKendalaScreen extends ConsumerStatefulWidget {
@@ -34,35 +35,35 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
 
   final List<String> _priorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
-  final List<Map<String, dynamic>> _maintenanceVideos = const [
+  final List<Map<String, dynamic>> _maintenanceVideos = [
     {
-      'title': 'Cara Cleaning Filter & Drain Mesin Cuci',
-      'duration': '02:45',
+      'title': 'Panduan Maintenance Mesin Cuci Samsung',
+      'duration': '03:30',
       'tag': 'MESIN RUSAK',
-      'assetPath': 'assets/home/nyutji-storage/video/clean_filter.mp4',
-      'fallbackPath': 'assets/videos/clean_filter.mp4',
+      'url': '${ApiConstants.rootUrl}/nyutji-storage/video/washer_samsung.mp4',
+      'fallbackUrl': '${ApiConstants.rootUrl}/storage/video/washer_samsung.mp4',
       'icon': LucideIcons.wrench,
-      'color': Color(0xFF1E5655),
-      'description': 'Panduan praktis membersihkan saringan kotoran, katup buang, dan penampung air mesin cuci agar tidak mampet dan putaran tetap kencang.',
+      'color': const Color(0xFF1E5655),
+      'description': 'Panduan praktis maintenance unit mesin cuci Samsung, pembersihan saringan kotoran, katup buang, serta pemeliharaan putaran tabung.',
     },
     {
       'title': 'Penanganan Eror Air & Sensor Saluran Masuk',
       'duration': '03:12',
       'tag': 'AIR BERMASALAH',
-      'assetPath': 'assets/home/nyutji-storage/video/water_sensor.mp4',
-      'fallbackPath': 'assets/videos/water_sensor.mp4',
+      'url': '${ApiConstants.rootUrl}/nyutji-storage/video/water_sensor.mp4',
+      'fallbackUrl': '${ApiConstants.rootUrl}/storage/video/water_sensor.mp4',
       'icon': LucideIcons.droplets,
-      'color': Color(0xFF0284C7),
+      'color': const Color(0xFF0284C7),
       'description': 'Solusi cepat saat sensor debit air mengalami kendala atau kran inlet tersumbat kotoran halus.',
     },
     {
       'title': 'Perawatan Rutin Tabung & Sabuk Pemutar (Belt)',
       'duration': '04:05',
       'tag': 'MAINTENANCE',
-      'assetPath': 'assets/home/nyutji-storage/video/belt_maintenance.mp4',
-      'fallbackPath': 'assets/videos/belt_maintenance.mp4',
+      'url': '${ApiConstants.rootUrl}/nyutji-storage/video/belt_maintenance.mp4',
+      'fallbackUrl': '${ApiConstants.rootUrl}/storage/video/belt_maintenance.mp4',
       'icon': LucideIcons.cog,
-      'color': Color(0xFFD97706),
+      'color': const Color(0xFFD97706),
       'description': 'Tips pengecekan berkala kekencangan belt motor dan desinfeksi tabung stainless agar bebas bau dan higienis.',
     },
   ];
@@ -527,18 +528,33 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
     _initPlayer();
   }
 
+  VideoPlayerController _createController(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return VideoPlayerController.networkUrl(Uri.parse(path));
+    }
+    return VideoPlayerController.asset(path);
+  }
+
   Future<void> _initPlayer() async {
-    final assetPath = widget.videoData['assetPath'] as String;
-    final fallbackPath = widget.videoData['fallbackPath'] as String;
+    final String mainUrl = (widget.videoData['url'] ?? widget.videoData['assetPath'] ?? '').toString();
+    final String fallbackUrl = (widget.videoData['fallbackUrl'] ?? widget.videoData['fallbackPath'] ?? '').toString();
 
     try {
-      _controller = VideoPlayerController.asset(assetPath);
-      await _controller!.initialize();
+      if (mainUrl.isNotEmpty) {
+        _controller = _createController(mainUrl);
+        await _controller!.initialize();
+      } else {
+        throw Exception('No primary video URL');
+      }
     } catch (_) {
       try {
         _controller?.dispose();
-        _controller = VideoPlayerController.asset(fallbackPath);
-        await _controller!.initialize();
+        if (fallbackUrl.isNotEmpty) {
+          _controller = _createController(fallbackUrl);
+          await _controller!.initialize();
+        } else {
+          throw Exception('No fallback video URL');
+        }
       } catch (_) {
         if (mounted) {
           setState(() {
