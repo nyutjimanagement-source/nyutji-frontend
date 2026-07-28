@@ -1,11 +1,115 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/issue_provider.dart';
+
+// ── Background Video Cache Manager (Arsitektur Offline-First & Ramah Shared Hosting) ──
+class _VideoCacheManager {
+  static final Map<String, String> _memoryPathCache = {};
+  static final Set<String> _downloadingUrls = {};
+
+  /// Menghasilkan nama file cache lokal berdasarkan URL video
+  static String _getCacheFileName(String url) {
+    final fileName = url.split('/').last.split('?').first;
+    return 'nyutji_vcache_$fileName';
+  }
+
+  /// Mengecek apakah file video sudah terunduh di penyimpanan lokal HP
+  static Future<File?> getCachedFile(String url) async {
+    if (url.isEmpty) return null;
+    try {
+      if (_memoryPathCache.containsKey(url)) {
+        final file = File(_memoryPathCache[url]!);
+        if (file.existsSync() && file.lengthSync() > 0) {
+          return file;
+        }
+      }
+
+      final dir = await getApplicationDocumentsDirectory();
+      final targetPath = '${dir.path}/${_getCacheFileName(url)}';
+      final file = File(targetPath);
+
+      if (file.existsSync() && file.lengthSync() > 0) {
+        _memoryPathCache[url] = targetPath;
+        return file;
+      }
+    } catch (e) {
+      debugPrint('[VideoCache] Error getCachedFile: $e');
+    }
+    return null;
+  }
+
+  /// Mengunduh file video di latar belakang ke penyimpanan lokal HP (Background Downloader)
+  static void prefetchVideoInBackground(String url) async {
+    if (url.isEmpty || _downloadingUrls.contains(url)) return;
+
+    final existingFile = await getCachedFile(url);
+    if (existingFile != null) {
+      // File sudah terunduh lokal (Cache-First)
+      return;
+    }
+
+    _downloadingUrls.add(url);
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final cacheFileName = _getCacheFileName(url);
+      final targetPath = '${dir.path}/$cacheFileName';
+      final tempPath = '${dir.path}/temp_$cacheFileName';
+
+      final tempFile = File(tempPath);
+      if (tempFile.existsSync()) {
+        try {
+          tempFile.deleteSync();
+        } catch (_) {}
+      }
+
+      final dio = Dio();
+      await dio.download(
+        url,
+        tempPath,
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+          headers: {'Accept-Encoding': 'identity'},
+        ),
+      );
+
+      final downloadedFile = File(tempPath);
+      if (downloadedFile.existsSync() && downloadedFile.lengthSync() > 0) {
+        final targetFile = File(targetPath);
+        if (targetFile.existsSync()) {
+          try {
+            targetFile.deleteSync();
+          } catch (_) {}
+        }
+        await downloadedFile.rename(targetPath);
+        _memoryPathCache[url] = targetPath;
+        debugPrint('[VideoCache] Background download selesai untuk: $url');
+      }
+    } catch (e) {
+      debugPrint('[VideoCache] Background download gagal untuk $url: $e');
+    } finally {
+      _downloadingUrls.remove(url);
+    }
+  }
+
+  /// Memicu prefetch di latar belakang untuk semua video maintenance saat list dibuka
+  static void prefetchVideos(List<Map<String, dynamic>> videoList) {
+    for (final item in videoList) {
+      final String mainUrl = (item['url'] ?? item['assetPath'] ?? '').toString();
+      if (mainUrl.startsWith('http://') || mainUrl.startsWith('https://')) {
+        prefetchVideoInBackground(mainUrl);
+      }
+    }
+  }
+}
 
 class MitraKendalaScreen extends ConsumerStatefulWidget {
   const MitraKendalaScreen({super.key});
@@ -67,6 +171,15 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
       'description': 'Tips pengecekan berkala kekencangan belt motor dan desinfeksi tabung stainless agar bebas bau dan higienis.',
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Memicu unduhan video di latar belakang ke memori lokal HP saat daftar dibuka (Rule I.1 Cache-First & Offline)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _VideoCacheManager.prefetchVideos(_maintenanceVideos);
+    });
+  }
 
   @override
   void dispose() {
@@ -330,6 +443,7 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
   Widget _buildVideoCard(Map<String, dynamic> item) {
     final Color itemColor = item['color'] ?? primaryTeal;
     final IconData icon = item['icon'] ?? LucideIcons.playCircle;
+    final String mainUrl = (item['url'] ?? item['assetPath'] ?? '').toString();
 
     return GestureDetector(
       onTap: () => _showVideoPlayer(item),
@@ -372,6 +486,30 @@ class _MitraKendalaScreenState extends ConsumerState<MitraKendalaScreen> {
                 ),
                 Row(
                   children: [
+                    FutureBuilder<File?>(
+                      future: _VideoCacheManager.getCachedFile(mainUrl),
+                      builder: (context, snapshot) {
+                        final isCached = snapshot.data != null;
+                        if (isCached) {
+                          return Row(
+                            children: [
+                              const Icon(LucideIcons.checkCheck, size: 12, color: primaryTeal),
+                              const SizedBox(width: 3),
+                              Text(
+                                'OFFLINE',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: primaryTeal,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
                     const Icon(LucideIcons.clock, size: 12, color: textGrey),
                     const SizedBox(width: 4),
                     Text(
@@ -521,6 +659,7 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
   bool _hasError = false;
   bool _isPlaying = false;
   bool _isMuted = false;
+  bool _isLocalFile = false;
 
   @override
   void initState() {
@@ -541,7 +680,18 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
 
     try {
       if (mainUrl.isNotEmpty) {
-        _controller = _createController(mainUrl);
+        // Prinsip Cache-First (Rule I.1): Cek apakah file video sudah ada di memori lokal HP
+        final cachedFile = await _VideoCacheManager.getCachedFile(mainUrl);
+        if (cachedFile != null) {
+          debugPrint('[VideoPlayer] Memutar dari Cache Lokal HP: ${cachedFile.path}');
+          _controller = VideoPlayerController.file(cachedFile);
+          _isLocalFile = true;
+        } else {
+          debugPrint('[VideoPlayer] Memutar dari Network URL: $mainUrl');
+          _controller = _createController(mainUrl);
+          // Jalankan prefetch di background untuk pembacaan berikutnya
+          _VideoCacheManager.prefetchVideoInBackground(mainUrl);
+        }
         await _controller!.initialize();
       } else {
         throw Exception('No primary video URL');
@@ -550,7 +700,13 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
       try {
         _controller?.dispose();
         if (fallbackUrl.isNotEmpty) {
-          _controller = _createController(fallbackUrl);
+          final cachedFallback = await _VideoCacheManager.getCachedFile(fallbackUrl);
+          if (cachedFallback != null) {
+            _controller = VideoPlayerController.file(cachedFallback);
+            _isLocalFile = true;
+          } else {
+            _controller = _createController(fallbackUrl);
+          }
           await _controller!.initialize();
         } else {
           throw Exception('No fallback video URL');
@@ -663,6 +819,24 @@ class _VideoPlayerModalState extends State<_VideoPlayerModal> {
                                 ),
                               ),
                             ),
+                            if (_isLocalFile) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'OFFLINE CACHE',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF34D399),
+                                  ),
+                                ),
+                              ),
+                            ],
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
