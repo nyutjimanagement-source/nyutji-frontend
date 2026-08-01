@@ -368,7 +368,6 @@ final wallet = ref.watch(walletProvider);
       builder: (ctx) {
         return StatefulBuilder(
           builder: (BuildContext stCtx, StateSetter setState) {
-            final itemWidth = (MediaQuery.of(ctx).size.width - 48 - 12) / 2;
             final bottomPadding = MediaQuery.of(ctx).padding.bottom;
 
             return Padding(
@@ -379,10 +378,13 @@ final wallet = ref.watch(walletProvider);
                 children: [
                   Text("Pilih Nominal Top Up", style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF131109))),
                   const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: amounts.map((amount) {
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final itemWidth = (constraints.maxWidth - 12.1) / 2;
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: amounts.map((amount) {
                       bool isSelected = selectedAmount == amount;
                       return InkWell(
                         borderRadius: BorderRadius.circular(12),
@@ -403,8 +405,9 @@ final wallet = ref.watch(walletProvider);
                         ),
                       );
                     }).toList(),
-                  ),
-                  const SizedBox(height: 30),
+                  );
+                }),
+                const SizedBox(height: 30),
                   
                   // Link Payment Gateway (Midtrans Snap)
                   InkWell(
