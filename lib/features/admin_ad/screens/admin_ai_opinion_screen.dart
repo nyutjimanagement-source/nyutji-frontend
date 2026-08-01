@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/widgets/shimmer_loading.dart';
-import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_scroll_physics.dart';
 
 class AdminAiOpinionScreen extends ConsumerStatefulWidget {

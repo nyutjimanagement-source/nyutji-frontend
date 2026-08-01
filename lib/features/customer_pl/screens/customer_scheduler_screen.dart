@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/scheduler_provider.dart';
 import '../../../data/services/api_service.dart';
-import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/shimmer_loading.dart';
