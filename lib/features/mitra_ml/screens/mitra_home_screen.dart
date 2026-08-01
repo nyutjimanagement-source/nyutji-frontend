@@ -54,6 +54,8 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   final GlobalKey _keyQuickActions = GlobalKey();
   final GlobalKey _keyInformation = GlobalKey();
   final GlobalKey _keyBottomNav = GlobalKey();
+  final GlobalKey _keyActionPesanan = GlobalKey();
+  final GlobalKey _keyNavPesanan = GlobalKey();
 
   @override
   void initState() {
@@ -516,7 +518,7 @@ final orderProv = ref.watch(orderProvider);
         final List<Widget> primaryActions = [
           _buildGridAction("Pesanan", LucideIcons.packagePlus, Colors.blue, () {
             _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-          }, badgeCount: activeOrderCount),
+          }, badgeCount: activeOrderCount, keyTarget: _keyActionPesanan),
           _buildGridAction("Harga & Promosi", LucideIcons.banknote, Colors.red, () {
         Navigator.push(context, PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => const MitraPricingScreen(),
@@ -599,8 +601,9 @@ final orderProv = ref.watch(orderProvider);
 );
 }
 
-  Widget _buildGridAction(String title, IconData icon, Color color, VoidCallback onTap, {int badgeCount = 0}) {
+  Widget _buildGridAction(String title, IconData icon, Color color, VoidCallback onTap, {int badgeCount = 0, GlobalKey? keyTarget}) {
     return GestureDetector(
+      key: keyTarget,
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[200]!)),
@@ -749,7 +752,11 @@ final orderProv = ref.watch(orderProvider);
                     activeIcon: _buildBerandaTabIcon(true, showBerandaRedDot), 
                     label: "Beranda"
                   ),
-                  const BottomNavigationBarItem(icon: Icon(LucideIcons.clipboardList, size: 20), activeIcon: Icon(LucideIcons.clipboardList, size: 20), label: "Pesanan"),
+                  BottomNavigationBarItem(
+                    icon: Container(key: _keyNavPesanan, child: const Icon(LucideIcons.clipboardList, size: 20)), 
+                    activeIcon: const Icon(LucideIcons.clipboardList, size: 20), 
+                    label: "Pesanan"
+                  ),
                   const BottomNavigationBarItem(icon: Icon(LucideIcons.wallet, size: 20), activeIcon: Icon(LucideIcons.wallet, size: 20), label: "Dompet"),
                   BottomNavigationBarItem(
                     icon: _buildTokoTabIcon(false, showTokoRedDot), 
@@ -805,97 +812,154 @@ final orderProv = ref.watch(orderProvider);
   }
 
   void _showTutorialCoachMark() {
-    final targets = <TargetFocus>[
-      TargetFocus(
-        identify: "antrean_card",
-        keyTarget: _keyAntreanCard,
-        shape: ShapeLightFocus.RRect,
-        radius: 16,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) {
-              return NyutjiCoachMark.buildTutorialCard(
-                step: "1 / 4",
-                title: "Antrean Cucian Real-Time",
-                description: "Pantau status pesanan cucian yang sedang diproses di outlet Anda secara live dan terupdate otomatis.",
-                icon: LucideIcons.loader,
-                onNext: () => controller.next(),
-                onSkip: () => controller.skip(),
-              );
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: "quick_actions",
-        keyTarget: _keyQuickActions,
-        shape: ShapeLightFocus.RRect,
-        radius: 16,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return NyutjiCoachMark.buildTutorialCard(
-                step: "2 / 4",
-                title: "Akses Cepat Operasional",
-                description: "Kelola Kasir POS, Layanan & Harga, Mesin Cuci, Stok Bahan Kimia, dan Kinerja Kurir dalam satu sentuhan.",
-                icon: LucideIcons.layoutGrid,
-                onNext: () => controller.next(),
-                onSkip: () => controller.skip(),
-              );
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: "information",
-        keyTarget: _keyInformation,
-        shape: ShapeLightFocus.RRect,
-        radius: 16,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return NyutjiCoachMark.buildTutorialCard(
-                step: "3 / 4",
-                title: "Informasi & Saldo Dompet",
-                description: "Lihat ringkasan dana siap ditarik, daftar layanan aktif, kurir outlet, dan statistik mesin cucian.",
-                icon: LucideIcons.wallet,
-                onNext: () => controller.next(),
-                onSkip: () => controller.skip(),
-              );
-            },
-          ),
-        ],
-      ),
-      TargetFocus(
-        identify: "bottom_nav",
-        keyTarget: _keyBottomNav,
-        shape: ShapeLightFocus.RRect,
-        radius: 12,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) {
-              return NyutjiCoachMark.buildTutorialCard(
-                step: "4 / 4",
-                title: "Navigasi Tab Utama",
-                description: "Berpindah dengan cepat antar tab Beranda, Pesanan Masuk, Dompet Mitra, dan Profil Toko Anda.",
-                icon: LucideIcons.compass,
-                isLast: true,
-                onNext: () => controller.next(),
-                onSkip: () => controller.skip(),
-              );
-            },
-          ),
-        ],
-      ),
-    ];
+    final orderProv = ref.read(orderProvider);
+    final activeOrderCount = orderProv.activeOrders.where((o) => (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase() != 'DRAFT').length;
+    final bool hasOrders = activeOrderCount > 0;
+
+    final targets = <TargetFocus>[];
+
+    if (hasOrders) {
+      targets.add(
+        TargetFocus(
+          identify: "antrean_card",
+          keyTarget: _keyAntreanCard,
+          shape: ShapeLightFocus.RRect,
+          radius: 16,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return NyutjiCoachMark.buildTutorialCard(
+                  step: "1 / 3",
+                  title: "Antrean Cucian Real-Time",
+                  description: "Pantau status pesanan cucian yang sedang diproses di outlet Anda secara live dan terupdate otomatis.",
+                  icon: LucideIcons.loader,
+                  onNext: () => controller.next(),
+                  onSkip: () => controller.skip(),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+      targets.add(
+        TargetFocus(
+          identify: "action_pesanan",
+          keyTarget: _keyActionPesanan,
+          shape: ShapeLightFocus.RRect,
+          radius: 12,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return NyutjiCoachMark.buildTutorialCard(
+                  step: "2 / 3",
+                  title: "Menu Pesanan Aksi Cepat",
+                  description: "Akses cepat ke daftar pesanan cucian pelanggan yang masuk ke outlet Anda dari panel kendali.",
+                  icon: LucideIcons.packagePlus,
+                  onNext: () => controller.next(),
+                  onSkip: () => controller.skip(),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+      targets.add(
+        TargetFocus(
+          identify: "nav_pesanan",
+          keyTarget: _keyNavPesanan,
+          shape: ShapeLightFocus.Circle,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return NyutjiCoachMark.buildTutorialCard(
+                  step: "3 / 3",
+                  title: "Tab Navigasi Pesanan",
+                  description: "Buka halaman ini untuk mengelola riwayat dan status setiap pesanan secara detail.",
+                  icon: LucideIcons.clipboardList,
+                  isLast: true,
+                  onNext: () => controller.next(),
+                  onSkip: () => controller.skip(),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    } else {
+      targets.addAll([
+        TargetFocus(
+          identify: "quick_actions",
+          keyTarget: _keyQuickActions,
+          shape: ShapeLightFocus.RRect,
+          radius: 16,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return NyutjiCoachMark.buildTutorialCard(
+                  step: "1 / 3",
+                  title: "Akses Cepat Operasional",
+                  description: "Kelola Kasir POS, Layanan & Harga, Mesin Cuci, Stok Bahan Kimia, dan Kinerja Kurir dalam satu sentuhan.",
+                  icon: LucideIcons.layoutGrid,
+                  onNext: () => controller.next(),
+                  onSkip: () => controller.skip(),
+                );
+              },
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: "information",
+          keyTarget: _keyInformation,
+          shape: ShapeLightFocus.RRect,
+          radius: 16,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return NyutjiCoachMark.buildTutorialCard(
+                  step: "2 / 3",
+                  title: "Informasi & Saldo Dompet",
+                  description: "Lihat ringkasan dana siap ditarik, daftar layanan aktif, kurir outlet, dan statistik mesin cucian.",
+                  icon: LucideIcons.wallet,
+                  onNext: () => controller.next(),
+                  onSkip: () => controller.skip(),
+                );
+              },
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: "bottom_nav",
+          keyTarget: _keyBottomNav,
+          shape: ShapeLightFocus.RRect,
+          radius: 12,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) {
+                return NyutjiCoachMark.buildTutorialCard(
+                  step: "3 / 3",
+                  title: "Navigasi Tab Utama",
+                  description: "Berpindah dengan cepat antar tab Beranda, Pesanan Masuk, Dompet Mitra, dan Profil Toko Anda.",
+                  icon: LucideIcons.compass,
+                  isLast: true,
+                  onNext: () => controller.next(),
+                  onSkip: () => controller.skip(),
+                );
+              },
+            ),
+          ],
+        ),
+      ]);
+    }
 
     NyutjiCoachMark.showTutorial(
       context: context,
-      tutorialKey: 'mitra_home_tutorial_v1',
+      tutorialKey: hasOrders ? 'mitra_home_tutorial_with_orders' : 'mitra_home_tutorial_empty',
       targets: targets,
     );
   }
