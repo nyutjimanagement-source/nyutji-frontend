@@ -47,6 +47,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   Timer? _refreshTimer;
   bool _isFirstLoad = true;
+  int _lastMessageCount = 0;
 
   String _myId = '';
   String _myName = '';
@@ -192,6 +193,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final provider = ref.watch(chatProvider);
     final bottom = MediaQuery.of(context).padding.bottom;
 
+    if (provider.messages.length > _lastMessageCount) {
+      _lastMessageCount = provider.messages.length;
+      if (!_isFirstLoad) {
+        _scrollToBottom();
+      }
+    } else if (provider.messages.length < _lastMessageCount) {
+      // In case messages are cleared
+      _lastMessageCount = provider.messages.length;
+    }
+
     return Scaffold(
       backgroundColor: _bgLight,
       appBar: _buildAppBar(),
@@ -329,7 +340,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildMessageList(List<ChatMessageModel> messages) {
     return ListView.builder(
       controller: _scrollController,
-      physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+      physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: messages.length,
       itemBuilder: (ctx, index) {
