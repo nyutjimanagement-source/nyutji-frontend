@@ -44,6 +44,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   static const darkText = Color(0xFF111827);
   static const textGrey = Color(0xFF6B7280);
   String _homeSubPage = "main"; // "main" atau "inventory"
+  bool _tutorialTriggered = false;
 
   int _selectedIndex = 0;
   late PageController _pageController;
@@ -68,10 +69,6 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
       ref.read(orderProvider).fetchOrders();
       auth.fetchCouriers();
       auth.fetchPendingApprovals();
-      
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) _showTutorialCoachMark();
-      });
     });
   }
 
@@ -132,7 +129,21 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
     final hasPin = wallet.hasPin;
     final hasCouriers = auth.couriers.isNotEmpty;
     final showTokoRedDot = !hasAddress || !hasBank || !hasQris || !hasPin || !hasCouriers;
-    final showBerandaRedDot = ref.watch(orderProvider).activeOrders.isNotEmpty;
+    final orderProv = ref.watch(orderProvider);
+    final showBerandaRedDot = orderProv.activeOrders.isNotEmpty;
+
+    if (!orderProv.isLoading && !_tutorialTriggered) {
+      _tutorialTriggered = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final hasSeenEmpty = Hive.box('nyutji_cache').get('tutorial_mitra_home_tutorial_empty', defaultValue: false);
+        final hasSeenOrders = Hive.box('nyutji_cache').get('tutorial_mitra_home_tutorial_with_orders', defaultValue: false);
+        if (!hasSeenEmpty || !hasSeenOrders) {
+           Future.delayed(const Duration(milliseconds: 300), () {
+             if (mounted) _showTutorialCoachMark();
+           });
+        }
+      });
+    }
 
     final Map<String, dynamic> t = {
       'id': {'logout': 'Keluar Akun'},
@@ -897,7 +908,7 @@ final orderProv = ref.watch(orderProvider);
           radius: 16,
           contents: [
             TargetContent(
-              align: ContentAlign.top,
+              align: ContentAlign.bottom,
               builder: (context, controller) {
                 return NyutjiCoachMark.buildTutorialCard(
                   step: "1 / 3",
