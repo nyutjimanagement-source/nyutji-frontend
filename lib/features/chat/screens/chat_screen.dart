@@ -329,7 +329,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildMessageList(List<ChatMessageModel> messages) {
     return ListView.builder(
       controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: messages.length,
       itemBuilder: (ctx, index) {

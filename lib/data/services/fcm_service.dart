@@ -9,6 +9,7 @@ import '../../core/widgets/incoming_call_overlay.dart';
 import '../../core/widgets/nyutji_notif.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/chat_provider.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -171,8 +172,13 @@ class FcmService {
           ChatScreen.activeChannel == channel;
 
       if (isChatOpen) {
-        // Sedang chatting: mainkan suara "wuikk-wuikk" (bubble pop), jangan tampilkan banner
+        // Sedang chatting: mainkan suara pop, dan perbarui list chat
         _playChatBubbleSound();
+        try {
+          globalProviderContainer.read(chatProvider).fetchMessages(orderNumber, channel, force: true);
+        } catch (e) {
+          debugPrint("Gagal memanggil fetchMessages: $e");
+        }
       } else {
         // Tidak sedang di room chat ini: tampilkan banner notifikasi
         if (context != null && context.mounted) {
