@@ -1639,7 +1639,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
                 offset: const Offset(0, 3))
           ],
           image:
-              DecorationImage(image: NetworkImage(fullUrl), fit: BoxFit.cover),
+              DecorationImage(image: CachedNetworkImageProvider(fullUrl), fit: BoxFit.cover),
         ),
       );
     }

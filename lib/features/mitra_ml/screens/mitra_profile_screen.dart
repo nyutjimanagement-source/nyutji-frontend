@@ -15,6 +15,7 @@ import '../../../core/widgets/shimmer_loading.dart';
 import 'mitra_keamanan_pin.dart';
 import '../../admin_ad/screens/admin_qrcode_generate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MitraProfileScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? currentT;
@@ -144,11 +145,10 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
 
     final url = ApiConstants.profilePhotoUrl(photoUrl);
 
-    return Image.network(
-      url,
+    return CachedNetworkImage(
+      imageUrl: url,
       fit: BoxFit.cover,
-      gaplessPlayback: true,
-      errorBuilder: (_, __, ___) =>
+      errorWidget: (_, __, ___) =>
           const Icon(LucideIcons.store, color: Colors.white, size: 20),
     );
   }
@@ -1346,10 +1346,10 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
             clipBehavior: Clip.antiAlias,
             child: (user['profile_photo'] != null &&
                     user['profile_photo'].toString().isNotEmpty)
-                ? Image.network(
-                    ApiConstants.profilePhotoUrl(user['profile_photo']),
+                ? CachedNetworkImage(
+                    imageUrl: ApiConstants.profilePhotoUrl(user['profile_photo']),
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(LucideIcons.user,
+                    errorWidget: (_, __, ___) => const Icon(LucideIcons.user,
                         size: 14, color: primaryTeal),
                   )
                 : const Icon(LucideIcons.user, size: 14, color: primaryTeal),
@@ -1424,10 +1424,10 @@ class _MitraProfileScreenState extends ConsumerState<MitraProfileScreen> {
             clipBehavior: Clip.antiAlias,
             child: (user['profile_photo'] != null &&
                     user['profile_photo'].toString().isNotEmpty)
-                ? Image.network(
-                    ApiConstants.profilePhotoUrl(user['profile_photo']),
+                ? CachedNetworkImage(
+                    imageUrl: ApiConstants.profilePhotoUrl(user['profile_photo']),
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
+                    errorWidget: (_, __, ___) =>
                         const Icon(LucideIcons.user, size: 14, color: textGrey),
                   )
                 : const Icon(LucideIcons.user, size: 14, color: textGrey),

@@ -232,7 +232,7 @@ class _MitraPosScreenState extends ConsumerState<MitraPosScreen> {
                           if (oldFileName != null) {
                             final oldVer = _photoVersions[item['id']] ?? 0;
                             final oldFullUrl = "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/$oldFileName?v=$oldVer";
-                            await NetworkImage(oldFullUrl).evict();
+                            await CachedNetworkImage.evictFromCache(oldFullUrl);
                           }
                           // Update versi item ini → trigger rebuild dengan URL baru
                           if (mounted) {

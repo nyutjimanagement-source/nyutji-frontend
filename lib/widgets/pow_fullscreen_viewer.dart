@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class PowFullscreenViewer extends ConsumerWidget {
   final String imageUrl;
@@ -37,16 +38,13 @@ class PowFullscreenViewer extends ConsumerWidget {
             panEnabled: true,
             minScale: 0.5,
             maxScale: 4,
-            child: Image.network(
-              imageUrl,
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
               fit: BoxFit.contain,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) => const Center(
+              placeholder: (context, url) => const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+              errorWidget: (context, error, stackTrace) => const Center(
                 child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
               ),
             ),

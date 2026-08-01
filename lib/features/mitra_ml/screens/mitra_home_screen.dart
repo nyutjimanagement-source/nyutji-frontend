@@ -8,6 +8,7 @@ import 'dart:async';
 import '../../../core/widgets/forecast_weather.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/nyutji_dot.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
@@ -343,11 +344,11 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
                     // Background Image or Grey color
                     Positioned.fill(
                       child: _randomPosImage != null
-                          ? Image.network(
-                              "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/$_randomPosImage",
+                          ? CachedNetworkImage(
+                              imageUrl: "${ApiConstants.rootUrl}/nyutji-storage/uploads/inventory/$_randomPosImage",
                               fit: BoxFit.cover,
                               alignment: Alignment.centerRight,
-                              errorBuilder: (_, __, ___) => Container(color: Colors.grey[200]),
+                              errorWidget: (_, __, ___) => Container(color: Colors.grey[200]),
                             )
                           : Container(color: Colors.grey[200]),
                     ),
