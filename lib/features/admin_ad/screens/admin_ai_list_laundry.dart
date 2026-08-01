@@ -10,6 +10,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/nyutji_theme.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../core/widgets/nyutji_dot.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -514,7 +516,7 @@ class _AdminAiListLaundryScreenState extends ConsumerState<AdminAiListLaundryScr
           }
         },
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
           padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + dynamicBottomPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

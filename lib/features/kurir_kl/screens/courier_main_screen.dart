@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/customer_theme_provider.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -578,7 +580,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
       child: SingleChildScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(
-            parent: ClampingScrollPhysics()),
+            parent: NyutjiScrollPhysics()),
         child: Column(
           children: [
             const SizedBox(height: 8),

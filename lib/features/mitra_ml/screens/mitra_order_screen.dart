@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../core/utils/status_helper.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/constants/api_constants.dart';
@@ -675,7 +676,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
               color: primaryTeal,
               child: ListView(
                 key: ValueKey('empty_$currentFilter'),
-                physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+                physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
                 children: [
                   SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                   Center(
@@ -968,7 +969,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
               itemBuilder: (context, pIdx) => ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
                 itemCount: pages[pIdx].length,
-                physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+                physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
                 itemBuilder: (context, iIdx) =>
                     _buildOrderCard(pages[pIdx][iIdx]),
               ),

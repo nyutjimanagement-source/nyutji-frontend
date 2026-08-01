@@ -7,6 +7,7 @@ import '../../../providers/order_provider.dart';
 import 'customer_order_screen.dart';
 import 'customer_review_screen.dart';
 import '../../../core/utils/status_helper.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -244,7 +245,7 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
               color: theme.primary,
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+                physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
                 itemCount: orders.length,
 
                 itemBuilder: (context, index) {

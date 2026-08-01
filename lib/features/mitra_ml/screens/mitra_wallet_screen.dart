@@ -10,6 +10,7 @@ import '../../../providers/order_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../data/services/api_service.dart';
 import '../../auth/screens/pin_screen.dart' as pin_screen;
 import 'mitra_profile_screen.dart';
@@ -226,7 +227,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
               ]);
             },
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+              physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
               child: Column(
                 children: [
                   _buildHeader(context, wallet.balance, isLoading),

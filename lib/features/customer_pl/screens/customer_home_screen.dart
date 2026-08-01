@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
@@ -188,7 +189,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         child: SingleChildScrollView(
           controller: _mainScrollController,
           physics: const AlwaysScrollableScrollPhysics(
-              parent: ClampingScrollPhysics()),
+              parent: NyutjiScrollPhysics()),
           child: Column(
             children: [
               Stack(

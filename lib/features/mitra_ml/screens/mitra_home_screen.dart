@@ -10,6 +10,7 @@ import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/nyutji_dot.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
 import '../../../providers/order_provider.dart';
@@ -186,7 +187,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
         ]);
       },
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -7,7 +7,8 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/scheduler_provider.dart';
 import '../../../data/services/api_service.dart';
-import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../providers/customer_theme_provider.dart';
@@ -550,7 +551,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(20),
-                    physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+                    physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
                     itemCount: schedules.length,
                     itemBuilder: (ctx, idx) => _buildScheduleCard(schedules[idx]),
                   ),

@@ -12,6 +12,7 @@ import '../../../core/widgets/nyutji_notif.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../providers/customer_theme_provider.dart';
 
@@ -90,7 +91,7 @@ class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
         },
         color: theme.primary,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
           child: Column(
 
             children: [

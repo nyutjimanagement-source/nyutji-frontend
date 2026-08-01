@@ -5,6 +5,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/nyutji_notif.dart';
 import '../../../core/theme/nyutji_theme.dart';
@@ -74,7 +75,7 @@ class _CourierWalletScreenState extends ConsumerState<CourierWalletScreen> {
           await ref.read(walletProvider).fetchWallet(force: true);
         },
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(

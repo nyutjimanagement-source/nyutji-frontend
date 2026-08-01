@@ -6,6 +6,8 @@ import '../../../providers/auth_provider.dart';
 import '../../../services/lg_washer_service.dart';
 import '../../../models/lg_washer_model.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../core/widgets/nyutji_dot.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import 'dart:async';
 
 class MitraMesinScreen extends ConsumerStatefulWidget {
@@ -413,7 +415,7 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
         itemCount: displayDevices.length,
         itemBuilder: (context, index) {
           final device = displayDevices[index];

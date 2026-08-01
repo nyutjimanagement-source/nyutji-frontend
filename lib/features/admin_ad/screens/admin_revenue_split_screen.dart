@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'dart:ui';
 import '../../../providers/revenue_split_provider.dart';
+import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 
@@ -121,7 +122,7 @@ final provider = ref.watch(revenueSplitProvider);
             backgroundColor: secondaryDark,
             onRefresh: () => provider.fetchRevenueData(),
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+              physics: const AlwaysScrollableScrollPhysics(parent: NyutjiScrollPhysics()),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
