@@ -30,6 +30,7 @@ import 'dart:math';
 import '../../../data/services/api_service.dart';
 import '../../../data/services/cache_service.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import '../../../core/widgets/nyutji_coach_mark.dart';
 
 class MitraHomeScreen extends ConsumerStatefulWidget {
   const MitraHomeScreen({super.key});
@@ -66,6 +67,10 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
       ref.read(orderProvider).fetchOrders();
       auth.fetchCouriers();
       auth.fetchPendingApprovals();
+      
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) _showTutorialCoachMark();
+      });
     });
   }
 
@@ -248,40 +253,25 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _getGreeting(),
-                    style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: textGrey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    name,
-                    style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.bold, color: darkText),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    district,
-                    style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTeal),
-                  ),
-                ],
-              ),
-              GestureDetector(
-                key: _keyHelpButton,
-                onTap: _showTutorialCoachMark,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: primaryTeal.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: primaryTeal.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(LucideIcons.sparkles, size: 14, color: primaryTeal),
-                      const SizedBox(width: 6),
-                      Text("Panduan", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w700, color: primaryTeal)),
-                    ],
-                  ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getGreeting(),
+                      style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: textGrey),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      name,
+                      style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.bold, color: darkText),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      district,
+                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold, color: primaryTeal),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -829,7 +819,7 @@ final orderProv = ref.watch(orderProvider);
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) {
-              return _buildTutorialCard(
+              return NyutjiCoachMark.buildTutorialCard(
                 step: "1 / 4",
                 title: "Antrean Cucian Real-Time",
                 description: "Pantau status pesanan cucian yang sedang diproses di outlet Anda secara live dan terupdate otomatis.",
@@ -850,7 +840,7 @@ final orderProv = ref.watch(orderProvider);
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) {
-              return _buildTutorialCard(
+              return NyutjiCoachMark.buildTutorialCard(
                 step: "2 / 4",
                 title: "Akses Cepat Operasional",
                 description: "Kelola Kasir POS, Layanan & Harga, Mesin Cuci, Stok Bahan Kimia, dan Kinerja Kurir dalam satu sentuhan.",
@@ -871,7 +861,7 @@ final orderProv = ref.watch(orderProvider);
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) {
-              return _buildTutorialCard(
+              return NyutjiCoachMark.buildTutorialCard(
                 step: "3 / 4",
                 title: "Informasi & Saldo Dompet",
                 description: "Lihat ringkasan dana siap ditarik, daftar layanan aktif, kurir outlet, dan statistik mesin cucian.",
@@ -892,7 +882,7 @@ final orderProv = ref.watch(orderProvider);
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) {
-              return _buildTutorialCard(
+              return NyutjiCoachMark.buildTutorialCard(
                 step: "4 / 4",
                 title: "Navigasi Tab Utama",
                 description: "Berpindah dengan cepat antar tab Beranda, Pesanan Masuk, Dompet Mitra, dan Profil Toko Anda.",
@@ -907,143 +897,13 @@ final orderProv = ref.watch(orderProvider);
       ),
     ];
 
-    final tutorial = TutorialCoachMark(
+    NyutjiCoachMark.showTutorial(
+      context: context,
+      tutorialKey: 'mitra_home_tutorial_v1',
       targets: targets,
-      colorShadow: primaryTeal,
-      textSkip: "LEWATI",
-      paddingFocus: 8,
-      opacityShadow: 0.82,
-      alignSkip: Alignment.topRight,
-    );
-
-    tutorial.show(context: context);
-  }
-
-  Widget _buildTutorialCard({
-    required String step,
-    required String title,
-    required String description,
-    required IconData icon,
-    required VoidCallback onNext,
-    required VoidCallback onSkip,
-    bool isLast = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: primaryTeal.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 20, color: primaryTeal),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: darkText,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: primaryTeal.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  step,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: primaryTeal,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            description,
-            style: GoogleFonts.montserrat(
-              fontSize: 12.5,
-              height: 1.5,
-              color: const Color(0xFF4B5563),
-            ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: onSkip,
-                child: Text(
-                  "LEWATI",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: onNext,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryTeal,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isLast ? "SELESAI" : "LANJUT",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      isLast ? LucideIcons.check : LucideIcons.chevronRight,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
+
 }
 
 // AnimatedStatusTicker dipindah ke core/widgets/animated_status_ticker.dart
