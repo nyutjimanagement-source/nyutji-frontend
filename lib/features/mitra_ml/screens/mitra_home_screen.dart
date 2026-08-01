@@ -50,7 +50,6 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
   String? _randomPosImage;
   bool isShopOpen = true;
 
-  final GlobalKey _keyHelpButton = GlobalKey();
   final GlobalKey _keyAntreanCard = GlobalKey();
   final GlobalKey _keyQuickActions = GlobalKey();
   final GlobalKey _keyInformation = GlobalKey();
@@ -250,9 +249,6 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
