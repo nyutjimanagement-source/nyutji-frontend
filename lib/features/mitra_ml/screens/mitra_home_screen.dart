@@ -30,6 +30,7 @@ import 'dart:math';
 import '../../../data/services/api_service.dart';
 import '../../../data/services/cache_service.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:hive/hive.dart';
 import '../../../core/widgets/nyutji_coach_mark.dart';
 
 class MitraHomeScreen extends ConsumerStatefulWidget {
