@@ -513,105 +513,108 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
                         return Container(
                           width: MediaQuery.of(ctx).size.width * 0.85,
                           margin: const EdgeInsets.only(right: 16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: page.map((rv) {
-                              final DateTime dt = rv['date'] as DateTime;
-                              const List<String> monthNames = [
-                                '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
-                              ];
-                              final String dateStr = "${dt.day} ${monthNames[dt.month]}";
-                              
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: bgColor,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.grey[200]!)
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  rv['customerName'],
-                                                  style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
-                                                  overflow: TextOverflow.ellipsis,
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: page.map((rv) {
+                                final DateTime dt = rv['date'] as DateTime;
+                                const List<String> monthNames = [
+                                  '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+                                ];
+                                final String dateStr = "${dt.day} ${monthNames[dt.month]}";
+                                
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: bgColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.grey[200]!)
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    rv['customerName'],
+                                                    style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.bold, color: darkText),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                "($dateStr)",
-                                                style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey[500]),
-                                              ),
-                                            ],
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  "($dateStr)",
+                                                  style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey[500]),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Row(
-                                          children: List.generate(5, (index) {
-                                            return Icon(
-                                              index < rv['rating'] ? Icons.star : Icons.star_border,
-                                              color: index < rv['rating'] ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
-                                              size: 12,
-                                            );
-                                          }),
-                                        ),
-                                      ],
-                                    ),
-                                     const SizedBox(height: 6),
-                                     StatefulBuilder(
-                                       builder: (context, setRvState) {
-                                         final bool isExpanded = rv['isExpanded'] == true;
-                                         final String commentStr = rv['comment']?.toString() ?? '';
-                                         final bool isLong = commentStr.length > 70;
-
-                                         return AnimatedSize(
-                                           duration: const Duration(milliseconds: 300),
-                                           curve: Curves.easeInOut,
-                                           child: Column(
-                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                             children: [
-                                               Text(
-                                                 commentStr,
-                                                 style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700], height: 1.4),
-                                                 maxLines: isExpanded ? null : 2,
-                                                 overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                                               ),
-                                               if (isLong) ...[
-                                                 const SizedBox(height: 4),
-                                                 GestureDetector(
-                                                   onTap: () {
-                                                     setRvState(() {
-                                                       rv['isExpanded'] = !isExpanded;
-                                                     });
-                                                   },
-                                                   child: Text(
-                                                     isExpanded ? "Sembunyikan" : "Baca Selengkapnya",
-                                                     style: GoogleFonts.montserrat(
-                                                       fontSize: 12,
-                                                       fontWeight: FontWeight.bold,
-                                                       color: darkText,
+                                          const SizedBox(width: 8),
+                                          Row(
+                                            children: List.generate(5, (index) {
+                                              return Icon(
+                                                index < rv['rating'] ? Icons.star : Icons.star_border,
+                                                color: index < rv['rating'] ? const Color(0xFFF59E0B) : const Color(0xFFE2E8F0),
+                                                size: 12,
+                                              );
+                                            }),
+                                          ),
+                                        ],
+                                      ),
+                                       const SizedBox(height: 6),
+                                       StatefulBuilder(
+                                         builder: (context, setRvState) {
+                                           final bool isExpanded = rv['isExpanded'] == true;
+                                           final String commentStr = rv['comment']?.toString() ?? '';
+                                           final bool isLong = commentStr.length > 70;
+  
+                                           return AnimatedSize(
+                                             duration: const Duration(milliseconds: 300),
+                                             curve: Curves.easeInOut,
+                                             child: Column(
+                                               crossAxisAlignment: CrossAxisAlignment.start,
+                                               children: [
+                                                 Text(
+                                                   commentStr,
+                                                   style: GoogleFonts.montserrat(fontSize: 11, color: Colors.grey[700], height: 1.4),
+                                                   maxLines: isExpanded ? null : 2,
+                                                   overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                                                 ),
+                                                 if (isLong) ...[
+                                                   const SizedBox(height: 4),
+                                                   GestureDetector(
+                                                     onTap: () {
+                                                       setRvState(() {
+                                                         rv['isExpanded'] = !isExpanded;
+                                                       });
+                                                     },
+                                                     child: Text(
+                                                       isExpanded ? "Sembunyikan" : "Baca Selengkapnya",
+                                                       style: GoogleFonts.montserrat(
+                                                         fontSize: 12,
+                                                         fontWeight: FontWeight.bold,
+                                                         color: darkText,
+                                                       ),
                                                      ),
                                                    ),
-                                                 ),
+                                                 ],
                                                ],
-                                             ],
-                                           ),
-                                         );
-                                       },
-                                     ),
-                                   ],
-                                ),
-                              );
-                            }).toList(),
+                                             ),
+                                           );
+                                         },
+                                       ),
+                                     ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
                         );
                       }).toList(),
