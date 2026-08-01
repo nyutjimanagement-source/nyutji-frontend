@@ -226,7 +226,7 @@ class _MitraWalletScreenState extends ConsumerState<MitraWalletScreen> {
               ]);
             },
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+              physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
               child: Column(
                 children: [
                   _buildHeader(context, wallet.balance, isLoading),

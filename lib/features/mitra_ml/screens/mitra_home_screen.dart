@@ -186,7 +186,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
         ]);
       },
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

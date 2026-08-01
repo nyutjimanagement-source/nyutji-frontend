@@ -550,7 +550,7 @@ class _CustomerSchedulerScreenState extends ConsumerState<CustomerSchedulerScree
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(20),
-                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                    physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
                     itemCount: schedules.length,
                     itemBuilder: (ctx, idx) => _buildScheduleCard(schedules[idx]),
                   ),

@@ -157,7 +157,7 @@ class _AdminMainScreenState extends ConsumerState<AdminMainScreen> with SingleTi
           _fetchSystemStatus();
         },
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

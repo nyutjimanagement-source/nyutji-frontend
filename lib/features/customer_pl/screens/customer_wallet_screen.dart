@@ -90,7 +90,7 @@ class _CustomerWalletScreenState extends ConsumerState<CustomerWalletScreen> {
         },
         color: theme.primary,
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
           child: Column(
 
             children: [

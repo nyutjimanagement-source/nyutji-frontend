@@ -675,7 +675,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
               color: primaryTeal,
               child: ListView(
                 key: ValueKey('empty_$currentFilter'),
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
                 children: [
                   SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                   Center(
@@ -968,7 +968,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
               itemBuilder: (context, pIdx) => ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
                 itemCount: pages[pIdx].length,
-                physics: const BouncingScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
                 itemBuilder: (context, iIdx) =>
                     _buildOrderCard(pages[pIdx][iIdx]),
               ),

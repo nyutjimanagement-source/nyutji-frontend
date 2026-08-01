@@ -578,7 +578,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
       child: SingleChildScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics()),
+            parent: ClampingScrollPhysics()),
         child: Column(
           children: [
             const SizedBox(height: 8),

@@ -195,7 +195,7 @@ class _AdminAiOpinionScreenState extends ConsumerState<AdminAiOpinionScreen> {
         color: primaryTeal,
         child: CustomScrollView(
           controller: _scrollController,
-          physics: const BouncingScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
           slivers: [
             _buildPremiumAppbar(),
             _buildSentimentStats(),

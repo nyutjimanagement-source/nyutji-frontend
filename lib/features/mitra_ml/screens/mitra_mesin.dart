@@ -413,7 +413,7 @@ class _MitraMesinScreenState extends ConsumerState<MitraMesinScreen> {
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        physics: const BouncingScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
         itemCount: displayDevices.length,
         itemBuilder: (context, index) {
           final device = displayDevices[index];

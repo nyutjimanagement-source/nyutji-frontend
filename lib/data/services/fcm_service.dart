@@ -9,7 +9,6 @@ import '../../core/widgets/incoming_call_overlay.dart';
 import '../../core/widgets/nyutji_notif.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../providers/order_provider.dart';
-import '../../providers/chat_provider.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

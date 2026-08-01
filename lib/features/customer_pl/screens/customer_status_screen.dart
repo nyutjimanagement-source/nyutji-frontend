@@ -244,7 +244,7 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
               color: theme.primary,
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
                 itemCount: orders.length,
 
                 itemBuilder: (context, index) {

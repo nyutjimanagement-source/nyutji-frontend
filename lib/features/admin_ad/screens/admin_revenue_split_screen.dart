@@ -121,7 +121,7 @@ final provider = ref.watch(revenueSplitProvider);
             backgroundColor: secondaryDark,
             onRefresh: () => provider.fetchRevenueData(),
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+              physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

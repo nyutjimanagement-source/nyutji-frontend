@@ -187,8 +187,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         color: theme.primary,
         child: SingleChildScrollView(
           controller: _mainScrollController,
-          physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(
+              parent: ClampingScrollPhysics()),
           child: Column(
             children: [
               Stack(

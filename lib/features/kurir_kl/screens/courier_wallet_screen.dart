@@ -74,7 +74,7 @@ class _CourierWalletScreenState extends ConsumerState<CourierWalletScreen> {
           await ref.read(walletProvider).fetchWallet(force: true);
         },
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(

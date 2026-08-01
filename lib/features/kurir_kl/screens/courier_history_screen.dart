@@ -61,7 +61,7 @@ class _CourierHistoryScreenState extends ConsumerState<CourierHistoryScreen> {
         await ref.read(walletProvider).fetchWallet(force: true);
       },
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
         child: Column(
           children: [
             const SizedBox(height: 16),

@@ -514,7 +514,7 @@ class _AdminAiListLaundryScreenState extends ConsumerState<AdminAiListLaundryScr
           }
         },
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
           padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + dynamicBottomPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
