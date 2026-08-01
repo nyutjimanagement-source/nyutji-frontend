@@ -226,9 +226,9 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
         : now.add(const Duration(days: 3));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: NyutjiTheme.background,
       appBar: AppBar(
-        backgroundColor: NyutjiTheme.m3Primary,
+        backgroundColor: NyutjiTheme.plPrimary,
         title: Text("Konfirmasi Pembayaran", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         centerTitle: true,
         leading: IconButton(
@@ -242,8 +242,10 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
         child: RepaintBoundary(
           key: _boundaryKey,
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: NyutjiTheme.cardWhite,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: NyutjiTheme.softShadow,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -286,7 +288,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
                       IconButton(
                         icon: Icon(
                           LucideIcons.fileText, 
-                          color: NyutjiTheme.m3Primary.withValues(alpha: 0.8), 
+                          color: NyutjiTheme.plPrimary.withValues(alpha: 0.8), 
                           size: 28,
                         ),
                         tooltip: "Simpan Gambar",
@@ -406,7 +408,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
               widget.onPay(finishDate);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: NyutjiTheme.m3Primary,
+              backgroundColor: NyutjiTheme.plPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 4,
