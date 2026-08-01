@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/api_constants.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -61,8 +62,17 @@ class ApiService {
         if (options.path == ApiConstants.login || options.path == "/register") {
           return handler.next(options);
         }
-        final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString('token');
+        
+        // Baca token dari secure storage
+        const secureStorage = FlutterSecureStorage();
+        String? token = await secureStorage.read(key: 'secure_token');
+        
+        // Backward compatibility: jika tidak ada di secure, coba dari shared_prefs
+        if (token == null) {
+          final prefs = await SharedPreferences.getInstance();
+          token = prefs.getString('token');
+        }
+
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }

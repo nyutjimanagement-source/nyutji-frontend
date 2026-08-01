@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import '../core/utils/formatters.dart';
 import '../data/services/api_service.dart';
@@ -193,7 +194,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_data', jsonEncode(_user));
           if (res['new_token'] != null) {
-            await prefs.setString('token', _token!);
+            await const FlutterSecureStorage().write(key: 'secure_token', value: _token!);
           }
         }
       }
@@ -246,7 +247,18 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     // Update timestamp saat sesi berhasil direstore
     await _saveLastActiveTime();
 
-    _token = prefs.getString('token');
+    _token = await const FlutterSecureStorage().read(key: 'secure_token');
+    
+    // Auto-migrasi token dari SharedPreferences ke Secure Storage
+    if (_token == null) {
+      _token = prefs.getString('token');
+      if (_token != null) {
+        await const FlutterSecureStorage().write(key: 'secure_token', value: _token!);
+        await prefs.remove('token');
+        debugPrint("Token migrated to secure storage.");
+      }
+    }
+
     _role = prefs.getString('role');
     
     if (_token != null && _role != null) {
@@ -301,6 +313,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
     // JANGAN GUNAKAN prefs.clear() karena akan menghapus cache foto lokal!
     // Hapus hanya data yang berkaitan dengan sesi aktif
     await prefs.remove('token');
+    await const FlutterSecureStorage().delete(key: 'secure_token');
     await prefs.remove('role');
     await prefs.remove('user_data');
     await prefs.remove('nyutji_cached_schedules');
@@ -360,7 +373,7 @@ class AuthProvider extends ChangeNotifier with WidgetsBindingObserver {
         }
         
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', _token!);
+        await const FlutterSecureStorage().write(key: 'secure_token', value: _token!);
         await prefs.setString('role', _role!);
         
         // PERSISTENCE FIX: Jika server tidak punya foto, cek cache lokal berdasarkan email
