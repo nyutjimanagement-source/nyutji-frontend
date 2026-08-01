@@ -1,4 +1,4 @@
-package com.example.nyutji_laundry_mobile
+package com.nyutji.app
 
 import io.flutter.embedding.android.FlutterActivity
 
