@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import '../../../core/constants/api_constants.dart';
 import '../../../core/widgets/nyutji_scroll_physics.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/wallet_provider.dart';

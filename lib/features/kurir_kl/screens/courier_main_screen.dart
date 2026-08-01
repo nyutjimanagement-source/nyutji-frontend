@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/customer_theme_provider.dart';
 import '../../../core/widgets/nyutji_scroll_physics.dart';
 
 import 'package:intl/intl.dart';
