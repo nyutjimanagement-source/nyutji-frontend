@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../core/theme/nyutji_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/customer_theme_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../data/services/api_service.dart';
 import 'dart:ui' as ui;
@@ -200,6 +201,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
+    final theme = ref.watch(customerThemeProvider);
     final now = DateTime.now();
 
     // JENIS NOTA & JUDUL
@@ -226,9 +228,9 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
         : now.add(const Duration(days: 3));
 
     return Scaffold(
-      backgroundColor: NyutjiTheme.background,
+      backgroundColor: theme.bg,
       appBar: AppBar(
-        backgroundColor: NyutjiTheme.plPrimary,
+        backgroundColor: theme.primary,
         title: Text("Konfirmasi Pembayaran", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
         centerTitle: true,
         leading: IconButton(
@@ -243,7 +245,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
           key: _boundaryKey,
           child: Container(
             decoration: BoxDecoration(
-              color: NyutjiTheme.cardWhite,
+              color: theme.cardBg,
               borderRadius: BorderRadius.circular(16),
               boxShadow: NyutjiTheme.softShadow,
             ),
@@ -288,7 +290,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
                       IconButton(
                         icon: Icon(
                           LucideIcons.fileText, 
-                          color: NyutjiTheme.plPrimary.withValues(alpha: 0.8), 
+                          color: theme.primary.withValues(alpha: 0.8), 
                           size: 28,
                         ),
                         tooltip: "Simpan Gambar",
@@ -408,7 +410,7 @@ class _CustomerOkBayarScreenState extends ConsumerState<CustomerOkBayarScreen> {
               widget.onPay(finishDate);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: NyutjiTheme.plPrimary,
+              backgroundColor: theme.primary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 4,
