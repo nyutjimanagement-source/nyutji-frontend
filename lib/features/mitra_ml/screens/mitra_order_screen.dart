@@ -1193,11 +1193,9 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                              NumberFormat.currency(
-                                      locale: 'id_ID',
-                                      symbol: 'Rp ',
-                                      decimalDigits: 0)
-                                  .format(servicePrice),
+                              servicePrice >= 1000
+                                  ? "Rp ${servicePrice ~/ 1000}Rb"
+                                  : "Rp ${servicePrice.toInt()}",
                               style: GoogleFonts.montserrat(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w800,
