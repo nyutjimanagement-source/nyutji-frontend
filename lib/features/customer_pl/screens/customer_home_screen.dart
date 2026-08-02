@@ -30,9 +30,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'customer_payment_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/customer_theme_provider.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:hive/hive.dart';
+import '../../../core/widgets/nyutji_coach_mark.dart';
 
 class CustomerHomeScreen extends ConsumerStatefulWidget {
-  const CustomerHomeScreen({super.key});
+  final GlobalKey? keyStatusTab;
+  final GlobalKey? keyProfileTab;
+
+  const CustomerHomeScreen({
+    super.key,
+    this.keyStatusTab,
+    this.keyProfileTab,
+  });
 
   @override
   ConsumerState<CustomerHomeScreen> createState() => _CustomerHomeScreenState();
@@ -45,6 +55,14 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   bool _sortClosest = true;
   double? _currentLat;
   double? _currentLng;
+
+  final GlobalKey _keyTracking = GlobalKey();
+  final GlobalKey _keyDompet = GlobalKey();
+  final GlobalKey _keyPickUp = GlobalKey();
+  final GlobalKey _keySepatu = GlobalKey();
+  final GlobalKey _keyPromo = GlobalKey();
+  final GlobalKey _keyMitra = GlobalKey();
+  bool _tutorialTriggered = false;
 
   @override
   void initState() {
@@ -163,6 +181,19 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     };
     final currentT = t[auth.lang] ?? t['id'];
 
+    final orderProv = ref.watch(orderProvider);
+    if (orderProv.isFirstFetchDone && !orderProv.isLoading && !_tutorialTriggered) {
+      _tutorialTriggered = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final hasSeen = Hive.box('nyutji_cache').get('tutorial_customer_home', defaultValue: false);
+        if (!hasSeen) {
+           Future.delayed(const Duration(milliseconds: 1200), () {
+             if (mounted) _showTutorialCoachMark();
+           });
+        }
+      });
+    }
+
     return Scaffold(
       backgroundColor: theme.bg,
       floatingActionButton: _showBackToTop
@@ -200,18 +231,18 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     bottom: -15,
                     left: 16,
                     right: 16,
-                    child: _buildActiveTrackingBanner(currentT),
+                    child: Container(key: _keyTracking, child: _buildActiveTrackingBanner(currentT)),
                   ),
                 ],
               ),
               const SizedBox(height: 30),
-              _buildFinancialStrip(currentT),
+              Container(key: _keyDompet, child: _buildFinancialStrip(currentT)),
               const SizedBox(height: 20),
               _buildDenseServicesGrid(currentT),
               const SizedBox(height: 24),
-              _buildPromoSection(currentT),
+              Container(key: _keyPromo, child: _buildPromoSection(currentT)),
               const SizedBox(height: 24),
-              _buildMitraSection(currentT, auth),
+              Container(key: _keyMitra, child: _buildMitraSection(currentT, auth)),
               SizedBox(height: 80 + MediaQuery.of(context).padding.bottom),
             ],
           ),
@@ -532,13 +563,16 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               childAspectRatio: 0.65,
               children: [
                 // Baris 1
-                _buildServiceItem("Pick Up\nKurir", "icon_pickup.png",
-                    hasPromo: true,
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const CustomerOrderScreen(
-                                orderType: 'pickup')))),
+                Container(
+                  key: _keyPickUp,
+                  child: _buildServiceItem("Pick Up\nKurir", "icon_pickup.png",
+                      hasPromo: true,
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const CustomerOrderScreen(
+                                  orderType: 'pickup')))),
+                ),
                 _buildServiceItem("Antar\nSendiri", "icon_dropoff.png",
                     onTap: () => Navigator.push(
                         context,
@@ -572,11 +606,14 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const CustomerDryCleanScreen()))),
-                _buildServiceItem("Cuci\nSepatu", "icon_sepatu.png",
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const CustomerCuciSepatuScreen()))),
+                Container(
+                  key: _keySepatu,
+                  child: _buildServiceItem("Cuci\nSepatu", "icon_sepatu.png",
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const CustomerCuciSepatuScreen()))),
+                ),
                 _buildServiceItem("Pakaian\nBayi", "icon_bayi.png",
                     onTap: () => Navigator.push(
                         context,
@@ -1960,8 +1997,227 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             ),
           );
         });
-      }),
+      });
+    });
+  }
+
+  void _showTutorialCoachMark() {
+    final targets = <TargetFocus>[];
+    
+    // 1. Lacak Progress
+    targets.add(
+      TargetFocus(
+        identify: "tracking",
+        keyTarget: _keyTracking,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "1 / 8",
+              title: "Lacak Progress Cucian",
+              description: "Pantau pesanan Anda secara real-time dari saat diambil kurir hingga selesai dicuci.",
+              icon: LucideIcons.truck,
+              onNext: () {
+                _mainScrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                controller.next();
+              },
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
     );
+
+    // 2. Dompet Nyutji
+    targets.add(
+      TargetFocus(
+        identify: "dompet",
+        keyTarget: _keyDompet,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "2 / 8",
+              title: "Dompet Nyutji",
+              description: "Saldo dompet digital Anda untuk pembayaran yang lebih cepat, aman, dan dapatkan promo cashback.",
+              icon: LucideIcons.wallet,
+              onNext: () {
+                _mainScrollController.animateTo(200, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                controller.next();
+              },
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 3. Pick Up Kurir
+    targets.add(
+      TargetFocus(
+        identify: "pickup",
+        keyTarget: _keyPickUp,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "3 / 8",
+              title: "Layanan Pick Up Kurir",
+              description: "Pesan layanan antar-jemput cucian langsung ke rumah Anda. Praktis tanpa ribet!",
+              icon: LucideIcons.packagePlus,
+              onNext: () => controller.next(),
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 4. Cuci Sepatu
+    targets.add(
+      TargetFocus(
+        identify: "sepatu",
+        keyTarget: _keySepatu,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "4 / 8",
+              title: "Cuci Sepatu Spesial",
+              description: "Jangan lupa cobain layanan cuci sepatu kami. Ditangani oleh tenaga ahli untuk hasil maksimal.",
+              icon: LucideIcons.footprints,
+              onNext: () => controller.next(),
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 5. Status Tab
+    if (widget.keyStatusTab != null) {
+      targets.add(
+        TargetFocus(
+          identify: "status_tab",
+          keyTarget: widget.keyStatusTab!,
+          shape: ShapeLightFocus.Circle,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+                step: "5 / 8",
+                title: "Status Pesanan",
+                description: "Lihat rincian lengkap riwayat dan status setiap pesanan cucian Anda di sini.",
+                icon: LucideIcons.package,
+                onNext: () {
+                  _mainScrollController.animateTo(500, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+                  controller.next();
+                },
+                onSkip: () => controller.skip(),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+
+    // 6. Profile Tab
+    if (widget.keyProfileTab != null) {
+      targets.add(
+        TargetFocus(
+          identify: "profile_tab",
+          keyTarget: widget.keyProfileTab!,
+          shape: ShapeLightFocus.Circle,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+                step: "6 / 8",
+                title: "Pengaturan Profil",
+                description: "Lengkapi alamat, nomor telepon, dan atur tema warna aplikasi kesukaan Anda di Profil.",
+                icon: LucideIcons.user,
+                onNext: () => controller.next(),
+                onSkip: () => controller.skip(),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+
+    // 7. Promo
+    targets.add(
+      TargetFocus(
+        identify: "promo",
+        keyTarget: _keyPromo,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "7 / 8",
+              title: "Promo & Diskon Spesial",
+              description: "Cek berbagai voucher dan diskon menarik yang tersedia khusus untuk Anda.",
+              icon: LucideIcons.ticket,
+              onNext: () {
+                _mainScrollController.animateTo(_mainScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
+                controller.next();
+              },
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 8. Mitra Terdekat
+    targets.add(
+      TargetFocus(
+        identify: "mitra",
+        keyTarget: _keyMitra,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "8 / 8",
+              title: "Mitra Terdekat Nyutji",
+              description: "Pilih mitra laundry dengan rating terbaik dan lokasi terdekat dari tempat Anda berada.",
+              icon: LucideIcons.store,
+              isLast: true,
+              onNext: () => controller.next(),
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      textSkip: "LEWATI",
+      paddingFocus: 10,
+      opacityShadow: 0.85,
+      hideSkip: true,
+      onFinish: () {
+        Hive.box('nyutji_cache').put('tutorial_customer_home', true);
+      },
+      onSkip: () {
+        Hive.box('nyutji_cache').put('tutorial_customer_home', true);
+        return true;
+      },
+    ).show(context: context);
   }
 
   Widget _buildSearchOrderCard(BuildContext context, dynamic o) {

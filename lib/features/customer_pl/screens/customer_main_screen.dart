@@ -39,11 +39,17 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
     super.dispose();
   }
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    CustomerHomeScreen(),
-    CustomerStatusScreen(),
-    CustomerWalletScreen(),
-    CustomerProfileScreen(),
+  final GlobalKey _keyStatusTab = GlobalKey();
+  final GlobalKey _keyProfileTab = GlobalKey();
+
+  List<Widget> get _widgetOptions => <Widget>[
+    CustomerHomeScreen(
+      keyStatusTab: _keyStatusTab,
+      keyProfileTab: _keyProfileTab,
+    ),
+    const CustomerStatusScreen(),
+    const CustomerWalletScreen(),
+    const CustomerProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -131,13 +137,19 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
                 BottomNavigationBar(
                   items: <BottomNavigationBarItem>[
                     BottomNavigationBarItem(icon: const Icon(LucideIcons.home, size: 22), activeIcon: const Icon(LucideIcons.home, size: 22), label: currentT['home']),
-                    BottomNavigationBarItem(icon: const Icon(LucideIcons.package, size: 22), activeIcon: const Icon(LucideIcons.package, size: 22), label: currentT['status']),
+                    BottomNavigationBarItem(
+                      icon: Container(key: _keyStatusTab, child: const Icon(LucideIcons.package, size: 22)),
+                      activeIcon: const Icon(LucideIcons.package, size: 22),
+                      label: currentT['status'],
+                    ),
                     BottomNavigationBarItem(icon: const Icon(LucideIcons.wallet, size: 22), activeIcon: const Icon(LucideIcons.wallet, size: 22), label: currentT['wallet']),
                     BottomNavigationBarItem(
-                      icon: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const Icon(LucideIcons.user, size: 22),
+                      icon: Container(
+                        key: _keyProfileTab,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(LucideIcons.user, size: 22),
                           if (showProfileRedDot)
                             Positioned(
                               right: -2,
