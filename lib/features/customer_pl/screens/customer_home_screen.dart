@@ -242,7 +242,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               const SizedBox(height: 24),
               Container(key: _keyPromo, child: _buildPromoSection(currentT)),
               const SizedBox(height: 24),
-              Container(key: _keyMitra, child: _buildMitraSection(currentT, auth)),
+              _buildMitraSection(currentT, auth),
               SizedBox(height: 80 + MediaQuery.of(context).padding.bottom),
             ],
           ),
@@ -1562,34 +1562,37 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text("Mitra Terdekat Nyutji",
-                    style: NyutjiTheme.h2(theme.text)
-                        .copyWith(fontSize: 20)),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () {
-                  if (_currentLat == null || _currentLng == null) {
-                    NyutjiNotif.showError(
-                        context, "Lokasi tidak tersedia, pastikan GPS aktif");
-                    return;
-                  }
-                  setState(() {
-                    _sortClosest = !_sortClosest;
-                  });
-                  NyutjiNotif.showSuccess(
-                      context,
-                      _sortClosest
-                          ? "Urut dari Terdekat"
-                          : "Urut dari Terjauh");
-                },
-                child: Icon(LucideIcons.arrowUpDown,
-                    color: theme.text, size: 20),
-              ),
-            ],
+          Container(
+            key: _keyMitra,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text("Mitra Terdekat Nyutji",
+                      style: NyutjiTheme.h2(theme.text)
+                          .copyWith(fontSize: 20)),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    if (_currentLat == null || _currentLng == null) {
+                      NyutjiNotif.showError(
+                          context, "Lokasi tidak tersedia, pastikan GPS aktif");
+                      return;
+                    }
+                    setState(() {
+                      _sortClosest = !_sortClosest;
+                    });
+                    NyutjiNotif.showSuccess(
+                        context,
+                        _sortClosest
+                            ? "Urut dari Terdekat"
+                            : "Urut dari Terjauh");
+                  },
+                  child: Icon(LucideIcons.arrowUpDown,
+                      color: theme.text, size: 20),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           Consumer(
@@ -2562,7 +2565,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         radius: 16,
         contents: [
           TargetContent(
-            align: ContentAlign.top,
+            align: ContentAlign.bottom,
             builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
               step: "8 / 8",
               title: "Mitra Terdekat Nyutji",
