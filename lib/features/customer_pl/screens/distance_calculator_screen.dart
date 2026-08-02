@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../core/widgets/nyutji_location_picker.dart';
 import '../../../core/utils/nyutji_distance.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class DistanceCalculatorScreen extends ConsumerStatefulWidget {
   const DistanceCalculatorScreen({super.key});
@@ -13,7 +14,6 @@ class DistanceCalculatorScreen extends ConsumerStatefulWidget {
 }
 
 class _DistanceCalculatorScreenState extends ConsumerState<DistanceCalculatorScreen> {
-  final Color primaryTeal = NyutjiTheme.m3Primary;
   
   // State Lokasi Jemput
   String _pickupAddress = "";
@@ -37,12 +37,14 @@ class _DistanceCalculatorScreenState extends ConsumerState<DistanceCalculatorScr
 
   @override
   Widget build(BuildContext context) {
+    final theme = ref.watch(customerThemeProvider);
+
     return Scaffold(
-      backgroundColor: NyutjiTheme.m3Surface,
+      backgroundColor: theme.bg,
       appBar: AppBar(
-        title: Text("Distance Calculator", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16)),
-        backgroundColor: Colors.white,
-        foregroundColor: primaryTeal,
+        title: Text("Distance Calculator", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 16, color: theme.text)),
+        backgroundColor: theme.cardBg,
+        foregroundColor: theme.primary,
         elevation: 0,
         centerTitle: true,
       ),
@@ -55,19 +57,26 @@ class _DistanceCalculatorScreenState extends ConsumerState<DistanceCalculatorScr
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [primaryTeal, const Color(0xFF2D7A78)]),
+                color: theme.cardBg,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.gauge, color: Colors.white, size: 32),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(LucideIcons.map, color: theme.primary, size: 28),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Simulasi Jarak", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                        Text("Ukur jarak jemput vs lokasi Mitra secara presisi.", style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 11)),
+                        Text("Jarak Garis Lurus", style: GoogleFonts.montserrat(color: theme.text.withValues(alpha: 0.6), fontSize: 12)),
+                        Text("${_calculatedDistance.toStringAsFixed(1)} KM", style: GoogleFonts.montserrat(color: theme.primary, fontWeight: FontWeight.bold, fontSize: 24)),
                       ],
                     ),
                   )
@@ -131,25 +140,32 @@ class _DistanceCalculatorScreenState extends ConsumerState<DistanceCalculatorScr
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.cardBg,
                   borderRadius: BorderRadius.circular(30),
-                  boxShadow: [BoxShadow(color: primaryTeal.withValues(alpha: 0.1), blurRadius: 30, offset: const Offset(0, 10))],
+                  border: Border.all(color: theme.primary.withValues(alpha: 0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.primary.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
                 child: Column(
                   children: [
-                    Text("NYUTJI ROAD DISTANCE (NRCF)", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.blue[700], letterSpacing: 1.5)),
+                    Text("NYUTJI ROAD DISTANCE (NRCF)", style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w800, color: theme.primary, letterSpacing: 1.5)),
                     const SizedBox(height: 8),
                     Text(
                       NyutjiDistance.formatDistance(NyutjiDistance.calculateRoadDistance(_calculatedDistance)),
-                      style: GoogleFonts.montserrat(fontSize: 48, fontWeight: FontWeight.w900, color: primaryTeal),
+                      style: GoogleFonts.montserrat(fontSize: 48, fontWeight: FontWeight.w900, color: theme.text),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       "Garis Lurus: ${NyutjiDistance.formatDistance(_calculatedDistance)}",
-                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey),
+                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: theme.text.withValues(alpha: 0.5)),
                     ),
                     const SizedBox(height: 24),
-                    const Divider(),
+                    Divider(color: theme.text.withValues(alpha: 0.1)),
                     const SizedBox(height: 16),
                     _buildSummaryRow(LucideIcons.mapPin, "Dari", _pickupAddress),
                     const SizedBox(height: 12),
@@ -165,36 +181,38 @@ class _DistanceCalculatorScreenState extends ConsumerState<DistanceCalculatorScr
   }
 
   Widget _buildSectionTitle(String title) {
+    final theme = ref.watch(customerThemeProvider);
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(title, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: primaryTeal, letterSpacing: 1)),
+      child: Text(title, style: GoogleFonts.montserrat(fontSize: 10, fontWeight: FontWeight.w900, color: theme.primary, letterSpacing: 1)),
     );
   }
 
   Widget _buildLocationSelector({required String address, required VoidCallback onTap}) {
+    final theme = ref.watch(customerThemeProvider);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: primaryTeal.withValues(alpha: 0.2)),
+          border: Border.all(color: theme.primary.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
-            Icon(LucideIcons.mapPin, size: 18, color: primaryTeal),
+            Icon(LucideIcons.mapPin, size: 18, color: theme.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 address.isNotEmpty ? address : "Ketuk untuk pilih lokasi...",
-                style: GoogleFonts.montserrat(fontSize: 12, color: address.isNotEmpty ? Colors.black87 : Colors.grey),
+                style: GoogleFonts.montserrat(fontSize: 12, color: address.isNotEmpty ? theme.text : theme.text.withValues(alpha: 0.5)),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(LucideIcons.chevronRight, size: 16, color: primaryTeal.withValues(alpha: 0.5)),
+            Icon(LucideIcons.chevronRight, size: 16, color: theme.primary.withValues(alpha: 0.5)),
           ],
         ),
       ),
@@ -202,16 +220,17 @@ class _DistanceCalculatorScreenState extends ConsumerState<DistanceCalculatorScr
   }
 
   Widget _buildSummaryRow(IconData icon, String label, String value) {
+    final theme = ref.watch(customerThemeProvider);
     return Row(
       children: [
-        Icon(icon, size: 16, color: primaryTeal),
+        Icon(icon, size: 16, color: theme.primary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)),
-              Text(value.isNotEmpty ? value : "Pilih Lokasi...", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(label, style: GoogleFonts.montserrat(fontSize: 9, fontWeight: FontWeight.bold, color: theme.text.withValues(alpha: 0.5))),
+              Text(value.isNotEmpty ? value : "Pilih Lokasi...", style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.w600, color: theme.text), maxLines: 1, overflow: TextOverflow.ellipsis),
             ],
           ),
         )

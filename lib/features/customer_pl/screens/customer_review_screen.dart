@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/widgets/nyutji_notif.dart';
+import '../../../providers/customer_theme_provider.dart';
 
 class CustomerReviewScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> order;
@@ -85,6 +86,7 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ref.watch(customerThemeProvider);
     // Parser Nama Mitra
     final rawMitra = widget.order['mitra'];
     String mitraName = 'Mitra Laundry';
@@ -124,16 +126,16 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: theme.bg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.cardBg,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(LucideIcons.x, color: darkBg),
+          icon: Icon(LucideIcons.x, color: theme.text),
           onPressed: _submitReview, // Bypass review
         ),
         title: Text("Penilaian Pesanan",
-            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: darkBg)),
+            style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: theme.text)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -145,14 +147,14 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: primaryTeal.withValues(alpha: 0.1),
+                color: theme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(LucideIcons.checkCircle, size: 64, color: primaryTeal),
+              child: Icon(LucideIcons.checkCircle, size: 64, color: theme.primary),
             ),
             const SizedBox(height: 24),
             Text("Cucian Selesai!",
-                style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: primaryTeal)),
+                style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.w900, color: theme.primary)),
             const SizedBox(height: 8),
             Text("Bagaimana pelayanan mereka?",
                 textAlign: TextAlign.center,
@@ -164,9 +166,9 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.cardBg,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey[200]!),
+                border: Border.all(color: theme.border),
               ),
               child: Column(
                 children: [
@@ -182,9 +184,9 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.cardBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey[200]!),
+                  border: Border.all(color: theme.border),
                 ),
                 child: Column(
                   children: [
@@ -204,18 +206,18 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
                 hintText: "Tuliskan pengalaman Anda...",
                 hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: theme.cardBg,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
+                  borderSide: BorderSide(color: theme.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
+                  borderSide: BorderSide(color: theme.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: primaryTeal),
+                  borderSide: BorderSide(color: theme.primary),
                 ),
               ),
             ),
@@ -225,11 +227,11 @@ class _CustomerReviewScreenState extends ConsumerState<CustomerReviewScreen> {
             ElevatedButton(
               onPressed: _submitReview,
               style: ElevatedButton.styleFrom(
-                backgroundColor: primaryTeal,
+                backgroundColor: theme.primary,
                 minimumSize: const Size(double.infinity, 56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 4,
-                shadowColor: primaryTeal.withValues(alpha: 0.4),
+                shadowColor: theme.primary.withValues(alpha: 0.4),
               ),
               child: Text("KIRIM ULASAN", style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
             ),
