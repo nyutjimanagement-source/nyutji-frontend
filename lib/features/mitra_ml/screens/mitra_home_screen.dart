@@ -139,7 +139,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
         final hasSeenEmpty = Hive.box('nyutji_cache').get('tutorial_mitra_home_tutorial_empty', defaultValue: false);
         final hasSeenOrders = Hive.box('nyutji_cache').get('tutorial_mitra_home_tutorial_with_orders', defaultValue: false);
         if (!hasSeenEmpty || !hasSeenOrders) {
-           Future.delayed(const Duration(milliseconds: 300), () {
+           Future.delayed(const Duration(milliseconds: 1200), () {
              if (mounted) _showTutorialCoachMark();
            });
         }
