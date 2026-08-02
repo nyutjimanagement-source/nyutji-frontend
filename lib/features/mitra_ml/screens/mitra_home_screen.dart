@@ -133,7 +133,7 @@ class _MitraHomeScreenState extends ConsumerState<MitraHomeScreen> {
     final orderProv = ref.watch(orderProvider);
     final showBerandaRedDot = orderProv.activeOrders.isNotEmpty;
 
-    if (!orderProv.isLoading && !_tutorialTriggered) {
+    if (orderProv.isFirstFetchDone && !orderProv.isLoading && !_tutorialTriggered) {
       _tutorialTriggered = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final hasSeenEmpty = Hive.box('nyutji_cache').get('tutorial_mitra_home_tutorial_empty', defaultValue: false);

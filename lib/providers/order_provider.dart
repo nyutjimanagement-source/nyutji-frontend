@@ -26,6 +26,9 @@ class OrderProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isFirstFetchDone = false;
+  bool get isFirstFetchDone => _isFirstFetchDone;
+
   List<dynamic> _activeOrders = [];
   List<dynamic> get activeOrders => _activeOrders;
   
@@ -165,11 +168,11 @@ class OrderProvider extends ChangeNotifier {
       return;
     }
 
-    // 1. Coba baca dari cache dulu agar UI ter-render instan
     final cachedData = CacheService.get('nyutji_orders');
     if (cachedData != null && cachedData is List) {
       await _processOrders(cachedData);
       _isLoading = false;
+      _isFirstFetchDone = true;
       _safeNotifyListeners();
     } else {
       _isLoading = true;
@@ -197,6 +200,7 @@ class OrderProvider extends ChangeNotifier {
       }
     } finally {
       _isLoading = false;
+      _isFirstFetchDone = true;
       _safeNotifyListeners();
     }
   }
