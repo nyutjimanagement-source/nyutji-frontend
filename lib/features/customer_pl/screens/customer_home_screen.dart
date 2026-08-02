@@ -1997,228 +1997,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             ),
           );
         });
-      });
-    });
+      }),
+    );
   }
 
-  void _showTutorialCoachMark() {
-    final targets = <TargetFocus>[];
-    
-    // 1. Lacak Progress
-    targets.add(
-      TargetFocus(
-        identify: "tracking",
-        keyTarget: _keyTracking,
-        shape: ShapeLightFocus.RRect,
-        radius: 16,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-              step: "1 / 8",
-              title: "Lacak Progress Cucian",
-              description: "Pantau pesanan Anda secara real-time dari saat diambil kurir hingga selesai dicuci.",
-              icon: LucideIcons.truck,
-              onNext: () {
-                _mainScrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                controller.next();
-              },
-              onSkip: () => controller.skip(),
-            ),
-          )
-        ],
-      ),
-    );
-
-    // 2. Dompet Nyutji
-    targets.add(
-      TargetFocus(
-        identify: "dompet",
-        keyTarget: _keyDompet,
-        shape: ShapeLightFocus.RRect,
-        radius: 12,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-              step: "2 / 8",
-              title: "Dompet Nyutji",
-              description: "Saldo dompet digital Anda untuk pembayaran yang lebih cepat, aman, dan dapatkan promo cashback.",
-              icon: LucideIcons.wallet,
-              onNext: () {
-                _mainScrollController.animateTo(200, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                controller.next();
-              },
-              onSkip: () => controller.skip(),
-            ),
-          )
-        ],
-      ),
-    );
-
-    // 3. Pick Up Kurir
-    targets.add(
-      TargetFocus(
-        identify: "pickup",
-        keyTarget: _keyPickUp,
-        shape: ShapeLightFocus.RRect,
-        radius: 12,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-              step: "3 / 8",
-              title: "Layanan Pick Up Kurir",
-              description: "Pesan layanan antar-jemput cucian langsung ke rumah Anda. Praktis tanpa ribet!",
-              icon: LucideIcons.packagePlus,
-              onNext: () => controller.next(),
-              onSkip: () => controller.skip(),
-            ),
-          )
-        ],
-      ),
-    );
-
-    // 4. Cuci Sepatu
-    targets.add(
-      TargetFocus(
-        identify: "sepatu",
-        keyTarget: _keySepatu,
-        shape: ShapeLightFocus.RRect,
-        radius: 12,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-              step: "4 / 8",
-              title: "Cuci Sepatu Spesial",
-              description: "Jangan lupa cobain layanan cuci sepatu kami. Ditangani oleh tenaga ahli untuk hasil maksimal.",
-              icon: LucideIcons.footprints,
-              onNext: () => controller.next(),
-              onSkip: () => controller.skip(),
-            ),
-          )
-        ],
-      ),
-    );
-
-    // 5. Status Tab
-    if (widget.keyStatusTab != null) {
-      targets.add(
-        TargetFocus(
-          identify: "status_tab",
-          keyTarget: widget.keyStatusTab!,
-          shape: ShapeLightFocus.Circle,
-          contents: [
-            TargetContent(
-              align: ContentAlign.top,
-              builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-                step: "5 / 8",
-                title: "Status Pesanan",
-                description: "Lihat rincian lengkap riwayat dan status setiap pesanan cucian Anda di sini.",
-                icon: LucideIcons.package,
-                onNext: () {
-                  _mainScrollController.animateTo(500, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-                  controller.next();
-                },
-                onSkip: () => controller.skip(),
-              ),
-            )
-          ],
-        ),
-      );
-    }
-
-    // 6. Profile Tab
-    if (widget.keyProfileTab != null) {
-      targets.add(
-        TargetFocus(
-          identify: "profile_tab",
-          keyTarget: widget.keyProfileTab!,
-          shape: ShapeLightFocus.Circle,
-          contents: [
-            TargetContent(
-              align: ContentAlign.top,
-              builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-                step: "6 / 8",
-                title: "Pengaturan Profil",
-                description: "Lengkapi alamat, nomor telepon, dan atur tema warna aplikasi kesukaan Anda di Profil.",
-                icon: LucideIcons.user,
-                onNext: () => controller.next(),
-                onSkip: () => controller.skip(),
-              ),
-            )
-          ],
-        ),
-      );
-    }
-
-    // 7. Promo
-    targets.add(
-      TargetFocus(
-        identify: "promo",
-        keyTarget: _keyPromo,
-        shape: ShapeLightFocus.RRect,
-        radius: 16,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-              step: "7 / 8",
-              title: "Promo & Diskon Spesial",
-              description: "Cek berbagai voucher dan diskon menarik yang tersedia khusus untuk Anda.",
-              icon: LucideIcons.ticket,
-              onNext: () {
-                _mainScrollController.animateTo(_mainScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
-                controller.next();
-              },
-              onSkip: () => controller.skip(),
-            ),
-          )
-        ],
-      ),
-    );
-
-    // 8. Mitra Terdekat
-    targets.add(
-      TargetFocus(
-        identify: "mitra",
-        keyTarget: _keyMitra,
-        shape: ShapeLightFocus.RRect,
-        radius: 16,
-        contents: [
-          TargetContent(
-            align: ContentAlign.top,
-            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
-              step: "8 / 8",
-              title: "Mitra Terdekat Nyutji",
-              description: "Pilih mitra laundry dengan rating terbaik dan lokasi terdekat dari tempat Anda berada.",
-              icon: LucideIcons.store,
-              isLast: true,
-              onNext: () => controller.next(),
-              onSkip: () => controller.skip(),
-            ),
-          )
-        ],
-      ),
-    );
-
-    TutorialCoachMark(
-      targets: targets,
-      colorShadow: Colors.black,
-      textSkip: "LEWATI",
-      paddingFocus: 10,
-      opacityShadow: 0.85,
-      hideSkip: true,
-      onFinish: () {
-        Hive.box('nyutji_cache').put('tutorial_customer_home', true);
-      },
-      onSkip: () {
-        Hive.box('nyutji_cache').put('tutorial_customer_home', true);
-        return true;
-      },
-    ).show(context: context);
-  }
 
   Widget _buildSearchOrderCard(BuildContext context, dynamic o) {
     final num = o['order_number'] ?? '-';
@@ -2593,6 +2375,225 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       ),
     );
   }
+  void _showTutorialCoachMark() {
+    final targets = <TargetFocus>[];
+    
+    // 1. Lacak Progress
+    targets.add(
+      TargetFocus(
+        identify: "tracking",
+        keyTarget: _keyTracking,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "1 / 8",
+              title: "Lacak Progress Cucian",
+              description: "Pantau pesanan Anda secara real-time dari saat diambil kurir hingga selesai dicuci.",
+              icon: LucideIcons.truck,
+              onNext: () {
+                _mainScrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                controller.next();
+              },
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 2. Dompet Nyutji
+    targets.add(
+      TargetFocus(
+        identify: "dompet",
+        keyTarget: _keyDompet,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "2 / 8",
+              title: "Dompet Nyutji",
+              description: "Saldo dompet digital Anda untuk pembayaran yang lebih cepat, aman, dan dapatkan promo cashback.",
+              icon: LucideIcons.wallet,
+              onNext: () {
+                _mainScrollController.animateTo(200, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                controller.next();
+              },
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 3. Pick Up Kurir
+    targets.add(
+      TargetFocus(
+        identify: "pickup",
+        keyTarget: _keyPickUp,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "3 / 8",
+              title: "Layanan Pick Up Kurir",
+              description: "Pesan layanan antar-jemput cucian langsung ke rumah Anda. Praktis tanpa ribet!",
+              icon: LucideIcons.packagePlus,
+              onNext: () => controller.next(),
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 4. Cuci Sepatu
+    targets.add(
+      TargetFocus(
+        identify: "sepatu",
+        keyTarget: _keySepatu,
+        shape: ShapeLightFocus.RRect,
+        radius: 12,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "4 / 8",
+              title: "Cuci Sepatu Spesial",
+              description: "Jangan lupa cobain layanan cuci sepatu kami. Ditangani oleh tenaga ahli untuk hasil maksimal.",
+              icon: LucideIcons.footprints,
+              onNext: () => controller.next(),
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 5. Status Tab
+    if (widget.keyStatusTab != null) {
+      targets.add(
+        TargetFocus(
+          identify: "status_tab",
+          keyTarget: widget.keyStatusTab!,
+          shape: ShapeLightFocus.Circle,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+                step: "5 / 8",
+                title: "Status Pesanan",
+                description: "Lihat rincian lengkap riwayat dan status setiap pesanan cucian Anda di sini.",
+                icon: LucideIcons.package,
+                onNext: () {
+                  _mainScrollController.animateTo(500, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+                  controller.next();
+                },
+                onSkip: () => controller.skip(),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+
+    // 6. Profile Tab
+    if (widget.keyProfileTab != null) {
+      targets.add(
+        TargetFocus(
+          identify: "profile_tab",
+          keyTarget: widget.keyProfileTab!,
+          shape: ShapeLightFocus.Circle,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+                step: "6 / 8",
+                title: "Pengaturan Profil",
+                description: "Lengkapi alamat, nomor telepon, dan atur tema warna aplikasi kesukaan Anda di Profil.",
+                icon: LucideIcons.user,
+                onNext: () => controller.next(),
+                onSkip: () => controller.skip(),
+              ),
+            )
+          ],
+        ),
+      );
+    }
+
+    // 7. Promo
+    targets.add(
+      TargetFocus(
+        identify: "promo",
+        keyTarget: _keyPromo,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "7 / 8",
+              title: "Promo & Diskon Spesial",
+              description: "Cek berbagai voucher dan diskon menarik yang tersedia khusus untuk Anda.",
+              icon: LucideIcons.ticket,
+              onNext: () {
+                _mainScrollController.animateTo(_mainScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
+                controller.next();
+              },
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    // 8. Mitra Terdekat
+    targets.add(
+      TargetFocus(
+        identify: "mitra",
+        keyTarget: _keyMitra,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => NyutjiCoachMark.buildTutorialCard(
+              step: "8 / 8",
+              title: "Mitra Terdekat Nyutji",
+              description: "Pilih mitra laundry dengan rating terbaik dan lokasi terdekat dari tempat Anda berada.",
+              icon: LucideIcons.store,
+              isLast: true,
+              onNext: () => controller.next(),
+              onSkip: () => controller.skip(),
+            ),
+          )
+        ],
+      ),
+    );
+
+    TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      textSkip: "LEWATI",
+      paddingFocus: 10,
+      opacityShadow: 0.85,
+      hideSkip: true,
+      onFinish: () {
+        Hive.box('nyutji_cache').put('tutorial_customer_home', true);
+      },
+      onSkip: () {
+        Hive.box('nyutji_cache').put('tutorial_customer_home', true);
+        return true;
+      },
+    ).show(context: context);
+  }
+
 }
 
 class HeaderClipper extends CustomClipper<Path> {

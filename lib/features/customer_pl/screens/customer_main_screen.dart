@@ -163,7 +163,8 @@ class CustomerMainScreenState extends ConsumerState<CustomerMainScreen> {
                                 ),
                               ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                       activeIcon: Stack(
                         clipBehavior: Clip.none,
