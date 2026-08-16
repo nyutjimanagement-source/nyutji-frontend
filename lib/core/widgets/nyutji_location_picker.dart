@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -47,7 +48,7 @@ class _NyutjiLocationPickerState extends ConsumerState<NyutjiLocationPicker> {
   final MapController _mapController = MapController();
   bool _isLoading = true;
   bool _isGeocoding = false;
-  String _addressInfo = "Mencari lokasi GPS...";
+  String _addressInfo = "Mencari Lokasi GPS.. Mohon ditunggu";
 
   String _road = "";
   String _houseNumber = "";
@@ -212,10 +213,18 @@ class _NyutjiLocationPickerState extends ConsumerState<NyutjiLocationPicker> {
           _isGeocoding = false;
         });
       } else {
-        setState(() => _isGeocoding = false);
+        setState(() {
+          _isGeocoding = false;
+          _addressInfo = "Pencarian alamat gagal. Coba geser peta sedikit.";
+        });
       }
     } catch (e) {
-      if (mounted) setState(() => _isGeocoding = false);
+      if (mounted) {
+        setState(() {
+          _isGeocoding = false;
+          _addressInfo = "Koneksi OSM terputus. Periksa internet Anda.";
+        });
+      }
       debugPrint("Geocoding Error: $e");
     }
   }
@@ -489,8 +498,32 @@ class _NyutjiLocationPickerState extends ConsumerState<NyutjiLocationPicker> {
                   ),
 
                 if (_isLoading)
-                  const Positioned.fill(
-                    child: ShimmerLoading(height: double.infinity, borderRadius: 0),
+                  Positioned.fill(
+                    child: ClipRRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                        child: Container(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(LucideIcons.hourglass, size: 50, color: darkTeal),
+                                const SizedBox(height: 16),
+                                Text(
+                                  "Loading Maps..",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: darkTeal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
               ],
             ),

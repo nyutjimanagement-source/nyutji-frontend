@@ -162,6 +162,10 @@ Aturan ini harus dipatuhi secara otomatis oleh semua asisten AI saat membuat ata
 * **Aturan**: Dilarang menggunakan metode `.withOpacity(double)` untuk memodifikasi opasitas warna pada Flutter.
 * **Alasan**: Metode `withOpacity` telah usang (*deprecated*) pada rilis SDK Flutter/Dart terbaru dan memicu peringatan *linter* `deprecated_member_use` yang menumpuk.
 * **Solusi**: Wajib mengganti penggunaannya dengan metode modern `.withValues(alpha: double)` (misalnya: `Colors.white.withValues(alpha: 0.9)`).
+
+### 23. Pewarnaan Dinamis (Dynamic Theming) untuk Customer
+* **Aturan**: Dilarang melakukan *hardcoding* warna statis (seperti `Colors.white`, kode *hex*, dll.) pada seluruh elemen UI di halaman (screen) / komponen Customer.
+* **Solusi**: Wajib membaca *state* tema secara reaktif menggunakan `final theme = ref.watch(customerThemeProvider);` di dalam metode `build` atau *Consumer*, dan panggil properti yang tersedia secara proporsional (seperti `theme.bg`, `theme.cardBg`, `theme.primary`, `theme.text`, `theme.subtext`, dan `theme.border`). Hal ini menjamin konsistensi visual dan adaptasi otomatis terhadap perubahan tema (seperti *Dark Mode*).
 ---
 
 ## III. Standar Database & Relasi Tabel

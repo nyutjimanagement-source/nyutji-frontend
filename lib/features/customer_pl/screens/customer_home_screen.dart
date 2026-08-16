@@ -1827,12 +1827,13 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
           final provider = ref.watch(orderProvider);
           final filteredMitras = provider.searchedMitras;
           final isLoading = provider.isLoading;
+          final theme = ref.watch(customerThemeProvider);
 
           return Container(
             height: MediaQuery.of(sbContext).size.height * 0.85,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFFF9ED),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            decoration: BoxDecoration(
+              color: theme.bg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             ),
             child: Column(
               children: [
@@ -1841,7 +1842,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     width: 45,
                     height: 5,
                     decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: theme.border,
                         borderRadius: BorderRadius.circular(10))),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
@@ -1850,11 +1851,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF403600).withValues(alpha: 0.1),
+                            color: theme.primary.withValues(alpha: 0.1),
                             shape: BoxShape.circle),
-                        child: const Icon(LucideIcons.search,
-                            color: Color(0xFF403600), size: 22),
+                        child: Icon(LucideIcons.search,
+                            color: theme.primary, size: 22),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -1862,10 +1862,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text("Pencarian Nyutji",
-                                style: NyutjiTheme.h2(const Color(0xFF131109))
+                                style: NyutjiTheme.h2(theme.text)
                                     .copyWith(fontSize: 18)),
                             Text("Temukan Mitra, Pesanan, Layanan",
-                                style: NyutjiTheme.detail(Colors.grey)),
+                                style: NyutjiTheme.detail(theme.subtext)),
                           ],
                         ),
                       ),
@@ -1878,8 +1878,9 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: theme.cardBg,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: theme.border.withValues(alpha: 0.5), width: 1.0),
                         boxShadow: [
                           BoxShadow(
                               color: Colors.black.withValues(alpha: 0.05),
@@ -1898,13 +1899,13 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           provider.searchGlobal(val);
                         });
                       },
-                      style: NyutjiTheme.body(const Color(0xFF131109))
+                      style: NyutjiTheme.body(theme.text)
                           .copyWith(fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
-                        icon: const Icon(LucideIcons.search,
-                            size: 20, color: Color(0xFF556B2F)),
+                        icon: Icon(LucideIcons.search,
+                            size: 20, color: theme.primary),
                         hintText: "Ketik apa saja... (mis: Cuci Sepatu)",
-                        hintStyle: NyutjiTheme.detail(Colors.grey),
+                        hintStyle: NyutjiTheme.detail(theme.subtext),
                         border: InputBorder.none,
                       ),
                     ),
@@ -1916,14 +1917,14 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(LucideIcons.zap,
-                                  size: 64, color: Colors.grey[300]),
-                              const SizedBox(height: 16),
-                              Text("Cari secepat kilat!",
-                                  style: NyutjiTheme.h3(Colors.grey)),
-                            ],
-                          ),
-                        )
+                                Icon(LucideIcons.zap,
+                                    size: 64, color: theme.border),
+                                const SizedBox(height: 16),
+                                Text("Cari secepat kilat!",
+                                    style: NyutjiTheme.h3(theme.subtext)),
+                              ],
+                            ),
+                          )
                       : isLoading
                           ? ListView.builder(
                               padding: const EdgeInsets.symmetric(
@@ -1942,13 +1943,13 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(LucideIcons.searchX,
-                                          size: 64, color: Colors.grey[300]),
+                                          size: 64, color: theme.border),
                                       const SizedBox(height: 16),
                                       Text("Oops! Tidak menemukan apapun.",
-                                          style: NyutjiTheme.h3(Colors.grey)),
+                                          style: NyutjiTheme.h3(theme.subtext)),
                                       Text("Coba kata kunci lain atau typo?",
                                           style:
-                                              NyutjiTheme.detail(Colors.grey)),
+                                              NyutjiTheme.detail(theme.subtext)),
                                     ],
                                   ),
                                 )
@@ -1959,8 +1960,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                   children: [
                                     if (filteredOrders.isNotEmpty) ...[
                                       Text("Riwayat Pesanan",
-                                          style: NyutjiTheme.h3(
-                                                  const Color(0xFF131109))
+                                          style: NyutjiTheme.h3(theme.text)
                                               .copyWith(
                                                   fontWeight: FontWeight.bold)),
                                       const SizedBox(height: 12),
@@ -1970,8 +1970,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                                     ],
                                     if (filteredMitras.isNotEmpty) ...[
                                       Text("Hasil Pencarian Mitra",
-                                          style: NyutjiTheme.h3(
-                                                  const Color(0xFF131109))
+                                          style: NyutjiTheme.h3(theme.text)
                                               .copyWith(
                                                   fontWeight: FontWeight.bold)),
                                       const SizedBox(height: 12),

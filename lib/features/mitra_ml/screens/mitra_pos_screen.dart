@@ -179,7 +179,13 @@ class _MitraPosScreenState extends ConsumerState<MitraPosScreen> {
                   GestureDetector(
                     onTap: () async {
                       final picker = ImagePicker();
-                      final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024, imageQuality: 85);
+                      // FIX: requestFullMetadata: false mencegah bug rotasi 90 derajat otomatis pada iOS dan Samsung
+                      final picked = await picker.pickImage(
+                        source: ImageSource.gallery, 
+                        maxWidth: 1024, 
+                        imageQuality: 85,
+                        requestFullMetadata: false,
+                      );
                       if (picked != null) {
                         setModalState(() => selectedImage = File(picked.path));
                       }

@@ -1,4 +1,5 @@
 
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,8 +35,42 @@ class _CustomerStatusScreenState extends ConsumerState<CustomerStatusScreen> {
         final provider = ref.read(orderProvider);
         await provider.fetchOrders();
         await provider.markAllPLOrdersAsSeen();
+        if (mounted) {
+          _checkAndShowDonePopup();
+        }
       }
     });
+  }
+
+  Future<void> _checkAndShowDonePopup() async {
+    final orderProv = ref.read(orderProvider);
+    final orders = orderProv.activeOrders;
+    
+    Map<String, dynamic>? doneOrder;
+    dynamic doneProof;
+
+    for (var order in orders) {
+      final status = (order['order_status'] ?? order['status'] ?? '').toString().toUpperCase();
+      if (status == 'DONE') {
+        final proofs = order['proofs'] as List?;
+        if (proofs != null && proofs.isNotEmpty) {
+          doneProof = proofs.last;
+          doneOrder = order;
+        }
+      }
+      if (doneOrder != null) break;
+    }
+
+    if (doneOrder != null && doneProof != null) {
+      final String path = doneProof['file_url'].toString().replaceAll(RegExp(r'^/+'), '');
+      final imageUrl = path.startsWith('http') ? path : "${ApiConstants.rootUrl}/$path";
+      
+      showDialog(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.6),
+        builder: (ctx) => _DoneOrderPopup(imageUrl: imageUrl, order: doneOrder!),
+      );
+    }
   }
 
   @override
@@ -1216,4 +1251,166 @@ class HeaderClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+// ─────────────────────────────────────────
+// DONE ORDER POPUP & CLIPPER
+// ─────────────────────────────────────────
+class WavyBottomClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    const double r = 24.0;
+    
+    // Mulai dari bawah lengkungan pojok kiri atas
+    path.moveTo(0, r);
+    // Garis lurus turun ke kiri bawah
+    path.lineTo(0, size.height - 40);
+    
+    // Gelombang pertama
+    path.quadraticBezierTo(size.width / 4, size.height, size.width / 2, size.height - 40);
+    // Gelombang kedua
+    path.quadraticBezierTo(size.width * 3 / 4, size.height - 80, size.width, size.height - 40);
+    
+    // Garis naik ke kanan atas
+    path.lineTo(size.width, r);
+    // Lengkungan pojok kanan atas
+    path.quadraticBezierTo(size.width, 0, size.width - r, 0);
+    
+    // Garis lurus ke kiri atas
+    path.lineTo(r, 0);
+    // Lengkungan pojok kiri atas
+    path.quadraticBezierTo(0, 0, 0, r);
+    
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class _DoneOrderPopup extends StatelessWidget {
+  final String imageUrl;
+  final Map<String, dynamic> order;
+
+  const _DoneOrderPopup({required this.imageUrl, required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Glassmorphic Container
+          ClipPath(
+            clipper: WavyBottomClipper(),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                width: double.infinity,
+                height: MediaQuery.of(context).size.height * 0.55,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Background Image
+                    CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      color: Colors.black.withValues(alpha: 0.5), // darken
+                      colorBlendMode: BlendMode.darken,
+                    ),
+                    // Content
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Cucian telah Selesai,\nsegera update status dan\nlakukan Review Ratingnya",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                height: 1.4,
+                                color: Colors.white,
+                                shadows: [
+                                  const Shadow(color: Colors.purpleAccent, blurRadius: 12, offset: Offset(0, 0)),
+                                  const Shadow(color: Colors.blueAccent, blurRadius: 20, offset: Offset(0, 0)),
+                                  const Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 2)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CustomerReviewScreen(order: order),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF403600),
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                elevation: 8,
+                                shadowColor: Colors.white.withValues(alpha: 0.5),
+                              ),
+                              child: Text("Beri Review Sekarang", style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 14)),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Floating X button
+          Positioned(
+            top: -15,
+            right: -15,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
+                  ],
+                ),
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                      ),
+                      child: const Icon(Icons.close, color: Colors.white, size: 20),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

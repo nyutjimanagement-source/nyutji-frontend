@@ -219,13 +219,41 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      String errMsg = "Gagal Registrasi";
-      if (e is DioException && e.response != null) {
-        final errText = ((e.response?.data is Map ? e.response?.data['message'] : null)?.toString() ?? '') + ((e.response?.data is Map ? e.response?.data['error'] : null)?.toString() ?? '');
-        if (errText.toLowerCase().contains('phone_number') || errText.toLowerCase().contains('unique')) {
-          errMsg = "Registrasi Gagal: No Handphone sudah digunakan Mitra lain";
+      
+      // 4. Default error: Internal di Sisi Aplikasi (Non-Network)
+      String errMsg = "Gagal Registrasi: Coba lagi, Gagal Upload Data"; 
+
+      if (e is DioException) {
+        if (e.response == null) {
+          // 1. Koneksi Jaringan Terputus / Timeout
+          errMsg = "Gagal Registrasi: Jaringan Terputus";
         } else {
-          errMsg = (e.response?.data is Map ? e.response?.data['message'] : null) ?? (e.response?.data is Map ? e.response?.data['error'] : null) ?? errMsg;
+          final statusCode = e.response?.statusCode ?? 500;
+          if (statusCode >= 500) {
+            // 2. Server Mengalami Gangguan (Internal Server Error)
+            errMsg = "Gagal Registrasi: Coba lagi, gangguan System";
+          } else {
+            final responseData = e.response?.data;
+            if (responseData is Map) {
+              final String? backendMsg = responseData['message']?.toString();
+              final String? backendErr = responseData['error']?.toString();
+              final String errText = (backendMsg ?? '') + (backendErr ?? '');
+              
+              if (errText.toLowerCase().contains('phone_number') || errText.toLowerCase().contains('unique')) {
+                errMsg = "Registrasi Gagal: No Handphone sudah digunakan Mitra lain";
+              } else if (backendMsg != null && backendMsg.isNotEmpty) {
+                errMsg = backendMsg; // Pesan asil dari backend yang valid
+              } else if (backendErr != null && backendErr.isNotEmpty) {
+                errMsg = backendErr; // Pesan error asli dari backend
+              } else {
+                // 3. Format Error dari Backend Tidak Sesuai
+                errMsg = "Gagal Registrasi: Coba lagi, gangguan System";
+              }
+            } else {
+              // 3. Format bukan JSON (misal HTML dari cPanel hosting)
+              errMsg = "Gagal Registrasi: Coba lagi, gangguan System";
+            }
+          }
         }
       }
       NyutjiNotif.showError(context, errMsg);
