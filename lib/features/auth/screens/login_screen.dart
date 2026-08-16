@@ -50,7 +50,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   final Map<String, dynamic> t = {
     'id': {
       'welcome': "Selamat Datang!",
-      'subtitle': "Masuk untuk Nyuci. Belum punya akun ? ",
+      'subtitle': "Belum punya akun Nyutji ? ",
       'phone': "Nomor Handphone",
       'login': "Masuk",
       'register': "Daftar disini",
