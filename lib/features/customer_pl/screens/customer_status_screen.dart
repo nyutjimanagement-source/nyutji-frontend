@@ -421,10 +421,14 @@ class _PremiumOrderCardState extends ConsumerState<PremiumOrderCard> {
     final rawCourier = order['courier_name'] ?? order['courier'] ?? order['petugas_kurir'];
     if (rawCourier == null || rawCourier.toString().isEmpty || rawCourier.toString() == "null") {
       final status = (order['order_status'] ?? order['status'] ?? '').toString().toUpperCase();
+      
+      const selfCourierStages = ['WEIGHING', 'WASH_START', 'WASH_IN_PROGRESS', 'IN_PROGRESS', 'IRONING', 'PACKING', 'WAITING_DROPOFF', 'DELIVERING', 'DONE', 'PAID'];
+      if (selfCourierStages.contains(status)) {
+        return "Mitra Laundry";
+      }
+
       if (status.contains('SEARCHING')) return "Sedang Mencari Kurir";
-      if (status.contains('WASH') || status.contains('PACK')) return "Kurir Tugas Lain";
       if (status.contains('PICKUP')) return "Kurir Menuju Ke Lokasi Anda";
-      if (status.contains('DELIVERY')) return "Kurir Sedang Mengantar Cucian";
       return "Sedang Mencari Kurir";
     }
     // Parse format {name: ..., identifier: ...}
