@@ -7,6 +7,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/order_provider.dart';
 import '../../../core/widgets/nyutji_scroll_physics.dart';
@@ -2251,13 +2252,16 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
             style: GoogleFonts.montserrat(
                 fontSize: 12, fontWeight: FontWeight.w600, color: textGrey)),
         const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
+        InkWell(
+          onTap: () => _openMap(customerAddress),
+          borderRadius: BorderRadius.circular(10),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2469,6 +2473,15 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     }
   }
 
+  Future<void> _openMap(String address) async {
+    final query = Uri.encodeComponent(address);
+    final url =
+        Uri.parse("https://www.google.com/maps/search/?api=1&query=$query");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
   void _showStatusUpdater(String orderId, String currentStatus,
       String deliveryType, dynamic o) async {
     final String deliveryUp = deliveryType.toUpperCase();
@@ -2540,7 +2553,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
   Widget _buildSearchButton(OrderProvider orderProv) {
     return GestureDetector(
       onTap: () => _showSearchModal(context, orderProv),
-      child: Container(
+      child: Ink(
         margin: const EdgeInsets.only(left: 4, right: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
@@ -2548,7 +2561,9 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
         ),
-        child: const Icon(LucideIcons.search, color: Colors.white, size: 18),
+        child: const InkWell(
+          child: Icon(LucideIcons.search, color: Colors.white, size: 18),
+        ),
       ),
     );
   }
