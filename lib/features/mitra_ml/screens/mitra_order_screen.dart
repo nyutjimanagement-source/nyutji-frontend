@@ -34,6 +34,10 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
 
   String currentFilter = "Reguler";
   final Set<String> _expandedIds = {};
+  final Set<String> _selfCourierOrders = {};
+  final Map<String, File> _selfCourierJemputImages = {};
+  final Map<String, File> _selfCourierAntarImages = {};
+  bool _isSelfCourierUploading = false;
   late PageController _pageController;
   late ScrollController _summaryScrollController;
   late ScrollController _pillScrollController;
@@ -1409,6 +1413,10 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
         // ── Chat & Call Buttons ──
         _buildChatCallButtons(o, status),
 
+        // ── Self-Courier Section (Antar/Jemput oleh Mitra) ──
+        if (_selfCourierOrders.contains(orderId))
+          _buildSelfCourierSection(o, orderId, statusUp),
+
         // ── Action Buttons ──
         if (needsCourier || needsUpdate) ...[
           const SizedBox(height: 24),
@@ -2086,13 +2094,35 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
                   const SizedBox(height: 20),
                   if (couriers.isEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40),
-                      child: Center(
-                          child: Text("Belum ada kurir.",
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      child: Column(
+                        children: [
+                          Text("Belum ada kurir.",
                               style: GoogleFonts.montserrat(
                                   fontSize: 13,
                                   color: Colors.grey,
-                                  fontWeight: FontWeight.w500))),
+                                  fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                _selfCourierOrders.add(orderId);
+                              });
+                            },
+                            child: Text(
+                              "Antar/Jemput oleh Mitra Laundry ?",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     )
                   else
                     Flexible(
@@ -2141,6 +2171,279 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
         ),
       ),
     );
+  }
+
+  // ── Self-Courier: Antar/Jemput oleh Mitra ─────────
+  Widget _buildSelfCourierSection(dynamic o, String orderId, String statusUp) {
+    final customerName =
+        (o['customer'] is Map ? o['customer']['name'] : null) ??
+            o['customer_name'] ??
+            'Pelanggan';
+    final customerAddress = o['address']?.toString() ??
+        o['customer_address']?.toString() ??
+        o['customer']?['address']?.toString() ??
+        'Alamat tidak tersedia';
+
+    final bool canJemput = statusUp == 'SEARCHING' ||
+        statusUp == 'COURIER_ACCEPTED' ||
+        statusUp == 'PICKING_UP' ||
+        statusUp == 'WAITING_DROPOFF';
+    final bool canAntar = statusUp == 'DELIVERING';
+    final bool jemputDone = _selfCourierJemputImages.containsKey(orderId);
+    final bool antarDone = _selfCourierAntarImages.containsKey(orderId);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+
+        // ── Header ──
+        Row(
+          children: [
+            const Icon(LucideIcons.truck, size: 16, color: primaryTeal),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text("Progress Antar dan Jemput",
+                  style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: darkText)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Container(
+          height: 2,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primaryTeal, primaryTeal.withValues(alpha: 0.1)],
+            ),
+            borderRadius: BorderRadius.circular(1),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // ── Lokasi Pelanggan Card ──
+        Text("Lokasi Antar dan Jemput:",
+            style: GoogleFonts.montserrat(
+                fontSize: 12, fontWeight: FontWeight.w600, color: textGrey)),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(LucideIcons.mapPin,
+                  size: 16, color: Color(0xFF0284C7)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(customerName,
+                        style: GoogleFonts.montserrat(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0284C7))),
+                    const SizedBox(height: 2),
+                    Text(customerAddress,
+                        style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: darkText),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // ── Tombol Upload Foto Cucian (Jemput) ──
+        _buildSelfCourierUploadBtn(
+          orderId: orderId,
+          label: "Upload Foto Cucian",
+          sublabel: "POW Bukti Jemput",
+          isEnabled: canJemput && !jemputDone,
+          isDone: jemputDone,
+          capturedFile: _selfCourierJemputImages[orderId],
+          onTap: () => _handleSelfCourierPhoto(orderId, isJemput: true),
+        ),
+        const SizedBox(height: 10),
+
+        // ── Tombol Upload Foto Antar ──
+        _buildSelfCourierUploadBtn(
+          orderId: orderId,
+          label: "Upload Bukti Antar",
+          sublabel: "POW Bukti Antar",
+          isEnabled: canAntar && !antarDone,
+          isDone: antarDone,
+          capturedFile: _selfCourierAntarImages[orderId],
+          onTap: () => _handleSelfCourierPhoto(orderId, isJemput: false),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelfCourierUploadBtn({
+    required String orderId,
+    required String label,
+    required String sublabel,
+    required bool isEnabled,
+    required bool isDone,
+    required File? capturedFile,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: isEnabled ? onTap : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDone
+                  ? Colors.green.shade50
+                  : isEnabled
+                      ? const Color(0xFFF3F4F6)
+                      : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: isDone
+                      ? Colors.green.shade200
+                      : isEnabled
+                          ? Colors.grey.shade300
+                          : Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(LucideIcons.camera,
+                    size: 16,
+                    color: isDone
+                        ? Colors.green.shade700
+                        : isEnabled
+                            ? Colors.black87
+                            : Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label,
+                          style: GoogleFonts.montserrat(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isDone
+                                  ? Colors.green.shade700
+                                  : isEnabled
+                                      ? Colors.black87
+                                      : Colors.grey)),
+                      Text(sublabel,
+                          style: GoogleFonts.montserrat(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: textGrey)),
+                    ],
+                  ),
+                ),
+                if (_isSelfCourierUploading)
+                  const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: primaryTeal))
+                else if (isDone)
+                  Icon(LucideIcons.checkCircle2,
+                      size: 16, color: Colors.green.shade700)
+                else if (isEnabled)
+                  const Icon(LucideIcons.chevronRight,
+                      size: 16, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
+        // Preview Thumbnail
+        if (capturedFile != null) ...[
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.file(capturedFile,
+                width: double.infinity, height: 100, fit: BoxFit.cover),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _handleSelfCourierPhoto(String orderId,
+      {required bool isJemput}) async {
+    final picker = ImagePicker();
+    final XFile? image =
+        await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
+    if (image == null) return;
+
+    if (!mounted) return;
+    NyutjiLoadingOverlay.show(context, message: "Mengompresi WebP...");
+    final compressed = await NyutjiImagePicker.compressToWebP(image);
+    if (!mounted) return;
+    NyutjiLoadingOverlay.hide(context);
+
+    final XFile finalImage = compressed ?? image;
+
+    setState(() {
+      _isSelfCourierUploading = true;
+    });
+
+    final provider = ref.read(orderProvider);
+
+    // 1. Upload POW
+    final String step = isJemput ? 'PICKING_UP' : 'DONE';
+    final uploadSuccess =
+        await provider.uploadPOWImage(orderId, finalImage, step);
+
+    if (!uploadSuccess) {
+      if (mounted) {
+        setState(() => _isSelfCourierUploading = false);
+        NyutjiNotif.showError(
+            context, provider.errorMessage ?? "Gagal unggah foto");
+      }
+      return;
+    }
+
+    // 2. Update Status
+    final String nextStatus = isJemput ? 'WEIGHING' : 'DONE';
+    final success = await provider.updateOrderStatus(orderId, nextStatus);
+
+    if (mounted) {
+      setState(() {
+        _isSelfCourierUploading = false;
+        if (success) {
+          if (isJemput) {
+            _selfCourierJemputImages[orderId] = File(finalImage.path);
+          } else {
+            _selfCourierAntarImages[orderId] = File(finalImage.path);
+          }
+        }
+      });
+
+      if (success) {
+        NyutjiNotif.showSuccess(context,
+            isJemput ? "Bukti jemput berhasil! Lanjut proses cucian." : "Bukti antar berhasil! Pesanan selesai.");
+        // Refresh orders
+        provider.fetchOrders(force: true);
+      } else {
+        NyutjiNotif.showError(
+            context, provider.errorMessage ?? "Gagal update status");
+      }
+    }
   }
 
   void _showStatusUpdater(String orderId, String currentStatus,

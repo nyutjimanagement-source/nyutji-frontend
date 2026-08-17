@@ -3,23 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/scheduler.dart';
+import '../../providers/customer_theme_provider.dart';
 
 class NyutjiNotif {
   static OverlayEntry? _currentEntry;
 
   static void showSuccess(BuildContext context, String message) {
-    _show(context, message, LucideIcons.checkCircle, const Color(0xFF286B6A));
+    _show(context, message, LucideIcons.checkCircle, type: 'success');
   }
 
   static void showError(BuildContext context, String message) {
-    _show(context, message, LucideIcons.alertCircle, const Color(0xFFC3312E));
+    _show(context, message, LucideIcons.alertCircle, type: 'error');
   }
 
   static void showInfo(BuildContext context, String message) {
-    _show(context, message, LucideIcons.info, const Color(0xFF286B6A));
+    _show(context, message, LucideIcons.info, type: 'info');
   }
 
-  static void _show(BuildContext context, String message, IconData icon, Color color) {
+  static void _show(BuildContext context, String message, IconData icon, {required String type}) {
     if (!context.mounted) return;
 
     void showAction() {
@@ -53,7 +54,7 @@ class NyutjiNotif {
           builder: (context) => _BeautyPopupWidget(
             message: message,
             icon: icon,
-            color: color,
+            type: type,
           ),
         );
 
@@ -86,12 +87,12 @@ class NyutjiNotif {
 class _BeautyPopupWidget extends ConsumerStatefulWidget {
   final String message;
   final IconData icon;
-  final Color color;
+  final String type;
 
   const _BeautyPopupWidget({
     required this.message,
     required this.icon,
-    required this.color,
+    required this.type,
   });
 
   @override ConsumerState<_BeautyPopupWidget> createState() => _BeautyPopupWidgetState();
@@ -118,6 +119,15 @@ class _BeautyPopupWidgetState extends ConsumerState<_BeautyPopupWidget> with Sin
 
   @override
   Widget build(BuildContext context) {
+    final theme = ref.watch(customerThemeProvider);
+    
+    Color notifColor;
+    if (widget.type == 'error') {
+      notifColor = const Color(0xFFC3312E);
+    } else {
+      notifColor = theme.primary;
+    }
+
     return SafeArea(
       child: Align(
         alignment: Alignment.topCenter,
@@ -131,26 +141,37 @@ class _BeautyPopupWidgetState extends ConsumerState<_BeautyPopupWidget> with Sin
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: widget.color,
+                  color: theme.cardBg,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1), 
+                      blurRadius: 20, 
+                      offset: const Offset(0, 10)
+                    )
                   ],
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+                  border: Border.all(color: theme.border, width: 1.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: Icon(widget.icon, size: 18, color: widget.color),
+                      decoration: BoxDecoration(
+                        color: notifColor.withValues(alpha: 0.15), 
+                        shape: BoxShape.circle
+                      ),
+                      child: Icon(widget.icon, size: 18, color: notifColor),
                     ),
                     const SizedBox(width: 16),
                     Flexible(
                       child: Text(
                         widget.message,
-                        style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        style: GoogleFonts.montserrat(
+                          color: theme.text, 
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 13
+                        ),
                       ),
                     ),
                   ],

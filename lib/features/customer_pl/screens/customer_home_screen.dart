@@ -2231,32 +2231,34 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFF9ED),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                  child: Container(
-                      width: 50,
-                      height: 5,
+        return Consumer(builder: (context, ref, child) {
+          final theme = ref.watch(customerThemeProvider);
+          return Container(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+            decoration: BoxDecoration(
+              color: theme.bg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                    child: Container(
+                        width: 50,
+                        height: 5,
+                        decoration: BoxDecoration(
+                            color: theme.border,
+                            borderRadius: BorderRadius.circular(10)))),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10)))),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                        color: theme.cardBg,
+                        borderRadius: BorderRadius.circular(12),
                       image: (mitra['image'] != null ||
                               mitra['profile_photo'] != null)
                           ? DecorationImage(
@@ -2279,10 +2281,10 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text("Pesan di",
-                            style: NyutjiTheme.detail(Colors.grey)
+                            style: NyutjiTheme.detail(theme.subtext)
                                 .copyWith(fontWeight: FontWeight.bold)),
                         Text(mitra['name'] ?? 'Mitra Nyutji',
-                            style: NyutjiTheme.h2(const Color(0xFF131109))
+                            style: NyutjiTheme.h2(theme.text)
                                 .copyWith(fontSize: 16)),
                       ],
                     ),
@@ -2291,7 +2293,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
               ),
               const SizedBox(height: 24),
               Text("Pilih Metode Layanan",
-                  style: NyutjiTheme.h3(const Color(0xFF131109))
+                  style: NyutjiTheme.h3(theme.text)
                       .copyWith(fontWeight: FontWeight.w900, fontSize: 14)),
               const SizedBox(height: 16),
               Row(
@@ -2300,7 +2302,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     child: _buildActionCard(
                       icon: LucideIcons.truck,
                       title: "Jemput\nKurir",
-                      color: const Color(0xFF556B2F),
+                      color: theme.primary,
+                      theme: theme,
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(
@@ -2317,7 +2320,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                     child: _buildActionCard(
                       icon: LucideIcons.user,
                       title: "Antar\nSendiri",
-                      color: const Color(0xFF403600),
+                      color: theme.text,
+                      theme: theme,
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(
@@ -2335,21 +2339,23 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
             ],
           ),
         );
-      },
-    );
-  }
+      });
+    },
+  );
+}
 
   Widget _buildActionCard(
       {required IconData icon,
       required String title,
       required Color color,
+      required dynamic theme,
       required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
           boxShadow: [
