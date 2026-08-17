@@ -2291,6 +2291,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
             ],
           ),
         ),
+        ),
         const SizedBox(height: 16),
 
         // ── Tombol Upload Foto Cucian (Jemput) ──
@@ -2553,7 +2554,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
   Widget _buildSearchButton(OrderProvider orderProv) {
     return GestureDetector(
       onTap: () => _showSearchModal(context, orderProv),
-      child: Ink(
+      child: Container(
         margin: const EdgeInsets.only(left: 4, right: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
@@ -2561,9 +2562,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
         ),
-        child: const InkWell(
-          child: Icon(LucideIcons.search, color: Colors.white, size: 18),
-        ),
+        child: const Icon(LucideIcons.search, color: Colors.white, size: 18),
       ),
     );
   }
