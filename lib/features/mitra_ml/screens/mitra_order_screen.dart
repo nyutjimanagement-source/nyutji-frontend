@@ -2253,7 +2253,9 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
                 fontSize: 12, fontWeight: FontWeight.w600, color: textGrey)),
         const SizedBox(height: 6),
         InkWell(
-          onTap: () => _openMap(customerAddress),
+          onTap: (statusUp == 'DONE' || statusUp == 'PAID')
+              ? null
+              : () => _openMap(customerAddress),
           borderRadius: BorderRadius.circular(10),
           child: Ink(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
