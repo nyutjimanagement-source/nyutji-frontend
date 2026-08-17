@@ -1031,9 +1031,28 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
         o['customer']?['photo']?.toString() ??
         o['customer_photo']?.toString() ??
         o['customerPhoto']?.toString();
-    final courierName = o['courier']?['name']?.toString() ??
+    String courierName = o['courier']?['name']?.toString() ??
         o['courier_name']?.toString() ??
         'Belum Ada';
+        
+    final String rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '')
+        .toString()
+        .toUpperCase();
+    final bool isSelfDrop = rawDel == 'SELF_DROP' ||
+        rawDel == 'SELFDROP_SELFDELIVERY' ||
+        rawDel == 'SELF_SERVICE';
+        
+    final bool isSelfCourier = _selfCourierOrders.contains(orderId) ||
+        (courierName == 'Belum Ada' &&
+            !isSelfDrop &&
+            statusUp != 'SEARCHING' &&
+            statusUp != 'COURIER_ACCEPTED');
+
+    if (isSelfCourier) {
+      courierName = 'Mitra Laundry';
+      _selfCourierOrders.add(orderId);
+    }
+
     final bool isFast = o['is_fast_track'] == true ||
         o['is_fast_track'] == 1 ||
         o['isFastTrack'] == true ||
@@ -1496,6 +1515,7 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
         courierName != 'null' &&
         courierName != '-' &&
         courierName != 'Belum Ada' &&
+        courierName != 'Mitra Laundry' &&
         courierName != 'Kurir';
 
     return Row(
@@ -2095,33 +2115,36 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
                   if (couriers.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 30),
-                      child: Column(
-                        children: [
-                          Text("Belum ada kurir.",
-                              style: GoogleFonts.montserrat(
-                                  fontSize: 13,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 16),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                              setState(() {
-                                _selfCourierOrders.add(orderId);
-                              });
-                            },
-                            child: Text(
-                              "Antar/Jemput oleh Mitra Laundry ?",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.black,
+                      child: Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text("Belum ada kurir.",
+                                style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 16),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context);
+                                setState(() {
+                                  _selfCourierOrders.add(orderId);
+                                });
+                              },
+                              child: Text(
+                                "Antar/Jemput oleh Mitra Laundry ?",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.black,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     )
                   else
