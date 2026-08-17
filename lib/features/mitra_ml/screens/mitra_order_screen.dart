@@ -2213,8 +2213,20 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
         statusUp == 'PICKING_UP' ||
         statusUp == 'WAITING_DROPOFF';
     final bool canAntar = statusUp == 'DELIVERING';
-    final bool jemputDone = _selfCourierJemputImages.containsKey(orderId);
-    final bool antarDone = _selfCourierAntarImages.containsKey(orderId);
+    bool hasRemoteProof(List<String> targetStages) {
+      final proofs = o['proofs'];
+      if (proofs != null && proofs is List) {
+        for (var p in proofs) {
+          if (targetStages.contains((p['step'] ?? '').toString().toUpperCase())) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    final bool jemputDone = _selfCourierJemputImages.containsKey(orderId) || hasRemoteProof(['PICKING_UP']);
+    final bool antarDone = _selfCourierAntarImages.containsKey(orderId) || hasRemoteProof(['DONE']);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2304,6 +2316,8 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
           isEnabled: canJemput && !jemputDone,
           isDone: jemputDone,
           capturedFile: _selfCourierJemputImages[orderId],
+          proofs: o['proofs'],
+          targetStages: const ['PICKING_UP'],
           onTap: () => _handleSelfCourierPhoto(orderId, isJemput: true),
         ),
         const SizedBox(height: 10),
@@ -2316,6 +2330,8 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
           isEnabled: canAntar && !antarDone,
           isDone: antarDone,
           capturedFile: _selfCourierAntarImages[orderId],
+          proofs: o['proofs'],
+          targetStages: const ['DONE'],
           onTap: () => _handleSelfCourierPhoto(orderId, isJemput: false),
         ),
       ],
@@ -2329,8 +2345,21 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
     required bool isEnabled,
     required bool isDone,
     required File? capturedFile,
+    required dynamic proofs,
+    required List<String> targetStages,
     required VoidCallback onTap,
   }) {
+    String? remoteImgUrl;
+    if (proofs != null && proofs is List) {
+      for (var p in proofs) {
+        if (targetStages.contains((p['step'] ?? '').toString().toUpperCase())) {
+          remoteImgUrl = p['image_url']?.toString() ?? p['file_path']?.toString();
+          break;
+        }
+      }
+    }
+    final bool hasPreview = capturedFile != null || remoteImgUrl != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2401,12 +2430,34 @@ class _MitraOrderScreenState extends ConsumerState<MitraOrderScreen> {
           ),
         ),
         // Preview Thumbnail
-        if (capturedFile != null) ...[
+        if (hasPreview) ...[
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.file(capturedFile,
-                width: double.infinity, height: 100, fit: BoxFit.cover),
+          GestureDetector(
+            onTap: () {
+              if (remoteImgUrl != null || capturedFile != null) {
+                _showPowDialog(proofs, targetStages, sublabel);
+              }
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: capturedFile != null
+                  ? Image.file(capturedFile,
+                      width: double.infinity, height: 100, fit: BoxFit.cover)
+                  : CachedNetworkImage(
+                      imageUrl: remoteImgUrl!,
+                      width: double.infinity,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          const ShimmerLoading(width: double.infinity, height: 100),
+                      errorWidget: (context, url, error) => Container(
+                          width: double.infinity,
+                          height: 100,
+                          color: Colors.grey.shade200,
+                          child: const Icon(LucideIcons.imageOff,
+                              color: Colors.grey)),
+                    ),
+            ),
           ),
         ],
       ],
