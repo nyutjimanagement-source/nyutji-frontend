@@ -380,12 +380,13 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
                               child: ElevatedButton(
                                 onPressed: _isLoading ? null : () async {
                                   if (_currentStep == 0) {
-                                    if (nameController.text.isEmpty || ktpFile == null) {
-                                      NyutjiNotif.showError(context, "Nama dan KTP wajib diisi");
+                                    if (nameController.text.isEmpty || identityController.text.isEmpty || ktpFile == null) {
+                                      NyutjiNotif.showError(context, "Nama, NIK, dan KTP wajib diisi");
                                       return;
                                     }
                                   } else if (_currentStep == 1) {
-                                    if (phoneController.text.isEmpty || passController.text.isEmpty || confirmPassController.text.isEmpty || businessAddressController.text.isEmpty) {
+                                    final bool isAddressOk = _isAddressSame || businessAddressController.text.isNotEmpty;
+                                    if (phoneController.text.isEmpty || passController.text.isEmpty || confirmPassController.text.isEmpty || !isAddressOk) {
                                       NyutjiNotif.showError(context, "Lengkapi data bisnis");
                                       return;
                                     }
