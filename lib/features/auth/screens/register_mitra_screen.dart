@@ -502,13 +502,13 @@ class _RegisterMitraScreenState extends ConsumerState<RegisterMitraScreen> {
           const SizedBox(height: 8),
           _buildGridChoices([
             _buildChoiceChip('KECIL', 'Kecil', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
-            _buildChoiceChip('MENENGAH', 'Menengah', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
+            _buildChoiceChip('SEDANG', 'Menengah', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
             _buildChoiceChip('BESAR', 'Besar', selectedCategory, (v) { setState(() => selectedCategory = v); _fetchServices(); }),
           ]),
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              selectedCategory == 'KECIL' ? "Kapasitas < 50 kg/hari" : selectedCategory == 'MENENGAH' ? "Kapasitas 50-200 kg/hari" : "Kapasitas > 200 kg/hari",
+              selectedCategory == 'KECIL' ? "Kapasitas < 50 kg/hari" : selectedCategory == 'SEDANG' ? "Kapasitas 50-200 kg/hari" : "Kapasitas > 200 kg/hari",
               style: GoogleFonts.montserrat(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
             ),
           ),
