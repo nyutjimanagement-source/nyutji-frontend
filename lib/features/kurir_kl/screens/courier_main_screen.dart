@@ -80,6 +80,7 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
   bool _isUploading = false;
   String _gpsLocationText = "Mendeteksi lokasi...";
   bool _hasDoneAutoSelect = false;
+  final Set<String> _expandedTasks = {}; // Track task cards yang di-expand manual
 
   // Clean Emerald Glass Palette
   final Color primaryTeal = const Color(0xFF0F766E); // Deep Emerald Teal
@@ -1344,78 +1345,88 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
                         ),
                       ),
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              setState(() => _tabController.index = 0);
-                              _tabController.animateTo(0);
-                            },
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(LucideIcons.arrowDownToLine,
-                                      size: 14,
-                                      color: _tabController.index == 0
-                                          ? primaryTeal
-                                          : textGrey),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "Jemput (Pickup)",
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 13,
-                                      fontWeight: _tabController.index == 0
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
-                                      color: _tabController.index == 0
-                                          ? primaryTeal
-                                          : textGrey,
+                    Consumer(builder: (context, ref, _) {
+                      final orders = ref.watch(orderProvider).activeOrders;
+                      int pickupCount = 0, deliveryCount = 0;
+                      for (final o in orders) {
+                        final s = (o['status'] ?? o['order_status'] ?? '').toString().toUpperCase();
+                        final rawDel = (o['deliveryType'] ?? o['delivery_type'] ?? '').toString().toUpperCase();
+                        final isSelfDrop = rawDel == 'SELF_DROP' || rawDel == 'SELFDROP_SELFDELIVERY' || rawDel == 'SELF_SERVICE';
+                        if (s == 'DELIVERING') {
+                          deliveryCount++;
+                        } else if (!isSelfDrop && (s == 'SEARCHING' || s == 'WAITING_DROPOFF' || s == 'COURIER_ACCEPTED' || s == 'PICKING_UP' || s == 'WEIGHING' || s == 'WASH_START' || s == 'IN_PROGRESS' || s == 'PACKING')) {
+                          pickupCount++;
+                        }
+                      }
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                setState(() => _tabController.index = 0);
+                                _tabController.animateTo(0);
+                              },
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(LucideIcons.arrowDownToLine,
+                                        size: 14,
+                                        color: _tabController.index == 0 ? primaryTeal : textGrey),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Jemput (Pickup)",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 13,
+                                        fontWeight: _tabController.index == 0 ? FontWeight.w800 : FontWeight.w600,
+                                        color: _tabController.index == 0 ? primaryTeal : textGrey,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    if (pickupCount > 0) ...[
+                                      const SizedBox(width: 6),
+                                      NyutjiDot.badge(count: pickupCount),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              setState(() => _tabController.index = 1);
-                              _tabController.animateTo(1);
-                            },
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(LucideIcons.send,
-                                      size: 14,
-                                      color: _tabController.index == 1
-                                          ? primaryTeal
-                                          : textGrey),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "Antar (Delivery)",
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 13,
-                                      fontWeight: _tabController.index == 1
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
-                                      color: _tabController.index == 1
-                                          ? primaryTeal
-                                          : textGrey,
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                setState(() => _tabController.index = 1);
+                                _tabController.animateTo(1);
+                              },
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(LucideIcons.send,
+                                        size: 14,
+                                        color: _tabController.index == 1 ? primaryTeal : textGrey),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Antar (Delivery)",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 13,
+                                        fontWeight: _tabController.index == 1 ? FontWeight.w800 : FontWeight.w600,
+                                        color: _tabController.index == 1 ? primaryTeal : textGrey,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    if (deliveryCount > 0) ...[
+                                      const SizedBox(width: 6),
+                                      NyutjiDot.badge(count: deliveryCount),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    }),
                   ],
                 );
               }),
@@ -1583,6 +1594,28 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
       }
     }
 
+    // Status "menunggu" (sedang dicuci) → collapse otomatis
+    final bool isWaiting = !isDelivery && (
+      orderStatus == 'WASH_START' ||
+      orderStatus == 'IN_PROGRESS' ||
+      orderStatus == 'PACKING'
+    );
+
+    // Determine expand state: manual override OR default (expanded jika bukan waiting)
+    final bool isExpanded = _expandedTasks.contains(orderId)
+        ? true
+        : (!_expandedTasks.contains('collapsed_$orderId') && !isWaiting);
+
+    // Label status yang ditampilkan saat collapse
+    final String statusLabel = orderStatus == 'WASH_START' ? 'Sedang Dicuci'
+        : orderStatus == 'IN_PROGRESS' ? 'Dalam Proses'
+        : orderStatus == 'PACKING' ? 'Pengemasan'
+        : orderStatus == 'WEIGHING' ? 'Penimbangan'
+        : orderStatus == 'PICKING_UP' ? 'Dijemput Kurir'
+        : orderStatus == 'COURIER_ACCEPTED' ? 'Kurir Diterima'
+        : orderStatus == 'DELIVERING' ? 'Dalam Pengiriman'
+        : orderStatus;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -1590,17 +1623,14 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: primaryTeal.withValues(alpha: 0.08)),
         boxShadow: [
-          BoxShadow(
-              color: primaryTeal.withValues(alpha: 0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 8)),
+          BoxShadow(color: primaryTeal.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, 8)),
         ],
       ),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Pitch sebelah kiri warna primaryTeal / merah untuk Fast Track
+            // Strip kiri warna
             Container(
               width: 6,
               decoration: BoxDecoration(
@@ -1618,149 +1648,127 @@ class _CourierMainScreenState extends ConsumerState<CourierMainScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Row Jasa Jemput/Antar
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          isDelivery
-                              ? "Jasa Antar: $priceText"
-                              : "Jasa Jemput: $priceText",
-                          style: GoogleFonts.montserrat(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: primaryTeal),
-                        ),
-                        if (isFast)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                                color: Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(6)),
-                            child: Text("FAST TRACK",
-                                style: GoogleFonts.montserrat(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.red)),
+                    // Header — selalu tampil, bisa di-tap untuk expand/collapse
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (isExpanded) {
+                            _expandedTasks.remove(orderId);
+                            _expandedTasks.add('collapsed_$orderId');
+                          } else {
+                            _expandedTasks.remove('collapsed_$orderId');
+                            _expandedTasks.add(orderId);
+                          }
+                        });
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isDelivery ? "Jasa Antar: $priceText" : "Jasa Jemput: $priceText",
+                              style: GoogleFonts.montserrat(
+                                  fontSize: 16, fontWeight: FontWeight.w900, color: primaryTeal),
+                            ),
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Row Order Number
-                    Row(
-                      children: [
-                        const Icon(LucideIcons.hash,
-                            size: 14, color: Colors.black),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Order: $orderId",
-                          style: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: textGrey),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Row Nama Pelanggan
-                    Row(
-                      children: [
-                        const Icon(LucideIcons.user,
-                            size: 14, color: Colors.black),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Pelanggan: $customerName",
-                          style: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: darkText),
-                        ),
-                      ],
+                          if (isFast) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(6)),
+                              child: Text("FAST TRACK",
+                                  style: GoogleFonts.montserrat(
+                                      fontSize: 10, fontWeight: FontWeight.w900, color: Colors.red)),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Icon(
+                            isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                            size: 16, color: textGrey,
+                          ),
+                        ],
+                      ),
                     ),
 
-                    const SizedBox(height: 12),
-                    const Divider(
-                        color: Color(0xFFE5E7EB),
-                        height: 1,
-                        thickness: 1), // Partisi abu-abu
-                    const SizedBox(height: 12),
-
-                    if (isDelivery) ...[
-                      // Ambil dari (Laundry Mitra)
-                      _buildLinkedStepRow(
-                        label: "Ambil dari",
-                        title: laundryName,
-                        address: laundryAddress,
-                        icon: LucideIcons.store,
-                      ),
-                      if (deliveringProof != null) ...[
-                        const SizedBox(height: 8),
-                        _buildNetworkPowPreview(
-                            deliveringProof,
-                            "Foto Cucian yang Diambil",
-                            "Pengiriman Mitra",
-                            "DELIVERING"),
-                      ],
-                      const SizedBox(height: 12),
-
-                      // Antar ke (Alamat Pelanggan)
-                      _buildLinkedStepRow(
-                        label: "Antar ke",
-                        title: customerName,
-                        address: address,
-                        icon: LucideIcons.mapPin,
-                      ),
-                      // Row POW Kurir (Jemput dari DB + Antar dari local/captured file)
-                      _buildCourierPowsRow(pickupProof, orderId),
-                    ] else ...[
-                      // Jemput di (Alamat Pelanggan)
-                      _buildLinkedStepRow(
-                        label: "Jemput di",
-                        title: customerName,
-                        address: address,
-                        icon: LucideIcons.mapPin,
-                      ),
-                      // Row POW Kurir (Jemput dari DB + local captured file)
-                      _buildCourierPowsRow(pickupProof, orderId),
-                      const SizedBox(height: 12),
-
-                      // Antar ke (Laundry Mitra)
-                      _buildLinkedStepRow(
-                        label: "Antar ke",
-                        title: laundryName,
-                        address: laundryAddress,
-                        icon: LucideIcons.store,
-                      ),
+                    // Collapsed summary (Pelanggan + Status Cucian)
+                    if (!isExpanded) ...[
+                      const SizedBox(height: 6),
+                      Row(children: [
+                        Icon(LucideIcons.user, size: 13, color: textGrey),
+                        const SizedBox(width: 5),
+                        Expanded(child: Text("Pelanggan: $customerName",
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: darkText))),
+                      ]),
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        Icon(LucideIcons.loader, size: 13, color: amberGold),
+                        const SizedBox(width: 5),
+                        Text("Status Cucian: $statusLabel",
+                          style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: amberGold)),
+                      ]),
                     ],
-                    const SizedBox(height: 14),
 
-                    // ── Chat & Call Buttons ──
-                    _buildChatCallButtons(task, isDelivery),
-                    const SizedBox(height: 14),
-
-                    // Upload Foto Cucian
-                    _buildUploadPhotoSection(
-                      orderId,
-                      task,
-                      isDelivery,
-                      isClickable: isDelivery ? true : !isPickupCompleted,
-                    ),
-
-                    // Action Button Selesai Jemput/Antar (Kapsul)
-                    const SizedBox(height: 14),
-                    _buildActionButton(
-                      text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
-                      isEnabled: isDelivery
-                          ? (_taskCapturedImages[orderId] != null &&
-                              _simulatedCorrectLocation[orderId] == true &&
-                              !_isUploading)
-                          : (!isPickupCompleted &&
-                              _taskCapturedImages[orderId] != null &&
-                              !_isUploading),
-                      onPressed: () => _completeTask(orderId, isDelivery),
+                    // Detail lengkap — expand/collapse dengan animasi
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      clipBehavior: Clip.antiAlias,
+                      child: isExpanded ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Row(children: [
+                            const Icon(LucideIcons.hash, size: 14, color: Colors.black),
+                            const SizedBox(width: 6),
+                            Text("Order: $orderId",
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w600, color: textGrey)),
+                          ]),
+                          const SizedBox(height: 6),
+                          Row(children: [
+                            const Icon(LucideIcons.user, size: 14, color: Colors.black),
+                            const SizedBox(width: 6),
+                            Text("Pelanggan: $customerName",
+                              style: GoogleFonts.montserrat(fontSize: 13, fontWeight: FontWeight.w700, color: darkText)),
+                          ]),
+                          const SizedBox(height: 12),
+                          const Divider(color: Color(0xFFE5E7EB), height: 1, thickness: 1),
+                          const SizedBox(height: 12),
+                          if (isDelivery) ...[
+                            _buildLinkedStepRow(label: "Ambil dari", title: laundryName, address: laundryAddress, icon: LucideIcons.store),
+                            if (deliveringProof != null) ...[
+                              const SizedBox(height: 8),
+                              _buildNetworkPowPreview(deliveringProof, "Foto Cucian yang Diambil", "Pengiriman Mitra", "DELIVERING"),
+                            ],
+                            const SizedBox(height: 12),
+                            _buildLinkedStepRow(label: "Antar ke", title: customerName, address: address, icon: LucideIcons.mapPin),
+                            _buildCourierPowsRow(pickupProof, orderId),
+                          ] else ...[
+                            _buildLinkedStepRow(label: "Jemput di", title: customerName, address: address, icon: LucideIcons.mapPin),
+                            _buildCourierPowsRow(pickupProof, orderId),
+                            const SizedBox(height: 12),
+                            _buildLinkedStepRow(label: "Antar ke", title: laundryName, address: laundryAddress, icon: LucideIcons.store),
+                          ],
+                          const SizedBox(height: 14),
+                          _buildChatCallButtons(task, isDelivery),
+                          const SizedBox(height: 14),
+                          _buildUploadPhotoSection(orderId, task, isDelivery,
+                              isClickable: isDelivery ? true : !isPickupCompleted),
+                          const SizedBox(height: 14),
+                          _buildActionButton(
+                            text: isDelivery ? "Selesai Antar" : "Selesai Jemput",
+                            isEnabled: isDelivery
+                                ? (_taskCapturedImages[orderId] != null &&
+                                    _simulatedCorrectLocation[orderId] == true &&
+                                    !_isUploading)
+                                : (!isPickupCompleted &&
+                                    _taskCapturedImages[orderId] != null &&
+                                    !_isUploading),
+                            onPressed: () => _completeTask(orderId, isDelivery),
+                          ),
+                        ],
+                      ) : const SizedBox.shrink(),
                     ),
                   ],
                 ),
